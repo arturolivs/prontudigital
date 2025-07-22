@@ -1,42 +1,51 @@
 package com.prontudigital.user_service;
 
-
 import com.prontudigital.user_service.dto.UserDTO;
+import com.prontudigital.user_service.exception.UserNotFoundException;
+import com.prontudigital.user_service.exception.UsernameAlreadyExistsException;
 import com.prontudigital.user_service.model.Role;
 import com.prontudigital.user_service.model.User;
 import com.prontudigital.user_service.repository.UserRepository;
 import com.prontudigital.user_service.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
     @InjectMocks
     private UserServiceImpl service;
 
     @Mock
-    private UserRepository repo;
+    private UserRepository userRepository;
 
     @Mock
-    private PasswordEncoder encoder;
+    private PasswordEncoder passwordEncoder;
 
-    private User sample;
+    private User sampleUser;
+    private UUID userId;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        sample = User.builder()
-                .id(UUID.randomUUID())
-                .username("john")
-                .passwordHash("hashed")
+        userId = UUID.randomUUID();
+        sampleUser = User.builder()
+                .id(userId)
+                .username("usuario.teste")
+                .passwordHash("encodedPassword")
                 .role(Role.NURSE)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -44,101 +53,108 @@ class UserServiceImplTest {
     }
 
     @Test
-    void findAll_returnsMappedDTOs() {
-        when(repo.findAll()).thenReturn(List.of(sample));
+    void findAll_ShouldReturnListOfUserDTOs() {
+        when(userRepository.findAll()).thenReturn(List.of(sampleUser));
 
-        var dtos = service.findAll();
+        List<UserDTO> result = service.findAll();
 
-        assertEquals(1, dtos.size());
-        assertEquals("john", dtos.get(0).getUsername());
-        verify(repo).findAll();
+        assertEquals(1, result.size());
+        assertEquals(sampleUser.getUsername(), result.get(0).getUsername());
+        verify(userRepository).findAll();
     }
 
     @Test
-    void findById_existing_returnsDTO() {
-        when(repo.findById(sample.getId())).thenReturn(Optional.of(sample));
+    void findById_WithExistingId_ShouldReturnUserDTO() {
+        when(userRepository.findById(userId)).thenReturn(Optional.of(sampleUser));
 
-        var dto = service.findById(sample.getId());
+        UserDTO result = service.findById(userId);
 
-        assertEquals(sample.getId(), dto.getId());
-        verify(repo).findById(sample.getId());
+        assertEquals(userId, result.getId());
+        verify(userRepository).findById(userId);
     }
 
     @Test
-    void findById_notFound_throwsException() {
-        UUID id = UUID.randomUUID();
-        when(repo.findById(id)).thenReturn(Optional.empty());
+    void findById_WithNonExistingId_ShouldThrowException() {
+        UUID nonExistingId = UUID.randomUUID();
+        when(userRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> service.findById(id));
-        verify(repo).findById(id);
+        assertThrows(UserNotFoundException.class, () -> service.findById(nonExistingId));
+        verify(userRepository).findById(nonExistingId);
     }
 
     @Test
-    void create_uniqueUsername_savesAndPublishesEvent() {
-        UserDTO dto = UserDTO.builder()
-                .username("john")
-                .role(Role.NURSE)
+    void create_WithUniqueUsername_ShouldSaveUser() {
+        UserDTO newUserDTO = UserDTO.builder()
+                .username("novo.usuario")
+                .role(Role.ADMIN)
                 .build();
-        when(repo.existsByUsername("john")).thenReturn(false);
-        when(encoder.encode("pwd")).thenReturn("hashed");
-        when(repo.save(any())).thenAnswer(inv -> {
-            User u = inv.getArgument(0);
-            u.setId(sample.getId());
-            u.setCreatedAt(Instant.now());
-            return u;
+
+        when(userRepository.existsByUsername("novo.usuario")).thenReturn(false);
+        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setId(userId);
+            return user;
         });
 
-        var result = service.create(dto, "pwd");
+        UserDTO result = service.create(newUserDTO, "password");
 
-        assertEquals("john", result.getUsername());
-        assertEquals(Role.NURSE, result.getRole());
-        verify(repo).save(any(User.class));
+        assertNotNull(result.getId());
+        assertEquals("novo.usuario", result.getUsername());
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
-    void create_duplicateUsername_throwsException() {
-        UserDTO dto = UserDTO.builder().username("john").role(Role.NURSE).build();
-        when(repo.existsByUsername("john")).thenReturn(true);
+    void create_WithExistingUsername_ShouldThrowException() {
+        UserDTO existingUserDTO = UserDTO.builder()
+                .username("usuario.teste")
+                .role(Role.NURSE)
+                .build();
 
-        assertThrows(RuntimeException.class, () -> service.create(dto, "pwd"));
-        verify(repo, never()).save(any());
+        when(userRepository.existsByUsername("usuario.teste")).thenReturn(true);
+
+        assertThrows(UsernameAlreadyExistsException.class,
+                () -> service.create(existingUserDTO, "password"));
+        verify(userRepository, never()).save(any());
     }
 
     @Test
-    void update_existing_updatesAndPublishes() {
-        UserDTO dto = UserDTO.builder().role(Role.ADMIN).build();
-        when(repo.findById(sample.getId())).thenReturn(Optional.of(sample));
-        when(repo.save(any())).thenReturn(sample);
+    void update_WithExistingId_ShouldUpdateUser() {
+        UserDTO updateDTO = UserDTO.builder().role(Role.ADMIN).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(sampleUser));
+        when(userRepository.save(sampleUser)).thenReturn(sampleUser);
 
-        var updated = service.update(sample.getId(), dto);
+        UserDTO result = service.update(userId, updateDTO);
 
-        assertEquals(Role.ADMIN, updated.getRole());
-        verify(repo).save(sample);
+        assertEquals(Role.ADMIN, result.getRole());
+        verify(userRepository).save(sampleUser);
     }
 
     @Test
-    void update_notFound_throwsException() {
-        UUID id = UUID.randomUUID();
-        when(repo.findById(id)).thenReturn(Optional.empty());
+    void update_WithNonExistingId_ShouldThrowException() {
+        UUID nonExistingId = UUID.randomUUID();
+        when(userRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> service.update(id, new UserDTO()));
+        assertThrows(UserNotFoundException.class,
+                () -> service.update(nonExistingId, new UserDTO()));
+        verify(userRepository, never()).save(any());
     }
 
     @Test
-    void delete_existing_deletesAndPublishes() {
-        when(repo.existsById(sample.getId())).thenReturn(true);
+    void delete_WithExistingId_ShouldDeleteUser() {
+        when(userRepository.existsById(userId)).thenReturn(true);
 
-        service.delete(sample.getId());
+        service.delete(userId);
 
-        verify(repo).deleteById(sample.getId());
+        verify(userRepository).deleteById(userId);
     }
 
     @Test
-    void delete_notFound_throwsException() {
-        UUID id = UUID.randomUUID();
-        when(repo.existsById(id)).thenReturn(false);
+    void delete_WithNonExistingId_ShouldThrowException() {
+        UUID nonExistingId = UUID.randomUUID();
+        when(userRepository.existsById(nonExistingId)).thenReturn(false);
 
-        assertThrows(RuntimeException.class, () -> service.delete(id));
-        verify(repo, never()).deleteById(id);
+        assertThrows(UserNotFoundException.class, () -> service.delete(nonExistingId));
+        verify(userRepository, never()).deleteById(any());
     }
 }

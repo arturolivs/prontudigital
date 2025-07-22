@@ -1,7 +1,8 @@
 package com.prontudigital.user_service.service.impl;
 
-
 import com.prontudigital.user_service.dto.UserDTO;
+import com.prontudigital.user_service.exception.UserNotFoundException;
+import com.prontudigital.user_service.exception.UsernameAlreadyExistsException;
 import com.prontudigital.user_service.model.User;
 import com.prontudigital.user_service.repository.UserRepository;
 import com.prontudigital.user_service.service.UserService;
@@ -18,59 +19,55 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repo;
-    private final PasswordEncoder encoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDTO> findAll() {
-        return repo.findAll().stream()
-                .map(this::toDTO)
+        return userRepository.findAll().stream()
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDTO findById(UUID id) {
-        return repo.findById(id)
-                .map(this::toDTO)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        return userRepository.findById(id)
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Override
     @Transactional
     public UserDTO create(UserDTO dto, String rawPassword) {
-        if (repo.existsByUsername(dto.getUsername()))
-            throw new RuntimeException("Username já existe");
+        validateUsernameUniqueness(dto.getUsername());
 
-        User user = User.builder()
-                .username(dto.getUsername())
-                .passwordHash(encoder.encode(rawPassword))
-                .role(dto.getRole())
-                .build();
-        user = repo.save(user);
+        User user = buildUserFromDTO(dto, rawPassword);
+        user = userRepository.save(user);
 
-        return toDTO(user);
+        return convertToDTO(user);
     }
 
     @Override
     @Transactional
     public UserDTO update(UUID id, UserDTO dto) {
-        User user = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        User user = getUserById(id);
         user.setRole(dto.getRole());
-        user = repo.save(user);
 
-        return toDTO(user);
+        return convertToDTO(userRepository.save(user));
     }
 
     @Override
     @Transactional
     public void delete(UUID id) {
-        if (!repo.existsById(id))
-            throw new RuntimeException("Usuário não encontrado");
-        repo.deleteById(id);
+        if (!userRepository.existsById(id)) {
+            throw new UserNotFoundException(id);
+        }
+        userRepository.deleteById(id);
     }
 
-    private UserDTO toDTO(User user) {
+    private UserDTO convertToDTO(User user) {
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -78,5 +75,24 @@ public class UserServiceImpl implements UserService {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
+    }
+
+    private User buildUserFromDTO(UserDTO dto, String rawPassword) {
+        return User.builder()
+                .username(dto.getUsername())
+                .passwordHash(passwordEncoder.encode(rawPassword))
+                .role(dto.getRole())
+                .build();
+    }
+
+    private User getUserById(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    private void validateUsernameUniqueness(String username) {
+        if (userRepository.existsByUsername(username)) {
+            throw new UsernameAlreadyExistsException(username);
+        }
     }
 }
