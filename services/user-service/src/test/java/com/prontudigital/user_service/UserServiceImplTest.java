@@ -1,10 +1,12 @@
 package com.prontudigital.user_service;
 
 import com.prontudigital.user_service.dto.UserDTO;
+import com.prontudigital.user_service.exception.ProfileNotFoundException;
 import com.prontudigital.user_service.exception.UserNotFoundException;
-import com.prontudigital.user_service.exception.UsernameAlreadyExistsException;
-import com.prontudigital.user_service.model.Role;
+import com.prontudigital.user_service.exception.UserNameAlreadyExistsException;
+import com.prontudigital.user_service.model.Profile;
 import com.prontudigital.user_service.model.User;
+import com.prontudigital.user_service.repository.ProfileRepository;
 import com.prontudigital.user_service.repository.UserRepository;
 import com.prontudigital.user_service.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,9 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,19 +34,30 @@ class UserServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
+    private ProfileRepository profileRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     private User sampleUser;
     private UUID userId;
+    private Profile nurseProfile;
 
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
+        nurseProfile = Profile.builder()
+                .id(UUID.randomUUID())
+                .name("Enfermeiro")
+                .build();
+
         sampleUser = User.builder()
                 .id(userId)
-                .username("usuario.teste")
+                .email("enfermeiro@clinica.com")
                 .passwordHash("encodedPassword")
-                .role(Role.NURSE)
+                .fullName("Enfermeiro Teste")
+                .isActive(true)
+                .profiles(Set.of(nurseProfile))
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
@@ -59,7 +70,9 @@ class UserServiceImplTest {
         List<UserDTO> result = service.findAll();
 
         assertEquals(1, result.size());
-        assertEquals(sampleUser.getUsername(), result.get(0).getUsername());
+        assertEquals(sampleUser.getEmail(), result.get(0).getEmail());
+        assertEquals(1, result.get(0).getProfiles().size());
+        assertTrue(result.get(0).getProfiles().contains("Enfermeiro"));
         verify(userRepository).findAll();
     }
 
@@ -70,6 +83,7 @@ class UserServiceImplTest {
         UserDTO result = service.findById(userId);
 
         assertEquals(userId, result.getId());
+        assertEquals(sampleUser.getEmail(), result.getEmail());
         verify(userRepository).findById(userId);
     }
 
@@ -83,50 +97,106 @@ class UserServiceImplTest {
     }
 
     @Test
-    void create_WithUniqueUsername_ShouldSaveUser() {
+    void create_WithUniqueEmail_ShouldSaveUser() {
         UserDTO newUserDTO = UserDTO.builder()
-                .username("novo.usuario")
-                .role(Role.ADMIN)
+
+                .email("novo@clinica.com")
+                .fullName("Novo Usuário")
+                .profiles(Set.of("Enfermeiro"))
                 .build();
 
-        when(userRepository.existsByUsername("novo.usuario")).thenReturn(false);
+        // Configuração do mock
+        when(userRepository.existsByUserName("novo@clinica.com")).thenReturn(false);
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
+
+        // Cria um profile mock com users inicializado
+        Profile mockNurseProfile = Profile.builder()
+                .id(UUID.randomUUID())
+                .name("Enfermeiro")
+                .users(new HashSet<>()) // Inicializa a coleção
+                .build();
+
+        when(profileRepository.findByName("Enfermeiro"))
+                .thenReturn(Optional.of(mockNurseProfile));
+
+        // Configura o comportamento do save
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             user.setId(userId);
+            user.addProfile(mockNurseProfile);
             return user;
         });
 
         UserDTO result = service.create(newUserDTO, "password");
 
+        // Verificações
         assertNotNull(result.getId());
-        assertEquals("novo.usuario", result.getUsername());
+        assertEquals("novo@clinica.com", result.getEmail());
+        assertTrue(result.getProfiles().contains("Enfermeiro"));
         verify(userRepository).save(any(User.class));
     }
 
     @Test
-    void create_WithExistingUsername_ShouldThrowException() {
+    void create_WithExistingEmail_ShouldThrowException() {
         UserDTO existingUserDTO = UserDTO.builder()
-                .username("usuario.teste")
-                .role(Role.NURSE)
+                .email("enfermeiro@clinica.com")
                 .build();
 
-        when(userRepository.existsByUsername("usuario.teste")).thenReturn(true);
+        when(userRepository.existsByUserName("enfermeiro@clinica.com")).thenReturn(true);
 
-        assertThrows(UsernameAlreadyExistsException.class,
+        assertThrows(UserNameAlreadyExistsException.class,
                 () -> service.create(existingUserDTO, "password"));
         verify(userRepository, never()).save(any());
     }
 
     @Test
+    void create_WithInvalidProfile_ShouldThrowException() {
+        UserDTO newUserDTO = UserDTO.builder()
+                .email("novo@clinica.com")
+                .profiles(Set.of("ADMIN"))
+                .build();
+
+        when(userRepository.existsByUserName("novo@clinica.com")).thenReturn(false);
+        when(profileRepository.findByName("ADMIN"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ProfileNotFoundException.class,
+                () -> service.create(newUserDTO, "password"));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     void update_WithExistingId_ShouldUpdateUser() {
-        UserDTO updateDTO = UserDTO.builder().role(Role.ADMIN).build();
+        // Cria um profile ADMIN com users inicializado
+        Profile adminProfile = Profile.builder()
+                .id(UUID.randomUUID())
+                .name("ADMIN")
+                .users(new HashSet<>()) // Coleção mutável
+                .build();
+
+        // Cria um UserDTO com HashSet mutável
+        UserDTO updateDTO = UserDTO.builder()
+                .email("novoemail@clinica.com")
+                .fullName("Nome Atualizado")
+                .isActive(false)
+                .profiles(new HashSet<>(Set.of("ADMIN"))) // Convertemos para HashSet mutável
+                .build();
+
+        // Configura o sampleUser com uma coleção mutável de profiles
+        sampleUser.setProfiles(new HashSet<>());
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(sampleUser));
+        when(profileRepository.findByName("ADMIN"))
+                .thenReturn(Optional.of(adminProfile));
         when(userRepository.save(sampleUser)).thenReturn(sampleUser);
 
         UserDTO result = service.update(userId, updateDTO);
 
-        assertEquals(Role.ADMIN, result.getRole());
+        // Verificações
+        assertEquals("novoemail@clinica.com", result.getEmail());
+        assertEquals("Nome Atualizado", result.getFullName());
+        assertFalse(result.getIsActive());
+        assertTrue(result.getProfiles().contains("ADMIN"));
         verify(userRepository).save(sampleUser);
     }
 
@@ -137,6 +207,21 @@ class UserServiceImplTest {
 
         assertThrows(UserNotFoundException.class,
                 () -> service.update(nonExistingId, new UserDTO()));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void update_WithInvalidProfile_ShouldThrowException() {
+        UserDTO updateDTO = UserDTO.builder()
+                .profiles(Set.of("ADMIN"))
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(sampleUser));
+        when(profileRepository.findByName("ADMIN"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ProfileNotFoundException.class,
+                () -> service.update(userId, updateDTO));
         verify(userRepository, never()).save(any());
     }
 
