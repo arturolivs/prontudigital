@@ -72,6 +72,7 @@ O sistema será desenvolvido para gerenciar as operações de uma clínica de en
 - **Backend:** Java (Spring Boot).  
 - **Frontend:** React.  
 - **Banco de Dados:** PostgreSQL.  
+- **Mensageria:** Kafka.  
 - **Hospedagem:** ---.  
 
 ---
