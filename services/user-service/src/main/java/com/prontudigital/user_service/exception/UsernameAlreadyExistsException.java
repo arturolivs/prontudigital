@@ -1,7 +1,7 @@
 package com.prontudigital.user_service.exception;
 
-public class UsernameAlreadyExistsException extends RuntimeException {
-    public UsernameAlreadyExistsException(String username) {
-        super("Username já existe: " + username);
+public class UserNameAlreadyExistsException extends RuntimeException {
+    public UserNameAlreadyExistsException(String username) {
+        super("Usuário já existe: " + username);
     }
 }

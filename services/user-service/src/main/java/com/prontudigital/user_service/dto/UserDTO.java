@@ -1,9 +1,9 @@
 package com.prontudigital.user_service.dto;
 
-import com.prontudigital.user_service.model.Role;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -13,8 +13,11 @@ import java.util.UUID;
 @Builder
 public class UserDTO {
     private UUID id;
-    private String username;
-    private Role role;
+    private String fullName;
+    private String userName;
+    private String email;
+    private Boolean isActive;
+    private Set<String> profiles;
     private Instant createdAt;
     private Instant updatedAt;
 }
