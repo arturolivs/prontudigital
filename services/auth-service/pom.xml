@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.prontudigital</groupId>
-	<artifactId>user-service</artifactId>
+	<artifactId>auth-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>user-service</name>
+	<name>auth-service</name>
 	<description>Serviço para gerenciar usuários</description>
 	<url/>
 	<licenses>
