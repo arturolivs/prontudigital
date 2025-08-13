@@ -6,16 +6,16 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "user_profiles")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserProfile {
+@Table(name = "user_roles")
+public class UserRole {
 
     @EmbeddedId
-    private UserProfileId id;
+    private UserRoleId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
@@ -23,9 +23,9 @@ public class UserProfile {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("profileId")
-    @JoinColumn(name = "profile_id")
-    private Profile profile;
+    @MapsId("roleId")
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     @Column(name = "assigned_at")
     private Instant assignedAt;

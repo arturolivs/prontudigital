@@ -14,10 +14,10 @@ import java.util.UUID;
 public class UserDTO {
     private UUID id;
     private String fullName;
-    private String userName;
+    private String username;
     private String email;
     private Boolean isActive;
-    private Set<String> profiles;
+    private Set<String> roles;
     private Instant createdAt;
     private Instant updatedAt;
 }

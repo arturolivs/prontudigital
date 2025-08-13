@@ -1,6 +1,6 @@
 package com.prontudigital.auth_service.config;
 
-import com.prontudigital.auth_service.model.Profile;
+import com.prontudigital.auth_service.model.Role;
 import com.prontudigital.auth_service.model.User;
 import com.prontudigital.auth_service.repository.ProfileRepository;
 import com.prontudigital.auth_service.repository.UserRepository;
@@ -23,52 +23,52 @@ public class DataInitializer {
                                    PasswordEncoder passwordEncoder) {
         return args -> {
             if (profileRepository.count() == 0) {
-                List<Profile> profiles = List.of(
-                        Profile.builder()
+                List<Role> roles = List.of(
+                        Role.builder()
                                 .name("ADMIN")
                                 .description("Administrador do sistema com acesso total")
                                 .users(new HashSet<>())
                                 .build(),
-                        Profile.builder()
+                        Role.builder()
                                 .name("NURSE")
                                 .description("Profissional de enfermagem")
                                 .users(new HashSet<>())
                                 .build(),
-                        Profile.builder()
+                        Role.builder()
                                 .name("RECEP")
                                 .description("Recepcionista da clínica")
                                 .users(new HashSet<>())
                                 .build(),
-                        Profile.builder()
+                        Role.builder()
                                 .name("FINANCE")
                                 .description("Responsável financeiro")
                                 .users(new HashSet<>())
                                 .build(),
-                        Profile.builder()
+                        Role.builder()
                                 .name("PATIENT")
                                 .description("Paciente da clínica")
                                 .users(new HashSet<>())
                                 .build()
                 );
 
-                profileRepository.saveAll(profiles);
+                profileRepository.saveAll(roles);
             }
 
             // Criar usuário admin padrão se não existir
             if (userRepository.count() == 0) {
-                Profile adminProfile = profileRepository.findByName("ADMIN")
+                Role adminRole = profileRepository.findByName("ADMIN")
                         .orElseThrow(() -> new RuntimeException("Perfil ADMIN não encontrado"));
 
                 User admin = User.builder()
-                        .userName("admin")
+                        .username("admin")
                         .email("admin@clinica.com")
                         .passwordHash(passwordEncoder.encode("Admin@123"))
                         .fullName("Administrador do Sistema")
                         .isActive(true)
-                        .profiles(new HashSet<>())
+                        .roles(new HashSet<>())
                         .build();
 
-                admin.addProfile(adminProfile);
+                admin.addRole(adminRole);
                 userRepository.save(admin);
             }
         };
