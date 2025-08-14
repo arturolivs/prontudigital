@@ -25,10 +25,7 @@ spring:
     baseline-on-migrate: true
 
 app:
-  jwt:
-    secret: segredo!@#$
     expiration-ms: 86400000  # 24h
-
 
 logging:
   level:
