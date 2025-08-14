@@ -1,25 +1,28 @@
 package com.prontudigital.auth_service.security;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.security.Key;
 import java.util.Date;
 
 @Component
-@RequiredArgsConstructor
 public class JwtTokenProvider {
-    @Value("${app.jwt.secret}")
-    private String jwtSecret;
 
-    @Value("${app.jwt.expiration-ms}")
-    private int jwtExpirationMs;
+    private Key secretKey;
 
-    private final UserDetailsServiceImpl userDetailsService;
+    @Value("${app.jwt.expiration-ms:86400000}") // 24h
+    private Long jwtExpirationMs;
+
+
+    public JwtTokenProvider() {
+        this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    }
 
     public String generateToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
@@ -27,8 +30,8 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(userPrincipal.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -40,18 +43,35 @@ public class JwtTokenProvider {
         return null;
     }
 
-    public boolean validateToken(String token) {
+    /**
+     * Valida a integridade e a validade de um token JWT.
+     *
+     * @param authToken O token JWT a ser validado.
+     * @return true se o token for válido, false caso contrário.
+     */
+    public boolean validateToken(String authToken) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+            Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(authToken);
             return true;
-        } catch (Exception e) {
+        } catch (MalformedJwtException ex) {
+           // logger.error("Token JWT inválido");
+        } catch (ExpiredJwtException ex) {
+          //  logger.error("Token JWT expirado");
+        } catch (UnsupportedJwtException ex) {
+          //  logger.error("Token JWT não suportado");
+        } catch (IllegalArgumentException ex) {
+           // logger.error("A string do JWT está vazia");
         }
         return false;
     }
 
     public String getUsernameFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(jwtSecret)
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();

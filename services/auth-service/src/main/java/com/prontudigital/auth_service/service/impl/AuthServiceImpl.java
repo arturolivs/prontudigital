@@ -28,12 +28,11 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final UserService userService;
-
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
 
-    public JwtResponseDTO register(RegisterRequestDTO request) {
+    public UserDTO register(RegisterRequestDTO request) {
 
         var userDTO = UserDTO.builder()
                 .email(request.getEmail())
@@ -42,9 +41,7 @@ public class AuthServiceImpl implements AuthService {
                 .isActive(true)
                 .build();
 
-        userService.create(userDTO, request.getPassword());
-
-        return authenticate(new LoginRequestDTO(request.getEmail(), request.getPassword()));
+        return userService.create(userDTO, request.getPassword());
     }
 
     public JwtResponseDTO authenticate(LoginRequestDTO request) {
