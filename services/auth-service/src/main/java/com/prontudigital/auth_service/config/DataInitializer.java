@@ -2,7 +2,7 @@ package com.prontudigital.auth_service.config;
 
 import com.prontudigital.auth_service.model.Role;
 import com.prontudigital.auth_service.model.User;
-import com.prontudigital.auth_service.repository.ProfileRepository;
+import com.prontudigital.auth_service.repository.RoleRepository;
 import com.prontudigital.auth_service.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -19,10 +19,10 @@ public class DataInitializer {
     @Bean
     @Transactional
     CommandLineRunner initDatabase(UserRepository userRepository,
-                                   ProfileRepository profileRepository,
+                                   RoleRepository roleRepository,
                                    PasswordEncoder passwordEncoder) {
         return args -> {
-            if (profileRepository.count() == 0) {
+            if (roleRepository.count() == 0) {
                 List<Role> roles = List.of(
                         Role.builder()
                                 .name("ADMIN")
@@ -51,12 +51,12 @@ public class DataInitializer {
                                 .build()
                 );
 
-                profileRepository.saveAll(roles);
+                roleRepository.saveAll(roles);
             }
 
             // Criar usuário admin padrão se não existir
             if (userRepository.count() == 0) {
-                Role adminRole = profileRepository.findByName("ADMIN")
+                Role adminRole = roleRepository.findByName("ADMIN")
                         .orElseThrow(() -> new RuntimeException("Perfil ADMIN não encontrado"));
 
                 User admin = User.builder()

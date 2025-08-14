@@ -1,12 +1,13 @@
 package com.prontudigital.auth_service.service.impl;
 
 import com.prontudigital.auth_service.dto.UserDTO;
+import com.prontudigital.auth_service.exception.EmailAlreadyExistsException;
 import com.prontudigital.auth_service.exception.RoleNotFoundException;
 import com.prontudigital.auth_service.exception.UserNameAlreadyExistsException;
 import com.prontudigital.auth_service.exception.UserNotFoundException;
 import com.prontudigital.auth_service.model.Role;
 import com.prontudigital.auth_service.model.User;
-import com.prontudigital.auth_service.repository.ProfileRepository;
+import com.prontudigital.auth_service.repository.RoleRepository;
 import com.prontudigital.auth_service.repository.UserRepository;
 import com.prontudigital.auth_service.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDTO create(UserDTO dto, String rawPassword) {
-        validateUserNameUniqueness(dto.getUsername());
+        validate(dto);
 
         User user = buildUserFromDTO(dto, rawPassword);
         user = userRepository.save(user);
@@ -112,13 +113,24 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
 
+    private void validate(UserDTO dto) {
+        validateUserNameUniqueness(dto.getUsername());
+        validateEmailUniqueness(dto.getEmail());
+    }
+
     private void validateUserNameUniqueness(String userName) {
         if (userRepository.existsByUsername(userName)) {
             throw new UserNameAlreadyExistsException(userName);
         }
     }
 
-    private void updateUserProfiles(User user, Set<String> profileNames) {
+    private void validateEmailUniqueness(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException(email);
+        }
+    }
+
+    private void updateUserProfiles(User user, Set<String> roles) {
         if (user.getRoles() == null) {
             user.setRoles(new HashSet<>());
         } else {
@@ -128,11 +140,11 @@ public class UserServiceImpl implements UserService {
         }
         user.getRoles().clear();
 
-        if (profileNames != null && !profileNames.isEmpty()) {
-            Set<String> mutableProfileNames = new HashSet<>(profileNames);
-            mutableProfileNames.forEach(profileName -> {
-                Role role = profileRepository.findByName(profileName)
-                        .orElseThrow(() -> new RoleNotFoundException(profileName));
+        if (roles != null && !roles.isEmpty()) {
+            Set<String> mutableRoleNames = new HashSet<>(roles);
+            mutableRoleNames.forEach(roleName -> {
+                Role role = roleRepository.findByName(roleName)
+                        .orElseThrow(() -> new RoleNotFoundException(roleName));
                 user.addRole(role);
             });
         }

@@ -6,7 +6,7 @@ import com.prontudigital.auth_service.exception.UserNameAlreadyExistsException;
 import com.prontudigital.auth_service.exception.UserNotFoundException;
 import com.prontudigital.auth_service.model.Role;
 import com.prontudigital.auth_service.model.User;
-import com.prontudigital.auth_service.repository.ProfileRepository;
+import com.prontudigital.auth_service.repository.RoleRepository;
 import com.prontudigital.auth_service.repository.UserRepository;
 import com.prontudigital.auth_service.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ class UserServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
-    private ProfileRepository profileRepository;
+    private RoleRepository roleRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -114,7 +114,7 @@ class UserServiceImplTest {
                 .users(new HashSet<>())
                 .build();
 
-        when(profileRepository.findByName("Enfermeiro"))
+        when(roleRepository.findByName("Enfermeiro"))
                 .thenReturn(Optional.of(mockNurseRole));
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
@@ -153,7 +153,7 @@ class UserServiceImplTest {
                 .build();
 
         when(userRepository.existsByUsername("novo@clinica.com")).thenReturn(false);
-        when(profileRepository.findByName("ADMIN"))
+        when(roleRepository.findByName("ADMIN"))
                 .thenReturn(Optional.empty());
 
         assertThrows(RoleNotFoundException.class,
@@ -179,7 +179,7 @@ class UserServiceImplTest {
         sampleUser.setRoles(new HashSet<>());
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(sampleUser));
-        when(profileRepository.findByName("ADMIN"))
+        when(roleRepository.findByName("ADMIN"))
                 .thenReturn(Optional.of(adminRole));
         when(userRepository.save(sampleUser)).thenReturn(sampleUser);
 
@@ -209,7 +209,7 @@ class UserServiceImplTest {
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(sampleUser));
-        when(profileRepository.findByName("ADMIN"))
+        when(roleRepository.findByName("ADMIN"))
                 .thenReturn(Optional.empty());
 
         assertThrows(RoleNotFoundException.class,
