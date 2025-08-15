@@ -4,8 +4,11 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -14,13 +17,18 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
+    private final UserDetailsServiceImpl userDetailsService;
     private Key secretKey;
 
     @Value("${app.jwt.expiration-ms:86400000}") // 24h
     private Long jwtExpirationMs;
 
+    public JwtTokenProvider(UserDetailsServiceImpl userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
-    public JwtTokenProvider() {
+    @PostConstruct
+    public void init() {
         this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     }
 
@@ -78,5 +86,16 @@ public class JwtTokenProvider {
     }
 
     public void invalidateToken(String token) {
+    }
+
+    public Authentication getAuthentication(String token) {
+        String username = getUsernameFromToken(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                "",
+                userDetails.getAuthorities()
+        );
     }
 }
