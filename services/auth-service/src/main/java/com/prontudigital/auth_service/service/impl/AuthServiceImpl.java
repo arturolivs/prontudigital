@@ -3,7 +3,7 @@ package com.prontudigital.auth_service.service.impl;
 import com.prontudigital.auth_service.dto.JwtResponseDTO;
 import com.prontudigital.auth_service.dto.LoginRequestDTO;
 import com.prontudigital.auth_service.dto.RegisterRequestDTO;
-import com.prontudigital.auth_service.dto.UserDTO;
+import com.prontudigital.auth_service.dto.UserResponseDTO;
 import com.prontudigital.auth_service.repository.UserRepository;
 import com.prontudigital.auth_service.security.JwtTokenProvider;
 import com.prontudigital.auth_service.security.UserDetailsImpl;
@@ -32,23 +32,23 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
 
-    public UserDTO register(RegisterRequestDTO request) {
+    public UserResponseDTO register(RegisterRequestDTO request) {
 
-        var userDTO = UserDTO.builder()
-                .email(request.getEmail())
-                .username(request.getUsername())
-                .fullName(request.getFullName())
+        var userDTO = UserResponseDTO.builder()
+                .email(request.email())
+                .username(request.username())
+                .fullName(request.fullName())
                 .isActive(true)
                 .build();
 
-        return userService.create(userDTO, request.getPassword());
+        return userService.create(userDTO, request.password());
     }
 
     public JwtResponseDTO authenticate(LoginRequestDTO request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
+                        request.username(),
+                        request.password()
                 )
         );
 

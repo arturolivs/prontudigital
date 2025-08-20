@@ -1,6 +1,6 @@
 package com.prontudigital.auth_service.controller;
 
-import com.prontudigital.auth_service.dto.UserDTO;
+import com.prontudigital.auth_service.dto.UserResponseDTO;
 import com.prontudigital.auth_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,23 +19,23 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> users = userService.findAll();
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        List<UserResponseDTO> users = userService.findAll();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
-        UserDTO user = userService.findById(id);
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+        UserResponseDTO user = userService.findById(id);
         return ResponseEntity.ok(user);
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(
-            @RequestBody UserDTO userDTO,
+    public ResponseEntity<UserResponseDTO> createUser(
+            @RequestBody UserResponseDTO userResponseDTO,
             @RequestHeader("X-Raw-Password") String rawPassword) {
 
-        UserDTO createdUser = userService.create(userDTO, rawPassword);
+        UserResponseDTO createdUser = userService.create(userResponseDTO, rawPassword);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -46,11 +46,11 @@ public class UserController {
         return ResponseEntity.created(location).body(createdUser);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(
+    public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable UUID id,
-            @RequestBody UserDTO userDTO) {
+            @RequestBody UserResponseDTO userResponseDTO) {
 
-        UserDTO updatedUser = userService.update(id, userDTO);
+        UserResponseDTO updatedUser = userService.update(id, userResponseDTO);
         return ResponseEntity.ok(updatedUser);
     }
 

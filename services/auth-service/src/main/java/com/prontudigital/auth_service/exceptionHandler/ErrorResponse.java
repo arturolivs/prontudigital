@@ -1,11 +1,14 @@
 package com.prontudigital.auth_service.exceptionHandler;
 
+import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+@Getter
 @Setter
 public class ErrorResponse {
     private LocalDateTime timestamp;
@@ -13,7 +16,8 @@ public class ErrorResponse {
     private String error;
     private String message;
     private String path;
-    private Map<String, String> details = new HashMap<>();
+    private
+    Map<String, List<String>> details = new HashMap<>();
 
     public ErrorResponse(int status, String error, String message, String path) {
         this.timestamp = LocalDateTime.now();
@@ -22,11 +26,4 @@ public class ErrorResponse {
         this.message = message;
         this.path = path;
     }
-
-    // Getters (obrigatórios para serialização JSON)
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public int getStatus() { return status; }
-    public String getError() { return error; }
-    public String getMessage() { return message; }
-    public String getPath() { return path; }
 }

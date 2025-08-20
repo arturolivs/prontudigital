@@ -1,6 +1,6 @@
 package com.prontudigital.auth_service;
 
-import com.prontudigital.auth_service.dto.UserDTO;
+import com.prontudigital.auth_service.dto.UserResponseDTO;
 import com.prontudigital.auth_service.exception.RoleNotFoundException;
 import com.prontudigital.auth_service.exception.UserNameAlreadyExistsException;
 import com.prontudigital.auth_service.exception.UserNotFoundException;
@@ -67,7 +67,7 @@ class UserServiceImplTest {
     void findAll_ShouldReturnListOfUserDTOs() {
         when(userRepository.findAll()).thenReturn(List.of(sampleUser));
 
-        List<UserDTO> result = service.findAll();
+        List<UserResponseDTO> result = service.findAll();
 
         assertEquals(1, result.size());
         assertEquals(sampleUser.getEmail(), result.get(0).getEmail());
@@ -80,7 +80,7 @@ class UserServiceImplTest {
     void findById_WithExistingId_ShouldReturnUserDTO() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(sampleUser));
 
-        UserDTO result = service.findById(userId);
+        UserResponseDTO result = service.findById(userId);
 
         assertEquals(userId, result.getId());
         assertEquals(sampleUser.getEmail(), result.getEmail());
@@ -98,7 +98,7 @@ class UserServiceImplTest {
 
     @Test
     void create_WithUniqueEmail_ShouldSaveUser() {
-        UserDTO newUserDTO = UserDTO.builder()
+        UserResponseDTO newUserResponseDTO = UserResponseDTO.builder()
 
                 .email("novo@clinica.com")
                 .fullName("Novo Usuário")
@@ -124,7 +124,7 @@ class UserServiceImplTest {
             return user;
         });
 
-        UserDTO result = service.create(newUserDTO, "password");
+        UserResponseDTO result = service.create(newUserResponseDTO, "password");
 
         assertNotNull(result.getId());
         assertEquals("novo@clinica.com", result.getEmail());
@@ -134,20 +134,20 @@ class UserServiceImplTest {
 
     @Test
     void create_WithExistingEmail_ShouldThrowException() {
-        UserDTO existingUserDTO = UserDTO.builder()
+        UserResponseDTO existingUserResponseDTO = UserResponseDTO.builder()
                 .email("enfermeiro@clinica.com")
                 .build();
 
         when(userRepository.existsByUsername("enfermeiro@clinica.com")).thenReturn(true);
 
         assertThrows(UserNameAlreadyExistsException.class,
-                () -> service.create(existingUserDTO, "password"));
+                () -> service.create(existingUserResponseDTO, "password"));
         verify(userRepository, never()).save(any());
     }
 
     @Test
     void create_WithInvalidProfile_ShouldThrowException() {
-        UserDTO newUserDTO = UserDTO.builder()
+        UserResponseDTO newUserResponseDTO = UserResponseDTO.builder()
                 .email("novo@clinica.com")
                 .roles(Set.of("ADMIN"))
                 .build();
@@ -157,7 +157,7 @@ class UserServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(RoleNotFoundException.class,
-                () -> service.create(newUserDTO, "password"));
+                () -> service.create(newUserResponseDTO, "password"));
         verify(userRepository, never()).save(any());
     }
 
@@ -169,7 +169,7 @@ class UserServiceImplTest {
                 .users(new HashSet<>()) 
                 .build();
 
-        UserDTO updateDTO = UserDTO.builder()
+        UserResponseDTO updateDTO = UserResponseDTO.builder()
                 .email("novoemail@clinica.com")
                 .fullName("Nome Atualizado")
                 .isActive(false)
@@ -183,7 +183,7 @@ class UserServiceImplTest {
                 .thenReturn(Optional.of(adminRole));
         when(userRepository.save(sampleUser)).thenReturn(sampleUser);
 
-        UserDTO result = service.update(userId, updateDTO);
+        UserResponseDTO result = service.update(userId, updateDTO);
 
         assertEquals("novoemail@clinica.com", result.getEmail());
         assertEquals("Nome Atualizado", result.getFullName());
@@ -198,13 +198,13 @@ class UserServiceImplTest {
         when(userRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class,
-                () -> service.update(nonExistingId, new UserDTO()));
+                () -> service.update(nonExistingId, new UserResponseDTO()));
         verify(userRepository, never()).save(any());
     }
 
     @Test
     void update_WithInvalidProfile_ShouldThrowException() {
-        UserDTO updateDTO = UserDTO.builder()
+        UserResponseDTO updateDTO = UserResponseDTO.builder()
                 .roles(Set.of("ADMIN"))
                 .build();
 

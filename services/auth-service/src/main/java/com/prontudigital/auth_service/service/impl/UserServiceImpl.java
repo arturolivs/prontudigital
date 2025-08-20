@@ -1,6 +1,6 @@
 package com.prontudigital.auth_service.service.impl;
 
-import com.prontudigital.auth_service.dto.UserDTO;
+import com.prontudigital.auth_service.dto.UserResponseDTO;
 import com.prontudigital.auth_service.exception.EmailAlreadyExistsException;
 import com.prontudigital.auth_service.exception.RoleNotFoundException;
 import com.prontudigital.auth_service.exception.UserNameAlreadyExistsException;
@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserDTO> findAll() {
+    public List<UserResponseDTO> findAll() {
         return userRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDTO findById(UUID id) {
+    public UserResponseDTO findById(UUID id) {
         return userRepository.findById(id)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDTO create(UserDTO dto, String rawPassword) {
+    public UserResponseDTO create(UserResponseDTO dto, String rawPassword) {
         validate(dto);
 
         User user = buildUserFromDTO(dto, rawPassword);
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDTO update(UUID id, UserDTO dto) {
+    public UserResponseDTO update(UUID id, UserResponseDTO dto) {
         User user = getUserById(id);
 
         user.setEmail(dto.getEmail());
@@ -78,8 +78,8 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
-    private UserDTO convertToDTO(User user) {
-        return UserDTO.builder()
+    private UserResponseDTO convertToDTO(User user) {
+        return UserResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    private User buildUserFromDTO(UserDTO dto, String rawPassword) {
+    private User buildUserFromDTO(UserResponseDTO dto, String rawPassword) {
         User user = User.builder()
                 .email(dto.getEmail())
                 .username(dto.getUsername())
@@ -113,7 +113,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
 
-    private void validate(UserDTO dto) {
+    private void validate(UserResponseDTO dto) {
         validateUserNameUniqueness(dto.getUsername());
         validateEmailUniqueness(dto.getEmail());
     }

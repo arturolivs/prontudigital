@@ -1,7 +1,7 @@
 package com.prontudigital.auth_service;
 
 import com.prontudigital.auth_service.controller.UserController;
-import com.prontudigital.auth_service.dto.UserDTO;
+import com.prontudigital.auth_service.dto.UserResponseDTO;
 import com.prontudigital.auth_service.exception.UserNotFoundException;
 import com.prontudigital.auth_service.exception.EmailAlreadyExistsException;
 import com.prontudigital.auth_service.service.UserService;
@@ -29,15 +29,15 @@ class UserControllerTest {
     private UserController userController;
 
     private final UUID userId = UUID.randomUUID();
-    private final UserDTO sampleUserDTO = UserDTO.builder()
+    private final UserResponseDTO sampleUserResponseDTO = UserResponseDTO.builder()
             .id(userId)
             .build();
 
     @Test
     void getAllUsers_ShouldReturnListOfUsers() {
-        when(userService.findAll()).thenReturn(List.of(sampleUserDTO));
+        when(userService.findAll()).thenReturn(List.of(sampleUserResponseDTO));
 
-        ResponseEntity<List<UserDTO>> response = userController.getAllUsers();
+        ResponseEntity<List<UserResponseDTO>> response = userController.getAllUsers();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
@@ -46,9 +46,9 @@ class UserControllerTest {
 
     @Test
     void getUserById_WithValidId_ShouldReturnUser() {
-        when(userService.findById(userId)).thenReturn(sampleUserDTO);
+        when(userService.findById(userId)).thenReturn(sampleUserResponseDTO);
 
-        ResponseEntity<UserDTO> response = userController.getUserById(userId);
+        ResponseEntity<UserResponseDTO> response = userController.getUserById(userId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(userId, response.getBody().getId());
@@ -65,33 +65,33 @@ class UserControllerTest {
 
     @Test
     void createUser_WithDuplicateUsername_ShouldThrowException() {
-        when(userService.create(any(UserDTO.class), anyString()))
+        when(userService.create(any(UserResponseDTO.class), anyString()))
                 .thenThrow(new EmailAlreadyExistsException("test.user"));
 
         assertThrows(EmailAlreadyExistsException.class,
-                () -> userController.createUser(sampleUserDTO, "rawPassword123"));
-        verify(userService).create(any(UserDTO.class), anyString());
+                () -> userController.createUser(sampleUserResponseDTO, "rawPassword123"));
+        verify(userService).create(any(UserResponseDTO.class), anyString());
     }
 
     @Test
     void updateUser_WithValidData_ShouldReturnUpdatedUser() {
-        when(userService.update(userId, sampleUserDTO)).thenReturn(sampleUserDTO);
+        when(userService.update(userId, sampleUserResponseDTO)).thenReturn(sampleUserResponseDTO);
 
-        ResponseEntity<UserDTO> response = userController.updateUser(userId, sampleUserDTO);
+        ResponseEntity<UserResponseDTO> response = userController.updateUser(userId, sampleUserResponseDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(userId, response.getBody().getId());
-        verify(userService).update(userId, sampleUserDTO);
+        verify(userService).update(userId, sampleUserResponseDTO);
     }
 
     @Test
     void updateUser_WithInvalidId_ShouldThrowException() {
-        when(userService.update(userId, sampleUserDTO))
+        when(userService.update(userId, sampleUserResponseDTO))
                 .thenThrow(new UserNotFoundException(userId));
 
         assertThrows(UserNotFoundException.class,
-                () -> userController.updateUser(userId, sampleUserDTO));
-        verify(userService).update(userId, sampleUserDTO);
+                () -> userController.updateUser(userId, sampleUserResponseDTO));
+        verify(userService).update(userId, sampleUserResponseDTO);
     }
 
     @Test
