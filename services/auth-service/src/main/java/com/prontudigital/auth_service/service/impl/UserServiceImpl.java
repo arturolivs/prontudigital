@@ -1,12 +1,13 @@
 package com.prontudigital.auth_service.service.impl;
 
-import com.prontudigital.auth_service.dto.UserDTO;
-import com.prontudigital.auth_service.exception.ProfileNotFoundException;
-import com.prontudigital.auth_service.exception.UserNotFoundException;
+import com.prontudigital.auth_service.dto.UserResponseDTO;
+import com.prontudigital.auth_service.exception.EmailAlreadyExistsException;
+import com.prontudigital.auth_service.exception.RoleNotFoundException;
 import com.prontudigital.auth_service.exception.UserNameAlreadyExistsException;
-import com.prontudigital.auth_service.model.Profile;
+import com.prontudigital.auth_service.exception.UserNotFoundException;
+import com.prontudigital.auth_service.model.Role;
 import com.prontudigital.auth_service.model.User;
-import com.prontudigital.auth_service.repository.ProfileRepository;
+import com.prontudigital.auth_service.repository.RoleRepository;
 import com.prontudigital.auth_service.repository.UserRepository;
 import com.prontudigital.auth_service.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +26,12 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserDTO> findAll() {
+    public List<UserResponseDTO> findAll() {
         return userRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDTO findById(UUID id) {
+    public UserResponseDTO findById(UUID id) {
         return userRepository.findById(id)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -46,8 +47,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDTO create(UserDTO dto, String rawPassword) {
-        validateUserNameUniqueness(dto.getEmail());
+    public UserResponseDTO create(UserResponseDTO dto, String rawPassword) {
+        validate(dto);
 
         User user = buildUserFromDTO(dto, rawPassword);
         user = userRepository.save(user);
@@ -57,15 +58,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDTO update(UUID id, UserDTO dto) {
+    public UserResponseDTO update(UUID id, UserResponseDTO dto) {
         User user = getUserById(id);
 
         user.setEmail(dto.getEmail());
         user.setFullName(dto.getFullName());
         user.setIsActive(dto.getIsActive());
 
-        // Atualiza perfis
-        updateUserProfiles(user, dto.getProfiles());
+        updateUserProfiles(user, dto.getRoles());
 
         return convertToDTO(userRepository.save(user));
     }
@@ -78,30 +78,31 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
-    private UserDTO convertToDTO(User user) {
-        return UserDTO.builder()
+    private UserResponseDTO convertToDTO(User user) {
+        return UserResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .isActive(user.getIsActive())
-                .profiles(user.getProfiles().stream()
-                        .map(Profile::getName)
+                .roles(user.getRoles().stream()
+                        .map(Role::getName)
                         .collect(Collectors.toSet()))
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
     }
 
-    private User buildUserFromDTO(UserDTO dto, String rawPassword) {
+    private User buildUserFromDTO(UserResponseDTO dto, String rawPassword) {
         User user = User.builder()
                 .email(dto.getEmail())
+                .username(dto.getUsername())
                 .passwordHash(passwordEncoder.encode(rawPassword))
                 .fullName(dto.getFullName())
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .build();
 
-        if (dto.getProfiles() != null) {
-            updateUserProfiles(user, dto.getProfiles());
+        if (dto.getRoles() != null) {
+            updateUserProfiles(user, dto.getRoles());
         }
 
         return user;
@@ -112,30 +113,39 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
 
+    private void validate(UserResponseDTO dto) {
+        validateUserNameUniqueness(dto.getUsername());
+        validateEmailUniqueness(dto.getEmail());
+    }
+
     private void validateUserNameUniqueness(String userName) {
-        if (userRepository.existsByUserName(userName)) {
+        if (userRepository.existsByUsername(userName)) {
             throw new UserNameAlreadyExistsException(userName);
         }
     }
 
-    private void updateUserProfiles(User user, Set<String> profileNames) {
-        // Garante que a coleção de profiles é mutável
-        if (user.getProfiles() == null) {
-            user.setProfiles(new HashSet<>());
+    private void validateEmailUniqueness(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException(email);
+        }
+    }
+
+    private void updateUserProfiles(User user, Set<String> roles) {
+        if (user.getRoles() == null) {
+            user.setRoles(new HashSet<>());
         } else {
-            // Cria uma nova coleção mutável se a existente for imutável
-            if (!(user.getProfiles() instanceof HashSet)) {
-                user.setProfiles(new HashSet<>(user.getProfiles()));
+            if (!(user.getRoles() instanceof HashSet)) {
+                user.setRoles(new HashSet<>(user.getRoles()));
             }
         }
-        user.getProfiles().clear();
+        user.getRoles().clear();
 
-        if (profileNames != null && !profileNames.isEmpty()) {
-            Set<String> mutableProfileNames = new HashSet<>(profileNames);
-            mutableProfileNames.forEach(profileName -> {
-                Profile profile = profileRepository.findByName(profileName)
-                        .orElseThrow(() -> new ProfileNotFoundException(profileName));
-                user.addProfile(profile);
+        if (roles != null && !roles.isEmpty()) {
+            Set<String> mutableRoleNames = new HashSet<>(roles);
+            mutableRoleNames.forEach(roleName -> {
+                Role role = roleRepository.findByName(roleName)
+                        .orElseThrow(() -> new RoleNotFoundException(roleName));
+                user.addRole(role);
             });
         }
     }

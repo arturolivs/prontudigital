@@ -2,7 +2,7 @@ package com.prontudigital.auth_service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prontudigital.auth_service.controller.UserController;
-import com.prontudigital.auth_service.dto.UserDTO;
+import com.prontudigital.auth_service.dto.UserResponseDTO;
 import com.prontudigital.auth_service.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ class UserControllerIntegrationTest {
     private UserService userService;
 
     private final UUID userId = UUID.randomUUID();
-    private final UserDTO sampleUserDTO = UserDTO.builder()
+    private final UserResponseDTO sampleUserResponseDTO = UserResponseDTO.builder()
             .id(userId)
             //.username("test.user")
           //  .profileName(ProfileName.ADMIN)
@@ -41,7 +41,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void getAllUsers_ShouldReturnUsers() throws Exception {
-        given(userService.findAll()).willReturn(List.of(sampleUserDTO));
+        given(userService.findAll()).willReturn(List.of(sampleUserResponseDTO));
 
         mockMvc.perform(get("/api/v1/users"))
                 .andExpect(status().isOk())
@@ -50,7 +50,7 @@ class UserControllerIntegrationTest {
 
     @Test
     void getUserById_ShouldReturnUser() throws Exception {
-        given(userService.findById(userId)).willReturn(sampleUserDTO);
+        given(userService.findById(userId)).willReturn(sampleUserResponseDTO);
 
         mockMvc.perform(get("/api/v1/users/{id}", userId))
                 .andExpect(status().isOk())
@@ -59,12 +59,12 @@ class UserControllerIntegrationTest {
 
     @Test
     void createUser_ShouldReturnCreated() throws Exception {
-        given(userService.create(any(UserDTO.class), anyString())).willReturn(sampleUserDTO);
+        given(userService.create(any(UserResponseDTO.class), anyString())).willReturn(sampleUserResponseDTO);
 
         mockMvc.perform(post("/api/v1/users")
                         .header("X-Raw-Password", "password123")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sampleUserDTO)))
+                        .content(objectMapper.writeValueAsString(sampleUserResponseDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.username").value("test.user"));
@@ -72,11 +72,11 @@ class UserControllerIntegrationTest {
 
     @Test
     void updateUser_ShouldReturnUpdatedUser() throws Exception {
-        given(userService.update(userId, sampleUserDTO)).willReturn(sampleUserDTO);
+        given(userService.update(userId, sampleUserResponseDTO)).willReturn(sampleUserResponseDTO);
 
         mockMvc.perform(put("/api/v1/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sampleUserDTO)))
+                        .content(objectMapper.writeValueAsString(sampleUserResponseDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("ADMIN"));
     }

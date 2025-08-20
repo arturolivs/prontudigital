@@ -1,5 +1,5 @@
 
-CREATE TABLE profiles (
+CREATE TABLE roles (
     id UUID PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
     description VARCHAR(200),
@@ -7,4 +7,4 @@ CREATE TABLE profiles (
     updated_at TIMESTAMP
 );
 
-CREATE INDEX idx_profiles_name ON profiles(name);
+CREATE INDEX idx_roles_name ON roles(name);

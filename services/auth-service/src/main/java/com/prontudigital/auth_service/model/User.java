@@ -2,52 +2,56 @@ package com.prontudigital.auth_service.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "users")
 public class User {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(columnDefinition = "BINARY(16)", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(length = 100)
-    private String email;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 
     @Column(name = "user_name", unique = true, nullable = false)
-    private String userName;
+    private String username;
+
+    @Column(length = 100, unique = true, nullable = false)
+    private String email;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(nullable = false)
-    private String fullName;
-
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    @Builder.Default
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_profiles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "profile_id"))
-    private Set<Profile> profiles = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {
@@ -59,18 +63,18 @@ public class User {
         updatedAt = Instant.now();
     }
 
-    public void addProfile(Profile profile) {
-        this.profiles.add(profile);
-        if (profile.getUsers() == null) {
-            profile.setUsers(new HashSet<>());
+    public void addRole(Role role) {
+        this.roles.add(role);
+        if (role.getUsers() == null) {
+            role.setUsers(new HashSet<>());
         }
-        profile.getUsers().add(this);
+        role.getUsers().add(this);
     }
 
-    public void removeProfile(Profile profile) {
-        this.profiles.remove(profile);
-        if (profile.getUsers() != null) {
-            profile.getUsers().remove(this);
+    public void removeProfile(Role role) {
+        this.roles.remove(role);
+        if (role.getUsers() != null) {
+            role.getUsers().remove(this);
         }
     }
 }

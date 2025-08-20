@@ -2,9 +2,9 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/users_db
+    url: jdbc:postgresql://localhost:5432/auth_db
     username: user_admin
-    password: users_db
+    password: secret123
     # url: jdbc:postgresql://${PG_HOST}:${PG_PORT}/${PG_USERS_DB}
     # username: ${POSTGRES_USER}
     # password: ${POSTGRES_PASSWORD}
@@ -17,12 +17,15 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   flyway:
-    url: jdbc:postgresql://localhost:5432/users_db
+    url: jdbc:postgresql://localhost:5432/auth_db
     user: user_admin
-    password: users_db
+    password: secret123
     log-level: DEBUG
     locations: classpath:db/migration
     baseline-on-migrate: true
+
+app:
+    expiration-ms: 86400000  # 24h
 
 logging:
   level:

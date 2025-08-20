@@ -13,11 +13,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class UserProfileId implements Serializable {
+public class UserRoleId implements Serializable {
 
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "profile_id")
-    private UUID profileId;
+    @Column(name = "role_id")
+    private UUID roleId;
 }

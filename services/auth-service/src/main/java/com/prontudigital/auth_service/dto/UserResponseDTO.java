@@ -11,13 +11,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserDTO {
+public class UserResponseDTO {
     private UUID id;
     private String fullName;
-    private String userName;
+    private String username;
     private String email;
     private Boolean isActive;
-    private Set<String> profiles;
+    private Set<String> roles;
     private Instant createdAt;
     private Instant updatedAt;
 }

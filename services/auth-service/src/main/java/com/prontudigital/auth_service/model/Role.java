@@ -8,13 +8,13 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "profiles")
+@Table(name = "roles")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Profile {
+public class Role {
 
     @Id
     @GeneratedValue
@@ -27,6 +27,6 @@ public class Profile {
     private String description;
 
     @Builder.Default
-    @ManyToMany(mappedBy = "profiles", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "roles", fetch = FetchType.EAGER)
     private Set<User> users = new HashSet<>();
 }
