@@ -4,7 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,13 +15,17 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtTokenProvider {
 
     private final UserDetailsServiceImpl userDetailsService;
     private Key secretKey;
 
-    @Value("${app.jwt.expiration-ms:86400000}") // 24h
-    private Long jwtExpirationMs;
+    @Value("${app.jwt.access-expiration-ms:900000}")
+    private Long accessExpirationMs;
+
+    @Value("${app.jwt.refresh-expiration-ms:604800000}")
+    private Long refreshExpirationMs;
 
     public JwtTokenProvider(UserDetailsServiceImpl userDetailsService) {
         this.userDetailsService = userDetailsService;
@@ -32,31 +36,31 @@ public class JwtTokenProvider {
         this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     }
 
-    public String generateToken(Authentication authentication) {
+    public String generateAccessToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+        return buildToken(userPrincipal.getUsername(), accessExpirationMs);
+    }
 
+    public String generateRefreshToken(String username) {
+        return buildToken(username, refreshExpirationMs);
+    }
+
+    private String buildToken(String username, Long expirationMs) {
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
+                .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
+        return (bearerToken != null && bearerToken.startsWith("Bearer "))
+                ? bearerToken.substring(7)
+                : null;
     }
 
-    /**
-     * Valida a integridade e a validade de um token JWT.
-     *
-     * @param authToken O token JWT a ser validado.
-     * @return true se o token for válido, false caso contrário.
-     */
     public boolean validateToken(String authToken) {
         try {
             Jwts.parserBuilder()
@@ -64,16 +68,10 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(authToken);
             return true;
-        } catch (MalformedJwtException ex) {
-           // logger.error("Token JWT inválido");
-        } catch (ExpiredJwtException ex) {
-          //  logger.error("Token JWT expirado");
-        } catch (UnsupportedJwtException ex) {
-          //  logger.error("Token JWT não suportado");
-        } catch (IllegalArgumentException ex) {
-           // logger.error("A string do JWT está vazia");
+        } catch (Exception ex) {
+            log.error("Token validation error: {}", ex.getMessage());
+            return false;
         }
-        return false;
     }
 
     public String getUsernameFromToken(String token) {
@@ -85,17 +83,9 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    public void invalidateToken(String token) {
-    }
-
     public Authentication getAuthentication(String token) {
         String username = getUsernameFromToken(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-        return new UsernamePasswordAuthenticationToken(
-                userDetails,
-                "",
-                userDetails.getAuthorities()
-        );
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 }

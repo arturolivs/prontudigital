@@ -23,9 +23,14 @@ spring:
     log-level: DEBUG
     locations: classpath:db/migration
     baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-on-validation-error: false
+
 
 app:
-    expiration-ms: 86400000  # 24h
+  jwt:
+    access-expiration-ms: 10000      # 15 minutos
+    refresh-expiration-ms: 600000000  # 7 dias
 
 logging:
   level:
