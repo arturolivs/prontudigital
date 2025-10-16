@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.prontudigital</groupId>
-	<artifactId>schedule</artifactId>
+	<artifactId>schedule-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>schedule</name>
 	<description>Demo project for Spring Boot</description>

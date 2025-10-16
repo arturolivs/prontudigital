@@ -1,4 +1,4 @@
-package com.prontudigital.schedule.enums;
+package com.prontudigital.schedule_service.enums;
 
 public enum AppointmentStatus {
     SCHEDULED,

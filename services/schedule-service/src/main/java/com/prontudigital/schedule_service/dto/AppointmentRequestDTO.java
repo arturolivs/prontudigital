@@ -1,6 +1,6 @@
-package com.prontudigital.schedule.dto;
+package com.prontudigital.schedule_service.dto;
 
-import com.prontudigital.schedule.enums.AppointmentType;
+import com.prontudigital.schedule_service.enums.AppointmentType;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;

@@ -1,7 +1,7 @@
-package com.prontudigital.schedule.dto;
+package com.prontudigital.schedule_service.dto;
 
-import com.prontudigital.schedule.enums.AppointmentStatus;
-import com.prontudigital.schedule.enums.AppointmentType;
+import com.prontudigital.schedule_service.enums.AppointmentStatus;
+import com.prontudigital.schedule_service.enums.AppointmentType;
 
 import java.time.LocalDateTime;
 

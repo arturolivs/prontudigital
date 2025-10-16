@@ -1,7 +1,7 @@
-package com.prontudigital.schedule.repository;
+package com.prontudigital.schedule_service.repository;
 
-import com.prontudigital.schedule.enums.AppointmentStatus;
-import com.prontudigital.schedule.model.Appointment;
+import com.prontudigital.schedule_service.enums.AppointmentStatus;
+import com.prontudigital.schedule_service.model.Appointment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

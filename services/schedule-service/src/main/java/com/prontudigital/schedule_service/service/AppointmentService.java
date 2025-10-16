@@ -1,11 +1,11 @@
-package com.prontudigital.schedule.service;
+package com.prontudigital.schedule_service.service;
 
-import com.prontudigital.schedule.exception.AppointmentNotFoundException;
-import com.prontudigital.schedule.dto.AppointmentRequestDTO;
-import com.prontudigital.schedule.dto.AppointmentResponseDTO;
-import com.prontudigital.schedule.enums.AppointmentStatus;
-import com.prontudigital.schedule.model.Appointment;
-import com.prontudigital.schedule.repository.AppointmentRepository;
+import com.prontudigital.schedule_service.exception.AppointmentNotFoundException;
+import com.prontudigital.schedule_service.dto.AppointmentRequestDTO;
+import com.prontudigital.schedule_service.dto.AppointmentResponseDTO;
+import com.prontudigital.schedule_service.enums.AppointmentStatus;
+import com.prontudigital.schedule_service.model.Appointment;
+import com.prontudigital.schedule_service.repository.AppointmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

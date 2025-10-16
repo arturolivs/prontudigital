@@ -1,7 +1,7 @@
-package com.prontudigital.schedule.model;
+package com.prontudigital.schedule_service.model;
 
-import com.prontudigital.schedule.enums.AppointmentStatus;
-import com.prontudigital.schedule.enums.AppointmentType;
+import com.prontudigital.schedule_service.enums.AppointmentStatus;
+import com.prontudigital.schedule_service.enums.AppointmentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

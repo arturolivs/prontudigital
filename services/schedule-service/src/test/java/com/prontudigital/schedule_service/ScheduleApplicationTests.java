@@ -1,4 +1,4 @@
-package com.prontudigital.schedule;
+package com.prontudigital.schedule_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

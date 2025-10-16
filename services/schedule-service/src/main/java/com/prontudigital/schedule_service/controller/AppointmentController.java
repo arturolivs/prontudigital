@@ -1,7 +1,7 @@
-package com.prontudigital.schedule.controller;
+package com.prontudigital.schedule_service.controller;
 
-import com.prontudigital.schedule.dto.AppointmentResponseDTO;
-import com.prontudigital.schedule.service.AppointmentService;
+import com.prontudigital.schedule_service.dto.AppointmentResponseDTO;
+import com.prontudigital.schedule_service.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
