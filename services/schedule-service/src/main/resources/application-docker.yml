@@ -1,18 +1,18 @@
 spring:
   datasource:
-    url: jdbc:postgresql://postgres-auth:5432/auth_db
+    url: jdbc:postgresql://postgres-schedule:5433/schedule_db
     username: user_admin
     password: secret123
   flyway:
-    url: jdbc:postgresql://postgres-auth:5432/auth_db
+    url: jdbc:postgresql://postgres-schedule:5433/schedule_db
     user: user_admin
     password: secret123
     locations: classpath:db/migration
     baseline-on-migrate: true
 
 server:
-  port: 8080
+  port: 8081
 
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.flywaydb: DEBUG

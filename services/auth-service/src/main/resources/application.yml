@@ -1,11 +1,6 @@
 spring:
   application:
     name: auth-service
-  datasource:
-    url: jdbc:postgresql://postgres-auth:5432/auth_db
-    username: user_admin
-    password: secret123
-    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
@@ -14,15 +9,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-  flyway:
-    url: jdbc:postgresql://postgres-auth:5432/auth_db
-    user: user_admin
-    password: secret123
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-
-server:
-  port: 8080
 
 app:
   jwt:
@@ -31,5 +17,4 @@ app:
 
 logging:
   level:
-    org.flywaydb: DEBUG
-    org.springframework.retry: DEBUG
+    com.prontudigital.auth: DEBUG
