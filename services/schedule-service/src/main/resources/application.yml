@@ -1,8 +1,8 @@
 spring:
   application:
-    name: auth-service
+    name: schedule-service
   datasource:
-    url: jdbc:postgresql://postgres-auth:5432/auth_db
+    url: jdbc:postgresql://postgres-schedule:5432/schedule_db
     username: user_admin
     password: secret123
     driver-class-name: org.postgresql.Driver
@@ -15,19 +15,14 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   flyway:
-    url: jdbc:postgresql://postgres-auth:5432/auth_db
+    url: jdbc:postgresql://postgres-schedule:5432/schedule_db
     user: user_admin
     password: secret123
     locations: classpath:db/migration
     baseline-on-migrate: true
 
 server:
-  port: 8080
-
-app:
-  jwt:
-    access-expiration-ms: 10000
-    refresh-expiration-ms: 600000000
+  port: 8081
 
 logging:
   level:

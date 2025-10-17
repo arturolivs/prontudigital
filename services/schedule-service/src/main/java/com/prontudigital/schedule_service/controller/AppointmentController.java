@@ -26,7 +26,8 @@ public class AppointmentController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             @RequestParam(defaultValue = "day") String view) {
-
+       return ResponseEntity.ok(List.of());
+        /*
         if (date != null) {
             return ResponseEntity.ok(appointmentService.getAppointmentsWithUserDetailsByDate(date));
         } else if (start != null && end != null) {
@@ -35,6 +36,7 @@ public class AppointmentController {
             // If no date provided, return today's appointments
             return ResponseEntity.ok(appointmentService.getAppointmentsWithUserDetailsByDate(LocalDate.now()));
         }
+        */
     }
 
 }

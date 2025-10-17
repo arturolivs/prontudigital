@@ -1,0 +1,25 @@
+CREATE TABLE appointments (
+    id BIGSERIAL PRIMARY KEY,
+    start_date_time TIMESTAMP NOT NULL,
+    end_date_time TIMESTAMP NOT NULL,
+    professional_id BIGINT NOT NULL,
+    patient_id BIGINT NOT NULL,
+    type VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'SCHEDULED',
+    notes TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+
+    -- Constraints
+    CONSTRAINT chk_appointment_dates CHECK (end_date_time > start_date_time),
+    CONSTRAINT chk_appointment_type CHECK (type IN ('CONSULTATION', 'SURGERY', 'EXAM', 'FOLLOW_UP', 'OTHER')),
+    CONSTRAINT chk_appointment_status CHECK (status IN ('SCHEDULED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW'))
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_appointments_professional_id ON appointments(professional_id);
+CREATE INDEX idx_appointments_patient_id ON appointments(patient_id);
+CREATE INDEX idx_appointments_start_date ON appointments(start_date_time);
+CREATE INDEX idx_appointments_status ON appointments(status);
+CREATE INDEX idx_appointments_professional_date ON appointments(professional_id, start_date_time);
+

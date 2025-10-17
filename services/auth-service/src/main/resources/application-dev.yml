@@ -2,7 +2,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://postgres-auth:5432/auth_db
+    url: jdbc:postgresql://localhost:5432/auth_db
     username: user_admin
     password: secret123
     driver-class-name: org.postgresql.Driver
@@ -15,7 +15,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   flyway:
-    url: jdbc:postgresql://postgres-auth:5432/auth_db
+    url: jdbc:postgresql://localhost:5432/auth_db
     user: user_admin
     password: secret123
     locations: classpath:db/migration
