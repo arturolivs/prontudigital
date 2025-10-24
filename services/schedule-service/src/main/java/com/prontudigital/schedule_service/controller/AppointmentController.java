@@ -28,6 +28,13 @@ public class AppointmentController {
                 .body(appointmentService.scheduleAppointment(request));
     }
 
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<AppointmentResponseDTO> cancelAppointment(
+            @PathVariable Long id,
+            @RequestParam Long patientId) {
+        return ResponseEntity.ok(appointmentService.cancelAppointment(id, patientId));
+    }
+
     @GetMapping
     public ResponseEntity<List<AppointmentResponseDTO>> getAppointments(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

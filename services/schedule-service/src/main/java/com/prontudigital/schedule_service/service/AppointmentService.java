@@ -5,4 +5,5 @@ import com.prontudigital.schedule_service.dto.AppointmentResponseDTO;
 
 public interface AppointmentService {
     AppointmentResponseDTO scheduleAppointment(AppointmentRequestDTO request);
+    AppointmentResponseDTO cancelAppointment(Long appointmentId, Long patientId);
 }
