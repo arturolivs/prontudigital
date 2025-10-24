@@ -4,6 +4,7 @@ import com.prontudigital.schedule_service.enums.AppointmentStatus;
 import com.prontudigital.schedule_service.enums.AppointmentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

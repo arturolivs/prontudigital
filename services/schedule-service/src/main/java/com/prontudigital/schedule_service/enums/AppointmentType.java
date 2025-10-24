@@ -4,5 +4,10 @@ public enum AppointmentType {
     CONSULTA,
     PROCEDIMENTO,
     RETORNO,
-    EMERGENCIA
+    EMERGENCIA,
+    CONSULTATION,
+    SURGERY,
+    EXAM,
+    FOLLOW_UP,
+    OTHER
 }
