@@ -11,12 +11,14 @@ spring:
             - Path=/api/auth/**
           filters:
             - StripPrefix=1
+            - AddRequestHeader=X-Internal-Auth, internal-auth-secret-123
         - id: schedule-service
           uri: http://schedule-service:8081
           predicates:
             - Path=/api/schedule/**
           filters:
             - StripPrefix=1
+            - AddRequestHeader=X-Internal-Auth, internal-auth-secret-123
 
 logging:
   level:

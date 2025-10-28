@@ -2,6 +2,7 @@ package com.prontudigital.schedule_service.controller;
 
 import com.prontudigital.schedule_service.dto.AppointmentRequestDTO;
 import com.prontudigital.schedule_service.dto.AppointmentResponseDTO;
+import com.prontudigital.schedule_service.dto.AppointmentViewDTO;
 import com.prontudigital.schedule_service.service.AppointmentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,4 +35,21 @@ public class AppointmentController {
             @RequestParam Long patientId) {
         return ResponseEntity.ok(appointmentService.cancelAppointment(id, patientId));
     }
+    @GetMapping("/view")
+    public ResponseEntity<List<AppointmentViewDTO>> viewAppointments(
+            @RequestParam Long professionalId,
+            @RequestParam(required = false) LocalDate date,
+            @RequestParam(required = false) String viewType) {
+
+        if (date == null) {
+            date = LocalDate.now();
+        }
+        if (viewType == null) {
+            viewType = "day";
+        }
+
+        return ResponseEntity.ok(appointmentService.viewAppointments(professionalId, date, viewType));
+    }
+
+
 }

@@ -15,6 +15,15 @@ app:
     access-expiration-ms: 10000
     refresh-expiration-ms: 600000000
 
+# Configuração de segurança - aceitar apenas do gateway
+server:
+  forward-headers-strategy: framework
+
+# Header de segurança para verificação interna
+#security:
+ # internal:
+  #  secret: internal-auth-secret-123
+
 logging:
   level:
     com.prontudigital.auth: DEBUG
