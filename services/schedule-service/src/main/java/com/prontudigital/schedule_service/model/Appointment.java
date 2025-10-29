@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -17,32 +18,34 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Appointment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private LocalDateTime startDateTime;
+    @Column(name = "patient_id")
+    private Long patientId;
 
-    @Column(nullable = false)
-    private LocalDateTime endDateTime;
-
-    @Column(nullable = false)
+    @Column(name = "professional_id")
     private Long professionalId;
 
-    @Column(nullable = false)
-    private Long patientId;
+    private String notes;
+
+    @Column(name = "start_date_time")
+    private LocalDateTime startDateTime;
+
+    @Column(name = "end_date_time")
+    private LocalDateTime endDateTime;
+
+    @Enumerated(EnumType.STRING)
+    private AppointmentStatus status;
 
     @Enumerated(EnumType.STRING)
     private AppointmentType type;
 
-    @Enumerated(EnumType.STRING)
-    private AppointmentStatus status = AppointmentStatus.SCHEDULED;
-
-    private String notes;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 

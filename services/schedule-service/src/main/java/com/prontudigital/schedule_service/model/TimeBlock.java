@@ -19,14 +19,21 @@ public class TimeBlock {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "professional_id")
     private Long professionalId;
+
+    @Column(name = "start_date_time")
     private LocalDateTime startDateTime;
+
+    @Column(name = "end_date_time")
     private LocalDateTime endDateTime;
+
     private String reason;
 
     @Enumerated(EnumType.STRING)
     private TimeBlockType type;
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 }

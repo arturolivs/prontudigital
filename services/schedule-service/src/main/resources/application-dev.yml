@@ -9,6 +9,7 @@ spring:
     password: secret123
     locations: classpath:db/migration
     baseline-on-migrate: true
+    validate-on-migrate: true
 
 server:
   port: 8081

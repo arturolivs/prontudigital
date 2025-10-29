@@ -4,20 +4,19 @@ import com.prontudigital.schedule_service.dto.AppointmentRequestDTO;
 import com.prontudigital.schedule_service.dto.AppointmentResponseDTO;
 import com.prontudigital.schedule_service.dto.AppointmentViewDTO;
 import com.prontudigital.schedule_service.enums.AppointmentStatus;
-import com.prontudigital.schedule_service.exception.AppointmentAlreadyCancelledException;
-import com.prontudigital.schedule_service.exception.AppointmentNotFoundException;
-import com.prontudigital.schedule_service.exception.InvalidViewTypeException;
+import com.prontudigital.schedule_service.exception.*;
 import com.prontudigital.schedule_service.model.Appointment;
+import com.prontudigital.schedule_service.model.TimeBlock;
 import com.prontudigital.schedule_service.repository.AppointmentRepository;
+import com.prontudigital.schedule_service.repository.TimeBlockRepository;
 import com.prontudigital.schedule_service.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +27,7 @@ import java.util.stream.Collectors;
 public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
+    private final TimeBlockRepository timeBlockRepository;
 
     private AppointmentResponseDTO convertToDTO(Appointment appointment) {
         return new AppointmentResponseDTO(
@@ -61,7 +61,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional
     public AppointmentResponseDTO scheduleAppointment(AppointmentRequestDTO request) {
+        log.info("Tentando agendar consulta para paciente {} com profissional {} no horário {}",
+                request.patientId(), request.professionalId(), request.startDateTime());
+
+        validateProfessionalExists(request.professionalId());
+        validatePatientExists(request.patientId());
+        validateFutureDateTime(request.startDateTime());
+        validateProfessionalAvailability(request.professionalId(), request.startDateTime(), request.endDateTime());
+        validatePatientAvailability(request.patientId(), request.startDateTime(), request.endDateTime());
 
         Appointment appointment = Appointment.builder()
                 .patientId(request.patientId())
@@ -75,6 +84,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .build();
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        log.info("Consulta agendada com sucesso. ID: {}", savedAppointment.getId());
 
         return convertToDTO(savedAppointment);
     }
@@ -122,5 +133,83 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointments.stream()
                 .map(this::convertToViewDTO)
                 .collect(Collectors.toList());
+    }
+
+
+    private void validateProfessionalExists(Long professionalId) {
+        /*
+        try {
+            ProfessionalDTO professional = professionalServiceClient.getProfessionalById(professionalId);
+            if (professional == null || !professional.isActive()) {
+                throw new ProfessionalNotFoundException("Profissional não encontrado ou inativo");
+            }
+        } catch (Exception e) {
+            throw new ProfessionalNotFoundException("Erro ao validar profissional: " + e.getMessage());
+        }
+
+         */
+    }
+
+    private void validatePatientExists(Long patientId) {
+        /*
+        try {
+            PatientDTO patient = patientServiceClient.getPatientById(patientId);
+            if (patient == null || !patient.isActive()) {
+                throw new PatientNotFoundException("Paciente não encontrado ou inativo");
+            }
+        } catch (Exception e) {
+            throw new PatientNotFoundException("Erro ao validar paciente: " + e.getMessage());
+        }
+
+         */
+    }
+
+    private void validateFutureDateTime(LocalDateTime dateTime) {
+        if (dateTime.isBefore(LocalDateTime.now())) {
+            throw new InvalidAppointmentTimeException("Não é possível agendar para datas/horários passados");
+        }
+    }
+
+    private void validateProfessionalAvailability(Long professionalId, LocalDateTime start, LocalDateTime end) {
+        // Verificar conflitos com outros agendamentos do profissional
+        List<Appointment> professionalConflicts = appointmentRepository
+                .findConflictingAppointmentsForProfessional(professionalId, start, end);
+
+        if (!professionalConflicts.isEmpty()) {
+            throw new ProfessionalNotAvailableException(
+                    "Profissional já possui agendamento neste horário. " +
+                            "Agendamentos conflitantes: " + professionalConflicts.size()
+            );
+        }
+
+
+        List<TimeBlock> timeBlocks = timeBlockRepository
+                .findConflictingTimeBlocks(professionalId, start, end);
+
+        if (!timeBlocks.isEmpty()) {
+            TimeBlock conflict = timeBlocks.get(0);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+            throw new TimeBlockConflictException(
+                    String.format(
+                            "Horário indisponível. Profissional possui bloco de tempo conflitante: %s às %s. Motivo: %s",
+                            conflict.getStartDateTime().format(formatter),
+                            conflict.getEndDateTime().format(formatter),
+                            conflict.getReason()
+                    )
+            );
+        }
+    }
+
+    private void validatePatientAvailability(Long patientId, LocalDateTime start, LocalDateTime end) {
+        List<Appointment> patientConflicts = appointmentRepository
+                .findConflictingAppointmentsForPatient(patientId, start, end);
+
+        if (!patientConflicts.isEmpty()) {
+            throw new PatientNotAvailableException(
+                    "Paciente já possui agendamento neste horário. " +
+                            "Agendamentos conflitantes: " + patientConflicts.size()
+            );
+        }
     }
 }
