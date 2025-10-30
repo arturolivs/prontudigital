@@ -1,6 +1,6 @@
 package com.prontudigital.schedule_service.repository;
 
-import com.prontudigital.schedule_service.model.TimeBlock;
+import com.prontudigital.schedule_service.entity.TimeBlock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

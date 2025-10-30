@@ -5,8 +5,8 @@ import com.prontudigital.schedule_service.dto.AppointmentResponseDTO;
 import com.prontudigital.schedule_service.dto.AppointmentViewDTO;
 import com.prontudigital.schedule_service.enums.AppointmentStatus;
 import com.prontudigital.schedule_service.exception.*;
-import com.prontudigital.schedule_service.model.Appointment;
-import com.prontudigital.schedule_service.model.TimeBlock;
+import com.prontudigital.schedule_service.entity.Appointment;
+import com.prontudigital.schedule_service.entity.TimeBlock;
 import com.prontudigital.schedule_service.repository.AppointmentRepository;
 import com.prontudigital.schedule_service.repository.TimeBlockRepository;
 import com.prontudigital.schedule_service.service.AppointmentService;
@@ -29,7 +29,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final TimeBlockRepository timeBlockRepository;
 
-    private AppointmentResponseDTO convertToDTO(Appointment appointment) {
+    public AppointmentResponseDTO convertToDTO(Appointment appointment) {
         return new AppointmentResponseDTO(
                 appointment.getId(),
                 appointment.getStartDateTime(),
@@ -43,7 +43,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         );
     }
 
-    private AppointmentViewDTO convertToViewDTO(Appointment appointment) {
+    public AppointmentViewDTO convertToViewDTO(Appointment appointment) {
         String patientName = "patientName";//patientServiceClient.getPatientName(appointment.getPatientId());
         String professionalName = "professionalName";//professionalServiceClient.getProfessionalName(appointment.getProfessionalId());
 
@@ -170,18 +170,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
     }
 
-    private void validateProfessionalAvailability(Long professionalId, LocalDateTime start, LocalDateTime end) {
-        // Verificar conflitos com outros agendamentos do profissional
-        List<Appointment> professionalConflicts = appointmentRepository
-                .findConflictingAppointmentsForProfessional(professionalId, start, end);
-
-        if (!professionalConflicts.isEmpty()) {
-            throw new ProfessionalNotAvailableException(
-                    "Profissional já possui agendamento neste horário. " +
-                            "Agendamentos conflitantes: " + professionalConflicts.size()
-            );
-        }
-
+    public void validateProfessionalAvailability(Long professionalId, LocalDateTime start, LocalDateTime end) {
 
         List<TimeBlock> timeBlocks = timeBlockRepository
                 .findConflictingTimeBlocks(professionalId, start, end);
@@ -199,9 +188,18 @@ public class AppointmentServiceImpl implements AppointmentService {
                     )
             );
         }
+
+        List<Appointment> professionalConflicts = appointmentRepository
+                .findConflictingAppointmentsForProfessional(professionalId, start, end);
+
+        if (!professionalConflicts.isEmpty()) {
+            throw new ProfessionalNotAvailableException(
+                    "Profissional já possui agendamento neste horário."
+            );
+        }
     }
 
-    private void validatePatientAvailability(Long patientId, LocalDateTime start, LocalDateTime end) {
+    public void validatePatientAvailability(Long patientId, LocalDateTime start, LocalDateTime end) {
         List<Appointment> patientConflicts = appointmentRepository
                 .findConflictingAppointmentsForPatient(patientId, start, end);
 

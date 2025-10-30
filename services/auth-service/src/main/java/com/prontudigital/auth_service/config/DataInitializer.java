@@ -54,7 +54,6 @@ public class DataInitializer {
                 roleRepository.saveAll(roles);
             }
 
-            // Criar usuário admin padrão se não existir
             if (userRepository.count() == 0) {
                 Role adminRole = roleRepository.findByName("ADMIN")
                         .orElseThrow(() -> new RuntimeException("Perfil ADMIN não encontrado"));

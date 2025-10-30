@@ -154,7 +154,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             TimeBlockConflictException.class,
            // ExistingAppointmentsException.class,
             //InvalidAppointmentStatusException.class,
-            AppointmentAlreadyCancelledException.class,
+     //       AppointmentAlreadyCancelledException.class,
             InvalidViewTypeException.class
     })
     public ResponseEntity<ErrorResponse> handleBusinessExceptions(RuntimeException ex, WebRequest request) {

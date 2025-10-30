@@ -1,4 +1,4 @@
-package com.prontudigital.schedule_service.model;
+package com.prontudigital.schedule_service.entity;
 
 import com.prontudigital.schedule_service.enums.AppointmentType;
 import com.prontudigital.schedule_service.enums.WaitingListStatus;
