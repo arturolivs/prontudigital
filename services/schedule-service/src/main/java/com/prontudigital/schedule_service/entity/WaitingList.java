@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "waiting_list")
@@ -16,9 +17,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class WaitingList {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", columnDefinition = "UUID",unique = true, updatable = false)
+    private UUID uuid;
 
     @Column(name = "patient_id")
     private Long patientId;

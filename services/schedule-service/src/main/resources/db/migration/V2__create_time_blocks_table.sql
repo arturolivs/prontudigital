@@ -1,5 +1,6 @@
 CREATE TABLE time_blocks (
     id BIGSERIAL PRIMARY KEY,
+    uuid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
     professional_id BIGINT NOT NULL,
     start_date_time TIMESTAMP NOT NULL,
     end_date_time TIMESTAMP NOT NULL,

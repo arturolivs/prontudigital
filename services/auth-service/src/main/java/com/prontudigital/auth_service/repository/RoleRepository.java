@@ -1,6 +1,6 @@
 package com.prontudigital.auth_service.repository;
 
-import com.prontudigital.auth_service.model.Role;
+import com.prontudigital.auth_service.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

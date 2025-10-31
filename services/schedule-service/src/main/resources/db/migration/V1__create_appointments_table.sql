@@ -1,5 +1,6 @@
 CREATE TABLE appointments (
     id BIGSERIAL PRIMARY KEY,
+    uuid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
     start_date_time TIMESTAMP NOT NULL,
     end_date_time TIMESTAMP NOT NULL,
     professional_id BIGINT NOT NULL,
@@ -18,6 +19,7 @@ CREATE TABLE appointments (
 
 -- Create indexes for better performance
 CREATE INDEX idx_appointments_professional_id ON appointments(professional_id);
+CREATE INDEX idx_appointments_uuid ON appointments(uuid);
 CREATE INDEX idx_appointments_patient_id ON appointments(patient_id);
 CREATE INDEX idx_appointments_start_date ON appointments(start_date_time);
 CREATE INDEX idx_appointments_status ON appointments(status);

@@ -1,6 +1,6 @@
 package com.prontudigital.auth_service.repository;
 
-import com.prontudigital.auth_service.model.User;
+import com.prontudigital.auth_service.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

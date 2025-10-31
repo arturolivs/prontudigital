@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "time_blocks")
@@ -15,9 +16,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class TimeBlock {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", columnDefinition = "UUID",unique = true, updatable = false)
+    private UUID uuid;
 
     @Column(name = "professional_id")
     private Long professionalId;

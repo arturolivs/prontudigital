@@ -1,5 +1,6 @@
 CREATE TABLE waiting_list (
     id BIGSERIAL PRIMARY KEY,
+    uuid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
     patient_id BIGINT NOT NULL,
     professional_id BIGINT NOT NULL,
     preferred_type VARCHAR(50),

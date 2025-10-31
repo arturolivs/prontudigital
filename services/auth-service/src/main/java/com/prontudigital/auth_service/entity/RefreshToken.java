@@ -1,4 +1,4 @@
-package com.prontudigital.auth_service.model;
+package com.prontudigital.auth_service.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

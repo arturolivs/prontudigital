@@ -1,4 +1,4 @@
-package com.prontudigital.auth_service.model;
+package com.prontudigital.auth_service.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,10 +20,11 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(columnDefinition = "BINARY(16)", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "uuid", columnDefinition = "UUID",unique = true, updatable = false)
+    private UUID uuid;
 
     @Column(name = "full_name", nullable = false)
     private String fullName;
