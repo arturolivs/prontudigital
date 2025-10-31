@@ -4,10 +4,11 @@ import com.prontudigital.schedule_service.enums.AppointmentType;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record AppointmentRequestDTO (
-        @NotNull Long professionalId,
-        @NotNull Long patientId,
+        @NotNull UUID professionalUuid,
+        @NotNull UUID patientUuid,
         String notes,
         @NotNull LocalDateTime startDateTime,
         @NotNull LocalDateTime endDateTime,

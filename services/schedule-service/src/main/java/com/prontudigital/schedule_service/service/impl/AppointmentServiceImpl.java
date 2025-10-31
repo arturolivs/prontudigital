@@ -19,6 +19,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,8 +35,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getId(),
                 appointment.getStartDateTime(),
                 appointment.getEndDateTime(),
-                appointment.getProfessionalId(),
-                appointment.getPatientId(),
+                appointment.getProfessionalUuid(),
+                appointment.getPatientUuid(),
                 appointment.getType(),
                 appointment.getStatus(),
                 appointment.getNotes(),
@@ -51,8 +52,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getId(),
                 appointment.getStartDateTime(),
                 appointment.getEndDateTime(),
-                appointment.getProfessionalId(),
-                appointment.getPatientId(),
+                appointment.getProfessionalUuid(),
+                appointment.getPatientUuid(),
                 appointment.getType(),
                 appointment.getStatus(),
                 patientName,
@@ -64,17 +65,17 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public AppointmentResponseDTO scheduleAppointment(AppointmentRequestDTO request) {
         log.info("Tentando agendar consulta para paciente {} com profissional {} no horário {}",
-                request.patientId(), request.professionalId(), request.startDateTime());
+                request.patientUuid(), request.professionalUuid(), request.startDateTime());
 
-        validateProfessionalExists(request.professionalId());
-        validatePatientExists(request.patientId());
+        validateProfessionalExists(request.professionalUuid());
+        validatePatientExists(request.patientUuid());
         validateFutureDateTime(request.startDateTime());
-        validateProfessionalAvailability(request.professionalId(), request.startDateTime(), request.endDateTime());
-        validatePatientAvailability(request.patientId(), request.startDateTime(), request.endDateTime());
+        validateProfessionalAvailability(request.professionalUuid(), request.startDateTime(), request.endDateTime());
+        validatePatientAvailability(request.patientUuid(), request.startDateTime(), request.endDateTime());
 
         Appointment appointment = Appointment.builder()
-                .patientId(request.patientId())
-                .professionalId(request.professionalId())
+                .patientUuid(request.patientUuid())
+                .professionalUuid(request.professionalUuid())
                 .notes(request.notes())
                 .startDateTime(request.startDateTime())
                 .endDateTime(request.endDateTime())
@@ -90,8 +91,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         return convertToDTO(savedAppointment);
     }
 
-    public AppointmentResponseDTO cancelAppointment(Long appointmentId, Long patientId)  {
-        Appointment appointment = appointmentRepository.findByIdAndPatientId(appointmentId, patientId)
+    public AppointmentResponseDTO cancelAppointment(Long appointmentId, UUID patientUuid)  {
+        Appointment appointment = appointmentRepository.findByIdAndPatientUuid(appointmentId, patientUuid)
                 .orElseThrow(() -> new AppointmentNotFoundException("Agendamento não encontrado"));
 
 
@@ -106,7 +107,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentViewDTO> viewAppointments(Long professionalId, LocalDate date, String viewType) {
+    public List<AppointmentViewDTO> viewAppointments(UUID professionalUuid, LocalDate date, String viewType) {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
 
@@ -128,7 +129,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         List<Appointment> appointments = appointmentRepository
-                .findByProfessionalIdAndStartDateTimeBetween(professionalId, startDateTime, endDateTime);
+                .findByProfessionalUuidAndStartDateTimeBetween(professionalUuid, startDateTime, endDateTime);
 
         return appointments.stream()
                 .map(this::convertToViewDTO)
@@ -136,7 +137,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
 
-    private void validateProfessionalExists(Long professionalId) {
+    private void validateProfessionalExists(UUID professionalId) {
         /*
         try {
             ProfessionalDTO professional = professionalServiceClient.getProfessionalById(professionalId);
@@ -150,7 +151,7 @@ public class AppointmentServiceImpl implements AppointmentService {
          */
     }
 
-    private void validatePatientExists(Long patientId) {
+    private void validatePatientExists(UUID patientId) {
         /*
         try {
             PatientDTO patient = patientServiceClient.getPatientById(patientId);
@@ -170,10 +171,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
     }
 
-    public void validateProfessionalAvailability(Long professionalId, LocalDateTime start, LocalDateTime end) {
+    public void validateProfessionalAvailability(UUID professionalUuid, LocalDateTime start, LocalDateTime end) {
 
         List<TimeBlock> timeBlocks = timeBlockRepository
-                .findConflictingTimeBlocks(professionalId, start, end);
+                .findConflictingTimeBlocks(professionalUuid, start, end);
 
         if (!timeBlocks.isEmpty()) {
             TimeBlock conflict = timeBlocks.get(0);
@@ -190,7 +191,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         List<Appointment> professionalConflicts = appointmentRepository
-                .findConflictingAppointmentsForProfessional(professionalId, start, end);
+                .findConflictingAppointmentsForProfessional(professionalUuid, start, end);
 
         if (!professionalConflicts.isEmpty()) {
             throw new ProfessionalNotAvailableException(
@@ -199,9 +200,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
     }
 
-    public void validatePatientAvailability(Long patientId, LocalDateTime start, LocalDateTime end) {
+    public void validatePatientAvailability(UUID patientUuid, LocalDateTime start, LocalDateTime end) {
         List<Appointment> patientConflicts = appointmentRepository
-                .findConflictingAppointmentsForPatient(patientId, start, end);
+                .findConflictingAppointmentsForPatient(patientUuid, start, end);
 
         if (!patientConflicts.isEmpty()) {
             throw new PatientNotAvailableException(

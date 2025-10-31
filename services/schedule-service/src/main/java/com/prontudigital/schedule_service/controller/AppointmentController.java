@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -32,12 +33,12 @@ public class AppointmentController {
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<AppointmentResponseDTO> cancelAppointment(
             @PathVariable Long id,
-            @RequestParam Long patientId) {
-        return ResponseEntity.ok(appointmentService.cancelAppointment(id, patientId));
+            @RequestParam UUID patientUuid) {
+        return ResponseEntity.ok(appointmentService.cancelAppointment(id, patientUuid));
     }
     @GetMapping("/view")
     public ResponseEntity<List<AppointmentViewDTO>> viewAppointments(
-            @RequestParam Long professionalId,
+            @RequestParam UUID professionalUuid,
             @RequestParam(required = false) LocalDate date,
             @RequestParam(required = false) String viewType) {
 
@@ -48,7 +49,7 @@ public class AppointmentController {
             viewType = "day";
         }
 
-        return ResponseEntity.ok(appointmentService.viewAppointments(professionalId, date, viewType));
+        return ResponseEntity.ok(appointmentService.viewAppointments(professionalUuid, date, viewType));
     }
 
 

@@ -27,11 +27,11 @@ public class Appointment {
     @Column(name = "uuid", columnDefinition = "UUID",unique = true, updatable = false)
     private UUID uuid;
 
-    @Column(name = "patient_id")
-    private Long patientId;
+    @Column(name = "patient_uuid", columnDefinition = "UUID")
+    private UUID patientUuid;
 
-    @Column(name = "professional_id")
-    private Long professionalId;
+    @Column(name = "professional_uuid", columnDefinition = "UUID")
+    private UUID professionalUuid;
 
     private String notes;
 

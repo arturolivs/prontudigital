@@ -32,7 +32,7 @@ class UserControllerIntegrationTest {
     @MockitoBean
     private UserService userService;
 
-    private final UUID userId = UUID.randomUUID();
+    private final Long userId = 1L;
     private final UserResponseDTO sampleUserResponseDTO = UserResponseDTO.builder()
             .id(userId)
             //.username("test.user")

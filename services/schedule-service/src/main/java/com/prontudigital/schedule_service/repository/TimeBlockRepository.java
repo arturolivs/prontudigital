@@ -8,15 +8,16 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface TimeBlockRepository extends JpaRepository<TimeBlock, Long> {
 
     @Query("SELECT tb FROM TimeBlock tb WHERE " +
-            "tb.professionalId = :professionalId AND " +
+            "tb.professionalUuid = :professionalUuid AND " +
             "((tb.startDateTime < :endDateTime AND tb.endDateTime > :startDateTime))")
     List<TimeBlock> findConflictingTimeBlocks(
-            @Param("professionalId") Long professionalId,
+            @Param("professionalUuid") UUID professionalUuid,
             @Param("startDateTime") LocalDateTime startDateTime,
             @Param("endDateTime") LocalDateTime endDateTime);
 }

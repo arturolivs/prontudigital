@@ -28,7 +28,7 @@ class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
-    private final UUID userId = UUID.randomUUID();
+    private final Long userId = 1L;
     private final UserResponseDTO sampleUserResponseDTO = UserResponseDTO.builder()
             .id(userId)
             .build();

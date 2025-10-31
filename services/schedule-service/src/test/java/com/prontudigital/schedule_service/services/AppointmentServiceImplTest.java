@@ -26,6 +26,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,8 +52,8 @@ class AppointmentServiceImplTest {
         futureDateTime = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0);
 
         validRequest = new AppointmentRequestDTO(
-                1L,
-                1L,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
                 "Consulta de rotina",
                 futureDateTime,
                 futureDateTime.plusHours(1),
@@ -63,8 +64,8 @@ class AppointmentServiceImplTest {
     private Appointment createAppointment(AppointmentType type) {
         return Appointment.builder()
                 .id(1L)
-                .patientId(1L)
-                .professionalId(1L)
+                .patientUuid(UUID.randomUUID())
+                .professionalUuid(UUID.randomUUID())
                 .notes("Consulta de rotina")
                 .startDateTime(futureDateTime)
                 .endDateTime(futureDateTime.plusHours(1))
@@ -94,8 +95,8 @@ class AppointmentServiceImplTest {
         assertEquals(appointment.getId(), result.id());
         assertEquals(appointment.getStartDateTime(), result.startDateTime());
         assertEquals(appointment.getEndDateTime(), result.endDateTime());
-        assertEquals(appointment.getProfessionalId(), result.professionalId());
-        assertEquals(appointment.getPatientId(), result.patientId());
+        assertEquals(appointment.getProfessionalUuid(), result.professionalUuid());
+        assertEquals(appointment.getPatientUuid(), result.patientUuid());
         assertEquals(appointment.getType(), result.type());
         assertEquals(appointment.getStatus(), result.status());
 
@@ -107,7 +108,7 @@ class AppointmentServiceImplTest {
 
         LocalDateTime pastDateTime = LocalDateTime.now().minusDays(1);
         AppointmentRequestDTO invalidRequest = new AppointmentRequestDTO(
-                1L, 1L, "Consulta", pastDateTime, pastDateTime.plusHours(1), AppointmentType.CONSULTATION
+                UUID.randomUUID(), UUID.randomUUID(), "Consulta", pastDateTime, pastDateTime.plusHours(1), AppointmentType.CONSULTATION
         );
 
         assertThrows(InvalidAppointmentTimeException.class,
@@ -150,7 +151,7 @@ class AppointmentServiceImplTest {
 
         TimeBlock timeBlock = TimeBlock.builder()
                 .id(1L)
-                .professionalId(1L)
+                .professionalUuid(UUID.randomUUID())
                 .startDateTime(futureDateTime.minusHours(1))
                 .endDateTime(futureDateTime.plusHours(2))
                 .reason("Reunião")
@@ -172,15 +173,15 @@ class AppointmentServiceImplTest {
     void cancelAppointment_WithValidData_ShouldCancelAppointment() {
 
         Long appointmentId = 1L;
-        Long patientId = 1L;
+        UUID patientUuid = UUID.randomUUID();
         Appointment appointment = createAppointment(AppointmentType.CONSULTATION);
 
-        when(appointmentRepository.findByIdAndPatientId(appointmentId, patientId))
+        when(appointmentRepository.findByIdAndPatientUuid(appointmentId, patientUuid))
                 .thenReturn(Optional.of(appointment));
         when(appointmentRepository.save(any(Appointment.class)))
                 .thenReturn(appointment);
 
-        AppointmentResponseDTO result = appointmentService.cancelAppointment(appointmentId, patientId);
+        AppointmentResponseDTO result = appointmentService.cancelAppointment(appointmentId, patientUuid);
 
         assertNotNull(result);
         assertEquals(AppointmentStatus.CANCELLED, result.status());
@@ -191,13 +192,13 @@ class AppointmentServiceImplTest {
     void cancelAppointment_WithNonExistentAppointment_ShouldThrowException() {
 
         Long appointmentId = 999L;
-        Long patientId = 1L;
+        UUID patientUuid = UUID.randomUUID();
 
-        when(appointmentRepository.findByIdAndPatientId(appointmentId, patientId))
+        when(appointmentRepository.findByIdAndPatientUuid(appointmentId, patientUuid))
                 .thenReturn(Optional.empty());
 
         assertThrows(AppointmentNotFoundException.class,
-                () -> appointmentService.cancelAppointment(appointmentId, patientId));
+                () -> appointmentService.cancelAppointment(appointmentId, patientUuid));
 
         verify(appointmentRepository, never()).save(any());
     }
@@ -206,15 +207,15 @@ class AppointmentServiceImplTest {
     void cancelAppointment_WithAlreadyCancelledAppointment_ShouldThrowException() {
 
         Long appointmentId = 1L;
-        Long patientId = 1L;
+        UUID patientUuid = UUID.randomUUID();
         Appointment appointment = createAppointment(AppointmentType.CONSULTATION);
         appointment.setStatus(AppointmentStatus.CANCELLED);
 
-        when(appointmentRepository.findByIdAndPatientId(appointmentId, patientId))
+        when(appointmentRepository.findByIdAndPatientUuid(appointmentId, patientUuid))
                 .thenReturn(Optional.of(appointment));
 
         assertThrows(AppointmentAlreadyCancelledException.class,
-                () -> appointmentService.cancelAppointment(appointmentId, patientId));
+                () -> appointmentService.cancelAppointment(appointmentId, patientUuid));
 
         verify(appointmentRepository, never()).save(any());
     }
@@ -222,7 +223,7 @@ class AppointmentServiceImplTest {
     @Test
     void viewAppointments_WithDayView_ShouldReturnAppointments() {
 
-        Long professionalId = 1L;
+        UUID professionalUuid = UUID.randomUUID();
         LocalDate date = LocalDate.now();
         String viewType = "day";
 
@@ -232,22 +233,22 @@ class AppointmentServiceImplTest {
         Appointment appointment = createAppointment(AppointmentType.CONSULTATION);
         List<Appointment> appointments = Arrays.asList(appointment);
 
-        when(appointmentRepository.findByProfessionalIdAndStartDateTimeBetween(professionalId, startOfDay, endOfDay))
+        when(appointmentRepository.findByProfessionalUuidAndStartDateTimeBetween(professionalUuid, startOfDay, endOfDay))
                 .thenReturn(appointments);
 
         // Act
-        List<AppointmentViewDTO> result = appointmentService.viewAppointments(professionalId, date, viewType);
+        List<AppointmentViewDTO> result = appointmentService.viewAppointments(professionalUuid, date, viewType);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(appointmentRepository).findByProfessionalIdAndStartDateTimeBetween(professionalId, startOfDay, endOfDay);
+        verify(appointmentRepository).findByProfessionalUuidAndStartDateTimeBetween(professionalUuid, startOfDay, endOfDay);
     }
 
     @Test
     void viewAppointments_WithWeekView_ShouldReturnAppointments() {
 
-        Long professionalId = 1L;
+        UUID professionalUuid = UUID.randomUUID();
         LocalDate date = LocalDate.now();
         String viewType = "week";
 
@@ -255,10 +256,10 @@ class AppointmentServiceImplTest {
         LocalDateTime endOfWeek = startOfWeek.plusDays(6).with(LocalTime.of(23, 59, 59));
 
         Appointment appointment = createAppointment(AppointmentType.CONSULTATION);
-        when(appointmentRepository.findByProfessionalIdAndStartDateTimeBetween(professionalId, startOfWeek, endOfWeek))
+        when(appointmentRepository.findByProfessionalUuidAndStartDateTimeBetween(professionalUuid, startOfWeek, endOfWeek))
                 .thenReturn(List.of(appointment));
 
-        List<AppointmentViewDTO> result = appointmentService.viewAppointments(professionalId, date, viewType);
+        List<AppointmentViewDTO> result = appointmentService.viewAppointments(professionalUuid, date, viewType);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -267,7 +268,7 @@ class AppointmentServiceImplTest {
     @Test
     void viewAppointments_WithMonthView_ShouldReturnAppointments() {
 
-        Long professionalId = 1L;
+        UUID professionalUuid = UUID.randomUUID();
         LocalDate date = LocalDate.now();
         String viewType = "month";
 
@@ -275,10 +276,10 @@ class AppointmentServiceImplTest {
         LocalDateTime endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth()).atTime(23, 59, 59);
 
         Appointment appointment = createAppointment(AppointmentType.CONSULTATION);
-        when(appointmentRepository.findByProfessionalIdAndStartDateTimeBetween(professionalId, startOfMonth, endOfMonth))
+        when(appointmentRepository.findByProfessionalUuidAndStartDateTimeBetween(professionalUuid, startOfMonth, endOfMonth))
                 .thenReturn(List.of(appointment));
 
-        List<AppointmentViewDTO> result = appointmentService.viewAppointments(professionalId, date, viewType);
+        List<AppointmentViewDTO> result = appointmentService.viewAppointments(professionalUuid, date, viewType);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -287,12 +288,12 @@ class AppointmentServiceImplTest {
     @Test
     void viewAppointments_WithInvalidViewType_ShouldThrowException() {
 
-        Long professionalId = 1L;
+        UUID professionalUuid = UUID.randomUUID();
         LocalDate date = LocalDate.now();
         String invalidViewType = "invalid";
 
         assertThrows(InvalidViewTypeException.class,
-                () -> appointmentService.viewAppointments(professionalId, date, invalidViewType));
+                () -> appointmentService.viewAppointments(professionalUuid, date, invalidViewType));
 
         verifyNoInteractions(appointmentRepository);
     }
@@ -308,8 +309,8 @@ class AppointmentServiceImplTest {
         assertEquals(appointment.getId(), result.id());
         assertEquals(appointment.getStartDateTime(), result.startDateTime());
         assertEquals(appointment.getEndDateTime(), result.endDateTime());
-        assertEquals(appointment.getProfessionalId(), result.professionalId());
-        assertEquals(appointment.getPatientId(), result.patientId());
+        assertEquals(appointment.getProfessionalUuid(), result.professionalUuid());
+        assertEquals(appointment.getPatientUuid(), result.patientUuid());
         assertEquals(appointment.getType(), result.type());
         assertEquals(appointment.getStatus(), result.status());
         assertEquals(appointment.getNotes(), result.notes());
@@ -327,8 +328,8 @@ class AppointmentServiceImplTest {
         assertEquals(appointment.getId(), result.id());
         assertEquals(appointment.getStartDateTime(), result.startDateTime());
         assertEquals(appointment.getEndDateTime(), result.endDateTime());
-        assertEquals(appointment.getProfessionalId(), result.professionalId());
-        assertEquals(appointment.getPatientId(), result.patientId());
+        assertEquals(appointment.getProfessionalUuid(), result.professionalUuid());
+        assertEquals(appointment.getPatientUuid(), result.patientUuid());
         assertEquals(appointment.getType(), result.type());
         assertEquals(appointment.getStatus(), result.status());
         assertEquals("patientName", result.patientName());
@@ -344,7 +345,7 @@ class AppointmentServiceImplTest {
                 .thenReturn(List.of());
 
         assertDoesNotThrow(() ->
-                appointmentService.validateProfessionalAvailability(1L, futureDateTime, futureDateTime.plusHours(1))
+                appointmentService.validateProfessionalAvailability(UUID.randomUUID(), futureDateTime, futureDateTime.plusHours(1))
         );
     }
 
@@ -355,7 +356,7 @@ class AppointmentServiceImplTest {
                 .thenReturn(List.of());
 
         assertDoesNotThrow(() ->
-                appointmentService.validatePatientAvailability(1L, futureDateTime, futureDateTime.plusHours(1))
+                appointmentService.validatePatientAvailability(UUID.randomUUID(), futureDateTime, futureDateTime.plusHours(1))
         );
     }
 
@@ -363,7 +364,7 @@ class AppointmentServiceImplTest {
     void scheduleAppointment_WithNullNotes_ShouldWorkCorrectly() {
 
         AppointmentRequestDTO requestWithNullNotes = new AppointmentRequestDTO(
-                1L, 1L, null, futureDateTime, futureDateTime.plusHours(1), AppointmentType.CONSULTATION
+                UUID.randomUUID(), UUID.randomUUID(), null, futureDateTime, futureDateTime.plusHours(1), AppointmentType.CONSULTATION
         );
 
         Appointment appointment = createAppointment(AppointmentType.CONSULTATION);
@@ -389,7 +390,7 @@ class AppointmentServiceImplTest {
         AppointmentType testType = AppointmentType.PROCEDURE;
 
         AppointmentRequestDTO request = new AppointmentRequestDTO(
-                1L, 1L, "Notas", futureDateTime, futureDateTime.plusHours(1), testType
+                UUID.randomUUID(), UUID.randomUUID(), "Notas", futureDateTime, futureDateTime.plusHours(1), testType
         );
 
         Appointment appointment = createAppointment(testType);
@@ -421,7 +422,7 @@ class AppointmentServiceImplTest {
 
         for (AppointmentType expectedType : typesToTest) {
             AppointmentRequestDTO request = new AppointmentRequestDTO(
-                    1L, 1L, "Notas", futureDateTime, futureDateTime.plusHours(1), expectedType
+                    UUID.randomUUID(), UUID.randomUUID(), "Notas", futureDateTime, futureDateTime.plusHours(1), expectedType
             );
 
             Appointment appointment = createAppointment(expectedType);

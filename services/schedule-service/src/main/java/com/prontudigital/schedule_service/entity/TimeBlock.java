@@ -24,8 +24,8 @@ public class TimeBlock {
     @Column(name = "uuid", columnDefinition = "UUID",unique = true, updatable = false)
     private UUID uuid;
 
-    @Column(name = "professional_id")
-    private Long professionalId;
+    @Column(name = "professional_uuid", columnDefinition = "UUID")
+    private UUID professionalUuid;
 
     @Column(name = "start_date_time")
     private LocalDateTime startDateTime;

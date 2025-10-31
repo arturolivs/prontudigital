@@ -7,8 +7,8 @@ import java.util.UUID;
 
 public interface UserService {
     List<UserResponseDTO> findAll();
-    UserResponseDTO findById(UUID id);
+    UserResponseDTO findById(Long id);
     UserResponseDTO create(UserResponseDTO dto, String rawPassword);
-    UserResponseDTO update(UUID id, UserResponseDTO dto);
-    void delete(UUID id);
+    UserResponseDTO update(Long id, UserResponseDTO dto);
+    void delete(Long id);
 }
