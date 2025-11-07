@@ -46,6 +46,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponseDTO findByUuId(UUID id) {
+        return userRepository.findByUuid(id)
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    @Override
     @Transactional
     public UserResponseDTO create(UserResponseDTO dto, String rawPassword) {
         validate(dto);

@@ -20,7 +20,7 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "uuid", columnDefinition = "UUID", unique = true, updatable = false)
+    @Column(name = "uuid", unique = true, updatable = false)
     private UUID uuid;
 
     @Column(nullable = false,  unique = true, length = 20)

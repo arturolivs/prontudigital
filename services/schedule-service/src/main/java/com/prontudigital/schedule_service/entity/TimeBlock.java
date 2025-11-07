@@ -21,7 +21,7 @@ public class TimeBlock {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "uuid", columnDefinition = "UUID",unique = true, updatable = false)
+    @Column(name = "uuid", unique = true, updatable = false)
     private UUID uuid;
 
     @Column(name = "professional_uuid", columnDefinition = "UUID")

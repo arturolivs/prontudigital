@@ -1,8 +1,10 @@
 package com.prontudigital.schedule_service.service.impl;
 
+import com.prontudigital.schedule_service.client.UserServiceClient;
 import com.prontudigital.schedule_service.dto.AppointmentRequestDTO;
 import com.prontudigital.schedule_service.dto.AppointmentResponseDTO;
 import com.prontudigital.schedule_service.dto.AppointmentViewDTO;
+import com.prontudigital.schedule_service.dto.UserInfoDTO;
 import com.prontudigital.schedule_service.enums.AppointmentStatus;
 import com.prontudigital.schedule_service.exception.*;
 import com.prontudigital.schedule_service.entity.Appointment;
@@ -10,8 +12,11 @@ import com.prontudigital.schedule_service.entity.TimeBlock;
 import com.prontudigital.schedule_service.repository.AppointmentRepository;
 import com.prontudigital.schedule_service.repository.TimeBlockRepository;
 import com.prontudigital.schedule_service.service.AppointmentService;
+import com.prontudigital.schedule_service.service.validation.UserValidationService;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +34,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final TimeBlockRepository timeBlockRepository;
+    private final UserServiceClient userServiceClient;
+    private final UserValidationService userValidationService;
+
 
     public AppointmentResponseDTO convertToDTO(Appointment appointment) {
         return new AppointmentResponseDTO(
@@ -67,8 +75,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         log.info("Tentando agendar consulta para paciente {} com profissional {} no horário {}",
                 request.patientUuid(), request.professionalUuid(), request.startDateTime());
 
-        validateProfessionalExists(request.professionalUuid());
-        validatePatientExists(request.patientUuid());
+        userValidationService.validateUserExists(request.patientUuid());
+        userValidationService.validateUserExists(request.professionalUuid());
+
         validateFutureDateTime(request.startDateTime());
         validateProfessionalAvailability(request.professionalUuid(), request.startDateTime(), request.endDateTime());
         validatePatientAvailability(request.patientUuid(), request.startDateTime(), request.endDateTime());
@@ -136,34 +145,6 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .collect(Collectors.toList());
     }
 
-
-    private void validateProfessionalExists(UUID professionalId) {
-        /*
-        try {
-            ProfessionalDTO professional = professionalServiceClient.getProfessionalById(professionalId);
-            if (professional == null || !professional.isActive()) {
-                throw new ProfessionalNotFoundException("Profissional não encontrado ou inativo");
-            }
-        } catch (Exception e) {
-            throw new ProfessionalNotFoundException("Erro ao validar profissional: " + e.getMessage());
-        }
-
-         */
-    }
-
-    private void validatePatientExists(UUID patientId) {
-        /*
-        try {
-            PatientDTO patient = patientServiceClient.getPatientById(patientId);
-            if (patient == null || !patient.isActive()) {
-                throw new PatientNotFoundException("Paciente não encontrado ou inativo");
-            }
-        } catch (Exception e) {
-            throw new PatientNotFoundException("Erro ao validar paciente: " + e.getMessage());
-        }
-
-         */
-    }
 
     private void validateFutureDateTime(LocalDateTime dateTime) {
         if (dateTime.isBefore(LocalDateTime.now())) {

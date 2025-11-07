@@ -24,13 +24,13 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "uuid", columnDefinition = "UUID",unique = true, updatable = false)
+    @Column(name = "uuid", unique = true, insertable = false, updatable = false)
     private UUID uuid;
 
-    @Column(name = "patient_uuid", columnDefinition = "UUID")
+    @Column(name = "patient_uuid")
     private UUID patientUuid;
 
-    @Column(name = "professional_uuid", columnDefinition = "UUID")
+    @Column(name = "professional_uuid")
     private UUID professionalUuid;
 
     private String notes;

@@ -6,7 +6,6 @@ import com.prontudigital.schedule_service.dto.UserInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -19,27 +18,13 @@ public class UserServiceFallback implements UserServiceClient {
         return createFallbackUser(userUuid);
     }
 
-    @Override
-    public List<UserInfoDTO> getUsersBatch(List<UUID> userUuids) {
-        log.warn("Fallback acionado para getUsersBatch: {} usuários", userUuids.size());
-        return userUuids.stream()
-                .map(this::createFallbackUser)
-                .toList();
-    }
-
-    @Override
-    public Boolean userExists(UUID userUuid) {
-        log.warn("Fallback acionado para userExists: {}", userUuid);
-        return false; // Assume que usuário não existe em caso de fallback
-    }
-
     private UserInfoDTO createFallbackUser(UUID userUuid) {
         UserInfoDTO fallbackUser = new UserInfoDTO();
         fallbackUser.setUuid(userUuid);
         fallbackUser.setFullName("Usuário Indisponível");
-        fallbackUser.setUserName("indisponivel");
+        fallbackUser.setUsername("indisponivel");
         fallbackUser.setEmail("indisponivel@email.com");
-        fallbackUser.setActive(false);
+        fallbackUser.setIsActive(false);
         return fallbackUser;
     }
 }

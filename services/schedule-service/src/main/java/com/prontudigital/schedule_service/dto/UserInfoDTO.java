@@ -9,9 +9,9 @@ import java.util.UUID;
 @Data
 public class UserInfoDTO {
     private UUID uuid;
-    private String userName;
+    private String username;
     private String email;
     private String fullName;
-    private Boolean active;
+    private Boolean isActive;
     private List<String> roles;
 }

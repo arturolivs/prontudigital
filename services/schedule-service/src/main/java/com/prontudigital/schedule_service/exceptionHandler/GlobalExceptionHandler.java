@@ -1,6 +1,7 @@
 package com.prontudigital.schedule_service.exceptionHandler;
 
 import com.prontudigital.schedule_service.exception.*;
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
@@ -128,6 +129,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(
+            UserNotFoundException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.name(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler({
       //      ProfessionalNotFoundException.class,
@@ -184,6 +198,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             errorResponse.getDetails().computeIfAbsent(fieldName, k -> new ArrayList<>())
                     .add(errorMessage);
         });
+
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ErrorResponse> handleFeignException(FeignException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Violação de constraints",
+                "Dados de entrada não atendem às regras de validação",
+                getRequestPath(request)
+        );
 
         return ResponseEntity.badRequest().body(errorResponse);
     }
