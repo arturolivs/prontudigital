@@ -1,6 +1,6 @@
 CREATE TABLE user_roles (
-    user_id UUID NOT NULL,
-    role_id UUID NOT NULL,
+    user_id BIGSERIAL NOT NULL,
+    role_id BIGSERIAL NOT NULL,
     assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, role_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,

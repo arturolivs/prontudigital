@@ -1,6 +1,6 @@
 package com.prontudigital.auth_service.security;
 
-import com.prontudigital.auth_service.model.User;
+import com.prontudigital.auth_service.entity.User;
 import com.prontudigital.auth_service.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

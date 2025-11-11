@@ -4,8 +4,8 @@ import com.prontudigital.auth_service.dto.UserResponseDTO;
 import com.prontudigital.auth_service.exception.RoleNotFoundException;
 import com.prontudigital.auth_service.exception.UserNameAlreadyExistsException;
 import com.prontudigital.auth_service.exception.UserNotFoundException;
-import com.prontudigital.auth_service.model.Role;
-import com.prontudigital.auth_service.model.User;
+import com.prontudigital.auth_service.entity.Role;
+import com.prontudigital.auth_service.entity.User;
 import com.prontudigital.auth_service.repository.RoleRepository;
 import com.prontudigital.auth_service.repository.UserRepository;
 import com.prontudigital.auth_service.service.impl.UserServiceImpl;
@@ -40,14 +40,14 @@ class UserServiceImplTest {
     private PasswordEncoder passwordEncoder;
 
     private User sampleUser;
-    private UUID userId;
+    private Long userId;
     private Role nurseRole;
 
     @BeforeEach
     void setUp() {
-        userId = UUID.randomUUID();
+        userId = 1L;
         nurseRole = Role.builder()
-                .id(UUID.randomUUID())
+                .id(1L)
                 .name("Enfermeiro")
                 .build();
 
@@ -89,7 +89,7 @@ class UserServiceImplTest {
 
     @Test
     void findById_WithNonExistingId_ShouldThrowException() {
-        UUID nonExistingId = UUID.randomUUID();
+        Long nonExistingId = 1L;
         when(userRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> service.findById(nonExistingId));
@@ -109,7 +109,7 @@ class UserServiceImplTest {
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
 
         Role mockNurseRole = Role.builder()
-                .id(UUID.randomUUID())
+                .id(1L)
                 .name("Enfermeiro")
                 .users(new HashSet<>())
                 .build();
@@ -164,7 +164,7 @@ class UserServiceImplTest {
     @Test
     void update_WithExistingId_ShouldUpdateUser() {
         Role adminRole = Role.builder()
-                .id(UUID.randomUUID())
+                .id(1L)
                 .name("ADMIN")
                 .users(new HashSet<>()) 
                 .build();
@@ -194,7 +194,7 @@ class UserServiceImplTest {
 
     @Test
     void update_WithNonExistingId_ShouldThrowException() {
-        UUID nonExistingId = UUID.randomUUID();
+        Long nonExistingId = 1L;
         when(userRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class,
@@ -228,7 +228,7 @@ class UserServiceImplTest {
 
     @Test
     void delete_WithNonExistingId_ShouldThrowException() {
-        UUID nonExistingId = UUID.randomUUID();
+        Long nonExistingId = 1L;
         when(userRepository.existsById(nonExistingId)).thenReturn(false);
 
         assertThrows(UserNotFoundException.class, () -> service.delete(nonExistingId));

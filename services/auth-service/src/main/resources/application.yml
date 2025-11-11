@@ -1,49 +1,29 @@
 spring:
   application:
     name: auth-service
-  datasource:
-    url: jdbc:postgresql://localhost:5432/auth_db
-    username: user_admin
-    password: secret123
-    # url: jdbc:postgresql://${PG_HOST}:${PG_PORT}/${PG_USERS_DB}
-    # username: ${POSTGRES_USER}
-    # password: ${POSTGRES_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-  flyway:
-    url: jdbc:postgresql://localhost:5432/auth_db
-    user: user_admin
-    password: secret123
-    log-level: DEBUG
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    validate-on-migrate: true
-    clean-on-validation-error: false
-
 
 app:
   jwt:
-    access-expiration-ms: 10000      # 15 minutos
-    refresh-expiration-ms: 600000000  # 7 dias
+    access-expiration-ms: 10000
+    refresh-expiration-ms: 600000000
+
+# Configuração de segurança - aceitar apenas do gateway
+server:
+  forward-headers-strategy: framework
+
+# Header de segurança para verificação interna
+#security:
+ # internal:
+  #  secret: internal-auth-secret-123
 
 logging:
   level:
-    org:
-      springframework:
-        security: DEBUG
-        jdbc:
-          datasource:
-            init:
-              ScriptUtils: DEBUG
-      hibernate:
-        type:
-          descriptor:
-            sql:
-              BasicBinder: TRACE
-    flywaydb: DEBUG
+    com.prontudigital.auth: DEBUG

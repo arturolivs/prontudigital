@@ -1,15 +1,80 @@
+version: '3.8'
+
 services:
-  postgres:
+  # Banco para Auth Service
+  postgres-auth:
     image: postgres:15
+    container_name: postgres-auth
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_AUTH_DB}
-    volumes:
-      - postgres:/data/postgres
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: user_admin
+      POSTGRES_PASSWORD: secret123
     ports:
-      - "${POSTGRES_PORT}:5432"
-    restart: unless-stopped
+      - "5432:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  # Banco para Schedule Service
+  postgres-schedule:
+    image: postgres:15
+    container_name: postgres-schedule
+    environment:
+      POSTGRES_DB: schedule_db
+      POSTGRES_USER: user_admin
+      POSTGRES_PASSWORD: secret123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_schedule_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  # Microserviços - SEM portas expostas
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    # REMOVER: ports - não expor para fora
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - postgres-auth
+    networks:
+      - microservices-net
+
+  schedule-service:
+    build:
+      context: ./services/schedule-service
+      dockerfile: Dockerfile
+    # REMOVER: ports - não expor para fora
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - postgres-schedule
+    networks:
+      - microservices-net
+
+  # Gateway - ÚNICO com porta exposta
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - auth-service
+      - schedule-service
+    networks:
+      - microservices-net
 
 volumes:
-  postgres:
+  postgres_auth_data:
+  postgres_schedule_data:
+
+networks:
+  microservices-net:
+    driver: bridge

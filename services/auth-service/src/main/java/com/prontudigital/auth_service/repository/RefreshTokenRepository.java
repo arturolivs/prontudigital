@@ -1,7 +1,7 @@
 package com.prontudigital.auth_service.repository;
 
-import com.prontudigital.auth_service.model.RefreshToken;
-import com.prontudigital.auth_service.model.User;
+import com.prontudigital.auth_service.entity.RefreshToken;
+import com.prontudigital.auth_service.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

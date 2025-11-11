@@ -2,6 +2,7 @@ package com.prontudigital.auth_service.exceptionHandler;
 
 import com.prontudigital.auth_service.exception.EmailAlreadyExistsException;
 import com.prontudigital.auth_service.exception.UserNameAlreadyExistsException;
+import com.prontudigital.auth_service.exception.UserNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -97,6 +98,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.name(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(
+            UserNotFoundException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.name(),
                 ex.getMessage(),
                 request.getDescription(false)
         );

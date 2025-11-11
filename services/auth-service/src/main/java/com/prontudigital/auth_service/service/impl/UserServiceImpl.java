@@ -5,8 +5,8 @@ import com.prontudigital.auth_service.exception.EmailAlreadyExistsException;
 import com.prontudigital.auth_service.exception.RoleNotFoundException;
 import com.prontudigital.auth_service.exception.UserNameAlreadyExistsException;
 import com.prontudigital.auth_service.exception.UserNotFoundException;
-import com.prontudigital.auth_service.model.Role;
-import com.prontudigital.auth_service.model.User;
+import com.prontudigital.auth_service.entity.Role;
+import com.prontudigital.auth_service.entity.User;
 import com.prontudigital.auth_service.repository.RoleRepository;
 import com.prontudigital.auth_service.repository.UserRepository;
 import com.prontudigital.auth_service.service.UserService;
@@ -39,8 +39,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponseDTO findById(UUID id) {
+    public UserResponseDTO findById(Long id) {
         return userRepository.findById(id)
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    @Override
+    public UserResponseDTO findByUuId(UUID id) {
+        return userRepository.findByUuid(id)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
@@ -58,7 +65,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO update(UUID id, UserResponseDTO dto) {
+    public UserResponseDTO update(Long id, UserResponseDTO dto) {
         User user = getUserById(id);
 
         user.setEmail(dto.getEmail());
@@ -71,7 +78,7 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     @Transactional
-    public void delete(UUID id) {
+    public void delete(Long id) {
         if (!userRepository.existsById(id)) {
             throw new UserNotFoundException(id);
         }
@@ -108,7 +115,7 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    private User getUserById(UUID id) {
+    private User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
     }

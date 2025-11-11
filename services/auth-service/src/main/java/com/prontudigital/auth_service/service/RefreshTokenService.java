@@ -1,7 +1,7 @@
 package com.prontudigital.auth_service.service;
 
-import com.prontudigital.auth_service.model.RefreshToken;
-import com.prontudigital.auth_service.model.User;
+import com.prontudigital.auth_service.entity.RefreshToken;
+import com.prontudigital.auth_service.entity.User;
 
 import java.util.Optional;
 

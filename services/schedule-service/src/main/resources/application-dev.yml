@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/schedule_db
+    username: user_admin
+    password: secret123
+  flyway:
+    url: jdbc:postgresql://localhost:5433/schedule_db
+    user: user_admin
+    password: secret123
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+server:
+  port: 8081
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.flywaydb: DEBUG

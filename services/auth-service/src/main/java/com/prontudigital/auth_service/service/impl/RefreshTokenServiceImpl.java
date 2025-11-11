@@ -1,8 +1,8 @@
 package com.prontudigital.auth_service.service.impl;
 
 import com.prontudigital.auth_service.exception.InvalidTokenException;
-import com.prontudigital.auth_service.model.RefreshToken;
-import com.prontudigital.auth_service.model.User;
+import com.prontudigital.auth_service.entity.RefreshToken;
+import com.prontudigital.auth_service.entity.User;
 import com.prontudigital.auth_service.repository.RefreshTokenRepository;
 import com.prontudigital.auth_service.repository.UserRepository;
 import com.prontudigital.auth_service.security.JwtTokenProvider;
