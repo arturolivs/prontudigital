@@ -1,14 +1,33 @@
 {
+  // 🔥 ATIVAR CORREÇÃO AUTOMÁTICA AO SALVAR
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": false,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+
   "eslint.validate": [
     "javascript",
-    "javascriptreact",
+    "javascriptreact", 
     "typescript",
     "typescriptreact"
   ],
-  "typescript.preferences.importModuleSpecifier": "relative"
+  "eslint.format.enable": true,
+  "files.autoSave": "onFocusChange",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true
 }
