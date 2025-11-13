@@ -1,35 +1,35 @@
-'use client';
+'use client'
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState, FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login, user } = useAuth();
-  const router = useRouter();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const { login, user } = useAuth()
+  const router = useRouter()
 
   if (user) {
-    router.push('/dashboard');
-    return null;
+    router.push('/dashboard')
+    return null
   }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
 
     try {
-      await login({ email, password });
+      await login({ email, password })
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -48,7 +48,7 @@ export default function Login() {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -58,7 +58,7 @@ export default function Login() {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Senha"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
               />
             </div>
           </div>
@@ -81,5 +81,5 @@ export default function Login() {
         </form>
       </div>
     </div>
-  );
+  )
 }

@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
         destination: '/dashboard',
         permanent: false,
       },
-    ];
+    ]
   },
   // Configurações adicionais que você pode precisar
   images: {

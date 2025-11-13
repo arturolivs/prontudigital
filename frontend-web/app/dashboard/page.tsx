@@ -1,10 +1,10 @@
-'use client';
+'use client'
 
-import { ProtectedRoute } from '../../components/ProtectedRoute';
-import { useAuth } from '../../contexts/AuthContext';
+import { ProtectedRoute } from '../../components/ProtectedRoute'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth()
 
   return (
     <ProtectedRoute>
@@ -35,10 +35,13 @@ export default function Dashboard() {
                 Bem-vindo ao Dashboard!
               </h2>
               <p className="text-gray-600">
-                Esta é uma área protegida. Apenas usuários autenticados podem acessar esta página.
+                Esta é uma área protegida. Apenas usuários autenticados podem
+                acessar esta página.
               </p>
               <div className="mt-6 p-4 bg-white rounded-lg shadow">
-                <h3 className="text-lg font-medium mb-2">Informações do usuário:</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  Informações do usuário:
+                </h3>
                 <pre className="text-sm bg-gray-50 p-4 rounded">
                   {JSON.stringify(user, null, 2)}
                 </pre>
@@ -48,5 +51,5 @@ export default function Dashboard() {
         </main>
       </div>
     </ProtectedRoute>
-  );
+  )
 }
