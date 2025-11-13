@@ -27,3 +27,6 @@ server:
 logging:
   level:
     com.prontudigital.auth: DEBUG
+
+cors:
+  allowed-origins: "http://localhost:3000,http://localhost:3001"

@@ -29,7 +29,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticate(@Valid @RequestBody LoginRequestDTO request) {
+    public ResponseEntity<JwtResponseDTO> authenticate(@Valid @RequestBody LoginRequestDTO request) {
         return ResponseEntity.ok(authService.authenticate(request));
     }
 
