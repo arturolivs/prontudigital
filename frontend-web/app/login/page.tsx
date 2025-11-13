@@ -1,21 +1,23 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function Login() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { login, user } = useAuth()
   const router = useRouter()
 
-  if (user) {
-    router.push('/dashboard')
-    return null
-  }
+  useEffect(() => {
+    if (user) {
+      console.log('Usuário autenticado, redirecionando para dashboard...')
+      router.push('/dashboard')
+    }
+  }, [user, router])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -23,12 +25,21 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      await login({ email, password })
+      await login({ username, password })
     } catch (err: any) {
+      console.error('Erro no login:', err)
       setError(err.message)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Redirecionando...</div>
+      </div>
+    )
   }
 
   return (
@@ -43,12 +54,12 @@ export default function Login() {
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <input
-                type="email"
+                type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                placeholder="Usuário"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
               />
             </div>
             <div>

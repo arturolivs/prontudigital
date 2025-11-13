@@ -1,17 +1,19 @@
-// types/auth.ts
 export interface User {
-  id: string
-  email: string
-  name: string
+  username: string
+  roles: string[]
+  token: string
 }
 
 export interface LoginCredentials {
-  email: string
+  username: string
   password: string
 }
 
 export interface AuthResponse {
-  token: string
+  accessToken: string
   refreshToken: string
-  user: User
+  tokenType: string
+  expiresIn: number
+  username: string
+  roles: string[]
 }

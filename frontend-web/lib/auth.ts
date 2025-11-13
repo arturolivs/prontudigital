@@ -1,4 +1,3 @@
-// lib/auth.ts
 import axios from 'axios'
 
 import { AuthResponse, LoginCredentials } from '../types/auth'

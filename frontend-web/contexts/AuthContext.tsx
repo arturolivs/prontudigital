@@ -73,8 +73,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (credentials: LoginCredentials) => {
     try {
       const response = await authAPI.login(credentials)
-      tokenService.setTokens(response.token, response.refreshToken)
-      setUser(response.user)
+      tokenService.setTokens(response.accessToken, response.refreshToken)
+      setUser({
+        username: response.username,
+        roles: response.roles,
+        token: response.accessToken,
+      })
       router.push('/dashboard')
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Erro ao fazer login')
