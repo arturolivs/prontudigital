@@ -1,4 +1,3 @@
-// components/ProtectedRoute.tsx
 'use client'
 
 import { useAuth } from '../contexts/AuthContext'
@@ -14,10 +13,8 @@ export const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const { user, isLoading, hasRole } = useAuth()
 
-  let content: React.ReactNode
-
   if (isLoading) {
-    content = (
+    return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -25,13 +22,17 @@ export const ProtectedRoute = ({
         </div>
       </div>
     )
-  } else if (!user) {
-    content = null
-  } else if (
-    requiredRoles.length > 0 &&
-    !requiredRoles.some(role => hasRole(role))
-  ) {
-    content = (
+  }
+
+  if (!user) {
+    return null
+  }
+
+  const hasRequiredRole =
+    requiredRoles.length === 0 || requiredRoles.some(role => hasRole(role))
+
+  if (!hasRequiredRole) {
+    return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">🚫</div>
@@ -42,14 +43,15 @@ export const ProtectedRoute = ({
             Você não tem permissão para acessar esta página.
           </p>
           <p className="text-sm text-gray-500 mt-2">
+            Roles necessárias: {requiredRoles.join(', ')}
+          </p>
+          <p className="text-sm text-gray-500">
             Suas roles: {user.roles.join(', ')}
           </p>
         </div>
       </div>
     )
-  } else {
-    content = children
   }
 
-  return <>{content}</>
+  return <>{children}</>
 }

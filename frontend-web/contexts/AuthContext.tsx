@@ -7,7 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { authAPI, tokenService } from '../lib/auth'
 import { User, LoginCredentials, AuthResponse } from '../types/auth'
 
@@ -22,81 +22,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+const AuthProviderContent = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
     checkAuth()
   }, [])
-
-  useEffect(() => {
-    if (!isLoading) {
-      console.log('🔄 Verificando redirecionamento...', {
-        pathname,
-        user: user?.username,
-        roles: user?.roles,
-      })
-
-      const publicRoutes = ['/login']
-      const isPublicRoute = publicRoutes.includes(pathname)
-      const isProtectedRoute =
-        pathname.startsWith('/dashboard') ||
-        pathname.startsWith('/appointments')
-
-      if (isProtectedRoute && !user) {
-        console.log(
-          '🚫 Usuário não autenticado em rota protegida, redirecionando para login',
-        )
-        router.push('/login')
-        return
-      }
-
-      if (isPublicRoute && user) {
-        console.log(
-          '✅ Usuário autenticado em rota pública, redirecionando baseado na role',
-        )
-        redirectBasedOnRole(user.roles)
-        return
-      }
-
-      if (isProtectedRoute && user) {
-        console.log('🔍 Verificando permissões para rota protegida')
-
-        if (
-          pathname.startsWith('/dashboard') &&
-          !user.roles.includes('ADMIN')
-        ) {
-          console.log(
-            '🚫 Usuário não é ADMIN tentando acessar dashboard, redirecionando',
-          )
-          if (user.roles.includes('NURSE') || user.roles.includes('DOCTOR')) {
-            router.push('/appointments')
-          } else {
-            router.push('/unauthorized')
-          }
-          return
-        }
-
-        if (
-          pathname.startsWith('/appointments') &&
-          !user.roles.some(role => ['NURSE', 'DOCTOR', 'ADMIN'].includes(role))
-        ) {
-          console.log(
-            '🚫 Usuário sem permissão para appointments, redirecionando',
-          )
-          if (user.roles.includes('ADMIN')) {
-            router.push('/dashboard')
-          } else {
-            router.push('/unauthorized')
-          }
-          return
-        }
-      }
-    }
-  }, [pathname, user, isLoading, router])
 
   const checkAuth = async () => {
     try {
@@ -157,19 +94,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const redirectBasedOnRole = (roles: string[]) => {
-    if (roles.includes('ADMIN')) {
-      console.log('🔄 Redirecionando para dashboard (ADMIN)')
-      router.push('/dashboard')
-    } else if (roles.includes('NURSE') || roles.includes('DOCTOR')) {
-      console.log('🔄 Redirecionando para appointments (NURSE/DOCTOR)')
-      router.push('/appointments')
-    } else {
-      console.log('🔄 Redirecionando para appointments (role padrão)')
-      router.push('/appointments')
-    }
-  }
-
   const hasRole = (role: string): boolean => {
     return user?.roles.includes(role) || false
   }
@@ -194,12 +118,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.log('💾 Salvando userData no localStorage:', userData)
-
       tokenService.setUserData(userData)
 
       setUser(userData)
 
-      redirectBasedOnRole(response.roles)
+      const primaryRole = response.roles[0]
+      const redirectMap: { [key: string]: string } = {
+        ADMIN: '/dashboard',
+        NURSE: '/appointments',
+        DOCTOR: '/appointments',
+      }
+
+      const redirectTo = redirectMap[primaryRole] || '/appointments'
+      console.log(`🔄 Redirecionando para ${redirectTo} (role: ${primaryRole})`)
+      router.push(redirectTo)
     } catch (error: any) {
       console.error('❌ Erro no login:', error)
       throw new Error(error.response?.data?.message || 'Erro ao fazer login')
@@ -210,23 +142,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log('🚪 Fazendo logout...')
 
-      // 🔥 CORREÇÃO: Limpa os estados primeiro
       setUser(null)
       setIsLoading(false)
-
-      // 🔥 CORREÇÃO: Limpa o storage
       tokenService.clearTokens()
-
-      // 🔥 CORREÇÃO: Faz o logout assíncrono mas não espera
       authAPI.logout().catch(error => {
         console.error('Erro no logout do backend:', error)
       })
 
-      // 🔥 CORREÇÃO: Redireciona imediatamente
       router.push('/login')
     } catch (error) {
       console.error('❌ Erro no logout:', error)
-      // 🔥 CORREÇÃO: Mesmo com erro, limpa e redireciona
       tokenService.clearTokens()
       setUser(null)
       router.push('/login')
@@ -243,6 +168,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  return <AuthProviderContent>{children}</AuthProviderContent>
 }
 
 export const useAuth = () => {
