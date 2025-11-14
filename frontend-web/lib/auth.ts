@@ -1,6 +1,5 @@
 import axios from 'axios'
-
-import { AuthResponse, LoginCredentials } from '../types/auth'
+import { AuthResponse, LoginCredentials, User } from '../types/auth'
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/auth/v1'
@@ -35,5 +34,25 @@ export const tokenService = {
   clearTokens: (): void => {
     localStorage.removeItem('authToken')
     localStorage.removeItem('refreshToken')
+    localStorage.removeItem('userData')
+  },
+
+  getProfessionalUuid: (): string | null => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('professionalUuid')
+    }
+    return null
+  },
+
+  setUserData: (userData: User): void => {
+    localStorage.setItem('userData', JSON.stringify(userData))
+  },
+
+  getUserData: (): User | null => {
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('userData')
+      return userData ? JSON.parse(userData) : null
+    }
+    return null
   },
 }

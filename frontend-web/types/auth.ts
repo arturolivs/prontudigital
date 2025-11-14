@@ -2,11 +2,7 @@ export interface User {
   username: string
   roles: string[]
   token: string
-}
-
-export interface LoginCredentials {
-  username: string
-  password: string
+  professionalUuid?: string
 }
 
 export interface AuthResponse {
@@ -16,4 +12,10 @@ export interface AuthResponse {
   expiresIn: number
   username: string
   roles: string[]
+  professionalUuid?: string
+}
+
+export interface LoginCredentials {
+  username: string
+  password: string
 }

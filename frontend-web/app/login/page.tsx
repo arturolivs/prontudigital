@@ -1,7 +1,7 @@
+// app/login/page.tsx
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, FormEvent } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function Login() {
@@ -9,15 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { login, user } = useAuth()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (user) {
-      console.log('Usuário autenticado, redirecionando para dashboard...')
-      router.push('/dashboard')
-    }
-  }, [user, router])
+  const { login, user, isLoading: authLoading } = useAuth()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -34,10 +26,24 @@ export default function Login() {
     }
   }
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">Verificando sessão...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Redirecionando...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">Redirecionando...</p>
+        </div>
       </div>
     )
   }
