@@ -1,4 +1,3 @@
-// app/page.tsx
 'use client'
 
 import { useEffect } from 'react'
@@ -15,7 +14,7 @@ export default function Home() {
         if (user.roles.includes('ADMIN')) {
           router.push('/dashboard')
         } else {
-          router.push('/appointments')
+          router.push('/schedule')
         }
       } else {
         router.push('/login')

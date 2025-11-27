@@ -23,13 +23,13 @@ export const useRouteProtection = () => {
 
       protected: {
         '/dashboard': ['ADMIN'],
-        '/appointments': ['NURSE', 'DOCTOR', 'ADMIN'],
+        '/schedule': ['NURSE', 'DOCTOR', 'ADMIN'],
       },
 
       defaultRedirects: {
         ADMIN: '/dashboard',
-        NURSE: '/appointments',
-        DOCTOR: '/appointments',
+        NURSE: '/schedule',
+        DOCTOR: '/schedule',
       },
     }
 
@@ -49,7 +49,7 @@ export const useRouteProtection = () => {
       const defaultRoute =
         routeConfig.defaultRedirects[
           user.roles[0] as keyof typeof routeConfig.defaultRedirects
-        ] || '/appointments'
+        ] || '/schedule'
       router.push(defaultRoute)
       return
     }
