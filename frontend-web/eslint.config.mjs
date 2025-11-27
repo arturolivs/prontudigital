@@ -15,25 +15,25 @@ export default [
       sourceType: 'module',
       parserOptions: {
         ecmaFeatures: {
-          jsx: true
-        }
-      }
+          jsx: true,
+        },
+      },
     },
     plugins: {
       '@typescript-eslint': typescript,
-      'react': react,
+      react: react,
       'react-hooks': reactHooks,
-      'prettier': prettier
+      prettier: prettier,
     },
     rules: {
       ...prettierConfig.rules,
       'prettier/prettier': 'error',
-      'semi': 'off', // Deixa o Prettier cuidar disso
+      semi: 'off',
       '@typescript-eslint/semi': 'off',
-      'react/react-in-jsx-scope': 'off'
-    }
+      'react/react-in-jsx-scope': 'off',
+    },
   },
   {
-    ignores: ['node_modules/', '.next/', 'out/', 'build/']
-  }
+    ignores: ['node_modules/', '.next/', 'out/', 'build/'],
+  },
 ]
