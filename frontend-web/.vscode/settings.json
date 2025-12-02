@@ -1,5 +1,5 @@
 {
-  // 🔥 ATIVAR CORREÇÃO AUTOMÁTICA AO SALVAR
+   "files.eol": "\n",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },

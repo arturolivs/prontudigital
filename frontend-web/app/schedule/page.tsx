@@ -1,21 +1,29 @@
 'use client'
 
-import Calendar from '../../components/Calendar'
+import Layout from '@/components/Layout/Layout'
+import Calendar from '@/components/Calendar'
 
 const SchedulePage = () => {
+  // Em uma aplicação real, isso viria do contexto de autenticação
+  const userRole: 'NURSE' = 'NURSE'
+
   return (
-    <div
-      style={{
-        padding: '20px',
-        backgroundColor: '#f5f7fa',
-        minHeight: '100vh',
-      }}
-    >
-      <h1 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>
-        Agenda e Calendário
-      </h1>
-      <Calendar />
-    </div>
+    <Layout userRole={userRole}>
+      <div
+        style={{
+          padding: '20px',
+          backgroundColor: '#f5f7fa',
+          minHeight: '100vh',
+        }}
+      >
+        <h1
+          style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}
+        >
+          Agenda e Calendário
+        </h1>
+        <Calendar />
+      </div>
+    </Layout>
   )
 }
 

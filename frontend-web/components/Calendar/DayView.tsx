@@ -23,7 +23,6 @@ const DayView = ({ currentDate, events }: CalendarViewProps) => {
   return (
     <div className="day-view">
       <div className="day-header">
-        <div>Horário</div>
         <div>
           {currentDate.toLocaleDateString('pt-BR', {
             weekday: 'long',
@@ -38,9 +37,7 @@ const DayView = ({ currentDate, events }: CalendarViewProps) => {
 
           return (
             <div key={`time-${hour}`}>
-              <div key={`time-${hour}`} className="day-time-slot">
-                {hour.toString().padStart(2, '0')}:00
-              </div>
+              <span>{hour.toString().padStart(2, '0')}:00</span>
               <div key={`schedule-${hour}`} className="day-schedule">
                 {hourEvents.map(event => (
                   <div
