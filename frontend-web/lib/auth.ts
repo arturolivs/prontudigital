@@ -1,13 +1,23 @@
 import axios from 'axios'
 import { AuthResponse, LoginCredentials, User } from '../types/auth'
 
+const mock_login = {
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2FvLnNpbHZhQGNsaW5pY2EuY29tIiwicm9sZXMiOlsiRE9DVE9SIl0sInByb2Zlc3Npb25hbFV1aWQiOiJkM2Y1YTdiMi1jOGU0LTRhOWQtYjFmMi04ZTZjNWEzYjlkN2YiLCJpYXQiOjE3MDM1MDAwMDAsImV4cCI6MTcwMzUwMzYwMH0.mock_doctor_token_123456",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2FvLnNpbHZhQGNsaW5pY2EuY29tIiwiaWF0IjoxNzAzNTAwMDAwLCJleHAiOjE3MDQxMDQ4MDB9.mock_doctor_refresh_789012",
+  "tokenType": "Bearer",
+  "expiresIn": 3600,
+  "username": "joao.silva@clinica.com",
+  "roles": ["DOCTOR"],
+  "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f"
+}
+
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/auth/v1'
 
 export const authAPI = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await axios.post(`${API_URL}/signin`, credentials)
-    return response.data
+    //const response = await axios.post(`${API_URL}/signin`, credentials)
+    return mock_login
   },
 
   logout: async (): Promise<void> => {

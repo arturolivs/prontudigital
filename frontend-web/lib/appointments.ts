@@ -2,6 +2,8 @@
 import axios from 'axios'
 import { Appointment } from '../types/appointment'
 
+import appointments from '../mock/appointments.json'
+
 const API_URL =
   process.env.NEXT_PUBLIC_APPOINTMENTS_API_URL ||
   'http://localhost:8081/api/appointments'
@@ -24,6 +26,8 @@ export const appointmentsAPI = {
     viewType: string,
     date: string,
   ): Promise<Appointment[]> => {
+
+    /**
     const response = await api.get(`${API_URL}/view`, {
       params: {
         professionalUuid,
@@ -31,7 +35,10 @@ export const appointmentsAPI = {
         date,
       },
     })
-    return response.data
+    return response.data 
+    // */
+    return appointments
+
   },
 
   createAppointment: async (
