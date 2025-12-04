@@ -26,7 +26,6 @@ export const appointmentsAPI = {
     viewType: string,
     date: string,
   ): Promise<Appointment[]> => {
-
     /**
     const response = await api.get(`${API_URL}/view`, {
       params: {
@@ -38,7 +37,6 @@ export const appointmentsAPI = {
     return response.data 
     // */
     return appointments
-
   },
 
   createAppointment: async (

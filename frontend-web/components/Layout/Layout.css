@@ -2,7 +2,7 @@
 .layout {
   display: flex;
   height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #fafafa;
 }
 
 /* Conteúdo principal */
@@ -10,7 +10,6 @@
   flex: 1;
   transition: margin-left 0.3s ease;
   overflow-y: auto;
-  background-color: white;
 }
 
 .main-content.sidebar-open {
