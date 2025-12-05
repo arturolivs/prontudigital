@@ -4,27 +4,29 @@ import './schedule.css'
 
 export type GroupedAppointments = Record<string, Appointment[]>
 
-// Props do componente
 interface AppointmentListProps {
   appointments?: Appointment[]
   loading?: boolean
   error?: string | null
 }
 
-const DurationDisplay: React.FC<{ start: string; end: string }> = ({ start, end }) => {
+const DurationDisplay: React.FC<{ start: string; end: string }> = ({
+  start,
+  end,
+}) => {
   const duration = useMemo(() => {
     const startDate = new Date(start)
     const endDate = new Date(end)
     const diffMs = endDate.getTime() - startDate.getTime()
     const diffMins = Math.floor(diffMs / 60000)
-    
+
     if (diffMins < 60) {
       return `${diffMins} min`
     }
-    
+
     const hours = Math.floor(diffMins / 60)
     const minutes = diffMins % 60
-    
+
     return minutes > 0 ? `${hours}h${minutes}min` : `${hours}h`
   }, [start, end])
 
@@ -46,39 +48,38 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
       Concluído: { icon: 'check-circle', class: 'completed' },
       Ausente: { icon: 'user-slash', class: 'absent' },
     }
-    
+
     return config[status] || { icon: 'circle', class: 'default' }
   }
 
   const { icon, class: statusClass } = getStatusConfig(status)
 
-  return (
-    <div className={`status-badge status-${statusClass}`}>
-      {status}
-    </div>
-  )
+  return <div className={`status-badge status-${statusClass}`}>{status}</div>
 }
 
-const DateHeader: React.FC<{ dateKey: string; count: number }> = ({ dateKey, count }) => {
+const DateHeader: React.FC<{ dateKey: string; count: number }> = ({
+  dateKey,
+  count,
+}) => {
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString)
     const today = new Date()
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
-    
+
     if (date.toDateString() === today.toDateString()) {
       return 'Hoje'
     }
-    
+
     if (date.toDateString() === tomorrow.toDateString()) {
       return 'Amanhã'
     }
-    
+
     return date.toLocaleDateString('pt-BR', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
     })
   }
 
@@ -105,46 +106,49 @@ const getBorderColorClass = (status: string): string => {
     Concluído: 'border-status-completed',
     Ausente: 'border-status-absent',
   }
-  
+
   return colorMap[status] || 'border-status-default'
 }
 
-const AppointmentList: React.FC<AppointmentListProps> = ({ 
-  appointments = [], 
+const AppointmentList: React.FC<AppointmentListProps> = ({
+  appointments = [],
   loading = false,
-  error = null
+  error = null,
 }) => {
-
   const formatTime = (dateString: string): string => {
     const date = new Date(dateString)
     return date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
   const groupedAppointments = useMemo(() => {
     const grouped: GroupedAppointments = {}
-    
+
     appointments.forEach(appointment => {
-      const dateKey = new Date(appointment.startDateTime).toISOString().split('T')[0]
-      
+      const dateKey = new Date(appointment.startDateTime)
+        .toISOString()
+        .split('T')[0]
+
       if (!grouped[dateKey]) {
         grouped[dateKey] = []
       }
-      
+
       grouped[dateKey].push(appointment)
     })
-    
+
     const sortedDates = Object.keys(grouped).sort()
     const sortedGrouped: GroupedAppointments = {}
-    
+
     sortedDates.forEach(date => {
-      sortedGrouped[date] = grouped[date].sort((a, b) => 
-        new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()
+      sortedGrouped[date] = grouped[date].sort(
+        (a, b) =>
+          new Date(a.startDateTime).getTime() -
+          new Date(b.startDateTime).getTime(),
       )
     })
-    
+
     return sortedGrouped
   }, [appointments])
 
@@ -169,7 +173,10 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
           <div className="error-content">
             <h3>Erro ao carregar agendamentos</h3>
             <p>{error}</p>
-            <button className="retry-btn" onClick={() => window.location.reload()}>
+            <button
+              className="retry-btn"
+              onClick={() => window.location.reload()}
+            >
               Tentar novamente
             </button>
           </div>
@@ -198,91 +205,78 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
         <h1>Agendas</h1>
         {hasAppointments && (
           <div className="total-appointments">
-            Total: {totalAppointments} agendamento{totalAppointments !== 1 ? 's' : ''}
+            Total: {totalAppointments} agendamento
+            {totalAppointments !== 1 ? 's' : ''}
           </div>
         )}
       </div>
 
       <div className="dates-container">
-        {Object.entries(groupedAppointments).map(([dateKey, dateAppointments]) => (
-          <div key={dateKey}>
-            <DateHeader dateKey={dateKey} count={dateAppointments.length} />
-            
-            <div className="appointments-list">
-              {dateAppointments.map(appointment => {
-                const borderClass = getBorderColorClass(appointment.status)
-                
-                return (
-                  <div 
-                    key={appointment.id} 
-                    className={`appointment-card ${borderClass}`}
-                  >
-                    <div className="appointment-header">
-                      <div className="time-info">
-                        <div className="time-display">
-                          <i className="far fa-clock"></i>
-                          <div className="time-range">
-                            <span className="start-time">{formatTime(appointment.startDateTime)}</span>
-                            <span className="time-separator">-</span>
-                            <span className="end-time">{formatTime(appointment.endDateTime)}</span>
+        {Object.entries(groupedAppointments).map(
+          ([dateKey, dateAppointments]) => (
+            <div key={dateKey}>
+              <DateHeader dateKey={dateKey} count={dateAppointments.length} />
+
+              <div className="appointments-list">
+                {dateAppointments.map(appointment => {
+                  const borderClass = getBorderColorClass(appointment.status)
+
+                  return (
+                    <div
+                      key={appointment.id}
+                      className={`appointment-card horizontal-card-2 ${borderClass}`}
+                    >
+                      <div className="card-main-line">
+                        <div className="time-info-compact">
+                          <div className="time-display-compact">
+                            <i className="far fa-clock"></i>
+                            <span className="time-text">
+                              {formatTime(appointment.startDateTime)} -{' '}
+                              {formatTime(appointment.endDateTime)}
+                            </span>
+                            <span className="duration-badge">
+                              <DurationDisplay
+                                start={appointment.startDateTime}
+                                end={appointment.endDateTime}
+                              />
+                            </span>
                           </div>
                         </div>
-                        <DurationDisplay 
-                          start={appointment.startDateTime} 
-                          end={appointment.endDateTime} 
-                        />
-                      </div>
-                      
-                      <StatusBadge status={appointment.status} />
-                    </div>
-                    
-                    <div className="appointment-content">
-                      <div className="appointment-details">
-                        <div className="detail-row">
-                          <div className="detail-item">
-                            <div className="detail-label">
-                              <i className="fas fa-user"></i>
-                              Paciente
-                            </div>
-                            <div className="detail-value">{appointment.patientName}</div>
+
+                        <div className="card-details-line">
+                          <div className="detail-with-icon">
+                            <i className="fas fa-user"></i>
+                            <span className="detail-text">
+                              {appointment.patientName}
+                            </span>
                           </div>
-                          
-                          <div className="detail-item">
-                            <div className="detail-label">
-                              <i className="fas fa-stethoscope"></i>
-                              Tipo
-                            </div>
-                            <div className="detail-value">{appointment.type}</div>
+
+                          <div className="detail-with-icon">
+                            <i className="fas fa-stethoscope"></i>
+                            <span className="detail-text">
+                              {appointment.type}
+                            </span>
+                          </div>
+
+                          <div className="detail-with-icon">
+                            <i className="fas fa-user-md"></i>
+                            <span className="detail-text">
+                              {appointment.professionalName}
+                            </span>
                           </div>
                         </div>
-                        
-                        <div className="detail-row">
-                          <div className="detail-item">
-                            <div className="detail-label">
-                              <i className="fas fa-user-md"></i>
-                              Profissional
-                            </div>
-                            <div className="detail-value">{appointment.professionalName}</div>
-                          </div>
-                          
-                          <div className="detail-item">
-                            <div className="detail-label">
-                              <i className="fas fa-id-card"></i>
-                              Status
-                            </div>
-                            <div className="detail-value status-value">{appointment.status}</div>
-                          </div>
+
+                        <div className="card-actions-line">
+                          <StatusBadge status={appointment.status} />
                         </div>
                       </div>
                     </div>
-                    
-      
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          ),
+        )}
       </div>
     </div>
   )

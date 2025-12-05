@@ -16,10 +16,11 @@ export default function AppointmentsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
+    new Date().toISOString().split('T')[0],
   )
 
-  const hasRequiredRole = hasRole('NURSE') || hasRole('DOCTOR') || hasRole('ADMIN')
+  const hasRequiredRole =
+    hasRole('NURSE') || hasRole('DOCTOR') || hasRole('ADMIN')
 
   useEffect(() => {
     if (user && hasRequiredRole) {
@@ -43,7 +44,7 @@ export default function AppointmentsPage() {
       const data = await appointmentsAPI.getAppointments(
         professionalUuid,
         'day',
-        selectedDate
+        selectedDate,
       )
 
       setAppointments(data)
@@ -67,7 +68,7 @@ export default function AppointmentsPage() {
     <Layout userRole={'NURSE'}>
       <ProtectedRoute requiredRoles={['NURSE', 'DOCTOR', 'ADMIN']}>
         <div className="appointments-page">
-          <AppointmentList 
+          <AppointmentList
             appointments={appointments}
             loading={loading}
             error={error}

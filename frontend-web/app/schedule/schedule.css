@@ -522,3 +522,167 @@
   border-right-color: transparent;
   border-width: 2px;
 }
+
+
+/* ===== OPÇÃO 2: Layout em linha única com ícones ===== */
+.horizontal-card-2 {
+  padding: 16px 20px;
+}
+
+.card-main-line {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.time-info-compact {
+  min-width: 180px;
+}
+
+.time-display-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.time-display-compact i {
+  color: #6366f1;
+}
+
+.time-text {
+  margin-right: 8px;
+}
+
+.duration-badge {
+  background-color: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.card-details-line {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.detail-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.detail-with-icon i {
+  color: #8b5cf6;
+  width: 16px;
+  font-size: 0.9rem;
+}
+
+.card-actions-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .horizontal-card-3 .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .horizontal-card-1 .card-content-horizontal {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .horizontal-card-1 .content-right {
+    align-items: flex-start;
+  }
+  
+  .horizontal-card-2 .card-main-line {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .horizontal-card-2 .card-details-line {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .horizontal-card-3 .card-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .status-item {
+    margin-top: 8px;
+  }
+}
+
+/* Ajustes para o hover mantendo a cor do status */
+.horizontal-card-1:hover,
+.horizontal-card-2:hover,
+.horizontal-card-3:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Mantém os efeitos hover das cores dos status */
+.border-status-confirmed.horizontal-card-1:hover,
+.border-status-confirmed.horizontal-card-2:hover,
+.border-status-confirmed.horizontal-card-3:hover {
+  border-left-color: #34d399;
+  border-left-width: 6px;
+}
+
+.border-status-pendente.horizontal-card-1:hover,
+.border-status-pendente.horizontal-card-2:hover,
+.border-status-pendente.horizontal-card-3:hover {
+  border-left-color: #fbbf24;
+  border-left-width: 6px;
+}
+
+.border-status-cancelado.horizontal-card-1:hover,
+.border-status-cancelado.horizontal-card-2:hover,
+.border-status-cancelado.horizontal-card-3:hover {
+  border-left-color: #f87171;
+  border-left-width: 6px;
+}
+
+.border-status-agendado.horizontal-card-1:hover,
+.border-status-agendado.horizontal-card-2:hover,
+.border-status-agendado.horizontal-card-3:hover {
+  border-left-color: #60a5fa;
+  border-left-width: 6px;
+}
+
+.border-status-completed.horizontal-card-1:hover,
+.border-status-completed.horizontal-card-2:hover,
+.border-status-completed.horizontal-card-3:hover {
+  border-left-color: #a78bfa;
+  border-left-width: 6px;
+}
+
+.border-status-absent.horizontal-card-1:hover,
+.border-status-absent.horizontal-card-2:hover,
+.border-status-absent.horizontal-card-3:hover {
+  border-left-color: #9ca3af;
+  border-left-width: 6px;
+}
+
+.border-status-default.horizontal-card-1:hover,
+.border-status-default.horizontal-card-2:hover,
+.border-status-default.horizontal-card-3:hover {
+  border-left-color: #d1d5db;
+  border-left-width: 6px;
+}
