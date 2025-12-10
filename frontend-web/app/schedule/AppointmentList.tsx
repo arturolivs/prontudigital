@@ -224,7 +224,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
                   return (
                     <div
                       key={appointment.id}
-                      className={`appointment-card horizontal-card-2 ${borderClass}`}
+                      className={`appointment-card ${borderClass}`}
                     >
                       <div className="card-main-line">
                         <div className="time-info-compact">
