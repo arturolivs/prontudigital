@@ -1,4 +1,12 @@
 import React, { useMemo } from 'react'
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faTriangleExclamation,
+  faCalendarTimes,
+  faClock,
+} from '@fortawesome/free-solid-svg-icons'
+
 import { Appointment } from '../../types/appointment'
 import './schedule.css'
 
@@ -86,7 +94,7 @@ const DateHeader: React.FC<{ dateKey: string; count: number }> = ({
   return (
     <div className="date-header">
       <div className="date-title">
-        <i className="far fa-calendar-alt"></i>
+        <FontAwesomeIcon icon={faCalendarTimes} className="h-5 w-5" />
         <span>{formatDate(dateKey)}</span>
       </div>
       <div className="appointment-count">
@@ -169,7 +177,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
     return (
       <div className="appointment-list-container">
         <div className="error-message">
-          <i className="fas fa-exclamation-triangle"></i>
+          <FontAwesomeIcon icon={faTriangleExclamation} className="h-5 w-5" />
           <div className="error-content">
             <h3>Erro ao carregar agendamentos</h3>
             <p>{error}</p>
@@ -230,6 +238,10 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
                         <div className="time-info-compact">
                           <div className="time-display-compact">
                             <i className="far fa-clock"></i>
+                            <FontAwesomeIcon
+                              icon={faClock}
+                              className="h-5 w-5"
+                            />
                             <span className="time-text">
                               {formatTime(appointment.startDateTime)} -{' '}
                               {formatTime(appointment.endDateTime)}
