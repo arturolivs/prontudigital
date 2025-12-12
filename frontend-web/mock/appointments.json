@@ -6,7 +6,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p001",
     "type": "Consulta",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Carlos Mendes",
     "professionalName": "Dr. João Silva"
   },
@@ -17,7 +17,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p002",
     "type": "Retorno",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Ana Rodrigues",
     "professionalName": "Dr. João Silva"
   },
@@ -28,7 +28,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p003",
     "type": "Exame",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Fernanda Lima",
     "professionalName": "Dr. João Silva"
   },
@@ -39,7 +39,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p004",
     "type": "Consulta",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Roberto Alves",
     "professionalName": "Dr. João Silva"
   },
@@ -50,7 +50,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p005",
     "type": "Cirurgia",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Patrícia Costa",
     "professionalName": "Dr. João Silva"
   },
@@ -61,7 +61,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p006",
     "type": "Avaliação",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Lucas Pereira",
     "professionalName": "Dr. João Silva"
   },
@@ -72,7 +72,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p007",
     "type": "Retorno",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Mariana Santos",
     "professionalName": "Dr. João Silva"
   },
@@ -83,7 +83,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p008",
     "type": "Consulta",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Ricardo Oliveira",
     "professionalName": "Dr. João Silva"
   },
@@ -94,7 +94,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p009",
     "type": "Exame",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Juliana Ferreira",
     "professionalName": "Dr. João Silva"
   },
@@ -105,7 +105,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p010",
     "type": "Consulta",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Gabriel Martins",
     "professionalName": "Dr. João Silva"
   },
@@ -116,7 +116,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p001",
     "type": "Retorno",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Carlos Mendes",
     "professionalName": "Dr. João Silva"
   },
@@ -127,7 +127,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p002",
     "type": "Avaliação",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Ana Rodrigues",
     "professionalName": "Dr. João Silva"
   },
@@ -138,7 +138,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p003",
     "type": "Consulta",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Fernanda Lima",
     "professionalName": "Dr. João Silva"
   },
@@ -149,7 +149,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p004",
     "type": "Exame",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Roberto Alves",
     "professionalName": "Dr. João Silva"
   },
@@ -160,7 +160,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p005",
     "type": "Cirurgia",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Patrícia Costa",
     "professionalName": "Dr. João Silva"
   },
@@ -171,7 +171,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p006",
     "type": "Consulta",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Lucas Pereira",
     "professionalName": "Dr. João Silva"
   },
@@ -182,7 +182,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p007",
     "type": "Retorno",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Mariana Santos",
     "professionalName": "Dr. João Silva"
   },
@@ -193,7 +193,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p008",
     "type": "Avaliação",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Ricardo Oliveira",
     "professionalName": "Dr. João Silva"
   },
@@ -204,7 +204,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p009",
     "type": "Consulta",
-    "status": "Confirmado",
+    "status": "Avaliação",
     "patientName": "Juliana Ferreira",
     "professionalName": "Dr. João Silva"
   },
@@ -215,7 +215,7 @@
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p010",
     "type": "Exame",
-    "status": "Agendado",
+    "status": "Tratamento",
     "patientName": "Gabriel Martins",
     "professionalName": "Dr. João Silva"
   }

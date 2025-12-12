@@ -49,10 +49,10 @@ const DurationDisplay: React.FC<{ start: string; end: string }> = ({
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const getStatusConfig = (status: string) => {
     const config: Record<string, { icon: string; class: string }> = {
-      Confirmado: { icon: 'check-circle', class: 'confirmed' },
+      Avaliação: { icon: 'check-circle', class: 'avaliacao' },
       Pendente: { icon: 'clock', class: 'pendente' },
       Cancelado: { icon: 'times-circle', class: 'cancelado' },
-      Agendado: { icon: 'calendar-check', class: 'agendado' },
+      Tratamento: { icon: 'calendar-check', class: 'tratamento' },
       Concluído: { icon: 'check-circle', class: 'completed' },
       Ausente: { icon: 'user-slash', class: 'absent' },
     }
@@ -107,10 +107,10 @@ const DateHeader: React.FC<{ dateKey: string; count: number }> = ({
 
 const getBorderColorClass = (status: string): string => {
   const colorMap: Record<string, string> = {
-    Confirmado: 'border-status-confirmed',
+    Avaliação: 'border-status-confirmed',
     Pendente: 'border-status-pendente',
     Cancelado: 'border-status-cancelado',
-    Agendado: 'border-status-agendado',
+    Tratamento: 'border-status-tratamento',
     Concluído: 'border-status-completed',
     Ausente: 'border-status-absent',
   }
