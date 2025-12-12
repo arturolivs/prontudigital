@@ -102,13 +102,18 @@
 .dates-container {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 1.5rem;
+}
+
+.day-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 /* ===== CABEÇALHO DA DATA ===== */
 .date-header {
   color: #2c3e50;
-  padding: 18px 25px;
   font-size: 1.3rem;
   font-weight: 600;
   display: flex;
@@ -122,6 +127,10 @@
   gap: 10px;
 }
 
+.date-title span {
+  font-size: clamp(0.875rem, 1.5vw, 2rem); 
+}
+
 .date-title i {
   font-size: 1.2rem;
 }
@@ -130,7 +139,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1rem;
+  font-size:  clamp(0.875rem, 1vw, 1rem); ;
   font-weight: 500;
 }
 
@@ -147,32 +156,31 @@
 
 /* ===== LISTA DE AGENDAMENTOS ===== */
 .appointments-list {
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 1rem;
 }
 
 /* ===== CARD DE AGENDAMENTO UNIFICADO ===== */
 .appointment-card {
   background-color: white;
   border-radius: 8px;
-  padding: 16px 20px;
+  padding: 1rem;
   border: 1px solid #e5e7eb;
   border-left-width: 5px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   gap: 16px;
   max-height: 4rem;
 }
 
 .appointment-card:hover {
   cursor: pointer;
-  transform: translateY(-2px);
-  box-shadow: 0px 0px 20px #0000001f;
+  transform: scale(1.02);
+  box-shadow: 0px 0px 20px #0000004f;
 }
 
 /* Layout interno do card */
@@ -224,12 +232,6 @@
   margin-right: 8px;
 }
 
-.card-details-line {
-  flex: 1;
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
 
 .detail-text {
   color: #111827;

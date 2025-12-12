@@ -222,7 +222,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
       <div className="dates-container">
         {Object.entries(groupedAppointments).map(
           ([dateKey, dateAppointments]) => (
-            <div key={dateKey}>
+            <div className="day-container" key={dateKey}>
               <DateHeader dateKey={dateKey} count={dateAppointments.length} />
 
               <div className="appointments-list">
@@ -236,16 +236,13 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
                     >
                       <div className="time-info">
                         <span className="time-text">
-                          {formatTime(appointment.startDateTime)} - {formatTime(appointment.endDateTime)}
+                          {formatTime(appointment.startDateTime)} -{' '}
+                          {formatTime(appointment.endDateTime)}
                         </span>
                         <div className="time-display">
-
                           <div className="icon-container">
                             <i className="far fa-clock"></i>
-                            <FontAwesomeIcon
-                              icon={faClock}
-                            />
-
+                            <FontAwesomeIcon icon={faClock} />
                           </div>
                           <DurationDisplay
                             start={appointment.startDateTime}
@@ -254,17 +251,9 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
                         </div>
                       </div>
 
-                      <div className="card-details-line">
-
-                        <span className="detail-text">
-                          {appointment.patientName}
-                        </span>
-                        <span className="detail-text">
-                          {appointment.type}
-                        </span>
-
-
-                      </div>
+                      <span className="detail-text">
+                        {appointment.patientName}
+                      </span>
 
                       <div className="card-actions-line">
                         <StatusBadge status={appointment.status} />
