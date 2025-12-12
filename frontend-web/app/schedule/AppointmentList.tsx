@@ -234,53 +234,40 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
                       key={appointment.id}
                       className={`appointment-card ${borderClass}`}
                     >
-                      <div className="card-main-line">
-                        <div className="time-info-compact">
-                          <div className="time-display-compact">
+                      <div className="time-info">
+                        <span className="time-text">
+                          {formatTime(appointment.startDateTime)} - {formatTime(appointment.endDateTime)}
+                        </span>
+                        <div className="time-display">
+
+                          <div className="icon-container">
                             <i className="far fa-clock"></i>
                             <FontAwesomeIcon
                               icon={faClock}
-                              className="h-5 w-5"
                             />
-                            <span className="time-text">
-                              {formatTime(appointment.startDateTime)} -{' '}
-                              {formatTime(appointment.endDateTime)}
-                            </span>
-                            <span className="duration-badge">
-                              <DurationDisplay
-                                start={appointment.startDateTime}
-                                end={appointment.endDateTime}
-                              />
-                            </span>
+
                           </div>
+                          <DurationDisplay
+                            start={appointment.startDateTime}
+                            end={appointment.endDateTime}
+                          />
                         </div>
+                      </div>
 
-                        <div className="card-details-line">
-                          <div className="detail-with-icon">
-                            <i className="fas fa-user"></i>
-                            <span className="detail-text">
-                              {appointment.patientName}
-                            </span>
-                          </div>
+                      <div className="card-details-line">
 
-                          <div className="detail-with-icon">
-                            <i className="fas fa-stethoscope"></i>
-                            <span className="detail-text">
-                              {appointment.type}
-                            </span>
-                          </div>
+                        <span className="detail-text">
+                          {appointment.patientName}
+                        </span>
+                        <span className="detail-text">
+                          {appointment.type}
+                        </span>
 
-                          <div className="detail-with-icon">
-                            <i className="fas fa-user-md"></i>
-                            <span className="detail-text">
-                              {appointment.professionalName}
-                            </span>
-                          </div>
-                        </div>
 
-                        <div className="card-actions-line">
-                          <StatusBadge status={appointment.status} />
-                        </div>
+                      </div>
+
+                      <div className="card-actions-line">
+                        <StatusBadge status={appointment.status} />
                       </div>
                     </div>
                   )

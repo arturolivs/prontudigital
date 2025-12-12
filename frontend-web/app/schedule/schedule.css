@@ -157,57 +157,71 @@
 .appointment-card {
   background-color: white;
   border-radius: 8px;
-  padding: 16px 20px; 
+  padding: 16px 20px;
   border: 1px solid #e5e7eb;
   border-left-width: 5px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
   gap: 16px;
+  max-height: 4rem;
 }
 
 .appointment-card:hover {
   cursor: pointer;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0px 0px 20px #0000001f;
 }
 
 /* Layout interno do card */
-.card-main-line {
-  display: flex;
+
+.time-info {
   align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  column-gap: .5rem;
 }
 
-.time-info-compact {
-  min-width: 180px;
-}
 
-.time-display-compact {
+
+.icon-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  font-size: .7rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.icon-container i {
+  color: #6366f1;
+}
+
+.time-display {
+  display: flex;
+  align-items: center;
+}
+
+.time-display {
+
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
 }
 
-.time-display-compact i {
-  color: #6366f1;
-}
-
 .time-text {
-  margin-right: 8px;
-}
 
-.duration-badge {
-  background-color: #f3f4f6;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  color: #6b7280;
+  width: max-content;
+  font-size: 2vw;
+  font-size: clamp(2vw, 2vw, 1rem);
+  /* Mas com limites */
+  font-size: min(1vw, 32px);
+  font-size: max(1rem, 1vw);
+
+  font-weight: 600;
+  color: #111827;
+  margin-right: 8px;
 }
 
 .card-details-line {
@@ -215,20 +229,6 @@
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
-}
-
-.detail-with-icon {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #374151;
-  font-size: 0.95rem;
-}
-
-.detail-with-icon i {
-  color: #8b5cf6;
-  width: 16px;
-  font-size: 0.9rem;
 }
 
 .detail-text {
@@ -407,9 +407,8 @@
   align-items: center;
   gap: 6px;
   color: #6b7280;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   background-color: #f9fafb;
-  padding: 4px 10px;
   border-radius: 12px;
   width: fit-content;
 }
@@ -421,62 +420,11 @@
 
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 768px) {
-  .appointments-page {
-    padding: 16px;
-  }
-  
-  .header h1 {
-    font-size: 1.8rem;
-  }
-  
-  .date-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
-  }
-  
-  .appointment-card .card-main-line {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  
-  .appointment-card .card-details-line {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .appointment-card {
-    padding: 16px;
-  }
-  
-  .time-info-compact {
-    min-width: 100%;
-  }
-  
-  .time-display-compact {
-    flex-wrap: wrap;
-  }
+ 
 }
 
 @media (max-width: 480px) {
-  .appointment-card {
-    padding: 12px;
-  }
-  
-  .card-main-line {
-    gap: 12px;
-  }
-  
-  .card-details-line {
-    gap: 8px;
-  }
-  
-  .status-badge {
-    width: auto;
-    min-width: 6rem;
-  }
+
 }
 
 /* ===== ANIMAÇÕES ===== */
@@ -484,6 +432,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

@@ -10,7 +10,7 @@
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "[javascript]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
@@ -29,5 +29,8 @@
   "files.autoSave": "onFocusChange",
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
-  "editor.detectIndentation": true
+  "editor.detectIndentation": true,
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  }
 }
