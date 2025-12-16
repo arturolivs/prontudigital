@@ -4,8 +4,9 @@ export interface Appointment {
   endDateTime: string
   professionalUuid: string
   patientUuid: string
-  type: string
-  status: string
   patientName: string
   professionalName: string
+  bedridden: boolean
+  type: 'AVALIACAO' | 'TRATAMENTO'
+  tratamentType: 'PODEATRIA' | 'TRATAMENTO_FERIDAS'
 }

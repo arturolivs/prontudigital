@@ -128,7 +128,7 @@
 }
 
 .date-title span {
-  font-size: clamp(0.875rem, 1.5vw, 2rem); 
+  font-size: clamp(0.875rem, 1.5vw, 2rem);
 }
 
 .date-title i {
@@ -139,7 +139,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size:  clamp(0.875rem, 1vw, 1rem); ;
+  font-size: clamp(0.875rem, 1vw, 1rem);
+  ;
   font-weight: 500;
 }
 
@@ -174,7 +175,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  max-height: 4rem;
+  max-height: 6rem;
 }
 
 .appointment-card:hover {
@@ -186,7 +187,6 @@
 /* Layout interno do card */
 
 .time-info {
-  align-items: center;
   display: flex;
   flex-direction: column;
   column-gap: .5rem;
@@ -212,7 +212,6 @@
 }
 
 .time-display {
-
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
@@ -225,13 +224,18 @@
   font-size: clamp(2vw, 2vw, 1rem);
   /* Mas com limites */
   font-size: min(1vw, 32px);
-  font-size: max(1rem, 1vw);
+  font-size: max(.8rem, 1vw);
 
   font-weight: 600;
   color: #111827;
   margin-right: 8px;
 }
 
+.details-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 
 .detail-text {
   color: #111827;
@@ -239,10 +243,10 @@
   font-weight: 500;
 }
 
-.card-actions-line {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.detail-sub-text {
+  color: #111827;
+  font-size: .7rem;
+  font-weight: 400;
 }
 
 /* ===== STATUS BADGES ===== */
@@ -266,6 +270,12 @@
   border: 1px solid #bbf7d0;
 }
 
+.status-tratamento {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
 .status-pendente {
   background-color: #fef3c7;
   color: #92400e;
@@ -278,11 +288,7 @@
   border: 1px solid #fecaca;
 }
 
-.status-tratamento {
-  background-color: #dbeafe;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
-}
+
 
 .status-completed {
   background-color: #d1fae5;
@@ -409,7 +415,7 @@
   align-items: center;
   gap: 6px;
   color: #6b7280;
-  font-size: 0.8rem;
+  font-size: 0.6rem;
   background-color: #f9fafb;
   border-radius: 12px;
   width: fit-content;
@@ -421,13 +427,9 @@
 }
 
 /* ===== RESPONSIVIDADE ===== */
-@media (max-width: 768px) {
- 
-}
+@media (max-width: 768px) {}
 
-@media (max-width: 480px) {
-
-}
+@media (max-width: 480px) {}
 
 /* ===== ANIMAÇÕES ===== */
 @keyframes spin {

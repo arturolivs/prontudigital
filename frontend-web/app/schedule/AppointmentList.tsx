@@ -18,6 +18,16 @@ interface AppointmentListProps {
   error?: string | null
 }
 
+const tratamentTypeDescription = {
+  PODEATRIA: 'Podeatria',
+  TRATAMENTO_FERIDAS: 'Tratamento de feridas',
+}
+
+const typeDescription = {
+  AVALIACAO: 'Avaliação',
+  TRATAMENTO: 'Tratamento',
+}
+
 const DurationDisplay: React.FC<{ start: string; end: string }> = ({
   start,
   end,
@@ -50,11 +60,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const getStatusConfig = (status: string) => {
     const config: Record<string, { icon: string; class: string }> = {
       Avaliação: { icon: 'check-circle', class: 'avaliacao' },
-      Pendente: { icon: 'clock', class: 'pendente' },
-      Cancelado: { icon: 'times-circle', class: 'cancelado' },
       Tratamento: { icon: 'calendar-check', class: 'tratamento' },
-      Concluído: { icon: 'check-circle', class: 'completed' },
-      Ausente: { icon: 'user-slash', class: 'absent' },
     }
 
     return config[status] || { icon: 'circle', class: 'default' }
@@ -107,12 +113,8 @@ const DateHeader: React.FC<{ dateKey: string; count: number }> = ({
 
 const getBorderColorClass = (status: string): string => {
   const colorMap: Record<string, string> = {
-    Avaliação: 'border-status-confirmed',
-    Pendente: 'border-status-pendente',
-    Cancelado: 'border-status-cancelado',
-    Tratamento: 'border-status-tratamento',
-    Concluído: 'border-status-completed',
-    Ausente: 'border-status-absent',
+    AVALIACAO: 'border-status-avaliacao',
+    TRATAMENTO: 'border-status-tratamento',
   }
 
   return colorMap[status] || 'border-status-default'
@@ -227,7 +229,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
 
               <div className="appointments-list">
                 {dateAppointments.map(appointment => {
-                  const borderClass = getBorderColorClass(appointment.status)
+                  const borderClass = getBorderColorClass(appointment.type)
 
                   return (
                     <div
@@ -251,13 +253,16 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
                         </div>
                       </div>
 
-                      <span className="detail-text">
-                        {appointment.patientName}
-                      </span>
-
-                      <div className="card-actions-line">
-                        <StatusBadge status={appointment.status} />
+                      <div className="details-info">
+                        <span className="detail-text">
+                          {appointment.patientName}
+                        </span>
+                        <span className="detail-sub-text">
+                          {tratamentTypeDescription[appointment.tratamentType]}
+                        </span>
                       </div>
+
+                      <StatusBadge status={typeDescription[appointment.type]} />
                     </div>
                   )
                 })}

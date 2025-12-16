@@ -5,10 +5,9 @@
     "endDateTime": "2024-12-26T09:30:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p001",
-    "type": "Consulta",
-    "status": "Avaliação",
+    "type": "TRATAMENTO",
     "patientName": "Carlos Mendes",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 2,
@@ -16,10 +15,9 @@
     "endDateTime": "2024-12-26T12:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p002",
-    "type": "Retorno",
-    "status": "Tratamento",
+    "type": "TRATAMENTO",
     "patientName": "Ana Rodrigues",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "TRATAMENTO_FERIDAS"
   },
   {
     "id": 3,
@@ -27,10 +25,9 @@
     "endDateTime": "2024-12-26T15:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p003",
-    "type": "Exame",
-    "status": "Avaliação",
+    "type": "AVALIACAO",
     "patientName": "Fernanda Lima",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "TRATAMENTO_FERIDAS"
   },
   {
     "id": 4,
@@ -38,10 +35,9 @@
     "endDateTime": "2024-12-26T17:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p004",
-    "type": "Consulta",
-    "status": "Tratamento",
+    "type": "AVALIACAO",
     "patientName": "Roberto Alves",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 5,
@@ -49,10 +45,9 @@
     "endDateTime": "2024-12-27T09:30:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p005",
-    "type": "Cirurgia",
-    "status": "Avaliação",
+    "type": "AVALIACAO",
     "patientName": "Patrícia Costa",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 6,
@@ -60,10 +55,9 @@
     "endDateTime": "2024-12-27T12:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p006",
-    "type": "Avaliação",
-    "status": "Tratamento",
+    "type": "AVALIACAO",
     "patientName": "Lucas Pereira",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "TRATAMENTO_FERIDAS"
   },
   {
     "id": 7,
@@ -71,10 +65,9 @@
     "endDateTime": "2024-12-28T10:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p007",
-    "type": "Retorno",
-    "status": "Avaliação",
+    "type": "AVALIACAO",
     "patientName": "Mariana Santos",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 8,
@@ -82,10 +75,9 @@
     "endDateTime": "2024-12-28T15:30:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p008",
-    "type": "Consulta",
-    "status": "Tratamento",
+    "type": "AVALIACAO",
     "patientName": "Ricardo Oliveira",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "TRATAMENTO_FERIDAS"
   },
   {
     "id": 9,
@@ -93,10 +85,9 @@
     "endDateTime": "2024-12-29T11:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p009",
-    "type": "Exame",
-    "status": "Avaliação",
+    "type": "AVALIACAO",
     "patientName": "Juliana Ferreira",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 10,
@@ -104,10 +95,9 @@
     "endDateTime": "2024-12-30T16:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p010",
-    "type": "Consulta",
-    "status": "Tratamento",
+    "type": "AVALIACAO",
     "patientName": "Gabriel Martins",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 11,
@@ -115,10 +105,9 @@
     "endDateTime": "2024-12-31T09:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p001",
-    "type": "Retorno",
-    "status": "Avaliação",
+    "type": "AVALIACAO",
     "patientName": "Carlos Mendes",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 12,
@@ -126,10 +115,9 @@
     "endDateTime": "2024-12-31T12:30:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p002",
-    "type": "Avaliação",
-    "status": "Tratamento",
+    "type": "AVALIACAO",
     "patientName": "Ana Rodrigues",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 13,
@@ -137,10 +125,9 @@
     "endDateTime": "2025-01-02T14:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p003",
-    "type": "Consulta",
-    "status": "Avaliação",
+    "type": "TRATAMENTO",
     "patientName": "Fernanda Lima",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 14,
@@ -148,10 +135,9 @@
     "endDateTime": "2025-01-02T17:30:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p004",
-    "type": "Exame",
-    "status": "Tratamento",
+    "type": "TRATAMENTO",
     "patientName": "Roberto Alves",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 15,
@@ -159,10 +145,9 @@
     "endDateTime": "2025-01-03T10:30:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p005",
-    "type": "Cirurgia",
-    "status": "Avaliação",
+    "type": "AVALIACAO",
     "patientName": "Patrícia Costa",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 16,
@@ -170,10 +155,9 @@
     "endDateTime": "2025-01-04T15:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p006",
-    "type": "Consulta",
-    "status": "Tratamento",
+    "type": "AVALIACAO",
     "patientName": "Lucas Pereira",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 17,
@@ -181,10 +165,9 @@
     "endDateTime": "2025-01-06T11:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p007",
-    "type": "Retorno",
-    "status": "Avaliação",
+    "type": "AVALIACAO",
     "patientName": "Mariana Santos",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 18,
@@ -192,10 +175,9 @@
     "endDateTime": "2025-01-07T16:30:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p008",
-    "type": "Avaliação",
-    "status": "Tratamento",
+    "type": "AVALIACAO",
     "patientName": "Ricardo Oliveira",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 19,
@@ -203,10 +185,9 @@
     "endDateTime": "2025-01-08T09:30:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p009",
-    "type": "Consulta",
-    "status": "Avaliação",
+    "type": "AVALIACAO",
     "patientName": "Juliana Ferreira",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   },
   {
     "id": 20,
@@ -214,9 +195,8 @@
     "endDateTime": "2025-01-09T12:00:00.000Z",
     "professionalUuid": "d3f5a7b2-c8e4-4a9d-b1f2-8e6c5a3b9d7f",
     "patientUuid": "p010",
-    "type": "Exame",
-    "status": "Tratamento",
+    "type": "TRATAMENTO",
     "patientName": "Gabriel Martins",
-    "professionalName": "Dr. João Silva"
+    "tratamentType": "PODEATRIA"
   }
 ]

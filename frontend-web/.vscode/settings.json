@@ -32,5 +32,8 @@
   "editor.detectIndentation": true,
   "[css]": {
     "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
