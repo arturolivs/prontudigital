@@ -5,6 +5,7 @@ export interface Appointment {
   professionalUuid: string
   patientUuid: string
   patientName: string
+  patientPhone: string
   professionalName: string
   bedridden: boolean
   type: 'AVALIACAO' | 'TRATAMENTO'

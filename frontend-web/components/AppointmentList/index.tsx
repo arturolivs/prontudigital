@@ -8,7 +8,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 import { Appointment } from '../../types/appointment'
-import './schedule.css'
+import './styles.css'
 
 export type GroupedAppointments = Record<string, Appointment[]>
 

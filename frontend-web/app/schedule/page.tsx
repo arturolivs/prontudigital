@@ -6,9 +6,9 @@ import { useAuth } from '../../contexts/AuthContext'
 import { appointmentsAPI } from '../../lib/appointments'
 import { Appointment } from '../../types/appointment'
 import Layout from '@/components/Layout/Layout'
-import AppointmentList from '@/app/schedule/AppointmentList'
-
+import AppointmentFormModal from '@/components/AppointmentFormModal'
 import './schedule.css'
+import AppointmentList from '@/components/AppointmentList'
 
 export default function AppointmentsPage() {
   const { user, hasRole, getProfessionalUuid } = useAuth()
@@ -18,6 +18,7 @@ export default function AppointmentsPage() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0],
   )
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const hasRequiredRole =
     hasRole('NURSE') || hasRole('DOCTOR') || hasRole('ADMIN')
@@ -56,6 +57,33 @@ export default function AppointmentsPage() {
     }
   }
 
+  const handleCreateAppointment = async (
+    appointmentData: Partial<Appointment>,
+  ) => {
+    try {
+      const professionalUuid = getProfessionalUuid()
+
+      if (!professionalUuid) {
+        setError('Professional UUID não encontrado')
+        return
+      }
+
+      const newAppointment = {
+        ...appointmentData,
+        professionalUuid,
+        createdAt: new Date().toISOString(),
+      }
+
+      await appointmentsAPI.createAppointment(newAppointment)
+
+      setIsModalOpen(false)
+      fetchAppointments()
+    } catch (err: any) {
+      setError(err.message || 'Erro ao criar agendamento')
+      console.error('Erro:', err)
+    }
+  }
+
   if (!user || !hasRequiredRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -68,10 +96,38 @@ export default function AppointmentsPage() {
     <Layout userRole={'NURSE'}>
       <ProtectedRoute requiredRoles={['NURSE', 'DOCTOR', 'ADMIN']}>
         <div className="appointments-page">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">Agendamentos</h1>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Novo Agendamento
+            </button>
+          </div>
+
           <AppointmentList
             appointments={appointments}
             loading={loading}
             error={error}
+          />
+
+          <AppointmentFormModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSubmit={handleCreateAppointment}
           />
         </div>
       </ProtectedRoute>
