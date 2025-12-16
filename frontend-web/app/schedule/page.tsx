@@ -1,14 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ProtectedRoute } from '../../components/ProtectedRoute'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { appointmentsAPI } from '../../lib/appointments'
-import { Appointment } from '../../types/appointment'
+import { Appointment, NewAppointmentData } from '../../types/appointment'
 import Layout from '@/components/Layout/Layout'
-import AppointmentList from '@/app/schedule/AppointmentList'
-
-import './schedule.css'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import AppointmentList from '@/components/AppointmentList'
+// ... outros imports
 
 export default function AppointmentsPage() {
   const { user, hasRole, getProfessionalUuid } = useAuth()
@@ -56,6 +55,30 @@ export default function AppointmentsPage() {
     }
   }
 
+  const handleAddAppointment = async (appointmentData: NewAppointmentData) => {
+    try {
+      // Implemente a lógica de criação aqui
+      console.log('Criando novo agendamento:', appointmentData)
+
+      // Exemplo de chamada à API:
+      // const newAppointment = await appointmentsAPI.createAppointment(appointmentData)
+
+      // Atualizar a lista
+      fetchAppointments()
+
+      // Mostrar mensagem de sucesso
+      // toast.success('Agendamento criado com sucesso!')
+    } catch (error) {
+      console.error('Erro ao criar agendamento:', error)
+      // toast.error('Erro ao criar agendamento')
+    }
+  }
+
+  const handleAppointmentClick = (appointment: Appointment) => {
+    console.log('Agendamento clicado:', appointment)
+    // Navegar para detalhes ou abrir modal de edição
+  }
+
   if (!user || !hasRequiredRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -72,6 +95,8 @@ export default function AppointmentsPage() {
             appointments={appointments}
             loading={loading}
             error={error}
+            onAddAppointment={handleAddAppointment}
+            onAppointmentClick={handleAppointmentClick}
           />
         </div>
       </ProtectedRoute>

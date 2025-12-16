@@ -12,7 +12,7 @@ import './schedule.css'
 
 export type GroupedAppointments = Record<string, Appointment[]>
 
-interface AppointmentListProps {
+interface AppointmentListOldProps {
   appointments?: Appointment[]
   loading?: boolean
   error?: string | null
@@ -120,7 +120,7 @@ const getBorderColorClass = (status: string): string => {
   return colorMap[status] || 'border-status-default'
 }
 
-const AppointmentList: React.FC<AppointmentListProps> = ({
+const AppointmentListOld: React.FC<AppointmentListOldProps> = ({
   appointments = [],
   loading = false,
   error = null,
@@ -275,4 +275,4 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
   )
 }
 
-export default AppointmentList
+export default AppointmentListOld

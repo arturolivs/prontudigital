@@ -10,3 +10,15 @@ export interface Appointment {
   type: 'AVALIACAO' | 'TRATAMENTO'
   tratamentType: 'PODEATRIA' | 'TRATAMENTO_FERIDAS'
 }
+
+export interface NewAppointmentData {
+  patientName: string
+  age: number
+  bedridden: boolean
+  dateTime: string
+  type: 'AVALIACAO' | 'TRATAMENTO'
+  tratamentType: 'PODEATRIA' | 'TRATAMENTO_FERIDAS'
+  duration: number
+}
+
+export type GroupedAppointments = Record<string, Appointment[]>
