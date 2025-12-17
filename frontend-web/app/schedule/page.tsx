@@ -99,7 +99,6 @@ export default function CareSessionsPage() {
       <ProtectedRoute requiredRoles={['NURSE', 'DOCTOR', 'ADMIN']}>
         <div className="appointments-page">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Agendamentos</h1>
             <button
               onClick={() => setIsModalOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"

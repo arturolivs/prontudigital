@@ -1,33 +1,7 @@
 
-.appointment-list-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
 /* ===== HEADER ===== */
-.header {
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e0e0e0;
-}
 
-.header h1 {
-  color: #2c3e50;
-  font-size: 2.2rem;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
 
-.total-appointments {
-  color: #7f8c8d;
-  font-size: 1rem;
-  background-color: #f8f9fa;
-  padding: 6px 12px;
-  border-radius: 16px;
-  display: inline-block;
-}
 
 /* ===== ESTADOS DE CARREGAMENTO E ERRO ===== */
 .loading-state {
@@ -91,17 +65,9 @@
 }
 
 /* ===== CONTAINER DE DATAS ===== */
-.dates-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
 
-.day-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+
+
 
 /* ===== CABEÇALHO DA DATA ===== */
 .date-header {
