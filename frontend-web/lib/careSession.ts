@@ -2,7 +2,8 @@
 import axios from 'axios'
 import { Appointment } from '../types/appointment'
 
-import appointments from '../mock/appointments.json'
+import careSessions from '../mock/careSession'
+import { CareSession } from '@/types/CareSession'
 
 const API_URL =
   process.env.NEXT_PUBLIC_APPOINTMENTS_API_URL ||
@@ -20,12 +21,12 @@ api.interceptors.request.use(config => {
   return config
 })
 
-export const appointmentsAPI = {
-  getAppointments: async (
+export const careSessionAPI = {
+  getCareSessions: async (
     professionalUuid: string,
     viewType: string,
     date: string,
-  ): Promise<Appointment[]> => {
+  ): Promise<CareSession[]> => {
     /**
     const response = await api.get(`${API_URL}/view`, {
       params: {
@@ -36,7 +37,7 @@ export const appointmentsAPI = {
     })
     return response.data 
     // */
-    return appointments
+    return careSessions
   },
 
   createAppointment: async (

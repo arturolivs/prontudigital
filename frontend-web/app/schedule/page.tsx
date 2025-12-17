@@ -3,16 +3,18 @@
 import { useState, useEffect } from 'react'
 import { ProtectedRoute } from '../../components/ProtectedRoute'
 import { useAuth } from '../../contexts/AuthContext'
-import { appointmentsAPI } from '../../lib/appointments'
+import { careSessionAPI } from '../../lib/careSession'
 import { Appointment } from '../../types/appointment'
 import Layout from '@/components/Layout/Layout'
 import AppointmentFormModal from '@/components/AppointmentFormModal'
 import './schedule.css'
-import AppointmentList from '@/components/AppointmentList'
+import CareSessionList from '@/components/CareSessionList'
+import CareSessionList_ from '@/components/CareSessionList_'
+import { CareSession } from '@/types/CareSession'
 
-export default function AppointmentsPage() {
+export default function CareSessionsPage() {
   const { user, hasRole, getProfessionalUuid } = useAuth()
-  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [careSessions, setCaresessions] = useState<CareSession[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(
@@ -42,13 +44,13 @@ export default function AppointmentsPage() {
         return
       }
 
-      const data = await appointmentsAPI.getAppointments(
+      const data = await careSessionAPI.getCareSessions(
         professionalUuid,
         'day',
         selectedDate,
       )
 
-      setAppointments(data)
+      setCaresessions(data)
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar agendamentos')
       console.error('Erro:', err)
@@ -74,7 +76,7 @@ export default function AppointmentsPage() {
         createdAt: new Date().toISOString(),
       }
 
-      await appointmentsAPI.createAppointment(newAppointment)
+      await careSessionAPI.createAppointment(newAppointment)
 
       setIsModalOpen(false)
       fetchAppointments()
@@ -118,12 +120,17 @@ export default function AppointmentsPage() {
             </button>
           </div>
 
-          <AppointmentList
-            appointments={appointments}
+          <CareSessionList_
+            sessions={careSessions}
             loading={loading}
             error={error}
           />
 
+          <CareSessionList
+            sessions={careSessions}
+            loading={loading}
+            error={error}
+          />
           <AppointmentFormModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}

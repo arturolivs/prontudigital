@@ -7,13 +7,13 @@ import {
   faClock,
 } from '@fortawesome/free-solid-svg-icons'
 
-import { Appointment } from '../../types/appointment'
 import './styles.css'
+import { CareSession } from '@/types/CareSession'
 
-export type GroupedAppointments = Record<string, Appointment[]>
+export type GroupedSessions = Record<string, CareSession[]>
 
-interface AppointmentListProps {
-  appointments?: Appointment[]
+interface CareSessionProps {
+  sessions?: CareSession[]
   loading?: boolean
   error?: string | null
 }
@@ -120,8 +120,8 @@ const getBorderColorClass = (status: string): string => {
   return colorMap[status] || 'border-status-default'
 }
 
-const AppointmentList: React.FC<AppointmentListProps> = ({
-  appointments = [],
+const CareSessionList: React.FC<CareSessionProps> = ({
+  sessions: sessions = [],
   loading = false,
   error = null,
 }) => {
@@ -133,11 +133,11 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
     })
   }
 
-  const groupedAppointments = useMemo(() => {
-    const grouped: GroupedAppointments = {}
+  const GroupedSessions = useMemo(() => {
+    const grouped: GroupedSessions = {}
 
-    appointments.forEach(appointment => {
-      const dateKey = new Date(appointment.startDateTime)
+    sessions.forEach(session => {
+      const dateKey = new Date(session.scheduledStart)
         .toISOString()
         .split('T')[0]
 
@@ -145,24 +145,24 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
         grouped[dateKey] = []
       }
 
-      grouped[dateKey].push(appointment)
+      grouped[dateKey].push(session)
     })
 
     const sortedDates = Object.keys(grouped).sort()
-    const sortedGrouped: GroupedAppointments = {}
+    const sortedGrouped: GroupedSessions = {}
 
     sortedDates.forEach(date => {
       sortedGrouped[date] = grouped[date].sort(
         (a, b) =>
-          new Date(a.startDateTime).getTime() -
-          new Date(b.startDateTime).getTime(),
+          new Date(a.scheduledStart).getTime() -
+          new Date(b.scheduledStart).getTime(),
       )
     })
 
     return sortedGrouped
-  }, [appointments])
+  }, [sessions])
 
-  const hasAppointments = Object.keys(groupedAppointments).length > 0
+  const hasSessions = Object.keys(GroupedSessions).length > 0
 
   if (loading) {
     return (
@@ -195,7 +195,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
     )
   }
 
-  if (!hasAppointments) {
+  if (!hasSessions) {
     return (
       <div className="appointment-list-container">
         <div className="no-appointments">
@@ -207,72 +207,70 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
     )
   }
 
-  const totalAppointments = appointments.length
+  const totalSessions = sessions.length
 
   return (
     <div className="appointment-list-container">
       <div className="header">
         <h1>Agendas</h1>
-        {hasAppointments && (
+        {hasSessions && (
           <div className="total-appointments">
-            Total: {totalAppointments} agendamento
-            {totalAppointments !== 1 ? 's' : ''}
+            Total: {totalSessions} agendamento
+            {totalSessions !== 1 ? 's' : ''}
           </div>
         )}
       </div>
 
       <div className="dates-container">
-        {Object.entries(groupedAppointments).map(
-          ([dateKey, dateAppointments]) => (
-            <div className="day-container" key={dateKey}>
-              <DateHeader dateKey={dateKey} count={dateAppointments.length} />
+        {Object.entries(GroupedSessions).map(([dateKey, dateSessions]) => (
+          <div className="day-container" key={dateKey}>
+            <DateHeader dateKey={dateKey} count={dateSessions.length} />
 
-              <div className="appointments-list">
-                {dateAppointments.map(appointment => {
-                  const borderClass = getBorderColorClass(appointment.type)
+            <div className="appointments-list">
+              {dateSessions.map(session => {
+                const borderClass = getBorderColorClass(session.careType)
 
-                  return (
-                    <div
-                      key={appointment.id}
-                      className={`appointment-card ${borderClass}`}
-                    >
-                      <div className="time-info">
-                        <span className="time-text">
-                          {formatTime(appointment.startDateTime)} -{' '}
-                          {formatTime(appointment.endDateTime)}
-                        </span>
-                        <div className="time-display">
-                          <div className="icon-container">
-                            <i className="far fa-clock"></i>
-                            <FontAwesomeIcon icon={faClock} />
-                          </div>
-                          <DurationDisplay
-                            start={appointment.startDateTime}
-                            end={appointment.endDateTime}
-                          />
+                return (
+                  <div
+                    key={session.id}
+                    className={`appointment-card ${borderClass}`}
+                  >
+                    <div className="time-info">
+                      <span className="time-text">
+                        {formatTime(session.scheduledStart)} -{' '}
+                        {formatTime(session.scheduledEnd)}
+                      </span>
+                      <div className="time-display">
+                        <div className="icon-container">
+                          <i className="far fa-clock"></i>
+                          <FontAwesomeIcon icon={faClock} />
                         </div>
+                        <DurationDisplay
+                          start={session.scheduledStart}
+                          end={session.scheduledEnd}
+                        />
                       </div>
-
-                      <div className="details-info">
-                        <span className="detail-text">
-                          {appointment.patientName}
-                        </span>
-                        <span className="detail-sub-text">
-                          {tratamentTypeDescription[appointment.tratamentType]}
-                        </span>
-                      </div>
-
-                      <StatusBadge status={typeDescription[appointment.type]} />
                     </div>
-                  )
-                })}
-              </div>
+
+                    <div className="details-info">
+                      <span className="detail-text">{session.patientName}</span>
+                      <span className="detail-sub-text">
+                        {tratamentTypeDescription[session.careType]}
+                      </span>
+                    </div>
+
+                    <StatusBadge
+                      status={typeDescription[session.sessionType]}
+                    />
+                  </div>
+                )
+              })}
             </div>
-          ),
-        )}
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-export default AppointmentList
+export default CareSessionList
