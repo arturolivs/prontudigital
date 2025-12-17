@@ -1,276 +1,183 @@
-import React, { useMemo } from 'react'
+// components/CareSessionList.tsx
+'use client'
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faTriangleExclamation,
-  faCalendarTimes,
-  faClock,
-} from '@fortawesome/free-solid-svg-icons'
-
-import './styles.css'
 import { CareSession } from '@/types/CareSession'
+import './styles.css'
+import { SessionStatus } from '@/types/SessionStatus'
 
-export type GroupedSessions = Record<string, CareSession[]>
-
-interface CareSessionProps {
-  sessions?: CareSession[]
-  loading?: boolean
-  error?: string | null
+interface CareSessionListProps {
+  sessions: CareSession[]
+  loading: boolean
+  error: string | null
 }
 
-const tratamentTypeDescription = {
-  PODEATRIA: 'Podeatria',
-  TRATAMENTO_FERIDAS: 'Tratamento de feridas',
-}
-
-const typeDescription = {
-  AVALIACAO: 'Avaliação',
-  TRATAMENTO: 'Tratamento',
-}
-
-const DurationDisplay: React.FC<{ start: string; end: string }> = ({
-  start,
-  end,
-}) => {
-  const duration = useMemo(() => {
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-    const diffMs = endDate.getTime() - startDate.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-
-    if (diffMins < 60) {
-      return `${diffMins} min`
-    }
-
-    const hours = Math.floor(diffMins / 60)
-    const minutes = diffMins % 60
-
-    return minutes > 0 ? `${hours}h${minutes}min` : `${hours}h`
-  }, [start, end])
-
-  return (
-    <div className="duration-display">
-      <i className="far fa-hourglass"></i>
-      {duration}
-    </div>
-  )
-}
-
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const getStatusConfig = (status: string) => {
-    const config: Record<string, { icon: string; class: string }> = {
-      Avaliação: { icon: 'check-circle', class: 'avaliacao' },
-      Tratamento: { icon: 'calendar-check', class: 'tratamento' },
-    }
-
-    return config[status] || { icon: 'circle', class: 'default' }
-  }
-
-  const { icon, class: statusClass } = getStatusConfig(status)
-
-  return <div className={`status-badge status-${statusClass}`}>{status}</div>
-}
-
-const DateHeader: React.FC<{ dateKey: string; count: number }> = ({
-  dateKey,
-  count,
-}) => {
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    const today = new Date()
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Hoje'
-    }
-
-    if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Amanhã'
-    }
-
-    return date.toLocaleDateString('pt-BR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
-
-  return (
-    <div className="date-header">
-      <div className="date-title">
-        <FontAwesomeIcon icon={faCalendarTimes} className="h-5 w-5" />
-        <span>{formatDate(dateKey)}</span>
-      </div>
-      <div className="appointment-count">
-        <span className="count-badge">{count}</span>
-        <span className="count-label">agendamento{count !== 1 ? 's' : ''}</span>
-      </div>
-    </div>
-  )
-}
-
-const getBorderColorClass = (status: string): string => {
-  const colorMap: Record<string, string> = {
-    AVALIACAO: 'border-status-avaliacao',
-    TRATAMENTO: 'border-status-tratamento',
-  }
-
-  return colorMap[status] || 'border-status-default'
-}
-
-const CareSessionList: React.FC<CareSessionProps> = ({
-  sessions: sessions = [],
-  loading = false,
-  error = null,
-}) => {
-  const formatTime = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
-  const GroupedSessions = useMemo(() => {
-    const grouped: GroupedSessions = {}
-
-    sessions.forEach(session => {
-      const dateKey = new Date(session.scheduledStart)
-        .toISOString()
-        .split('T')[0]
-
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = []
-      }
-
-      grouped[dateKey].push(session)
-    })
-
-    const sortedDates = Object.keys(grouped).sort()
-    const sortedGrouped: GroupedSessions = {}
-
-    sortedDates.forEach(date => {
-      sortedGrouped[date] = grouped[date].sort(
-        (a, b) =>
-          new Date(a.scheduledStart).getTime() -
-          new Date(b.scheduledStart).getTime(),
-      )
-    })
-
-    return sortedGrouped
-  }, [sessions])
-
-  const hasSessions = Object.keys(GroupedSessions).length > 0
-
+export default function CareSessionList({
+  sessions,
+  loading,
+  error,
+}: CareSessionListProps) {
   if (loading) {
     return (
-      <div className="appointment-list-container">
-        <div className="loading-state">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p>Carregando agendamentos...</p>
-        </div>
+      <div className="sessions-loading">
+        <div className="spinner"></div>
+        <p>Carregando sessões...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="appointment-list-container">
-        <div className="error-message">
-          <FontAwesomeIcon icon={faTriangleExclamation} className="h-5 w-5" />
-          <div className="error-content">
-            <h3>Erro ao carregar agendamentos</h3>
-            <p>{error}</p>
-            <button
-              className="retry-btn"
-              onClick={() => window.location.reload()}
-            >
-              Tentar novamente
-            </button>
-          </div>
-        </div>
+      <div className="sessions-error">
+        <div className="error-icon">!</div>
+        <p>{error}</p>
+        <button
+          className="retry-button"
+          onClick={() => window.location.reload()}
+        >
+          Tentar novamente
+        </button>
       </div>
     )
   }
 
-  if (!hasSessions) {
+  if (sessions.length === 0) {
     return (
-      <div className="appointment-list-container">
-        <div className="no-appointments">
-          <i className="far fa-calendar-times"></i>
-          <h3>Nenhum agendamento encontrado</h3>
-          <p>Não há agendamentos para a data selecionada.</p>
-        </div>
+      <div className="sessions-empty">
+        <div className="empty-icon">📅</div>
+        <p>Nenhuma sessão agendada para hoje</p>
       </div>
     )
   }
 
-  const totalSessions = sessions.length
+  const formatDateTime = (dateTime: string) => {
+    const date = new Date(dateTime)
+    return {
+      date: date.toLocaleDateString('pt-BR'),
+      time: date.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      fullDate: date.toLocaleString('pt-BR'),
+    }
+  }
+
+  const translateType = (type: string) => {
+    const translations: Record<string, string> = {
+      AVALIACAO: 'Avaliação',
+      TRATAMENTO: 'Tratamento',
+      PODEATRIA: 'Podiatria',
+      TRATAMENTO_FERIDAS: 'Tratamento de Feridas',
+    }
+    return translations[type] || type
+  }
+
+  const getStatusColor = (status: SessionStatus) => {
+    const colors: Record<SessionStatus, string> = {
+      SCHEDULED: 'bg-blue-100 text-blue-800',
+      IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
+      COMPLETED: 'bg-green-100 text-green-800',
+      CANCELLED: 'bg-red-100 text-red-800',
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
+  }
+
+  const sortedSessions = [...sessions].sort(
+    (a, b) =>
+      new Date(a.scheduledStart).getTime() -
+      new Date(b.scheduledStart).getTime(),
+  )
 
   return (
-    <div className="appointment-list-container">
-      <div className="header">
-        <h1>Agendas</h1>
-        {hasSessions && (
-          <div className="total-appointments">
-            Total: {totalSessions} agendamento
-            {totalSessions !== 1 ? 's' : ''}
-          </div>
-        )}
+    <>
+      <div className="sessions-header">
+        <h2>Sessões de Cuidado</h2>
+        <div className="sessions-count">
+          <span className="count-badge">{sessions.length}</span>
+          sessões hoje
+        </div>
       </div>
 
-      <div className="dates-container">
-        {Object.entries(GroupedSessions).map(([dateKey, dateSessions]) => (
-          <div className="day-container" key={dateKey}>
-            <DateHeader dateKey={dateKey} count={dateSessions.length} />
+      <div className="sessions-grid">
+        {sortedSessions.map(session => {
+          const startTime = formatDateTime(session.scheduledStart)
+          const endTime = formatDateTime(session.scheduledEnd)
 
-            <div className="appointments-list">
-              {dateSessions.map(session => {
-                const borderClass = getBorderColorClass(session.careType)
+          return (
+            <div key={session.id} className="session-card">
+              <div className="session-card-header">
+                <div className="patient-info">
+                  <div className="patient-name">{session.patientName}</div>
+                  <div className="patient-phone">{session.patientPhone}</div>
+                </div>
+                <div
+                  className={`session-status ${getStatusColor(session.status)}`}
+                >
+                  {session.status === 'SCHEDULED' && 'Agendada'}
+                  {session.status === 'IN_PROGRESS' && 'Em Andamento'}
+                  {session.status === 'COMPLETED' && 'Concluída'}
+                  {session.status === 'CANCELLED' && 'Cancelada'}
+                </div>
+              </div>
 
-                return (
-                  <div
-                    key={session.id}
-                    className={`appointment-card ${borderClass}`}
-                  >
-                    <div className="time-info">
-                      <span className="time-text">
-                        {formatTime(session.scheduledStart)} -{' '}
-                        {formatTime(session.scheduledEnd)}
-                      </span>
-                      <div className="time-display">
-                        <div className="icon-container">
-                          <i className="far fa-clock"></i>
-                          <FontAwesomeIcon icon={faClock} />
-                        </div>
-                        <DurationDisplay
-                          start={session.scheduledStart}
-                          end={session.scheduledEnd}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="details-info">
-                      <span className="detail-text">{session.patientName}</span>
-                      <span className="detail-sub-text">
-                        {tratamentTypeDescription[session.careType]}
-                      </span>
-                    </div>
-
-                    <StatusBadge
-                      status={typeDescription[session.sessionType]}
-                    />
+              <div className="session-card-body">
+                <div className="session-time">
+                  <div className="time-slot">
+                    <span className="time-label">Início:</span>
+                    <span className="time-value">{startTime.time}</span>
                   </div>
-                )
-              })}
+                  <div className="time-separator">→</div>
+                  <div className="time-slot">
+                    <span className="time-label">Término:</span>
+                    <span className="time-value">{endTime.time}</span>
+                  </div>
+                </div>
+
+                <div className="session-details">
+                  <div className="detail-item">
+                    <span className="detail-value">
+                      {translateType(session.sessionType)}
+                    </span>
+                  </div>
+
+                  <div className="detail-item">
+                    <span className="detail-value">
+                      {translateType(session.careType)}
+                    </span>
+                  </div>
+
+                  <div className="detail-item">
+                    <span className="detail-value">
+                      {session.location === 'CLINIC' ? 'Clínica' : 'Domicílio'}
+                    </span>
+                  </div>
+
+                  {session.bedriddenPatient && (
+                    <div className="detail-item warning">
+                      <span className="detail-label">Paciente Acamado</span>
+                    </div>
+                  )}
+                </div>
+
+                {session.clinicalNotes && (
+                  <div className="session-notes">
+                    <div className="notes-label">Observações:</div>
+                    <div className="notes-content">{session.clinicalNotes}</div>
+                  </div>
+                )}
+              </div>
+
+              <div className="session-card-footer">
+                {session.status === 'SCHEDULED' && (
+                  <button className="action-button start">Iniciar</button>
+                )}
+                {session.status === 'IN_PROGRESS' && (
+                  <button className="action-button finish">Finalizar</button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
-    </div>
+    </>
   )
 }
-
-export default CareSessionList

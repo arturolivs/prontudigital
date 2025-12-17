@@ -8,8 +8,8 @@ import { Appointment } from '../../types/appointment'
 import Layout from '@/components/Layout/Layout'
 import AppointmentFormModal from '@/components/AppointmentFormModal'
 import './schedule.css'
+import CareSessionListAntiga from '@/components/CareSessionList_antiga'
 import CareSessionList from '@/components/CareSessionList'
-import CareSessionList_ from '@/components/CareSessionList_'
 import { CareSession } from '@/types/CareSession'
 
 export default function CareSessionsPage() {
@@ -116,17 +116,16 @@ export default function CareSessionsPage() {
                   clipRule="evenodd"
                 />
               </svg>
-              Novo Agendamento
             </button>
           </div>
 
-          <CareSessionList_
+          <CareSessionList
             sessions={careSessions}
             loading={loading}
             error={error}
           />
 
-          <CareSessionList
+          <CareSessionListAntiga
             sessions={careSessions}
             loading={loading}
             error={error}

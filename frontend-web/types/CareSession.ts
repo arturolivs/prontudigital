@@ -1,4 +1,5 @@
 import { CareType } from './CareType'
+import { SessionStatus } from './SessionStatus'
 import { SessionType } from './SessionType'
 
 export interface CareSession {
@@ -24,7 +25,7 @@ export interface CareSession {
   careType: CareType
 
   // Status
-  status?: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  status: SessionStatus
   bedriddenPatient: boolean
   location?: 'CLINIC' | 'HOME'
 

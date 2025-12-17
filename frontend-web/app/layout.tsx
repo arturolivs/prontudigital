@@ -7,7 +7,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sistema de Autenticação',
+  title: 'ProntuDigital',
   description: 'Sistema de login com Next.js e JWT',
 }
 
