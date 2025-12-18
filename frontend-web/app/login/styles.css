@@ -1,0 +1,18 @@
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #efefef;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  row-gap: .6rem;
+  background: #ffffff;
+  padding: 1rem;
+  border: 1px solid #c0c0c0;
+  border-radius: .5rem;
+  box-shadow: 0 20px 25px -5px #00000052;
+}
