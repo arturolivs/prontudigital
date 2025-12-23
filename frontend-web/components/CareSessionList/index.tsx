@@ -7,6 +7,7 @@ import './styles.css'
 import { useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendarTimes, faClock } from '@fortawesome/free-solid-svg-icons'
+import { useRouter } from 'next/navigation'
 
 export type GroupedSessions = Record<string, CareSession[]>
 
@@ -61,6 +62,8 @@ export default function CareSessionList({
   loading,
   error,
 }: CareSessionListProps) {
+  const router = useRouter()
+
   const GroupedSessions = useMemo(() => {
     const grouped: GroupedSessions = {}
 
@@ -150,6 +153,7 @@ export default function CareSessionList({
   const getStatusColor = (status: SessionStatus) => {
     const colors: Record<SessionStatus, string> = {
       SCHEDULED: 'bg-blue-100 text-blue-800',
+      CONFIRMED: 'bg-yellow-100 text-yellow-800',
       IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
       COMPLETED: 'bg-green-100 text-green-800',
       CANCELLED: 'bg-red-100 text-red-800',
@@ -248,9 +252,16 @@ export default function CareSessionList({
                       )}
                     </div>
 
-                    {session.status === 'SCHEDULED' && (
+                    {session.status === 'CONFIRMED' && (
                       <div className="session-card-footer">
-                        <button className="action-button start">Iniciar</button>
+                        <button
+                          className="action-button start"
+                          onClick={() =>
+                            router.push(`/care-sessions/${session.sessionUuid}`)
+                          }
+                        >
+                          Iniciar
+                        </button>
                       </div>
                     )}
                   </div>

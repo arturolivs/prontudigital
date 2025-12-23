@@ -123,17 +123,6 @@ export default function CareSessionsPage() {
             loading={loading}
             error={error}
           />
-
-          <CareSessionListAntiga
-            sessions={careSessions}
-            loading={loading}
-            error={error}
-          />
-          <AppointmentFormModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onSubmit={handleCreateAppointment}
-          />
         </div>
       </ProtectedRoute>
     </Layout>

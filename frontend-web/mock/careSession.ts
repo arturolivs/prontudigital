@@ -1,4 +1,5 @@
 import { CareType } from '@/types/CareType'
+import { SessionStatus } from '@/types/SessionStatus'
 import { SessionType } from '@/types/SessionType'
 
 export default [
@@ -16,7 +17,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'TRATAMENTO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'IN_PROGRESS',
+    status: 'CONFIRMED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes:
@@ -39,7 +40,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'TRATAMENTO' as SessionType,
     careType: 'TRATAMENTO_FERIDAS' as CareType,
-    status: 'COMPLETED',
+    status: 'COMPLETED' as SessionStatus,
     bedriddenPatient: true,
 
     clinicalNotes:
@@ -62,7 +63,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'TRATAMENTO_FERIDAS' as CareType,
-    status: 'IN_PROGRESS',
+    status: 'IN_PROGRESS' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes:
@@ -85,7 +86,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes: 'Avaliação inicial para tratamento de calosidade plantar.',
@@ -107,7 +108,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'IN_PROGRESS',
+    status: 'IN_PROGRESS' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes:
@@ -130,7 +131,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'TRATAMENTO_FERIDAS' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: true,
 
     clinicalNotes: 'Avaliação de úlcera por pressão em região sacral.',
@@ -152,7 +153,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes: 'Avaliação inicial para tratamento de fasciíte plantar.',
@@ -174,7 +175,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'TRATAMENTO_FERIDAS' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes: 'Avaliação de ferida pós-trauma em membro inferior.',
@@ -196,7 +197,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes:
@@ -219,7 +220,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes: 'Avaliação inicial para tratamento de pé diabético.',
@@ -241,7 +242,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes: 'Avaliação de rotina - acompanhamento de diabetes.',
@@ -263,7 +264,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: true,
 
     clinicalNotes: 'Avaliação de acompanhamento do tratamento de ferida.',
@@ -285,7 +286,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'TRATAMENTO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes:
@@ -308,7 +309,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'TRATAMENTO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes:
@@ -331,7 +332,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes:
@@ -354,7 +355,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: true,
 
     clinicalNotes: 'Segunda avaliação - acompanhamento de úlcera por pressão.',
@@ -376,7 +377,7 @@ export default [
     professionalName: 'Enf. João Silva',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes:
@@ -399,7 +400,7 @@ export default [
     professionalName: 'Enf. Maria Santos',
     sessionType: 'AVALIACAO' as SessionType,
     careType: 'PODEATRIA' as CareType,
-    status: 'SCHEDULED',
+    status: 'SCHEDULED' as SessionStatus,
     bedriddenPatient: false,
 
     clinicalNotes: 'Avaliação de evolução da ferida pós-trauma.',
