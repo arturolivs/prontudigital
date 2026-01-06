@@ -17,10 +17,8 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/auth/v1'
 
 export const authAPI = {
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    //const response = await axios.post(`${API_URL}/signin`, credentials)
-    return mock_login
-  },
+  login: async (credentials: LoginCredentials): Promise<AuthResponse> =>
+    await axios.post(`${API_URL}/signin`, credentials),
 
   logout: async (): Promise<void> => {
     const refreshToken = localStorage.getItem('refreshToken')

@@ -3,16 +3,29 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #efefef;
+  background-image: linear-gradient(to right bottom, #2c3e50, #415469, #576c82, #6e859d, #859eb8);
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
   row-gap: .6rem;
-  background: #ffffff;
+  background: #2d3f51;
   padding: 1rem;
-  border: 1px solid #c0c0c0;
+  border: 1px solid #565656;
   border-radius: .5rem;
   box-shadow: 0 20px 25px -5px #00000052;
+  color: #fff;
 }
+
+
+.form-input {
+    border: 1px solid #cdcdcd;
+    border-radius: .2rem;
+    padding: .2rem;
+}
+
+.form-input:focus-visible {
+  outline: 1px solid #cdcdcd;
+}
+
