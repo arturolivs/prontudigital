@@ -1,16 +1,15 @@
 .toast-notification {
-  position: fixed;
+ /* position: fixed;*/
   top: 1rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
   transition: all 0.3s ease;
-  opacity: 0;
-  animation: toastFadeIn 0.3s ease forwards;
+ /* animation: toastFadeIn 0.3s ease forwards;*/
 }
 
 .toast-notification.exiting {
-  animation: toastFadeOut 0.3s ease forwards;
+/*  animation: toastFadeOut 0.3s ease forwards;*/
 }
 
 .toast-content {
