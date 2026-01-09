@@ -37,7 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
       if (duration > 0) {
         setTimeout(() => {
-          // removeToast(id)
+          removeToast(id)
         }, duration)
       }
 
@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const clearToasts = useCallback(() => {
-    // setToasts([])
+    setToasts([])
   }, [])
 
   return (

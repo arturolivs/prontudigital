@@ -14,19 +14,13 @@ export default function Login() {
 
   const handleSubmit = async (e: FormEvent) => {
     showToast('erro', 'info', 6000)
-    showToast('err.message', 'error', 6000)
-    showToast('err.message', 'success', 6000)
-    showToast('err.message', 'warning', 6000)
     e.preventDefault()
     setIsLoading(true)
 
     try {
       await login({ username, password })
     } catch (err: any) {
-      showToast(err.message, 'info', 6000)
       showToast(err.message, 'error', 6000)
-      showToast(err.message, 'success', 6000)
-      showToast(err.message, 'warning', 6000)
     } finally {
       setIsLoading(false)
     }

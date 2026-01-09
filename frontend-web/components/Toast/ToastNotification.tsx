@@ -54,7 +54,7 @@ export default function ToastNotification({
   useEffect(() => {
     if (isOpen && duration > 0) {
       const timer = setTimeout(() => {
-        // handleClose()
+        handleClose()
       }, duration)
 
       return () => clearTimeout(timer)
@@ -64,7 +64,7 @@ export default function ToastNotification({
   const handleClose = () => {
     setIsExiting(true)
     setTimeout(() => {
-      // setIsOpen(false)
+      setIsOpen(false)
       onClose?.()
     }, 300)
   }

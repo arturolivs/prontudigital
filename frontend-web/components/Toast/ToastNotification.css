@@ -1,15 +1,13 @@
 .toast-notification {
- /* position: fixed;*/
   top: 1rem;
   left: 50%;
-  transform: translateX(-50%);
   z-index: 1000;
-  transition: all 0.3s ease;
- /* animation: toastFadeIn 0.3s ease forwards;*/
+  transition: all 1s ease;
+  animation: toastFadeIn 1s ease forwards;
 }
 
 .toast-notification.exiting {
-/*  animation: toastFadeOut 0.3s ease forwards;*/
+  animation: toastFadeOut 1s ease forwards;
 }
 
 .toast-content {
@@ -19,7 +17,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
 }
 

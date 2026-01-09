@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-image: linear-gradient(to right bottom, #2c3e50, #415469, #576c82, #6e859d, #859eb8);
+  background-image: radial-gradient(circle, #6e89a6, #5d758f, #4c627a, #3c5064, #2c3e50);
 }
 
 .login-form {
