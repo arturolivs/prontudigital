@@ -18,7 +18,7 @@ const Calendar = () => {
     const sampleEvents: CalendarEvent[] = [
       {
         id: 1,
-        title: 'Reunião de equipe',
+        title: 'Paciente 1',
         date: new Date(
           currentDate.getFullYear(),
           currentDate.getMonth(),
@@ -31,11 +31,11 @@ const Calendar = () => {
       },
       {
         id: 2,
-        title: 'Almoço com cliente',
+        title: 'Paciente 2',
         date: new Date(
           currentDate.getFullYear(),
           currentDate.getMonth(),
-          12,
+          10,
           12,
           30,
         ),
@@ -44,11 +44,11 @@ const Calendar = () => {
       },
       {
         id: 3,
-        title: 'Apresentação',
+        title: 'Paciente 3',
         date: new Date(
           currentDate.getFullYear(),
           currentDate.getMonth(),
-          15,
+          2,
           14,
           0,
         ),
@@ -57,11 +57,11 @@ const Calendar = () => {
       },
       {
         id: 4,
-        title: 'Consulta médica',
+        title: 'Paciente 4',
         date: new Date(
           currentDate.getFullYear(),
           currentDate.getMonth(),
-          18,
+          2,
           9,
           0,
         ),
@@ -70,7 +70,7 @@ const Calendar = () => {
       },
       {
         id: 5,
-        title: 'Aniversário',
+        title: 'paciente 5',
         date: new Date(
           currentDate.getFullYear(),
           currentDate.getMonth(),

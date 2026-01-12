@@ -3,11 +3,13 @@ import { Inter } from 'next/font/google'
 import { AuthProvider } from '../contexts/AuthContext'
 import { RouteProtectionWrapper } from '../components/RouteProtectionWrapper'
 import './globals.css'
+import ToastContainer from '@/components/Toast/ToastContainer'
+import { ToastProvider } from '@/contexts/ToastContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sistema de Autenticação',
+  title: 'ProntuDigital',
   description: 'Sistema de login com Next.js e JWT',
 }
 
@@ -20,7 +22,10 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={inter.className}>
         <AuthProvider>
-          <RouteProtectionWrapper>{children}</RouteProtectionWrapper>
+          <ToastProvider>
+            <RouteProtectionWrapper>{children}</RouteProtectionWrapper>
+            <ToastContainer />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
