@@ -18,7 +18,7 @@ const API_URL =
 
 export const authAPI = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> =>
-    await axios.post(`${API_URL}/signin`, credentials),
+    (await axios.post(`${API_URL}/signin`, credentials)).data,
 
   logout: async (): Promise<void> => {
     const refreshToken = localStorage.getItem('refreshToken')
