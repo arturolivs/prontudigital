@@ -50,14 +50,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public Optional<RefreshToken> findByToken(String token) {
-        return Optional.empty();
+        return refreshTokenRepository.findByToken(token);
     }
 
-    public boolean isRefreshTokenValid(String token) {
+    public boolean isRefreshTokenRevokedOrExpired(String token) {
         return refreshTokenRepository.findByToken(token)
-                .map(refreshToken -> !refreshToken.isRevoked() &&
-                        refreshToken.getExpiryDate().isAfter(Instant.now()))
-                .orElse(false);
+                .filter(refreshToken -> refreshToken.isRevoked() ||
+                        refreshToken.getExpiryDate().isBefore(Instant.now()))
+                .isPresent();
     }
 
     public void revokeRefreshToken(String token) {
@@ -88,7 +88,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         }
 
         revokeRefreshToken(oldToken);
-
         return generateRefreshToken(refreshToken.getUser().getUsername());
     }
 }

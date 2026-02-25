@@ -89,6 +89,7 @@ public class UserServiceImpl implements UserService {
         return UserResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
+                .username(user.getUsername())
                 .fullName(user.getFullName())
                 .isActive(user.getIsActive())
                 .roles(user.getRoles().stream()

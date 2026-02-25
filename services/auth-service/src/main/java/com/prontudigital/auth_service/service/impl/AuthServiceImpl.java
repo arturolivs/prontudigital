@@ -57,11 +57,11 @@ public class AuthServiceImpl implements AuthService {
 
     public RefreshTokenResponseDTO refreshToken(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new InvalidTokenException("Refresh token inválido");
+            throw new InvalidTokenException("Refresh token inválido.");
         }
 
-        if (!refreshTokenService.isRefreshTokenValid(refreshToken)) {
-            throw new InvalidTokenException("Refresh token revogado");
+        if (refreshTokenService.isRefreshTokenRevokedOrExpired(refreshToken)) {
+            throw new InvalidTokenException("Refresh token revogado ou expirado.");
         }
 
         String newRefreshToken = refreshTokenService.rotateRefreshToken(refreshToken);

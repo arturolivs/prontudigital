@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface RefreshTokenService {
     String generateRefreshToken(String username);
     Optional<RefreshToken> findByToken(String token);
-    boolean isRefreshTokenValid(String token);
+    boolean isRefreshTokenRevokedOrExpired(String token);
     void revokeRefreshToken(String token);
     void revokeAllUserRefreshTokens(User user);
     String rotateRefreshToken(String oldToken);

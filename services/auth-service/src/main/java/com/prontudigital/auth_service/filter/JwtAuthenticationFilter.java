@@ -1,6 +1,7 @@
 package com.prontudigital.auth_service.filter;
 
 import com.prontudigital.auth_service.security.JwtTokenProvider;
+import com.prontudigital.auth_service.service.RefreshTokenService;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     protected void doFilterInternal(
@@ -27,13 +29,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = tokenProvider.resolveToken(request);
 
-            if (token != null && tokenProvider.validateToken(token)) {
+            if (token != null &&
+                    tokenProvider.validateToken(token) &&
+                    !refreshTokenService.isRefreshTokenRevokedOrExpired(token) ) {
                 Authentication authentication = tokenProvider.getAuthentication(token);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
-            //logger.error("Falha na autenticação JWT", ex);
+            logger.error("Falha na autenticação JWT", ex);
         }
 
         filterChain.doFilter(request, response);

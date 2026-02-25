@@ -1,14 +1,15 @@
 package com.prontudigital.auth_service.dto;
 
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = "Dados para registro de novo usuário")
 public record LoginRequestDTO(
-        @NotBlank(message = "Usuário é obrigatório")
-        String username,
+        @Schema(description = "Nome de usuário", example = "joaosilva")
+        @NotBlank String username,
 
-        @NotBlank(message = "Senha é obrigatória")
-        @Size(min = 8, max = 30, message = "Senha deve ter entre 8 e 30 caracteres")
-        String password
+        @Schema(description = "Senha (mínimo 8 caracteres)", example = "senha123")
+        @NotBlank @Size(min = 8, max = 30) String password
 ) {}

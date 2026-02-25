@@ -1,6 +1,8 @@
 spring:
   application:
     name: auth-service
+    profiles:
+      active: develop
   jpa:
     hibernate:
       ddl-auto: validate
@@ -12,7 +14,7 @@ spring:
 
 app:
   jwt:
-    access-expiration-ms: 10000
+    access-expiration-ms: 600000000
     refresh-expiration-ms: 600000000
 
 # Configuração de segurança - aceitar apenas do gateway

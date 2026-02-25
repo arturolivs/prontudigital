@@ -21,10 +21,10 @@ public class JwtTokenProvider {
     private final UserDetailsServiceImpl userDetailsService;
     private Key secretKey;
 
-    @Value("${app.jwt.access-expiration-ms:900000}")
+    @Value("${app.jwt.access-expiration-ms}")
     private Long accessExpirationMs;
 
-    @Value("${app.jwt.refresh-expiration-ms:604800000}")
+    @Value("${app.jwt.refresh-expiration-ms}")
     private Long refreshExpirationMs;
 
     public JwtTokenProvider(UserDetailsServiceImpl userDetailsService) {
