@@ -25,13 +25,11 @@ public class UserServiceErrorDecoder implements ErrorDecoder {
         log.warn("Erro na chamada ao User Service - Status: {}, Método: {}",
                 response.status(), methodKey);
 
-        // Tratamento específico para 404 - Usuário não encontrado
         if (response.status() == HttpStatus.NOT_FOUND.value()) {
             log.warn("Usuário não encontrado no User Service. Response: {}", responseBody);
             return new UserNotFoundException(extractUserUuidFromResponse(responseBody));
         }
 
-        // Tratamento para outros status
         return switch (response.status()) {
             case 400 -> new IllegalArgumentException("Requisição inválida para User Service: " + responseBody);
             case 401, 403 -> new SecurityException("Acesso não autorizado ao User Service");

@@ -53,20 +53,43 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     public AppointmentViewDTO convertToViewDTO(Appointment appointment) {
-        String patientName = "patientName";//patientServiceClient.getPatientName(appointment.getPatientId());
-        String professionalName = "professionalName";//professionalServiceClient.getProfessionalName(appointment.getProfessionalId());
+        try {
+            UserInfoDTO patient = userServiceClient.getUserByUuid(appointment.getPatientUuid());
+            UserInfoDTO professional = userServiceClient.getUserByUuid(appointment.getProfessionalUuid());
 
-        return new AppointmentViewDTO(
-                appointment.getId(),
-                appointment.getStartDateTime(),
-                appointment.getEndDateTime(),
-                appointment.getProfessionalUuid(),
-                appointment.getPatientUuid(),
-                appointment.getType(),
-                appointment.getStatus(),
-                patientName,
-                professionalName
-        );
+            String patientName = patient != null ? patient.getFullName() : "Paciente não encontrado";
+            String professionalName = professional != null ? professional.getFullName() : "Profissional não encontrado";
+
+            return  new AppointmentViewDTO(
+                    appointment.getId(),
+                    appointment.getStartDateTime(),
+                    appointment.getEndDateTime(),
+                    appointment.getProfessionalUuid(),
+                    appointment.getPatientUuid(),
+                    appointment.getType(),
+                    appointment.getStatus(),
+                    patientName,
+                    professionalName
+            );
+        } catch (UserNotFoundException e) {
+            log.warn("Usuário não encontrado: {}", e.getMessage());
+            // Decide como lidar: pode lançar exceção de negócio ou retornar um DTO com placeholder
+            throw new RuntimeException("Dados do usuário inconsistentes");
+        } catch (Exception e) {
+            log.error("Erro ao buscar dados de usuário", e);
+            // Retorna nomes genéricos em caso de falha total
+            return new AppointmentViewDTO(
+                    appointment.getId(),
+                    appointment.getStartDateTime(),
+                    appointment.getEndDateTime(),
+                    appointment.getProfessionalUuid(),
+                    appointment.getPatientUuid(),
+                    appointment.getType(),
+                    appointment.getStatus(),
+                    "Indisponível",
+                    "Indisponível"
+            );
+        }
     }
 
     @Override
@@ -100,6 +123,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return convertToDTO(savedAppointment);
     }
 
+    @Transactional
     public AppointmentResponseDTO cancelAppointment(Long appointmentId, UUID patientUuid)  {
         Appointment appointment = appointmentRepository.findByIdAndPatientUuid(appointmentId, patientUuid)
                 .orElseThrow(() -> new AppointmentNotFoundException("Agendamento não encontrado"));

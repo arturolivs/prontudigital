@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/v1/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/v1/signin").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/v1/refresh-token").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/v1/users/uuid/**").permitAll()
                         .requestMatchers(
                                 // Swagger UI v3 (OpenAPI)
                                 "/swagger-ui.html",

@@ -11,11 +11,22 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
 
+app:
+  services:
+    user-service:
+      url: http://localhost:8080
+
 server:
   port: 8081
 
 logging:
   level:
+    org.flywaydb: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org.flywaydb: DEBUG
+    org.springframework.security: DEBUG
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    use-sroot-path: true
