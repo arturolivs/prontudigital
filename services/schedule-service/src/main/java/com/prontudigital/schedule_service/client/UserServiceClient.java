@@ -1,7 +1,6 @@
 package com.prontudigital.schedule_service.client;
 
 
-import com.prontudigital.schedule_service.client.fallback.UserServiceFallback;
 import com.prontudigital.schedule_service.client.fallback.UserServiceFallbackFactory;
 import com.prontudigital.schedule_service.config.FeignConfig;
 import com.prontudigital.schedule_service.dto.UserInfoDTO;
