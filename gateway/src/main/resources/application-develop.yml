@@ -1,0 +1,46 @@
+server:
+  port: 9090
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # === AUTH SERVICE ===
+            # Rotas do Swagger (específicas)
+            - id: auth-service-swagger
+              uri: http://localhost:8080
+              predicates:
+                - Path=/api/auth/swagger-ui.html, /api/auth/swagger-ui/**, /api/auth/v3/api-docs/**, /api/auth/webjars/**, /api/auth/swagger-config/**
+              filters:
+                - RewritePath=/api/auth/(?<segment>.*), /${segment}
+              order: 1
+
+            # API endpoints (genérica)
+            - id: auth-service-api
+              uri: http://localhost:8080
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - RewritePath=/api/auth/(?<segment>.*), /${segment}
+              order: 2
+
+            # === SCHEDULE SERVICE ===
+            # Rotas do Swagger (específicas)
+            - id: schedule-service-swagger
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/schedule/swagger-ui.html, /api/schedule/swagger-ui/**, /api/schedule/v3/api-docs/**, /api/schedule/webjars/**, /api/schedule/swagger-config/**
+              filters:
+                - RewritePath=/api/schedule/(?<segment>.*), /${segment}
+              order: 3
+
+            # API endpoints (genérica)
+            - id: schedule-service-api
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/schedule/**
+              filters:
+                - RewritePath=/api/schedule/(?<segment>.*), /${segment}
+              order: 4

@@ -3,6 +3,7 @@ spring:
     url: jdbc:postgresql://localhost:5433/schedule_db
     username: user_admin
     password: secret123
+
   flyway:
     url: jdbc:postgresql://localhost:5433/schedule_db
     user: user_admin
@@ -25,8 +26,24 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.security: DEBUG
+    org.springdoc: DEBUG
 
+# Configuração para funcionar tanto direto quanto via gateway
 springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
   swagger-ui:
     path: /swagger-ui.html
-    use-sroot-path: true
+    enabled: true
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    disable-swagger-default-url: true
+    # Configurações para funcionar via gateway
+    config-url: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    urls:
+      - name: schedule-service
+        url: /v3/api-docs

@@ -21,8 +21,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -30,10 +30,36 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("${cors.allowed-origins:http://localhost:3000}")
-    private String allowedOrigins;
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    // Lista de paths públicos organizados por categoria
+    private static final String[] SWAGGER_PATHS = {
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/v3/api-docs",
+            "/v3/api-docs.yaml",
+            "/swagger-resources/**",
+            "/swagger-resources",
+            "/webjars/**",
+            "/api-docs/**",
+            "/api-docs",
+            "/",
+            "/home",
+            "/index"
+    };
+
+    private static final String[] AUTH_PUBLIC_PATHS = {
+            "/api/auth/v1/register",
+            "/api/auth/v1/signin"
+    };
+
+    private static final String[] USER_PUBLIC_PATHS = {
+            "/api/auth/v1/users/uuid/**"
+    };
+
+    @Value("${cors.allowed-origins:http://localhost:3000}")
+    private String[] allowedOrigins;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -47,29 +73,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/v1/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/v1/signin").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/v1/refresh-token").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/v1/users/uuid/**").permitAll()
-                        .requestMatchers(
-                                // Swagger UI v3 (OpenAPI)
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs",
-                                "/v3/api-docs.yaml",
-                                "/swagger-resources/**",
-                                "/swagger-resources",
-                                "/webjars/**",
-                                "/api-docs/**",
-                                "/api-docs",
-                                // Para redirecionamento da raiz
-                                "/",
-                                "/home",
-                                "/index"
-                        ).permitAll()
+                        // Swagger - completamente público
+                        .requestMatchers(SWAGGER_PATHS).permitAll()
 
-                        .requestMatchers("/api/auth/v1/**").authenticated()
+                        // Endpoints públicos de autenticação
+                        .requestMatchers(HttpMethod.POST, AUTH_PUBLIC_PATHS).permitAll()
+
+                        // Busca de usuários por UUID (GET público)
+                        .requestMatchers(HttpMethod.GET, USER_PUBLIC_PATHS).permitAll()
+
+                        // 🔐 Todos os outros endpoints precisam de autenticação
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -85,19 +99,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 🔧 URLs permitidas (seu frontend)
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",          // Desenvolvimento
-                "http://localhost:3001",          // Desenvolvimento alternativo
-                "https://seusite.com"             // Produção
-        ));
-
-        // 🔧 Métodos HTTP permitidos
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
         ));
 
-        // 🔧 Headers permitidos
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type",
@@ -105,19 +111,14 @@ public class SecurityConfig {
                 "Accept",
                 "Origin",
                 "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
+                "Access-Control-Request-Headers",
+                "X-Internal-Auth"
         ));
-
-        // 🔧 Headers expostos para o frontend
         configuration.setExposedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type"
         ));
-
-        // 🔧 Permitir credenciais (cookies, tokens)
         configuration.setAllowCredentials(true);
-
-        // 🔧 Cache do preflight request (1 hora)
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
