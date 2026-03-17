@@ -32,22 +32,34 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // Lista de paths públicos organizados por categoria
     private static final String[] SWAGGER_PATHS = {
             "/swagger-ui.html",
             "/swagger-ui/**",
+            "/swagger-ui/*",
+            "/swagger-ui/**/*.js",
+            "/swagger-ui/**/*.css",
+            "/swagger-ui/**/*.map",
+            "/swagger-ui/**/*.json",
+            "/swagger-ui/**/*.png",
+            "/swagger-ui/**/*.svg",
             "/v3/api-docs/**",
             "/v3/api-docs",
             "/v3/api-docs.yaml",
+            "/v3/api-docs/swagger-config",
             "/swagger-resources/**",
             "/swagger-resources",
+            "/swagger-resources/configuration/ui",
+            "/swagger-resources/configuration/security",
             "/webjars/**",
             "/api-docs/**",
             "/api-docs",
             "/",
             "/home",
-            "/index"
+            "/index",
+            "/favicon.ico",
+            "/error"
     };
+
 
     private static final String[] AUTH_PUBLIC_PATHS = {
             "/api/auth/v1/register",
@@ -73,17 +85,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger - completamente público
-                        .requestMatchers(SWAGGER_PATHS).permitAll()
-
-                        // Endpoints públicos de autenticação
-                        .requestMatchers(HttpMethod.POST, AUTH_PUBLIC_PATHS).permitAll()
-
-                        // Busca de usuários por UUID (GET público)
-                        .requestMatchers(HttpMethod.GET, USER_PUBLIC_PATHS).permitAll()
-
-                        // 🔐 Todos os outros endpoints precisam de autenticação
-                        .anyRequest().authenticated()
+                       // .requestMatchers(SWAGGER_PATHS).permitAll()
+                      //  .requestMatchers(HttpMethod.POST, AUTH_PUBLIC_PATHS).permitAll()
+                     //   .requestMatchers(HttpMethod.GET, USER_PUBLIC_PATHS).permitAll()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

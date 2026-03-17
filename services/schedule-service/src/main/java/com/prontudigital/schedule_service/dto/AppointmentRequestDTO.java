@@ -1,13 +1,22 @@
 package com.prontudigital.schedule_service.dto;
 
 import com.prontudigital.schedule_service.enums.AppointmentType;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+public record AppointmentRequestDTO(
+        @NotNull UUID patientUuid,
+        @NotNull UUID professionalUuid,
+        String notes,
+        @NotNull LocalDateTime startDateTime,
+        @NotNull LocalDateTime endDateTime,
+        @NotNull AppointmentType type,
+        Long evaluationId  // opcional, usado apenas para TRATAMENTO
+) {}
 
+/*
 @Schema(description = "Requisição para agendamento de consulta")
 public record AppointmentRequestDTO(
 
@@ -41,3 +50,5 @@ public record AppointmentRequestDTO(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull AppointmentType type
 ) {}
+
+ */

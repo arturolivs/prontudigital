@@ -29,13 +29,26 @@ cors:
   allowed-origins:
     - http://localhost:3000
     - http://localhost:3001
-    - https://seusite.com
 
-# Swagger/OpenAPI
+# Configuração para funcionar tanto direto quanto via gateway
 springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    config-url: /api/auth/v3/api-docs/swagger-config  # URL absoluta com prefixo
-    url: /api/auth/v3/api-docs  # URL absoluta com prefixo
   api-docs:
     path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    disable-swagger-default-url: true
+    # Importante: config-url deve apontar para o endpoint correto
+    config-url: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    urls:
+      - name: auth-service
+        url: /v3/api-docs
+    # Adicione esta linha para resolver problemas de CORS no Swagger UI
+    csrf:
+      enabled: false

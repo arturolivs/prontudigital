@@ -42,6 +42,29 @@ public class UserServiceFallbackFactory implements FallbackFactory<UserServiceCl
                 fallbackUser.setIsActive(false);
                 return fallbackUser;
             }
+
+            @Override
+            public UserInfoDTO getCurrentUser() {
+                UserInfoDTO fallbackUser = new UserInfoDTO();
+                if (cause instanceof FeignException.NotFound) {
+                    log.warn("Usuário não encontrado no auth-service");
+                    throw new UserNotFoundException("Usuário não encontrado: ");
+                } else if (cause instanceof FeignException.ServiceUnavailable) {
+                    log.error("Serviço de usuário indisponível");
+                    fallbackUser.setUuid(UUID.randomUUID());
+                    fallbackUser.setFullName("Usuário Indisponível");
+                    fallbackUser.setUsername("indisponivel");
+                    fallbackUser.setEmail("indisponivel@email.com");
+                    fallbackUser.setIsActive(false);
+                    return fallbackUser;
+                }
+                fallbackUser.setUuid(UUID.randomUUID());
+                fallbackUser.setFullName("Usuário Indisponível");
+                fallbackUser.setUsername("indisponivel");
+                fallbackUser.setEmail("indisponivel@email.com");
+                fallbackUser.setIsActive(false);
+                return fallbackUser;
+            }
         };
     }
 }

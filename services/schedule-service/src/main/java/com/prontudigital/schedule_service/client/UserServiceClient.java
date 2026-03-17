@@ -20,4 +20,7 @@ public interface UserServiceClient {
 
     @GetMapping("/api/auth/v1/users/uuid/{userUuid}")
     UserInfoDTO getUserByUuid(@PathVariable("userUuid") UUID userUuid);
+
+    @GetMapping("/api/auth/v1/users/get")
+    UserInfoDTO getCurrentUser();
 }
