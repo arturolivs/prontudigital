@@ -34,18 +34,9 @@ public class SecurityConfig {
 
     private static final String[] SWAGGER_PATHS = {
             "/swagger-ui.html",
-            "/swagger-ui/**",
-            "/swagger-ui/*",
-            "/swagger-ui/**/*.js",
-            "/swagger-ui/**/*.css",
-            "/swagger-ui/**/*.map",
-            "/swagger-ui/**/*.json",
-            "/swagger-ui/**/*.png",
-            "/swagger-ui/**/*.svg",
-            "/v3/api-docs/**",
-            "/v3/api-docs",
+            "/swagger-ui/**",                    // cobre todos os arquivos dentro de /swagger-ui/
+            "/v3/api-docs/**",                   // cobre /v3/api-docs e /v3/api-docs/swagger-config
             "/v3/api-docs.yaml",
-            "/v3/api-docs/swagger-config",
             "/swagger-resources/**",
             "/swagger-resources",
             "/swagger-resources/configuration/ui",
@@ -85,10 +76,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                       // .requestMatchers(SWAGGER_PATHS).permitAll()
-                      //  .requestMatchers(HttpMethod.POST, AUTH_PUBLIC_PATHS).permitAll()
-                     //   .requestMatchers(HttpMethod.GET, USER_PUBLIC_PATHS).permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers(SWAGGER_PATHS).permitAll()
+                        .requestMatchers(HttpMethod.POST, AUTH_PUBLIC_PATHS).permitAll()
+                        .requestMatchers(HttpMethod.GET, USER_PUBLIC_PATHS).permitAll()
+                        .requestMatchers("/api/auth/v1/me").authenticated()  // <-- adicione esta linha
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

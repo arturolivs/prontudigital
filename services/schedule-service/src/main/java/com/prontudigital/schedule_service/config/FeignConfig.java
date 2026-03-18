@@ -2,6 +2,7 @@ package com.prontudigital.schedule_service.config;
 
 import com.prontudigital.schedule_service.client.decoder.UserServiceErrorDecoder;
 import feign.Logger;
+import feign.RequestInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,5 +17,10 @@ public class FeignConfig {
     @Bean
     public UserServiceErrorDecoder userServiceErrorDecoder() {
         return new UserServiceErrorDecoder();
+    }
+
+    @Bean
+    public RequestInterceptor requestInterceptor() {
+        return new FeignClientInterceptor();
     }
 }
