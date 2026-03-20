@@ -4,6 +4,30 @@ server:
 spring:
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns:
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowed-headers:
+              - Authorization
+              - Content-Type
+              - X-Requested-With
+              - Accept
+              - Origin
+            exposed-headers:
+              - Authorization
+              - Content-Type
+            allow-credentials: true
+            max-age: 3600
       routes:
         # Rota para Auth Service
         - id: auth-service
@@ -73,3 +97,6 @@ logging:
     org.springframework.cloud.gateway: DEBUG
     io.github.resilience4j: DEBUG
     reactor.netty.http.client: DEBUG
+
+cors:
+  allowed-origins: "http://localhost:3000,http://localhost:3001"
