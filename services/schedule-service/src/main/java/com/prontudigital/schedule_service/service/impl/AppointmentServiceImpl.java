@@ -14,6 +14,7 @@ import com.prontudigital.schedule_service.repository.AppointmentRepository;
 import com.prontudigital.schedule_service.repository.TimeBlockRepository;
 import com.prontudigital.schedule_service.service.AppointmentService;
 import com.prontudigital.schedule_service.service.validation.UserValidationService;
+import com.prontudigital.schedule_service.utils.AppointmentUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.prontudigital.schedule_service.utils.AppointmentUtil.convertToDTO;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -38,63 +41,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final TimeBlockRepository timeBlockRepository;
     private final UserServiceClient userServiceClient;
     private final UserValidationService userValidationService;
+    private final AppointmentUtil util;
 
-    // ========== CONVERSÕES ==========
 
-    private AppointmentResponseDTO convertToDTO(Appointment appointment) {
-        return new AppointmentResponseDTO(
-                appointment.getId(),
-                appointment.getStartDateTime(),
-                appointment.getEndDateTime(),
-                appointment.getProfessionalUuid(),
-                appointment.getPatientUuid(),
-                appointment.getType(),
-                appointment.getStatus(),
-                appointment.getNotes(),
-                appointment.getCreatedAt(),
-                appointment.getEvaluation() != null ? appointment.getEvaluation().getId() : null,
-                appointment.getCompletedAt()
-        );
-    }
-
-    private AppointmentViewDTO convertToViewDTO(Appointment appointment) {
-        try {
-            UserInfoDTO patient = userServiceClient.getUserByUuid(appointment.getPatientUuid());
-            UserInfoDTO professional = userServiceClient.getUserByUuid(appointment.getProfessionalUuid());
-
-            String patientName = patient != null ? patient.getFullName() : "Paciente não encontrado";
-            String professionalName = professional != null ? professional.getFullName() : "Profissional não encontrado";
-
-            return new AppointmentViewDTO(
-                    appointment.getId(),
-                    appointment.getStartDateTime(),
-                    appointment.getEndDateTime(),
-                    appointment.getProfessionalUuid(),
-                    appointment.getPatientUuid(),
-                    appointment.getType(),
-                    appointment.getStatus(),
-                    patientName,
-                    professionalName,
-                    appointment.getEvaluation() != null ? appointment.getEvaluation().getId() : null
-            );
-        } catch (Exception e) {
-            log.error("Erro ao buscar dados de usuário", e);
-            return new AppointmentViewDTO(
-                    appointment.getId(),
-                    appointment.getStartDateTime(),
-                    appointment.getEndDateTime(),
-                    appointment.getProfessionalUuid(),
-                    appointment.getPatientUuid(),
-                    appointment.getType(),
-                    appointment.getStatus(),
-                    "Indisponível",
-                    "Indisponível",
-                    appointment.getEvaluation() != null ? appointment.getEvaluation().getId() : null
-            );
-        }
-    }
-
-    // ========== PERMISSÕES ==========
 
     private void validateSchedulePermission(AppointmentRequestDTO request, UUID currentUserUuid, String currentUserRole) {
         if ("ADMIN".equals(currentUserRole)) {
@@ -302,7 +251,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .findByProfessionalUuidAndStartDateTimeBetween(user.getUuid(), startDateTime, endDateTime);
 
         return appointments.stream()
-                .map(this::convertToViewDTO)
+                .map(util::convertToViewDTO)
                 .collect(Collectors.toList());
     }
 
@@ -318,7 +267,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         List<Appointment> treatments = appointmentRepository.findByEvaluationId(evaluationId);
-        return treatments.stream().map(this::convertToViewDTO).collect(Collectors.toList());
+        return treatments.stream().map(util::convertToViewDTO).collect(Collectors.toList());
     }
 
     @Override
