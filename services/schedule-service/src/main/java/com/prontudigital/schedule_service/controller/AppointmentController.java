@@ -36,11 +36,9 @@ public class AppointmentController {
 
     @GetMapping
     public ResponseEntity<List<AppointmentViewDTO>> viewAppointments(
-            @RequestParam UUID professionalUuid,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam String viewType) {
-        List<AppointmentViewDTO> appointments = appointmentService.viewAppointments(
-                professionalUuid, date, viewType);
+        List<AppointmentViewDTO> appointments = appointmentService.viewAppointments(date, viewType);
         return ResponseEntity.ok(appointments);
     }
 
@@ -52,8 +50,8 @@ public class AppointmentController {
     }
 
     @PatchMapping("/{id}/complete")
-    public ResponseEntity<AppointmentResponseDTO> complete(@PathVariable Long id) {
-        AppointmentResponseDTO response = appointmentService.completeAppointment(id);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Void> complete(@PathVariable Long id) {
+        appointmentService.completeAppointment(id);
+        return ResponseEntity.noContent().build();
     }
 }

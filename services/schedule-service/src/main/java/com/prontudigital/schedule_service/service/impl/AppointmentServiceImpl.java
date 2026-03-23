@@ -243,7 +243,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional
-    public AppointmentResponseDTO cancelAppointment(Long appointmentId) {
+    public void cancelAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Agendamento não encontrado"));
         UserInfoDTO user = userServiceClient.getCurrentUser();
@@ -262,19 +262,18 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.setStatus(AppointmentStatus.CANCELLED);
         Appointment cancelled = appointmentRepository.save(appointment);
-        return convertToDTO(cancelled);
+        convertToDTO(cancelled);
     }
 
     @Override
-    public List<AppointmentViewDTO> viewAppointments(UUID professionalUuid,
-                                                     LocalDate date,
+    public List<AppointmentViewDTO> viewAppointments(LocalDate date,
                                                      String viewType) {
         UserInfoDTO user = userServiceClient.getCurrentUser();
         // Validação de permissão
         if ("PATIENT".equals(user.getRoles().getFirst())) {
             throw new UnauthorizedException("Paciente não pode visualizar agenda de profissional");
         }
-        if ("PROFESSIONAL".equals(user.getRoles().getFirst()) && !professionalUuid.equals(user.getUuid())) {
+        if ("PROFESSIONAL".equals(user.getRoles().getFirst()) ) {
             throw new UnauthorizedException("Profissional só pode visualizar sua própria agenda");
         }
         // ADMIN pode qualquer
@@ -300,7 +299,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         List<Appointment> appointments = appointmentRepository
-                .findByProfessionalUuidAndStartDateTimeBetween(professionalUuid, startDateTime, endDateTime);
+                .findByProfessionalUuidAndStartDateTimeBetween(user.getUuid(), startDateTime, endDateTime);
 
         return appointments.stream()
                 .map(this::convertToViewDTO)
@@ -324,7 +323,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional
-    public AppointmentResponseDTO completeAppointment(Long appointmentId) {
+    public void completeAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Agendamento não encontrado"));
 
@@ -344,7 +343,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.setStatus(AppointmentStatus.COMPLETED);
         appointment.setCompletedAt(LocalDateTime.now());
-        Appointment completed = appointmentRepository.save(appointment);
-        return convertToDTO(completed);
+        appointmentRepository.save(appointment);
     }
 }
