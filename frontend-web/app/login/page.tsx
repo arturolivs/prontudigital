@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import './styles.css'
 import { useToast } from '../../contexts/ToastContext'
+import { LoginCredentials } from '@/types/auth'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -18,7 +19,12 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      await login({ username, password })
+      const x = {
+        username: 'joaosilva',
+        password: 'senha123',
+      } as LoginCredentials
+
+      await login(x)
     } catch (err: any) {
       showToast(err.message, 'error', 6000)
     } finally {

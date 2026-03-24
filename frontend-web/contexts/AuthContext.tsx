@@ -8,7 +8,7 @@ import {
   ReactNode,
 } from 'react'
 import { useRouter } from 'next/navigation'
-import { authAPI, tokenService } from '../lib/auth'
+import { authAPI, tokenService } from '../lib/auth.service'
 import { User, LoginCredentials, AuthResponse } from '../types/auth'
 
 interface AuthContextType {

@@ -5,6 +5,15 @@ export interface User {
   professionalUuid?: string
 }
 
+export interface UserFull {
+  id: number
+  fullName: string
+  username: string
+  email: string
+  isActive: boolean
+  roles: string[]
+}
+
 export interface AuthResponse {
   accessToken: string
   refreshToken: string
@@ -18,4 +27,12 @@ export interface AuthResponse {
 export interface LoginCredentials {
   username: string
   password: string
+}
+
+export interface RegisterRequest {
+  fullName: string
+  email: string
+  username: string
+  password: string
+  roles?: string[]
 }

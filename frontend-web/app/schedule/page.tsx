@@ -8,7 +8,6 @@ import { Appointment } from '../../types/appointment'
 import Layout from '@/components/Layout/Layout'
 import AppointmentFormModal from '@/components/AppointmentFormModal'
 import './schedule.css'
-import CareSessionListAntiga from '@/components/CareSessionList_antiga'
 import CareSessionList from '@/components/CareSessionList'
 import { CareSession } from '@/types/CareSession'
 
