@@ -34,6 +34,10 @@ export default function CareSessionsPage() {
     try {
       setLoading(true)
       setError(null)
+      /**
+ * 
+ * 
+ * 
 
       const professionalUuid = getProfessionalUuid()
 
@@ -42,12 +46,8 @@ export default function CareSessionsPage() {
         setLoading(false)
         return
       }
-
-      const data = await careSessionAPI.getCareSessions(
-        professionalUuid,
-        'day',
-        selectedDate,
-      )
+ */
+      const data = await careSessionAPI.getCareSessions('day', selectedDate)
 
       setCaresessions(data)
     } catch (err: any) {

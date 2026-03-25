@@ -34,7 +34,7 @@ public class AppointmentController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
+    @GetMapping("view")
     public ResponseEntity<List<AppointmentViewDTO>> viewAppointments(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam String viewType) {

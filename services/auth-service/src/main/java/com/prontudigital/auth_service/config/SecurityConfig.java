@@ -55,9 +55,6 @@ public class SecurityConfig {
             "/api/auth/v1/users/uuid/**"
     };
 
-    @Value("${cors.allowed-origins:http://localhost:3000}")
-    private String[] allowedOrigins;
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

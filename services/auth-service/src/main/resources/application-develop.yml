@@ -25,12 +25,6 @@ logging:
     org.springframework.security: DEBUG
     org.springdoc: DEBUG
 
-# Configurações CORS
-cors:
-  allowed-origins:
-    - http://localhost:3000
-    - http://localhost:3001
-
 # Configuração para funcionar tanto direto quanto via gateway
 springdoc:
   api-docs:
