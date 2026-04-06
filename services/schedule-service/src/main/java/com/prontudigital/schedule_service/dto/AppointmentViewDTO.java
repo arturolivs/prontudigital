@@ -16,5 +16,6 @@ public record AppointmentViewDTO(
         AppointmentType type,
         AppointmentStatus status,
         String patientName,
-        String professionalName
+        String professionalName,
+        Long evaluationId
 ) {}

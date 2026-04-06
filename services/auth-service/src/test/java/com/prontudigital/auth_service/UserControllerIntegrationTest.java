@@ -58,7 +58,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    void createUser_ShouldReturnCreated() throws Exception {
+    void create_ShouldReturnCreated() throws Exception {
         given(userService.create(any(UserResponseDTO.class), anyString())).willReturn(sampleUserResponseDTO);
 
         mockMvc.perform(post("/api/v1/users")
@@ -71,7 +71,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    void updateUser_ShouldReturnUpdatedUser() throws Exception {
+    void updateUser_ShouldReturnUpdated() throws Exception {
         given(userService.update(userId, sampleUserResponseDTO)).willReturn(sampleUserResponseDTO);
 
         mockMvc.perform(put("/api/v1/users/{id}", userId)
@@ -82,7 +82,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    void deleteUser_ShouldReturnNoContent() throws Exception {
+    void delete_ShouldReturnNoContent() throws Exception {
         mockMvc.perform(delete("/api/v1/users/{id}", userId))
                 .andExpect(status().isNoContent());
     }

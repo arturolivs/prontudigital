@@ -16,5 +16,7 @@ public record AppointmentResponseDTO(
         AppointmentType type,
         AppointmentStatus status,
         String notes,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long evaluationId,
+        LocalDateTime completedAt
 ) {}

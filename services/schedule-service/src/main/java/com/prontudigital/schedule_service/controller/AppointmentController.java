@@ -5,7 +5,8 @@ import com.prontudigital.schedule_service.dto.AppointmentResponseDTO;
 import com.prontudigital.schedule_service.dto.AppointmentViewDTO;
 import com.prontudigital.schedule_service.service.AppointmentService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,41 +16,42 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/appointments")
+@RequestMapping("/api/schedule/appointments")
+@RequiredArgsConstructor
 public class AppointmentController {
 
-    @Autowired
-    private AppointmentService appointmentService;
+    private final AppointmentService appointmentService;
 
-    @PostMapping("/schedule")
-    public ResponseEntity<AppointmentResponseDTO> scheduleAppointment(
-            @Valid @RequestBody AppointmentRequestDTO request) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(appointmentService.scheduleAppointment(request));
+    @PostMapping
+    public ResponseEntity<AppointmentResponseDTO> schedule(@RequestBody @Valid AppointmentRequestDTO request) {
+        AppointmentResponseDTO response = appointmentService.scheduleAppointment(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PatchMapping("/{id}/cancel")
-    public ResponseEntity<AppointmentResponseDTO> cancelAppointment(
-            @PathVariable Long id,
-            @RequestParam UUID patientUuid) {
-        return ResponseEntity.ok(appointmentService.cancelAppointment(id, patientUuid));
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancel(@PathVariable Long id) {
+        appointmentService.cancelAppointment(id);
+        return ResponseEntity.noContent().build();
     }
-    @GetMapping("/view")
+
+    @GetMapping("view")
     public ResponseEntity<List<AppointmentViewDTO>> viewAppointments(
-            @RequestParam UUID professionalUuid,
-            @RequestParam(required = false) LocalDate date,
-            @RequestParam(required = false) String viewType) {
-
-        if (date == null) {
-            date = LocalDate.now();
-        }
-        if (viewType == null) {
-            viewType = "day";
-        }
-
-        return ResponseEntity.ok(appointmentService.viewAppointments(professionalUuid, date, viewType));
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam String viewType) {
+        List<AppointmentViewDTO> appointments = appointmentService.viewAppointments(date, viewType);
+        return ResponseEntity.ok(appointments);
     }
 
+    @GetMapping("/evaluation/{evaluationId}/treatments")
+    public ResponseEntity<List<AppointmentViewDTO>> getTreatmentsByEvaluation(@PathVariable Long evaluationId) {
+        List<AppointmentViewDTO> treatments = appointmentService.getTreatmentsByEvaluation(
+                evaluationId);
+        return ResponseEntity.ok(treatments);
+    }
 
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<Void> complete(@PathVariable Long id) {
+        appointmentService.completeAppointment(id);
+        return ResponseEntity.noContent().build();
+    }
 }

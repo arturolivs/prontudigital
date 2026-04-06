@@ -6,10 +6,13 @@ import com.prontudigital.schedule_service.dto.AppointmentViewDTO;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 public interface AppointmentService {
-    AppointmentResponseDTO scheduleAppointment(AppointmentRequestDTO request);
-    AppointmentResponseDTO cancelAppointment(Long appointmentId, UUID patientUuid);
-    List<AppointmentViewDTO> viewAppointments(UUID professionalUuid, LocalDate date, String viewType);
+  AppointmentResponseDTO scheduleAppointment(AppointmentRequestDTO request);
+  void cancelAppointment(Long appointmentId);
+  List<AppointmentViewDTO> viewAppointments(LocalDate date,
+                                            String viewType);
+  List<AppointmentViewDTO> getTreatmentsByEvaluation(Long evaluationId);
+  void completeAppointment(Long appointmentId);
+
 }

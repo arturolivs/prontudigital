@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -64,20 +63,20 @@ class UserControllerTest {
     }
 
     @Test
-    void createUser_WithDuplicateUsername_ShouldThrowException() {
+    void create_WithDuplicateUsername_ShouldThrowException() {
         when(userService.create(any(UserResponseDTO.class), anyString()))
                 .thenThrow(new EmailAlreadyExistsException("test.user"));
 
         assertThrows(EmailAlreadyExistsException.class,
-                () -> userController.createUser(sampleUserResponseDTO, "rawPassword123"));
+                () -> userController.create(sampleUserResponseDTO, "rawPassword123"));
         verify(userService).create(any(UserResponseDTO.class), anyString());
     }
 
     @Test
-    void updateUser_WithValidData_ShouldReturnUpdatedUser() {
+    void updateUser_WithValidData_ShouldReturnUpdated() {
         when(userService.update(userId, sampleUserResponseDTO)).thenReturn(sampleUserResponseDTO);
 
-        ResponseEntity<UserResponseDTO> response = userController.updateUser(userId, sampleUserResponseDTO);
+        ResponseEntity<UserResponseDTO> response = userController.update(userId, sampleUserResponseDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(userId, response.getBody().getId());
@@ -85,31 +84,31 @@ class UserControllerTest {
     }
 
     @Test
-    void updateUser_WithInvalidId_ShouldThrowException() {
+    void update_WithInvalidId_ShouldThrowException() {
         when(userService.update(userId, sampleUserResponseDTO))
                 .thenThrow(new UserNotFoundException(userId));
 
         assertThrows(UserNotFoundException.class,
-                () -> userController.updateUser(userId, sampleUserResponseDTO));
+                () -> userController.update(userId, sampleUserResponseDTO));
         verify(userService).update(userId, sampleUserResponseDTO);
     }
 
     @Test
-    void deleteUser_WithValidId_ShouldReturnNoContent() {
+    void delete_WithValidId_ShouldReturnNoContent() {
         doNothing().when(userService).delete(userId);
 
-        ResponseEntity<Void> response = userController.deleteUser(userId);
+        ResponseEntity<Void> response = userController.delete(userId);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(userService).delete(userId);
     }
 
     @Test
-    void deleteUser_WithInvalidId_ShouldThrowException() {
+    void delete_WithInvalidId_ShouldThrowException() {
         doThrow(new UserNotFoundException(userId)).when(userService).delete(userId);
 
         assertThrows(UserNotFoundException.class,
-                () -> userController.deleteUser(userId));
+                () -> userController.delete(userId));
         verify(userService).delete(userId);
     }
 }

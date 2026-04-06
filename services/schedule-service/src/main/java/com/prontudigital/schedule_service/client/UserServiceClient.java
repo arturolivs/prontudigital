@@ -1,7 +1,7 @@
 package com.prontudigital.schedule_service.client;
 
 
-import com.prontudigital.schedule_service.client.fallback.UserServiceFallback;
+import com.prontudigital.schedule_service.client.fallback.UserServiceFallbackFactory;
 import com.prontudigital.schedule_service.config.FeignConfig;
 import com.prontudigital.schedule_service.dto.UserInfoDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -13,11 +13,14 @@ import java.util.UUID;
 @FeignClient(
         name = "user-service",
         url = "${app.services.user-service.url}",
-        fallback = UserServiceFallback.class,
+        fallbackFactory = UserServiceFallbackFactory.class,
         configuration = FeignConfig.class
 )
 public interface UserServiceClient {
 
     @GetMapping("/api/auth/v1/users/uuid/{userUuid}")
     UserInfoDTO getUserByUuid(@PathVariable("userUuid") UUID userUuid);
+
+    @GetMapping("/api/auth/v1/me")
+    UserInfoDTO getCurrentUser();
 }

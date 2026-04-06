@@ -36,4 +36,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("patientUuid") UUID patientUuid,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    List<Appointment> findByEvaluationId(Long evaluationId);
+
 }

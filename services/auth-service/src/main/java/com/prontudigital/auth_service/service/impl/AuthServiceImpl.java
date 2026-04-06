@@ -1,7 +1,10 @@
 package com.prontudigital.auth_service.service.impl;
 
 import com.prontudigital.auth_service.dto.*;
+import com.prontudigital.auth_service.entity.Role;
+import com.prontudigital.auth_service.entity.User;
 import com.prontudigital.auth_service.exception.InvalidTokenException;
+import com.prontudigital.auth_service.repository.UserRepository;
 import com.prontudigital.auth_service.security.JwtTokenProvider;
 import com.prontudigital.auth_service.security.UserDetailsImpl;
 import com.prontudigital.auth_service.service.AuthService;
@@ -14,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     public UserResponseDTO register(RegisterRequestDTO request) {
         var userDTO = UserResponseDTO.builder()
@@ -57,11 +62,11 @@ public class AuthServiceImpl implements AuthService {
 
     public RefreshTokenResponseDTO refreshToken(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new InvalidTokenException("Refresh token inválido");
+            throw new InvalidTokenException("Refresh token inválido.");
         }
 
-        if (!refreshTokenService.isRefreshTokenValid(refreshToken)) {
-            throw new InvalidTokenException("Refresh token revogado");
+        if (refreshTokenService.isRefreshTokenRevokedOrExpired(refreshToken)) {
+            throw new InvalidTokenException("Refresh token revogado ou expirado.");
         }
 
         String newRefreshToken = refreshTokenService.rotateRefreshToken(refreshToken);
@@ -78,5 +83,22 @@ public class AuthServiceImpl implements AuthService {
 
     public void logout(String refreshToken) {
         refreshTokenService.revokeRefreshToken(refreshToken);
+    }
+
+    public UserInfoDTO getUserInfo(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
+        return mapToUserInfoDTO(user);
+    }
+
+    private UserInfoDTO mapToUserInfoDTO(User user) {
+        UserInfoDTO dto = new UserInfoDTO();
+        dto.setUuid(user.getUuid());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setFullName(user.getFullName());
+        dto.setIsActive(user.getIsActive());
+        dto.setRoles(user.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
+        return dto;
     }
 }

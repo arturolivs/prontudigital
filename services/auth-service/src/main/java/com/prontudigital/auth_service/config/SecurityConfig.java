@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,12 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-
-import java.util.Arrays;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,10 +24,36 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("${cors.allowed-origins:http://localhost:3000}")
-    private String allowedOrigins;
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    private static final String[] SWAGGER_PATHS = {
+            "/swagger-ui.html",
+            "/swagger-ui/**",                    // cobre todos os arquivos dentro de /swagger-ui/
+            "/v3/api-docs/**",                   // cobre /v3/api-docs e /v3/api-docs/swagger-config
+            "/v3/api-docs.yaml",
+            "/swagger-resources/**",
+            "/swagger-resources",
+            "/swagger-resources/configuration/ui",
+            "/swagger-resources/configuration/security",
+            "/webjars/**",
+            "/api-docs/**",
+            "/api-docs",
+            "/",
+            "/home",
+            "/index",
+            "/favicon.ico",
+            "/error"
+    };
+
+
+    private static final String[] AUTH_PUBLIC_PATHS = {
+            "/api/auth/v1/register",
+            "/api/auth/v1/signin"
+    };
+
+    private static final String[] USER_PUBLIC_PATHS = {
+            "/api/auth/v1/users/uuid/**"
+    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,17 +64,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        //.requestMatchers(HttpMethod.POST, "/api/auth/v1/register").permitAll()
-                        //.requestMatchers(HttpMethod.POST, "/api/auth/v1/signin").permitAll()
-
-                       // .requestMatchers("/api/auth/v1/**").authenticated()
-
-                        .anyRequest().permitAll()
+                        .requestMatchers(SWAGGER_PATHS).permitAll()
+                        .requestMatchers(HttpMethod.POST, AUTH_PUBLIC_PATHS).permitAll()
+                        .requestMatchers(HttpMethod.GET, USER_PUBLIC_PATHS).permitAll()
+                        .requestMatchers("/api/auth/v1/me").authenticated()  // <-- adicione esta linha
+                        .anyRequest().authenticated()
                 )
-             //   .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -62,47 +82,4 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        // 🔧 URLs permitidas (seu frontend)
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",          // Desenvolvimento
-                "http://localhost:3001",          // Desenvolvimento alternativo
-                "https://seusite.com"             // Produção
-        ));
-
-        // 🔧 Métodos HTTP permitidos
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
-        ));
-
-        // 🔧 Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "Accept",
-                "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
-        ));
-
-        // 🔧 Headers expostos para o frontend
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type"
-        ));
-
-        // 🔧 Permitir credenciais (cookies, tokens)
-        configuration.setAllowCredentials(true);
-
-        // 🔧 Cache do preflight request (1 hora)
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
 }

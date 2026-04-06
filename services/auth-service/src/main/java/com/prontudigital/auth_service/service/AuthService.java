@@ -8,4 +8,5 @@ public interface AuthService {
     JwtResponseDTO authenticate(LoginRequestDTO request);
     void logout(String refreshToken);
     RefreshTokenResponseDTO refreshToken(String refreshToken);
+    UserInfoDTO getUserInfo(String username);
 }

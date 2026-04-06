@@ -1,8 +1,8 @@
 package com.prontudigital.schedule_service.enums;
 
 public enum AppointmentType {
-    CONSULTATION,
-    PROCEDURE,
+    AVALIACAO,
+    TRATAMENTO,
     URGENT,
     FOLLOW_UP,
     OTHER

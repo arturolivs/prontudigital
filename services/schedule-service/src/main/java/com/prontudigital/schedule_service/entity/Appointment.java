@@ -47,6 +47,13 @@ public class Appointment {
     @Enumerated(EnumType.STRING)
     private AppointmentType type;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evaluation_id")
+    private Appointment evaluation;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;

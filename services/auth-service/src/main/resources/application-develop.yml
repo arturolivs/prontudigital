@@ -13,8 +13,25 @@ spring:
 server:
   port: 8080
 
+app:
+  jwt:
+    access-expiration-ms: 600000000
+    refresh-expiration-ms: 600000000
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.security: DEBUG
+    org.springdoc: DEBUG
+
+# Configuração para funcionar tanto direto quanto via gateway
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - name: auth-service
+        url: /v3/api-docs

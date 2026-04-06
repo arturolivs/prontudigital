@@ -5,10 +5,9 @@ import { Appointment } from '../types/appointment'
 import careSessions from '../mock/careSession'
 import { CareSession } from '@/types/CareSession'
 import { SessionStatus } from '@/types/SessionStatus'
-
 const API_URL =
   process.env.NEXT_PUBLIC_APPOINTMENTS_API_URL ||
-  'http://localhost:8081/api/appointments'
+  'http://localhost:9090/api/schedule/appointments'
 
 const api = axios.create()
 
@@ -24,20 +23,21 @@ api.interceptors.request.use(config => {
 
 export const careSessionAPI = {
   getCareSessions: async (
-    professionalUuid: string,
     viewType: string,
-    date: string,
+    date: Date | string,
   ): Promise<CareSession[]> => {
-    /**
+    viewType = 'month'
+    const formattedDate =
+      typeof date === 'string' ? date : date.toISOString().split('T')[0]
+    console.log('formattedDate @@@@@', formattedDate)
     const response = await api.get(`${API_URL}/view`, {
       params: {
-        professionalUuid,
         viewType,
-        date,
+        date: formattedDate,
       },
     })
-    return response.data 
-    // */
+    return response.data
+
     return careSessions
   },
 

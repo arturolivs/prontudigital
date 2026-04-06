@@ -3,16 +3,13 @@ package com.prontudigital.auth_service.controller;
 import com.prontudigital.auth_service.dto.*;
 import com.prontudigital.auth_service.exception.InvalidTokenException;
 import com.prontudigital.auth_service.service.AuthService;
-import com.prontudigital.auth_service.service.RefreshTokenService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -21,10 +18,9 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthController {
 
     private final AuthService authService;
-    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO request) {
+    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -48,5 +44,16 @@ public class AuthController {
     public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequestDTO request) {
         authService.logout(request.refreshToken());
         return ResponseEntity.ok().build();
+    }
+
+
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoDTO> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
+        }
+        String username = userDetails.getUsername();
+        UserInfoDTO userInfo = authService.getUserInfo(username);
+        return ResponseEntity.ok(userInfo);
     }
 }

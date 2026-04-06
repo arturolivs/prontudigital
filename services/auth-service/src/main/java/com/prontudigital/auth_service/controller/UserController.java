@@ -37,7 +37,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(
+    public ResponseEntity<UserResponseDTO> create(
             @RequestBody UserResponseDTO userResponseDTO,
             @RequestHeader("X-Raw-Password") String rawPassword) {
 
@@ -51,8 +51,9 @@ public class UserController {
 
         return ResponseEntity.created(location).body(createdUser);
     }
+
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(
+    public ResponseEntity<UserResponseDTO> update(
             @PathVariable Long id,
             @RequestBody UserResponseDTO userResponseDTO) {
 
@@ -61,13 +62,10 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
+
 }
