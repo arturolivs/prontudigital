@@ -28,75 +28,25 @@ spring:
               - Content-Type
             allow-credentials: true
             max-age: 3600
+
       routes:
-        # Rota para Auth Service
-        - id: auth-service
+        # Todo o tráfego vai para o monolito na porta 8080
+        - id: prontudigital
           uri: http://localhost:8080
           predicates:
-            - Path=/api/auth/**
+            - Path=/api/**
           filters:
             - PreserveHostHeader
-    #        - name: CircuitBreaker
-    #          args:
-      #          name: authService
-         #       fallbackUri: forward:/fallback/auth
 
-        # Rota para Swagger do Auth Service
-        - id: auth-service-swagger
+        # Swagger do monolito
+        - id: prontudigital-swagger
           uri: http://localhost:8080
           predicates:
             - Path=/swagger-ui/**, /v3/api-docs/**
           filters:
             - PreserveHostHeader
 
-        # Rota para Schedule Service
-        - id: schedule-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/api/schedule/**
-          filters:
-            - PreserveHostHeader
-          #  - name: CircuitBreaker
-          #    args:
-          #      name: scheduleService
-          #      fallbackUri: forward:/fallback/schedule
-
-        # Rota para Swagger do Schedule Service
-        - id: schedule-service-swagger
-          uri: http://localhost:8081
-          predicates:
-            - Path=/schedule-swagger/**, /schedule-api-docs/**
-          filters:
-            - PreserveHostHeader
-
-# Habilitar circuit breaker
-#resilience4j:
-#  circuitbreaker:
-  #  instances:
-  #    authService:
-  #      slidingWindowSize: 10
-  #      failureRateThreshold: 50
-  #      waitDurationInOpenState: 10000
-  #      permittedNumberOfCallsInHalfOpenState: 3
- #       minimumNumberOfCalls: 5
-  #      automaticTransitionFromOpenToHalfOpenEnabled: true
-        # Ignorar certas exceções (opcional)
-     #   ignoreExceptions:
-       #   - java.io.IOException
-        # Registrar falhas apenas para status HTTP >= 500
-   #     recordFailurePredicate: com.prontudigital.gateway.config.RecordFailurePredicate
-
-  timelimiter:
-    instances:
-      authService:
-        timeoutDuration: 5s
-        cancelRunningFuture: true
-
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
-    io.github.resilience4j: DEBUG
-    reactor.netty.http.client: DEBUG
-
-cors:
-  allowed-origins: "http://localhost:3000,http://localhost:3001"
+    org.springframework.cloud.gateway: INFO  # DEBUG só em desenvolvimento
+    reactor.netty.http.client: INFO
