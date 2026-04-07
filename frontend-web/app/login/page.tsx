@@ -20,8 +20,8 @@ export default function Login() {
 
     try {
       const x = {
-        username: 'es',
-        password: 'senha123',
+        username: 'aa',
+        password: 'aaaaaaaa',
       } as LoginCredentials
 
       await login(x)
