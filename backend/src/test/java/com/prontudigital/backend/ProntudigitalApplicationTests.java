@@ -1,4 +1,4 @@
-package com.prontudigital.prontudigital;
+package com.prontudigital.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

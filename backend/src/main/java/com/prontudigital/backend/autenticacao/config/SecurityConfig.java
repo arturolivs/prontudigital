@@ -1,8 +1,7 @@
-package com.prontudigital.auth_service.config;
+package com.prontudigital.backend.autenticacao.config;
 
-import com.prontudigital.auth_service.filter.JwtAuthenticationFilter;
+import com.prontudigital.backend.autenticacao.filtros.JWTFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,7 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JWTFilter jwtFilter;
 
     private static final String[] SWAGGER_PATHS = {
             "/swagger-ui.html",
@@ -72,7 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/v1/me").authenticated()  // <-- adicione esta linha
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

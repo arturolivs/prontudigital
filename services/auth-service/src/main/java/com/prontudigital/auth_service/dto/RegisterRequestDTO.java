@@ -24,5 +24,4 @@ public record RegisterRequestDTO(
         @Schema(description = "Lista de roles (padrão: USER)", example = "[\"USER\", \"ADMIN\"]")
         Set<String> roles
 ) {
-    // construtor compacto...
 }

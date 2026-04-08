@@ -1,0 +1,88 @@
+package com.prontudigital.backend.autenticacao.entidades;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "usuarios")
+public class Usuario {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "uuid", unique = true, insertable = false, updatable = false)
+    private UUID uuid;
+
+    @Column(name = "nome_completo", nullable = false)
+    private String nomeCompleto;
+
+    @Column(name = "username", unique = true, nullable = false)
+    private String username;
+
+    @Column(length = 100, unique = true, nullable = false)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Column(name = "ativo", nullable = false)
+    @Builder.Default
+    private Boolean ativo = true;
+
+    /*
+     * Relação gerenciada APENAS por UsuarioPerfil.
+     * mappedBy garante que o @JoinTable não conflita com a entidade UsuarioPerfil.
+     * Use UsuarioPerfilRepository para atribuir/remover perfis.
+     */
+    @Builder.Default
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UsuarioPerfil> usuarioPerfis = new HashSet<>();
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
+
+    // Helpers de conveniência
+    public void adicionarPerfil(Perfil perfil) {
+        UsuarioPerfil up = UsuarioPerfil.builder()
+                .id(new UsuarioPerfilId(this.id, perfil.getId()))
+                .usuario(this)
+                .perfil(perfil)
+                .build();
+        this.usuarioPerfis.add(up);
+    }
+
+    public void removerPerfil(Perfil perfil) {
+        this.usuarioPerfis.removeIf(up -> up.getPerfil().equals(perfil));
+    }
+
+    // Atalho para Spring Security sem expor a entidade UsuarioPerfil
+    public Set<Perfil> getPerfis() {
+        Set<Perfil> perfis = new HashSet<>();
+        for (UsuarioPerfil up : usuarioPerfis) {
+            perfis.add(up.getPerfil());
+        }
+        return perfis;
+    }
+}

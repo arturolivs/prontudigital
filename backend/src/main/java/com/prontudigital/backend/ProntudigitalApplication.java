@@ -1,4 +1,4 @@
-package com.prontudigital.prontudigital;
+package com.prontudigital.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
