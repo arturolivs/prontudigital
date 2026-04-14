@@ -1,0 +1,34 @@
+package com.prontudigital.backend.agendamento.dto;
+
+import com.prontudigital.agendamento.enums.TipoAgendamento;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Schema(description = "Requisicao para criacao de agendamento")
+public record AgendamentoRequestDTO(
+
+        @Schema(description = "UUID do paciente")
+        @NotNull UUID pacienteUuid,
+
+        @Schema(description = "UUID do profissional")
+        @NotNull UUID profissionalUuid,
+
+        @Schema(description = "Observacoes sobre o agendamento", example = "Paciente com sintomas de gripe")
+        String observacoes,
+
+        @Schema(description = "Data e hora de inicio", example = "2026-02-26T14:00:00")
+        @NotNull LocalDateTime inicioEm,
+
+        @Schema(description = "Data e hora de termino", example = "2026-02-26T14:30:00")
+        @NotNull LocalDateTime fimEm,
+
+        @Schema(description = "Tipo do agendamento", example = "AVALIACAO")
+        @NotNull TipoAgendamento tipo,
+
+        @Schema(description = "ID da avaliacao de origem (obrigatorio apenas para TRATAMENTO)")
+        Long avaliacaoId
+
+) {}

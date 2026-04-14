@@ -1,0 +1,71 @@
+package com.prontudigital.backend.agendamento.entidades;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "agendamentos")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Agendamento {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "uuid", unique = true, insertable = false, updatable = false)
+    private UUID uuid;
+
+    @Column(name = "paciente_uuid")
+    private UUID pacienteUuid;
+
+    @Column(name = "profissional_uuid")
+    private UUID profissionalUuid;
+
+    @Column(name = "observacoes")
+    private String observacoes;
+
+    @Column(name = "inicio_em")
+    private LocalDateTime inicioEm;
+
+    @Column(name = "fim_em")
+    private LocalDateTime fimEm;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private StatusAgendamento status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo")
+    private TipoAgendamento tipo;
+
+    /*
+     * Auto-relacionamento: tratamentos referenciam sua avaliação de origem.
+     * Apenas agendamentos do tipo TRATAMENTO terão este campo preenchido.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "avaliacao_id")
+    private Agendamento avaliacao;
+
+    @Column(name = "concluido_em")
+    private LocalDateTime concluidoEm;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
