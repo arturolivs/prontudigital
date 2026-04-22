@@ -32,8 +32,8 @@ const statusBadgeClass: Record<string, string> = {
 }
 
 const borderAccentClass: Record<string, string> = {
-  AVALIACAO: 'border-l-emerald-500',
-  TRATAMENTO: 'border-l-blue-500',
+  PODEATRIA: 'border-l-emerald-500',
+  TRATAMENTO_FERIDAS: 'border-l-blue-500',
 }
 
 // ─── Duration ────────────────────────────────────────────────────────────────
@@ -62,10 +62,10 @@ const DurationDisplay: React.FC<{ start: string; end: string }> = ({
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
-const StatusBadge: React.FC<{ careType: string }> = ({ careType }) => {
-  const label = sessionTypeLabel[careType] ?? careType
+const StatusBadge: React.FC<{ sessionType: string }> = ({ sessionType }) => {
+  const label = sessionTypeLabel[sessionType] ?? sessionType
   const cls =
-    statusBadgeClass[careType] ??
+    statusBadgeClass[sessionType] ??
     'bg-gray-100 text-gray-600 border border-gray-200'
 
   return (
@@ -277,7 +277,7 @@ const CareSessionList: React.FC<CareSessionProps> = ({
 
                   {/* Badge */}
                   <div className="self-start sm:self-center">
-                    <StatusBadge careType={session.careType} />
+                    <StatusBadge sessionType={session.sessionType} />
                   </div>
                 </div>
               )
