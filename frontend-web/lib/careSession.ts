@@ -26,7 +26,7 @@ export const careSessionAPI = {
     viewType: string,
     date: Date | string,
   ): Promise<CareSession[]> => {
-    viewType = 'month'
+    /*  viewType = 'month'
     const formattedDate =
       typeof date === 'string' ? date : date.toISOString().split('T')[0]
     console.log('formattedDate @@@@@', formattedDate)
@@ -37,7 +37,7 @@ export const careSessionAPI = {
       },
     })
     return response.data
-
+*/
     return careSessions
   },
 

@@ -1,276 +1,292 @@
-// components/CareSessionList.tsx
-'use client'
-
-import { CareSession } from '@/types/CareSession'
-import { SessionStatus } from '@/types/SessionStatus'
-import './styles.css'
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCalendarTimes, faClock } from '@fortawesome/free-solid-svg-icons'
-import { useRouter } from 'next/navigation'
+import {
+  faTriangleExclamation,
+  faCalendarXmark,
+  faClock,
+  faHourglass,
+} from '@fortawesome/free-solid-svg-icons'
+import { CareSession } from '@/types/CareSession'
 
 export type GroupedSessions = Record<string, CareSession[]>
 
-interface CareSessionListProps {
-  sessions: CareSession[]
-  loading: boolean
-  error: string | null
+interface CareSessionProps {
+  sessions?: CareSession[]
+  loading?: boolean
+  error?: string | null
 }
+
+const careTypeLabel: Record<string, string> = {
+  PODEATRIA: 'Podiatria',
+  TRATAMENTO_FERIDAS: 'Tratamento de feridas',
+}
+
+const sessionTypeLabel: Record<string, string> = {
+  AVALIACAO: 'Avaliação',
+  TRATAMENTO: 'Tratamento',
+}
+
+const statusBadgeClass: Record<string, string> = {
+  AVALIACAO: 'bg-emerald-50 text-emerald-800 border border-emerald-200',
+  TRATAMENTO: 'bg-blue-50 text-blue-800 border border-blue-200',
+}
+
+const borderAccentClass: Record<string, string> = {
+  AVALIACAO: 'border-l-emerald-500',
+  TRATAMENTO: 'border-l-blue-500',
+}
+
+// ─── Duration ────────────────────────────────────────────────────────────────
+
+const DurationDisplay: React.FC<{ start: string; end: string }> = ({
+  start,
+  end,
+}) => {
+  const duration = useMemo(() => {
+    const diffMins = Math.floor(
+      (new Date(end).getTime() - new Date(start).getTime()) / 60000,
+    )
+    if (diffMins < 60) return `${diffMins} min`
+    const h = Math.floor(diffMins / 60)
+    const m = diffMins % 60
+    return m > 0 ? `${h}h${m}min` : `${h}h`
+  }, [start, end])
+
+  return (
+    <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+      <FontAwesomeIcon icon={faHourglass} className="w-3 h-3" />
+      {duration}
+    </span>
+  )
+}
+
+// ─── Status Badge ─────────────────────────────────────────────────────────────
+
+const StatusBadge: React.FC<{ careType: string }> = ({ careType }) => {
+  const label = sessionTypeLabel[careType] ?? careType
+  const cls =
+    statusBadgeClass[careType] ??
+    'bg-gray-100 text-gray-600 border border-gray-200'
+
+  return (
+    <span
+      className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase whitespace-nowrap ${cls}`}
+    >
+      {label}
+    </span>
+  )
+}
+
+// ─── Date Header ──────────────────────────────────────────────────────────────
 
 const DateHeader: React.FC<{ dateKey: string; count: number }> = ({
   dateKey,
   count,
 }) => {
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
+  const label = useMemo(() => {
+    const date = new Date(dateKey + 'T00:00:00')
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
     const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setDate(today.getDate() + 1)
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Hoje'
-    }
-
-    if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Amanhã'
-    }
+    if (date.toDateString() === today.toDateString()) return 'Hoje'
+    if (date.toDateString() === tomorrow.toDateString()) return 'Amanhã'
 
     return date.toLocaleDateString('pt-BR', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-      year: 'numeric',
     })
-  }
+  }, [dateKey])
 
   return (
-    <div className="date-header">
-      <div className="date-title">
-        <FontAwesomeIcon icon={faCalendarTimes} className="h-5 w-5" />
-        <span>{formatDate(dateKey)}</span>
+    <div className="flex items-center justify-between py-2">
+      <div className="flex items-center gap-2">
+        <FontAwesomeIcon
+          icon={faCalendarXmark}
+          className="w-4 h-4 text-gray-400"
+        />
+        <span className="text-sm font-semibold text-gray-700 capitalize">
+          {label}
+        </span>
       </div>
-      <div className="appointment-count">
-        <span className="count-badge">{count}</span>
-        <span className="count-label">sessão{count !== 1 ? 's' : ''}</span>
-      </div>
+      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+        {count} agendamento{count !== 1 ? 's' : ''}
+      </span>
     </div>
   )
 }
 
-export default function CareSessionList({
-  sessions,
-  loading,
-  error,
-}: CareSessionListProps) {
-  const router = useRouter()
+// ─── Main Component ───────────────────────────────────────────────────────────
 
-  const GroupedSessions = useMemo(() => {
+const CareSessionList: React.FC<CareSessionProps> = ({
+  sessions = [],
+  loading = false,
+  error = null,
+}) => {
+  const formatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+  const groupedSessions = useMemo(() => {
     const grouped: GroupedSessions = {}
 
     sessions.forEach(session => {
-      const dateKey = new Date(session.scheduledStart)
-        .toISOString()
-        .split('T')[0]
-
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = []
-      }
-
-      grouped[dateKey].push(session)
+      const key = new Date(session.scheduledStart).toISOString().split('T')[0]
+      if (!grouped[key]) grouped[key] = []
+      grouped[key].push(session)
     })
 
-    const sortedDates = Object.keys(grouped).sort()
-    const sortedGrouped: GroupedSessions = {}
-
-    sortedDates.forEach(date => {
-      sortedGrouped[date] = grouped[date].sort(
-        (a, b) =>
-          new Date(a.scheduledStart).getTime() -
-          new Date(b.scheduledStart).getTime(),
-      )
-    })
-
-    return sortedGrouped
+    return Object.fromEntries(
+      Object.keys(grouped)
+        .sort()
+        .map(date => [
+          date,
+          grouped[date].sort(
+            (a, b) =>
+              new Date(a.scheduledStart).getTime() -
+              new Date(b.scheduledStart).getTime(),
+          ),
+        ]),
+    ) as GroupedSessions
   }, [sessions])
 
-  const hasSessions = Object.keys(GroupedSessions).length > 0
+  const dateKeys = Object.keys(groupedSessions)
+  const hasSessions = dateKeys.length > 0
 
+  // ── Loading ──
   if (loading) {
     return (
-      <div className="sessions-loading">
-        <div className="spinner"></div>
-        <p>Carregando sessões...</p>
+      <div className="flex flex-col items-center justify-center gap-4 py-20 text-gray-500">
+        <div className="w-8 h-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+        <p className="text-sm">Carregando agendamentos...</p>
       </div>
     )
   }
 
+  // ── Error ──
   if (error) {
     return (
-      <div className="sessions-error">
-        <div className="error-icon">!</div>
-        <p>{error}</p>
-        <button
-          className="retry-button"
-          onClick={() => window.location.reload()}
-        >
-          Tentar novamente
-        </button>
+      <div className="flex items-start gap-4 rounded-xl border border-red-200 bg-red-50 p-4">
+        <FontAwesomeIcon
+          icon={faTriangleExclamation}
+          className="w-5 h-5 text-red-500 mt-0.5 shrink-0"
+        />
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-red-800 mb-1">
+            Erro ao carregar agendamentos
+          </h3>
+          <p className="text-sm text-red-700 mb-3">{error}</p>
+          <button
+            className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors rounded-lg px-4 py-1.5"
+            onClick={() => window.location.reload()}
+          >
+            Tentar novamente
+          </button>
+        </div>
       </div>
     )
   }
 
+  // ── Empty ──
   if (!hasSessions) {
     return (
-      <div className="sessions-empty">
-        <div className="empty-icon">📅</div>
-        <p>Nenhuma sessão agendada</p>
+      <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+        <FontAwesomeIcon
+          icon={faCalendarXmark}
+          className="w-10 h-10 text-gray-300"
+        />
+        <h3 className="text-base font-semibold text-gray-600">
+          Nenhum agendamento encontrado
+        </h3>
+        <p className="text-sm text-gray-400 max-w-xs">
+          Não há agendamentos para a data selecionada.
+        </p>
       </div>
     )
   }
 
-  const formatDateTime = (dateTime: string) => {
-    const date = new Date(dateTime)
-    return {
-      date: date.toLocaleDateString('pt-BR'),
-      time: date.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      fullDate: date.toLocaleString('pt-BR'),
-    }
-  }
-
-  const translateType = (type: string) => {
-    const translations: Record<string, string> = {
-      AVALIACAO: 'Avaliação',
-      TRATAMENTO: 'Tratamento',
-      PODEATRIA: 'Podiatria',
-      TRATAMENTO_FERIDAS: 'Tratamento de Feridas',
-    }
-    return translations[type] || type
-  }
-
-  const getStatusColor = (status: SessionStatus) => {
-    const colors: Record<SessionStatus, string> = {
-      SCHEDULED: 'bg-blue-100 text-blue-800',
-      CONFIRMED: 'bg-yellow-100 text-yellow-800',
-      IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
-      COMPLETED: 'bg-green-100 text-green-800',
-      CANCELLED: 'bg-red-100 text-red-800',
-    }
-    return colors[status] || 'bg-gray-100 text-gray-800'
-  }
-
+  // ── List ──
   return (
-    <>
-      <div className="header">
-        <h1>Agendamentos</h1>
+    <div className="flex flex-col gap-6 px-1 sm:px-0">
+      {/* Global header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-bold text-gray-900">Agendas</h1>
+        <span className="text-xs text-gray-500">
+          {sessions.length} agendamento{sessions.length !== 1 ? 's' : ''} no
+          total
+        </span>
       </div>
 
-      <div className="dates-container">
-        {Object.entries(GroupedSessions).map(([dateKey, dateSessions]) => (
-          <div className="day-container" key={dateKey}>
-            <DateHeader dateKey={dateKey} count={dateSessions.length} />
+      {/* Groups */}
+      {dateKeys.map(dateKey => (
+        <section key={dateKey} className="flex flex-col gap-3">
+          <DateHeader
+            dateKey={dateKey}
+            count={groupedSessions[dateKey].length}
+          />
 
-            <div className="sessions-grid">
-              {dateSessions.map(session => {
-                const startTime = formatDateTime(session.scheduledStart)
-                const endTime = formatDateTime(session.scheduledEnd)
+          <div className="flex flex-col gap-2">
+            {groupedSessions[dateKey].map(session => {
+              const accent =
+                borderAccentClass[session.careType] ?? 'border-l-gray-300'
 
-                return (
-                  <div key={session.id} className="session-card">
-                    <div className="session-card-header">
-                      <div className="patient-info">
-                        <div className="patient-name">
-                          {session.patientName}
-                        </div>
-                        <div className="patient-phone">
-                          {session.patientPhone}
-                        </div>
-                      </div>
-                      <div
-                        className={`session-status ${getStatusColor(session.status)}`}
-                      >
-                        {session.status === 'SCHEDULED' && 'Agendada'}
-                        {session.status === 'IN_PROGRESS' && 'Em Andamento'}
-                        {session.status === 'COMPLETED' && 'Concluída'}
-                        {session.status === 'CANCELLED' && 'Cancelada'}
-                      </div>
-                    </div>
-
-                    <div className="session-card-body">
-                      <div className="session-time">
-                        <FontAwesomeIcon icon={faClock} className="h-5 w-5" />
-                        <div className="time-slot">
-                          <span className="time-label">Início:</span>
-                          <span className="time-value">{startTime.time}</span>
-                        </div>
-                        <div className="time-separator">→</div>
-                        <div className="time-slot">
-                          <span className="time-label">Término:</span>
-                          <span className="time-value">{endTime.time}</span>
-                        </div>
-                      </div>
-
-                      <div className="session-details">
-                        <div className="detail-item">
-                          <span className="detail-value">
-                            {translateType(session.sessionType)}
-                          </span>
-                        </div>
-
-                        <div className="detail-item">
-                          <span className="detail-value">
-                            {translateType(session.careType)}
-                          </span>
-                        </div>
-
-                        <div className="detail-item">
-                          <span className="detail-value">
-                            {session.location === 'CLINIC'
-                              ? 'Clínica'
-                              : 'Domicílio'}
-                          </span>
-                        </div>
-
-                        {session.bedriddenPatient && (
-                          <div className="detail-item warning">
-                            <span className="detail-label">
-                              Paciente Acamado
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {session.clinicalNotes && false && (
-                        <div className="session-notes">
-                          <div className="notes-label">Observações:</div>
-                          <div className="notes-content">
-                            {session.clinicalNotes}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {session.status === 'CONFIRMED' && (
-                      <div className="session-card-footer">
-                        <button
-                          className="action-button start"
-                          onClick={() =>
-                            router.push(`/care-sessions/${session.sessionUuid}`)
-                          }
-                        >
-                          Iniciar
-                        </button>
-                      </div>
-                    )}
+              return (
+                <div
+                  key={session.id}
+                  className={`
+                    group flex flex-col sm:flex-row sm:items-center gap-3
+                    rounded-xl border border-gray-100 border-l-4 ${accent}
+                    bg-white px-4 py-3
+                    shadow-sm hover:shadow-md hover:scale-[1.01]
+                    transition-all duration-200 cursor-pointer
+                  `}
+                >
+                  {/* Horário */}
+                  <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0.5 shrink-0 sm:min-w-[100px]">
+                    <span className="text-sm font-bold text-gray-800 tabular-nums">
+                      {formatTime(session.scheduledStart)}
+                    </span>
+                    <span className="text-xs text-gray-400 hidden sm:block">
+                      até
+                    </span>
+                    <span className="text-xs text-gray-500 tabular-nums sm:block">
+                      {formatTime(session.scheduledEnd)}
+                    </span>
+                    <DurationDisplay
+                      start={session.scheduledStart}
+                      end={session.scheduledEnd}
+                    />
                   </div>
-                )
-              })}
-            </div>
+
+                  {/* Divisor vertical (desktop) */}
+                  <div className="hidden sm:block w-px self-stretch bg-gray-100" />
+
+                  {/* Paciente */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {session.patientName}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {careTypeLabel[session.careType] ?? session.careType}
+                    </p>
+                  </div>
+
+                  {/* Badge */}
+                  <div className="self-start sm:self-center">
+                    <StatusBadge careType={session.careType} />
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        ))}
-      </div>
-    </>
+        </section>
+      ))}
+    </div>
   )
 }
+
+export default CareSessionList
