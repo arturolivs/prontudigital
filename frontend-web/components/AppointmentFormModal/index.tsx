@@ -1,4 +1,3 @@
-// components/AppointmentFormModal.tsx
 'use client'
 
 import { useState } from 'react'
@@ -33,15 +32,12 @@ export default function AppointmentFormModal({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target
-
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
       setFormData(prev => ({ ...prev, [name]: checked }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
     }
-
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }))
     }
@@ -49,7 +45,6 @@ export default function AppointmentFormModal({
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-
     if (!formData.startDateTime)
       newErrors.startDateTime = 'Data/hora de início é obrigatória'
     if (!formData.endDateTime)
@@ -59,7 +54,6 @@ export default function AppointmentFormModal({
     if (!formData.patientPhone)
       newErrors.patientPhone = 'Telefone do paciente é obrigatório'
 
-    // Validar se endDateTime é depois de startDateTime
     if (formData.startDateTime && formData.endDateTime) {
       const start = new Date(formData.startDateTime)
       const end = new Date(formData.endDateTime)
@@ -68,17 +62,14 @@ export default function AppointmentFormModal({
           'Data/hora de término deve ser após a data/hora de início'
       }
     }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-
     if (validateForm()) {
       onSubmit(formData)
-      // Reset form after successful submission
       setFormData({
         startDateTime: '',
         endDateTime: '',
@@ -113,7 +104,7 @@ export default function AppointmentFormModal({
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 className="text-xl font-bold text-gray-800">Novo Agendamento</h2>
+          <h2 className="text-xl font-bold text-[#2b6cb0]">Novo Agendamento</h2>
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600"
@@ -137,7 +128,6 @@ export default function AppointmentFormModal({
 
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-grid">
-            {/* Paciente */}
             <div className="form-group">
               <label htmlFor="patientName" className="form-label">
                 Nome do Paciente *
@@ -156,7 +146,6 @@ export default function AppointmentFormModal({
               )}
             </div>
 
-            {/* Telefone */}
             <div className="form-group">
               <label htmlFor="patientPhone" className="form-label">
                 Telefone *
@@ -175,7 +164,6 @@ export default function AppointmentFormModal({
               )}
             </div>
 
-            {/* Data/Hora Início */}
             <div className="form-group">
               <label htmlFor="startDateTime" className="form-label">
                 Data/Hora Início *
@@ -193,7 +181,6 @@ export default function AppointmentFormModal({
               )}
             </div>
 
-            {/* Data/Hora Fim */}
             <div className="form-group">
               <label htmlFor="endDateTime" className="form-label">
                 Data/Hora Término *
@@ -211,7 +198,6 @@ export default function AppointmentFormModal({
               )}
             </div>
 
-            {/* Tipo de Agendamento */}
             <div className="form-group">
               <label htmlFor="type" className="form-label">
                 Tipo de Agendamento *
@@ -228,7 +214,6 @@ export default function AppointmentFormModal({
               </select>
             </div>
 
-            {/* Tipo de Tratamento (mostrar apenas se type = TRATAMENTO) */}
             {formData.type === 'TRATAMENTO' && (
               <div className="form-group">
                 <label htmlFor="tratamentType" className="form-label">
@@ -249,7 +234,6 @@ export default function AppointmentFormModal({
               </div>
             )}
 
-            {/* Nome do Profissional */}
             <div className="form-group">
               <label htmlFor="professionalName" className="form-label">
                 Nome do Profissional
@@ -265,7 +249,6 @@ export default function AppointmentFormModal({
               />
             </div>
 
-            {/* Acamado */}
             <div className="form-group flex items-center">
               <input
                 type="checkbox"
@@ -273,7 +256,7 @@ export default function AppointmentFormModal({
                 name="bedridden"
                 checked={formData.bedridden || false}
                 onChange={handleChange}
-                className="h-4 w-4 text-blue-600 rounded"
+                className="h-4 w-4 rounded border-gray-300 text-[#2b6cb0] focus:ring-[#7991bc]"
               />
               <label htmlFor="bedridden" className="ml-2 text-gray-700">
                 Paciente acamado

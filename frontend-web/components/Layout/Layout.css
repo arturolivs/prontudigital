@@ -1,8 +1,10 @@
+/* Layout.css - atualizado com a nova paleta */
+
 /* Layout principal */
 .layout {
   display: flex;
   height: 100vh;
-  background-color: #fafafa;
+  background-color: #f4f9ff;
 }
 
 /* Conteúdo principal */
@@ -10,7 +12,7 @@
   flex: 1;
   transition: margin-left 0.3s ease;
   overflow-y: auto;
-  background-color: #efefef;
+  background-color: #f4f9ff;
 }
 
 .main-content.sidebar-open {
@@ -27,13 +29,13 @@
   left: 0;
   top: 0;
   height: 100vh;
-  background: linear-gradient(180deg, #2c3e50 0%, #859eb8 100%);
+  background: linear-gradient(180deg, #2b6cb0 0%, #7991bc 100%);
   color: white;
   transition: width 0.3s ease;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
 }
 
 .sidebar.open {
@@ -50,7 +52,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   min-height: 80px;
 }
 
@@ -73,7 +75,7 @@
 }
 
 .toggle-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Navegação */
@@ -96,7 +98,7 @@
   width: 100%;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   padding: 12px 20px;
   text-align: left;
   cursor: pointer;
@@ -108,14 +110,14 @@
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.12);
   color: white;
 }
 
 .nav-item.active {
-  background-color: #3498db;
-  color: white;
-  border-right: 3px solid #2980b9;
+  background-color: #e6f4f1;
+  color: #2b6cb0;
+  border-right: 3px solid #2b6cb0;
 }
 
 .nav-icon {
@@ -134,14 +136,14 @@
 /* Footer do Sidebar */
 .sidebar-footer {
   padding: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .logout-btn {
   width: 100%;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   padding: 12px 20px;
   text-align: left;
   cursor: pointer;
@@ -153,8 +155,8 @@
 }
 
 .logout-btn:hover {
-  background-color: rgba(231, 76, 60, 0.2);
-  color: #e74c3c;
+  background-color: rgba(231, 76, 60, 0.25);
+  color: #ffb3b3;
 }
 
 /* Responsividade */

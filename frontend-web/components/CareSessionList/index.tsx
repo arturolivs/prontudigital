@@ -1,12 +1,10 @@
 import React, { useMemo } from 'react'
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faTriangleExclamation,
   faCalendarTimes,
   faClock,
 } from '@fortawesome/free-solid-svg-icons'
-
 import './styles.css'
 import { CareSession } from '@/types/CareSession'
 
@@ -62,7 +60,6 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
       Avaliação: { icon: 'check-circle', class: 'avaliacao' },
       Tratamento: { icon: 'calendar-check', class: 'tratamento' },
     }
-
     return config[status] || { icon: 'circle', class: 'default' }
   }
 
@@ -81,13 +78,8 @@ const DateHeader: React.FC<{ dateKey: string; count: number }> = ({
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Hoje'
-    }
-
-    if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Amanhã'
-    }
+    if (date.toDateString() === today.toDateString()) return 'Hoje'
+    if (date.toDateString() === tomorrow.toDateString()) return 'Amanhã'
 
     return date.toLocaleDateString('pt-BR', {
       weekday: 'long',
@@ -116,12 +108,11 @@ const getBorderColorClass = (status: string): string => {
     AVALIACAO: 'border-status-avaliacao',
     TRATAMENTO: 'border-status-tratamento',
   }
-
   return colorMap[status] || 'border-status-default'
 }
 
 const CareSessionList: React.FC<CareSessionProps> = ({
-  sessions: sessions = [],
+  sessions = [],
   loading = false,
   error = null,
 }) => {
@@ -135,22 +126,15 @@ const CareSessionList: React.FC<CareSessionProps> = ({
 
   const GroupedSessions = useMemo(() => {
     const grouped: GroupedSessions = {}
-
     sessions.forEach(session => {
       const dateKey = new Date(session.scheduledStart)
         .toISOString()
         .split('T')[0]
-
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = []
-      }
-
+      if (!grouped[dateKey]) grouped[dateKey] = []
       grouped[dateKey].push(session)
     })
-
     const sortedDates = Object.keys(grouped).sort()
     const sortedGrouped: GroupedSessions = {}
-
     sortedDates.forEach(date => {
       sortedGrouped[date] = grouped[date].sort(
         (a, b) =>
@@ -158,7 +142,6 @@ const CareSessionList: React.FC<CareSessionProps> = ({
           new Date(b.scheduledStart).getTime(),
       )
     })
-
     return sortedGrouped
   }, [sessions])
 
@@ -168,7 +151,8 @@ const CareSessionList: React.FC<CareSessionProps> = ({
     return (
       <div className="appointment-list-container">
         <div className="loading-state">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          {/* Substituído border-blue-600 por border-[#2b6cb0] */}
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2b6cb0]"></div>
           <p>Carregando agendamentos...</p>
         </div>
       </div>
@@ -179,7 +163,7 @@ const CareSessionList: React.FC<CareSessionProps> = ({
     return (
       <div className="appointment-list-container">
         <div className="error-message">
-          <FontAwesomeIcon icon={faTriangleExclamation} className="h-5 w-5" />
+          <FontAwesomeIcon icon={faTriangleExclamation} />
           <div className="error-content">
             <h3>Erro ao carregar agendamentos</h3>
             <p>{error}</p>
@@ -215,8 +199,7 @@ const CareSessionList: React.FC<CareSessionProps> = ({
         <h1>Agendas</h1>
         {hasSessions && (
           <div className="total-appointments">
-            Total: {totalSessions} agendamento
-            {totalSessions !== 1 ? 's' : ''}
+            Total: {totalSessions} agendamento{totalSessions !== 1 ? 's' : ''}
           </div>
         )}
       </div>
@@ -225,11 +208,9 @@ const CareSessionList: React.FC<CareSessionProps> = ({
         {Object.entries(GroupedSessions).map(([dateKey, dateSessions]) => (
           <div className="day-container" key={dateKey}>
             <DateHeader dateKey={dateKey} count={dateSessions.length} />
-
             <div className="appointments-list">
               {dateSessions.map(session => {
                 const borderClass = getBorderColorClass(session.careType)
-
                 return (
                   <div
                     key={session.id}
@@ -251,14 +232,12 @@ const CareSessionList: React.FC<CareSessionProps> = ({
                         />
                       </div>
                     </div>
-
                     <div className="details-info">
                       <span className="detail-text">{session.patientName}</span>
                       <span className="detail-sub-text">
                         {tratamentTypeDescription[session.careType]}
                       </span>
                     </div>
-
                     <StatusBadge
                       status={typeDescription[session.sessionType]}
                     />

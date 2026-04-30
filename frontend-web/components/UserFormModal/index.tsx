@@ -150,7 +150,7 @@ function UserFormModal({
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2 className="modal-title">
+        <h2 className="modal-title" style={{ color: '#2b6cb0' }}>
           {user ? 'Editar Usuário' : 'Novo Usuário'}
         </h2>
         <form onSubmit={handleSubmit}>

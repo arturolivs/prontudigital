@@ -4,10 +4,21 @@ import { AuthResponse, LoginCredentials, User } from '../types/auth'
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/auth/v1'
 
+const mockAuthResponse: AuthResponse = {
+  accessToken:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+  refreshToken: 'dGhpcy1pcy1hLXJlZnJlc2gtdG9rZW4tZXhhbXBsZQ==',
+  tokenType: 'Bearer',
+  expiresIn: 3600,
+  username: 'enfermeira.silva',
+  roles: ['NURSE'],
+  professionalUuid: '123e4567-e89b-12d3-a456-426614174000',
+}
+
 export const authAPI = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const result = await axios.post(`${API_URL}/signin`, credentials)
-    return result.data
+    //const result = await axios.post(`${API_URL}/signin`, credentials)
+    return mockAuthResponse
   },
   logout: async (): Promise<void> => {
     const refreshToken = localStorage.getItem('refreshToken')
