@@ -4,14 +4,21 @@ package com.prontudigital.backend.autenticacao.servicos.impl;
 import com.prontudigital.backend.autenticacao.dto.*;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
+import com.prontudigital.backend.autenticacao.excecoes.NaoAutenticadoException;
+import com.prontudigital.backend.autenticacao.excecoes.TokenInvalidoException;
 import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.seguranca.JwtTokenProvider;
+import com.prontudigital.backend.autenticacao.seguranca.UserDetailsImpl;
 import com.prontudigital.backend.autenticacao.servicos.AutenticacaoService;
+import com.prontudigital.backend.autenticacao.servicos.RefreshTokenService;
+import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,8 +40,8 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     private final UsuarioRepository usuarioRepository;
 
     @Override
-    public UsuarioResponseDTO registrar(RegisterRequestDTO request) {
-        UsuarioResponseDTO dto = UsuarioResponseDTO.builder()
+    public UsuarioDTO registrar(RegisterRequestDTO request) {
+        UsuarioDTO dto = UsuarioDTO.builder()
                 .email(request.email())
                 .username(request.username())
                 .nomeCompleto(request.nomeCompleto())
@@ -49,7 +56,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
-        UsuarioDetailsImpl principal = (UsuarioDetailsImpl) authentication.getPrincipal();
+        UserDetailsImpl principal = (UserDetailsImpl) authentication.getPrincipal();
         String accessToken = tokenProvider.generateAccessToken(authentication);
         String refreshToken = refreshTokenService.gerarRefreshToken(principal.getUsername());
 
@@ -63,10 +70,10 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     @Override
     public RefreshTokenResponseDTO renovarToken(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new InvalidTokenException("Refresh token invalido");
+            throw new TokenInvalidoException("Refresh token invalido");
         }
         if (refreshTokenService.estaRevogadoOuExpirado(refreshToken)) {
-            throw new InvalidTokenException("Refresh token revogado ou expirado");
+            throw new TokenInvalidoException("Refresh token revogado ou expirado");
         }
 
         String novoRefreshToken = refreshTokenService.rotacionarRefreshToken(refreshToken);
@@ -87,9 +94,19 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     }
 
     @Override
-    public UsuarioDTO getInfoUsuario(String username) {
+    public UsuarioDTO getUsuarioAtual() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            throw new NaoAutenticadoException("Nenhum usuário autenticado na sessão atual");
+        }
+
+        String username = authentication.getName();
+
         Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado: " + username));
+
         return mapearParaUsuarioDTO(usuario);
     }
 
@@ -99,10 +116,11 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
                 .collect(Collectors.toSet());
 
         return UsuarioDTO.builder()
+                .id(usuario.getId())
                 .uuid(usuario.getUuid())
+                .nomeCompleto(usuario.getNomeCompleto())
                 .username(usuario.getUsername())
                 .email(usuario.getEmail())
-                .nomeCompleto(usuario.getNomeCompleto())
                 .ativo(usuario.getAtivo())
                 .roles(roles)
                 .createdAt(usuario.getCreatedAt())

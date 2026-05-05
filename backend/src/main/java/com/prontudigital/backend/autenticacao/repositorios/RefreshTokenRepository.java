@@ -13,13 +13,13 @@ import java.util.Optional;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
- //   Optional<RefreshToken> findByToken(String token);
-  //  List<RefreshToken> findAllByUsuario(Usuario usuario);
-  //  void deletarPorUsuario(Usuario usuario);
- //   void deletarPorToken(String token);
-  //  boolean existsByTokenAndRevogado(String token, boolean revogado);
+    Optional<RefreshToken> findByToken(String token);
+    List<RefreshToken> findAllByUsuario(Usuario usuario);
+    void deletarPorUsuario(Usuario usuario);
+    void deletarPorToken(String token);
+    boolean existsByTokenAndRevogado(String token, boolean revogado);
 
-  //  @Modifying
-  //  @Query("DELETE FROM RefreshToken rt WHERE rt.expiraEm < :agora")
-  //  void deletarTodosExpiradosDesde(Instant agora);
+    @Modifying
+    @Query("DELETE FROM RefreshToken rt WHERE rt.expiraEm < :agora")
+    void deletarTodosExpiradosDesde(Instant agora);
 }

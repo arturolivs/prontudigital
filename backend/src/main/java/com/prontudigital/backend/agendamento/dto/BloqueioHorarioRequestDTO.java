@@ -1,5 +1,6 @@
 package com.prontudigital.backend.agendamento.dto;
 
+import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 

@@ -1,5 +1,6 @@
 package com.prontudigital.backend.agendamento.entidades;
 
+import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

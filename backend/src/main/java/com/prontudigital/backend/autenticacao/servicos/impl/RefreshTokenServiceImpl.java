@@ -2,9 +2,11 @@ package com.prontudigital.backend.autenticacao.servicos.impl;
 
 import com.prontudigital.backend.autenticacao.entidades.RefreshToken;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
+import com.prontudigital.backend.autenticacao.excecoes.TokenInvalidoException;
 import com.prontudigital.backend.autenticacao.repositorios.RefreshTokenRepository;
 import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.seguranca.JwtTokenProvider;
+import com.prontudigital.backend.autenticacao.servicos.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,10 +86,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public String rotacionarRefreshToken(String tokenAntigo) {
         RefreshToken refreshToken = buscarPorToken(tokenAntigo)
-                .orElseThrow(() -> new InvalidTokenException("Refresh token nao encontrado"));
+                .orElseThrow(() -> new TokenInvalidoException("Refresh token nao encontrado"));
 
         if (refreshToken.isRevogado()) {
-            throw new InvalidTokenException("Refresh token ja revogado");
+            throw new TokenInvalidoException("Refresh token ja revogado");
         }
 
         revogarRefreshToken(tokenAntigo);

@@ -4,9 +4,17 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
+import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
+import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
+import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
+import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
+import com.prontudigital.backend.agendamento.utils.AgendamentoUtil;
+import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
+import com.prontudigital.backend.autenticacao.servicos.AutenticacaoService;
+import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,10 +37,9 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     private final AgendamentoRepository agendamentoRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
-    private final UsuarioService usuarioService;         // injeção direta — substituiu UserServiceClient
+    private final UsuarioService usuarioService;
+    private final AutenticacaoService autenticacaoService;
     private final AgendamentoUtil agendamentoUtil;
-
-    // ========== PERMISSÕES ==========
 
     private void validarPermissaoCriacao(AgendamentoRequestDTO request,
                                          UUID usuarioUuid, String role) {
@@ -40,17 +47,17 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if ("PACIENTE".equals(role)) {
             if (!request.pacienteUuid().equals(usuarioUuid)) {
-                throw new UnauthorizedException("Paciente so pode criar agendamentos para si mesmo");
+                throw new UsuarioSemAutorizacaoException("Paciente so pode criar agendamentos para si mesmo");
             }
             return;
         }
         if ("PROFISSIONAL".equals(role)) {
             if (!request.profissionalUuid().equals(usuarioUuid)) {
-                throw new UnauthorizedException("Profissional so pode criar agendamentos para si mesmo");
+                throw new UsuarioSemAutorizacaoException("Profissional so pode criar agendamentos para si mesmo");
             }
             return;
         }
-        throw new UnauthorizedException("Usuario nao autorizado a criar agendamentos");
+        throw new UsuarioSemAutorizacaoException("Usuário nao autorizado a criar agendamentos");
     }
 
     private boolean temPermissaoParaModificar(Agendamento agendamento,
@@ -69,11 +76,9 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         return false;
     }
 
-    // ========== VALIDAÇÕES DE DISPONIBILIDADE ==========
-
     private void validarDataFutura(LocalDateTime dataHora) {
         if (dataHora.isBefore(LocalDateTime.now())) {
-            throw new InvalidAppointmentTimeException("Nao e possivel agendar para datas/horarios passados");
+            throw new AgendamentoDataHoraInvalidaException("Nao e possível agendar para datas/horários passados");
         }
     }
 
@@ -86,8 +91,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         if (!bloqueios.isEmpty()) {
             BloqueioHorario conflito = bloqueios.get(0);
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            throw new TimeBlockConflictException(
-                    String.format("Horario indisponivel. Bloqueio de %s ate %s. Motivo: %s",
+            throw new HorarioIndisponivelException(
+                    String.format("Horário indisponível. Bloqueio de %s ate %s. Motivo: %s",
                             conflito.getInicioEm().format(fmt),
                             conflito.getFimEm().format(fmt),
                             conflito.getMotivo())
@@ -97,8 +102,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         List<Agendamento> conflitos = agendamentoRepository
                 .findConflitosParaProfissional(profissionalUuid, inicio, fim);
         if (!conflitos.isEmpty()) {
-            throw new ProfessionalNotAvailableException(
-                    "Profissional ja possui agendamento neste horario");
+            throw new ProfessionalndisponivelException(
+                    "Profissional ja possui agendamento neste horário");
         }
     }
 
@@ -108,12 +113,10 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         List<Agendamento> conflitos = agendamentoRepository
                 .findConflitosParaPaciente(pacienteUuid, inicio, fim);
         if (!conflitos.isEmpty()) {
-            throw new PatientNotAvailableException(
-                    "Paciente ja possui agendamento neste horario. Conflitos: " + conflitos.size());
+            throw new PacienteIndisponivelException(
+                    "Paciente ja possui agendamento neste horário. Conflitos: " + conflitos.size());
         }
     }
-
-    // ========== CASOS DE USO ==========
 
     @Override
     @Transactional
@@ -121,7 +124,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         log.info("Agendando consulta: paciente={} profissional={} inicio={}",
                 request.pacienteUuid(), request.profissionalUuid(), request.inicioEm());
 
-        UsuarioDTO usuario = usuarioService.getUsuarioAtual();
+        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
         validarPermissaoCriacao(request, usuario.uuid(), usuario.roles().iterator().next());
 
         usuarioService.validarUsuarioExiste(request.pacienteUuid());
@@ -132,21 +135,21 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (request.tipo() == TipoAgendamento.TRATAMENTO) {
             if (request.avaliacaoId() == null) {
-                throw new InvalidAppointmentRequestException("Tratamento deve estar associado a uma avaliacao");
+                throw new AgendamentoInvalidoException("Tratamento deve estar associado a uma avaliação");
             }
             Agendamento avaliacao = agendamentoRepository.findById(request.avaliacaoId())
-                    .orElseThrow(() -> new EvaluationNotFoundException("Avaliacao nao encontrada"));
+                    .orElseThrow(() -> new AvaliacaoNaoEncontradaException("Avaliação nao encontrada"));
             if (avaliacao.getTipo() != TipoAgendamento.AVALIACAO) {
-                throw new InvalidAppointmentRequestException("O agendamento referenciado nao e uma avaliacao");
+                throw new AgendamentoInvalidoException("O agendamento referenciado não e uma avaliação");
             }
             if (!avaliacao.getPacienteUuid().equals(request.pacienteUuid())) {
-                throw new InvalidAppointmentRequestException("O paciente do tratamento deve ser o mesmo da avaliacao");
+                throw new AgendamentoInvalidoException("O paciente do tratamento deve ser o mesmo da avaliação");
             }
             if (avaliacao.getStatus() != StatusAgendamento.CONCLUIDO) {
-                throw new InvalidAppointmentRequestException("A avaliacao deve estar concluida para agendar tratamentos");
+                throw new AgendamentoInvalidoException("A avaliação deve estar concluída para agendar tratamentos");
             }
         } else if (request.tipo() == TipoAgendamento.AVALIACAO && request.avaliacaoId() != null) {
-            throw new InvalidAppointmentRequestException("Avaliacao nao pode ter avaliacaoId");
+            throw new AgendamentoInvalidoException("Avaliação nao pode ter avaliacaoId");
         }
 
         Agendamento agendamento = Agendamento.builder()
@@ -172,18 +175,18 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     @Transactional
     public void cancelar(Long agendamentoId) {
         Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
-                .orElseThrow(() -> new AppointmentNotFoundException("Agendamento nao encontrado"));
+                .orElseThrow(() -> new AgendamentoNaoEncontradoException("Agendamento não encontrado"));
 
-        UsuarioDTO usuario = usuarioService.getUsuarioAtual();
+        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
 
         if (!temPermissaoParaModificar(agendamento, usuario.uuid(), usuario.roles().iterator().next())) {
-            throw new UnauthorizedException("Usuario nao autorizado a cancelar este agendamento");
+            throw new UsuarioSemAutorizacaoException("Usuário nao autorizado a cancelar este agendamento");
         }
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
-            throw new AppointmentAlreadyCancelledException("Agendamento ja esta cancelado");
+            throw new AgendamentoJaCanseladoException("Agendamento ja esta cancelado");
         }
         if (agendamento.getStatus() == StatusAgendamento.CONCLUIDO) {
-            throw new InvalidAppointmentStateException("Agendamento concluido nao pode ser cancelado");
+            throw new AgendamentoStatusInvalidoException("Agendamento concluído nao pode ser cancelado");
         }
 
         agendamento.setStatus(StatusAgendamento.CANCELADO);
@@ -194,18 +197,18 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     @Transactional
     public void concluir(Long agendamentoId) {
         Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
-                .orElseThrow(() -> new AppointmentNotFoundException("Agendamento nao encontrado"));
+                .orElseThrow(() -> new AgendamentoNaoEncontradoException("Agendamento nao encontrado"));
 
-        UsuarioDTO usuario = usuarioService.getUsuarioAtual();
+        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
 
         if (!temPermissaoParaModificar(agendamento, usuario.uuid(), usuario.roles().iterator().next())) {
-            throw new UnauthorizedException("Usuario nao autorizado a concluir este agendamento");
+            throw new UsuarioSemAutorizacaoException("Usuário nao autorizado a concluir este agendamento");
         }
         if (agendamento.getStatus() == StatusAgendamento.CONCLUIDO) {
-            throw new AppointmentAlreadyCompletedException("Agendamento ja esta concluido");
+            throw new AgendamentoJaConcluidoException("Agendamento ja esta concluído");
         }
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
-            throw new InvalidAppointmentStateException("Agendamento cancelado nao pode ser concluido");
+            throw new AgendamentoStatusInvalidoException("Agendamento cancelado não pode ser concluído");
         }
 
         agendamento.setStatus(StatusAgendamento.CONCLUIDO);
@@ -215,11 +218,11 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     @Override
     public List<AgendamentoViewDTO> visualizarAgenda(LocalDate data, String tipoVisualizacao) {
-        UsuarioDTO usuario = usuarioService.getUsuarioAtual();
+        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
         String role = usuario.roles().iterator().next();
 
         if ("PACIENTE".equals(role)) {
-            throw new UnauthorizedException("Paciente nao pode visualizar agenda de profissional");
+            throw new UsuarioSemAutorizacaoException("Paciente nao pode visualizar agenda de profissional");
         }
 
         LocalDateTime inicio;
@@ -238,7 +241,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 inicio = data.withDayOfMonth(1).atStartOfDay();
                 fim = data.with(TemporalAdjusters.lastDayOfMonth()).atTime(23, 59, 59);
             }
-            default -> throw new InvalidViewTypeException("Tipo de visualizacao invalido: " + tipoVisualizacao);
+            default -> throw new TipoVisualizacaoInvalidoException("Tipo de visualização invalido: " + tipoVisualizacao);
         }
 
         return agendamentoRepository
@@ -251,12 +254,12 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     @Override
     public List<AgendamentoViewDTO> getTratamentosPorAvaliacao(Long avaliacaoId) {
         Agendamento avaliacao = agendamentoRepository.findById(avaliacaoId)
-                .orElseThrow(() -> new EvaluationNotFoundException("Avaliacao nao encontrada"));
+                .orElseThrow(() -> new AvaliacaoNaoEncontradaException("Avaliação nao encontrada"));
 
-        UsuarioDTO usuario = usuarioService.getUsuarioAtual();
+        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
 
         if (!temPermissaoParaVisualizar(avaliacao, usuario.uuid(), usuario.roles().iterator().next())) {
-            throw new UnauthorizedException("Usuario nao autorizado a ver tratamentos desta avaliacao");
+            throw new UsuarioSemAutorizacaoException("Usuario nao autorizado a ver tratamentos desta avaliacao");
         }
 
         return agendamentoRepository.findByAvaliacaoId(avaliacaoId)
