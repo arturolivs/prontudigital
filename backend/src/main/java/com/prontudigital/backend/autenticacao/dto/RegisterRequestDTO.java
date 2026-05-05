@@ -18,16 +18,16 @@ public record RegisterRequestDTO(
         @NotBlank
         String email,
 
-        @Schema(description = "Nome de usuario", example = "joaosilva")
+        @Schema(description = "Nome de usuário", example = "joaosilva")
         @NotBlank
         String username,
 
-        @Schema(description = "Senha (minimo 8 caracteres)", example = "senha123")
+        @Schema(description = "Senha (mínimo 8 caracteres)", example = "senha123")
         @NotBlank
         @Size(min = 8, max = 30)
         String password,
 
-        @Schema(description = "Perfis do usuário (padrao: USER)", example = "[\"USER\", \"ADMIN\"]")
+        @Schema(description = "Perfis do usuário (padrão: USER)", example = "[\"USER\", \"ADMIN\"]")
         Set<String> perfis
 
 ) {}

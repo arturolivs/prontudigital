@@ -10,6 +10,7 @@ import com.prontudigital.backend.autenticacao.excecoes.UsuarioNaoEncontradoExcep
 import com.prontudigital.backend.autenticacao.repositorios.PerfilRepository;
 import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
+import com.prontudigital.backend.autenticacao.util.UsuarioUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,9 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.prontudigital.backend.autenticacao.util.UsuarioUtil.converterUsuarioParaDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +37,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional(readOnly = true)
     public List<UsuarioDTO> listarTodos() {
         return usuarioRepository.findAll().stream()
-                .map(this::converterParaDTO)
+                .map(UsuarioUtil::converterUsuarioParaDTO)
                 .collect(Collectors.toList());
     }
 
@@ -41,7 +45,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional(readOnly = true)
     public UsuarioDTO buscarPorId(Long id) {
         return usuarioRepository.findById(id)
-                .map(this::converterParaDTO)
+                .map(UsuarioUtil::converterUsuarioParaDTO)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
     }
 
@@ -50,7 +54,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioDTO buscarPorUuid(UUID uuid) {
         Usuario usuario = usuarioRepository.findByUuid(uuid)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(uuid));
-        return converterParaUsuarioDTO(usuario);
+        return converterUsuarioParaDTO(usuario);
     }
 
     @Override
@@ -59,7 +63,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         validar(dto);
         Usuario usuario = construirUsuarioDoDTO(dto, senhaRaw);
         usuario = usuarioRepository.save(usuario);
-        return converterParaDTO(usuario);
+        return converterUsuarioParaDTO(usuario);
     }
 
     @Override
@@ -73,7 +77,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         atualizarPerfis(usuario, dto.perfis());
 
-        return converterParaDTO(usuarioRepository.save(usuario));
+        return converterUsuarioParaDTO(usuarioRepository.save(usuario));
     }
 
     @Override
@@ -96,38 +100,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioDTO getInfoUsuario(String username) {
         Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
-        return converterParaDTO(usuario);
-    }
-
-    private UsuarioDTO converterParaDTO(Usuario usuario) {
-        return UsuarioDTO.builder()
-                .id(usuario.getId())
-                .email(usuario.getEmail())
-                .username(usuario.getUsername())
-                .nomeCompleto(usuario.getNomeCompleto())
-                .ativo(usuario.getAtivo())
-                .perfis(usuario.getPerfis().stream()
-                        .map(Perfil::getNome)
-                        .collect(Collectors.toSet()))
-                .createdAt(usuario.getCreatedAt())
-                .updatedAt(usuario.getUpdatedAt())
-                .build();
-    }
-
-    private UsuarioDTO converterParaUsuarioDTO(Usuario usuario) {
-        return UsuarioDTO.builder()
-                .id(usuario.getId())
-                .uuid(usuario.getUuid())
-                .nomeCompleto(usuario.getNomeCompleto())
-                .username(usuario.getUsername())
-                .email(usuario.getEmail())
-                .ativo(usuario.getAtivo())
-                .perfis(usuario.getPerfis().stream()
-                        .map(Perfil::getNome)
-                        .collect(Collectors.toSet()))
-                .createdAt(usuario.getCreatedAt())
-                .updatedAt(usuario.getUpdatedAt())
-                .build();
+        return converterUsuarioParaDTO(usuario);
     }
 
     private Usuario construirUsuarioDoDTO(UsuarioDTO dto, String senhaRaw) {
@@ -136,7 +109,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .username(dto.username())
                 .passwordHash(passwordEncoder.encode(senhaRaw))
                 .nomeCompleto(dto.nomeCompleto())
-                .ativo(dto.ativo() != null ? dto.ativo() : true)
+                .ativo(Objects.requireNonNullElse(dto.ativo(), true))
                 .build();
 
         if (dto.perfis() != null) {

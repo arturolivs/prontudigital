@@ -13,7 +13,8 @@ import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioReposit
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
 import com.prontudigital.backend.agendamento.utils.AgendamentoUtil;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
-import com.prontudigital.backend.autenticacao.servicos.AutenticacaoService;
+import com.prontudigital.backend.autenticacao.excecoes.NaoAutenticadoException;
+import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final AgendamentoRepository agendamentoRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
     private final UsuarioService usuarioService;
-    private final AutenticacaoService autenticacaoService;
+    private final UsuarioContexto usuarioContexto;
     private final AgendamentoUtil agendamentoUtil;
 
     private void validarPermissaoCriacao(AgendamentoRequestDTO request,
@@ -124,8 +125,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         log.info("Agendando consulta: paciente={} profissional={} inicio={}",
                 request.pacienteUuid(), request.profissionalUuid(), request.inicioEm());
 
-        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
-        validarPermissaoCriacao(request, usuario.uuid(), usuario.perfis().iterator().next());
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+        validarPermissaoCriacao(request, usuario.uuid(), extrairPerfil(usuario));
 
         usuarioService.validarUsuarioExiste(request.pacienteUuid());
         usuarioService.validarUsuarioExiste(request.profissionalUuid());
@@ -177,9 +178,9 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException("Agendamento não encontrado"));
 
-        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
 
-        if (!temPermissaoParaModificar(agendamento, usuario.uuid(), usuario.perfis().iterator().next())) {
+        if (!temPermissaoParaModificar(agendamento, usuario.uuid(), extrairPerfil(usuario))) {
             throw new UsuarioSemAutorizacaoException("Usuário nao autorizado a cancelar este agendamento");
         }
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
@@ -199,9 +200,9 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException("Agendamento nao encontrado"));
 
-        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
 
-        if (!temPermissaoParaModificar(agendamento, usuario.uuid(), usuario.perfis().iterator().next())) {
+        if (!temPermissaoParaModificar(agendamento, usuario.uuid(), extrairPerfil(usuario))) {
             throw new UsuarioSemAutorizacaoException("Usuário nao autorizado a concluir este agendamento");
         }
         if (agendamento.getStatus() == StatusAgendamento.CONCLUIDO) {
@@ -218,8 +219,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     @Override
     public List<AgendamentoViewDTO> visualizarAgenda(LocalDate data, String tipoVisualizacao) {
-        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
-        String perfil = usuario.perfis().iterator().next();
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+        String perfil = extrairPerfil(usuario);
 
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException("Paciente não pode visualizar agenda de profissional");
@@ -256,9 +257,9 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         Agendamento avaliacao = agendamentoRepository.findById(avaliacaoId)
                 .orElseThrow(() -> new AvaliacaoNaoEncontradaException("Avaliação nao encontrada"));
 
-        UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
 
-        if (!temPermissaoParaVisualizar(avaliacao, usuario.uuid(), usuario.perfis().iterator().next())) {
+        if (!temPermissaoParaVisualizar(avaliacao, usuario.uuid(), extrairPerfil(usuario))) {
             throw new UsuarioSemAutorizacaoException("Usuario nao autorizado a ver tratamentos desta avaliacao");
         }
 
@@ -266,5 +267,11 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .stream()
                 .map(agendamentoUtil::convertToViewDTO)
                 .collect(Collectors.toList());
+    }
+
+    private String extrairPerfil(UsuarioDTO usuario) {
+        return usuario.perfis().stream()
+                .findFirst()
+                .orElseThrow(() -> new NaoAutenticadoException("Usuário sem perfil atribuído"));
     }
 }

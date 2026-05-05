@@ -7,6 +7,4 @@ public interface AutenticacaoService {
     JwtResponseDTO autenticar(LoginRequestDTO request);
     RefreshTokenResponseDTO renovarToken(String refreshToken);
     void encerrarSessao(String refreshToken);
-    UsuarioDTO getUsuarioAtual();
-
 }
