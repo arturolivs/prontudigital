@@ -4,6 +4,7 @@ import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
 import com.prontudigital.backend.autenticacao.excecoes.EmailExistenteException;
+import com.prontudigital.backend.autenticacao.excecoes.PerfilNaoEncontradoException;
 import com.prontudigital.backend.autenticacao.excecoes.UserNameExistenteException;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioNaoEncontradoException;
 import com.prontudigital.backend.autenticacao.repositorios.PerfilRepository;
@@ -15,7 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.management.relation.RoleNotFoundException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -53,10 +53,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return converterParaUsuarioDTO(usuario);
     }
 
-    /*
-     * Nota: recebe UsuarioResponseDTO como parâmetro de criação por compatibilidade
-     * com AuthServiceImpl. Considere criar um UsuarioCriacaoDTO dedicado no futuro.
-     */
     @Override
     @Transactional
     public UsuarioDTO criar(UsuarioDTO dto, String senhaRaw) {
@@ -75,7 +71,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setNomeCompleto(dto.nomeCompleto());
         usuario.setAtivo(dto.ativo());
 
-        atualizarPerfis(usuario, dto.roles());
+        atualizarPerfis(usuario, dto.perfis());
 
         return converterParaDTO(usuarioRepository.save(usuario));
     }
@@ -99,7 +95,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioDTO getInfoUsuario(String username) {
         Usuario usuario = usuarioRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário nao encontrado: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
         return converterParaDTO(usuario);
     }
 
@@ -110,7 +106,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .username(usuario.getUsername())
                 .nomeCompleto(usuario.getNomeCompleto())
                 .ativo(usuario.getAtivo())
-                .roles(usuario.getPerfis().stream()
+                .perfis(usuario.getPerfis().stream()
                         .map(Perfil::getNome)
                         .collect(Collectors.toSet()))
                 .createdAt(usuario.getCreatedAt())
@@ -126,7 +122,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .username(usuario.getUsername())
                 .email(usuario.getEmail())
                 .ativo(usuario.getAtivo())
-                .roles(usuario.getPerfis().stream()
+                .perfis(usuario.getPerfis().stream()
                         .map(Perfil::getNome)
                         .collect(Collectors.toSet()))
                 .createdAt(usuario.getCreatedAt())
@@ -143,8 +139,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .ativo(dto.ativo() != null ? dto.ativo() : true)
                 .build();
 
-        if (dto.roles() != null) {
-            atualizarPerfis(usuario, dto.roles());
+        if (dto.perfis() != null) {
+            atualizarPerfis(usuario, dto.perfis());
         }
 
         return usuario;
@@ -164,18 +160,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
     }
 
-    private void atualizarPerfis(Usuario usuario, Set<String> roles) {
+    private void atualizarPerfis(Usuario usuario, Set<String> perfis) {
         usuario.getPerfis().clear();
-
-        if (roles != null && !roles.isEmpty()) {
-            roles.forEach(nomePerfil -> {
-                Perfil perfil = null;
-                try {
-                    perfil = perfilRepository.findByNome(nomePerfil)
-                            .orElseThrow(() -> new RoleNotFoundException(nomePerfil));
-                } catch (RoleNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
+        if (perfis != null && !perfis.isEmpty()) {
+            perfis.forEach(nomePerfil -> {
+                Perfil perfil = perfilRepository.findByNome(nomePerfil)
+                        .orElseThrow(() -> new PerfilNaoEncontradoException(nomePerfil));
                 usuario.adicionarPerfil(perfil);
             });
         }

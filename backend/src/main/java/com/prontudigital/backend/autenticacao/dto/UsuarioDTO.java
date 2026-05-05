@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-@Schema(description = "Dados do usuario autenticado")
+@Schema(description = "Dados do usuário")
 @Builder
 public record UsuarioDTO(
 
@@ -28,8 +28,8 @@ public record UsuarioDTO(
         @Schema(description = "Indica se o usuário esta ativo")
         Boolean ativo,
 
-        @Schema(description = "Roles atribuidas ao usuário", example = "[\"USUARIO\"]")
-        Set<String> roles,
+        @Schema(description = "Perfis atribuídos ao usuário", example = "[\"USUARIO\"]")
+        Set<String> perfis,
 
         @Schema(description = "Data de criação do registro")
         Instant createdAt,

@@ -42,16 +42,16 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final AgendamentoUtil agendamentoUtil;
 
     private void validarPermissaoCriacao(AgendamentoRequestDTO request,
-                                         UUID usuarioUuid, String role) {
-        if ("ADMIN".equals(role)) return;
+                                         UUID usuarioUuid, String perfil) {
+        if ("ADMIN".equals(perfil)) return;
 
-        if ("PACIENTE".equals(role)) {
+        if ("PACIENTE".equals(perfil)) {
             if (!request.pacienteUuid().equals(usuarioUuid)) {
                 throw new UsuarioSemAutorizacaoException("Paciente so pode criar agendamentos para si mesmo");
             }
             return;
         }
-        if ("PROFISSIONAL".equals(role)) {
+        if ("PROFISSIONAL".equals(perfil)) {
             if (!request.profissionalUuid().equals(usuarioUuid)) {
                 throw new UsuarioSemAutorizacaoException("Profissional so pode criar agendamentos para si mesmo");
             }
@@ -61,18 +61,18 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     }
 
     private boolean temPermissaoParaModificar(Agendamento agendamento,
-                                              UUID usuarioUuid, String role) {
-        if ("ADMIN".equals(role)) return true;
-        if ("PACIENTE".equals(role)) return agendamento.getPacienteUuid().equals(usuarioUuid);
-        if ("PROFISSIONAL".equals(role)) return agendamento.getProfissionalUuid().equals(usuarioUuid);
+                                              UUID usuarioUuid, String perfil) {
+        if ("ADMIN".equals(perfil)) return true;
+        if ("PACIENTE".equals(perfil)) return agendamento.getPacienteUuid().equals(usuarioUuid);
+        if ("PROFISSIONAL".equals(perfil)) return agendamento.getProfissionalUuid().equals(usuarioUuid);
         return false;
     }
 
     private boolean temPermissaoParaVisualizar(Agendamento agendamento,
-                                               UUID usuarioUuid, String role) {
-        if ("ADMIN".equals(role)) return true;
-        if ("PACIENTE".equals(role)) return agendamento.getPacienteUuid().equals(usuarioUuid);
-        if ("PROFISSIONAL".equals(role)) return agendamento.getProfissionalUuid().equals(usuarioUuid);
+                                               UUID usuarioUuid, String perfil) {
+        if ("ADMIN".equals(perfil)) return true;
+        if ("PACIENTE".equals(perfil)) return agendamento.getPacienteUuid().equals(usuarioUuid);
+        if ("PROFISSIONAL".equals(perfil)) return agendamento.getProfissionalUuid().equals(usuarioUuid);
         return false;
     }
 
@@ -125,7 +125,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 request.pacienteUuid(), request.profissionalUuid(), request.inicioEm());
 
         UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
-        validarPermissaoCriacao(request, usuario.uuid(), usuario.roles().iterator().next());
+        validarPermissaoCriacao(request, usuario.uuid(), usuario.perfis().iterator().next());
 
         usuarioService.validarUsuarioExiste(request.pacienteUuid());
         usuarioService.validarUsuarioExiste(request.profissionalUuid());
@@ -179,11 +179,11 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
 
-        if (!temPermissaoParaModificar(agendamento, usuario.uuid(), usuario.roles().iterator().next())) {
+        if (!temPermissaoParaModificar(agendamento, usuario.uuid(), usuario.perfis().iterator().next())) {
             throw new UsuarioSemAutorizacaoException("Usuário nao autorizado a cancelar este agendamento");
         }
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
-            throw new AgendamentoJaCanseladoException("Agendamento ja esta cancelado");
+            throw new AgendamentoCanceladoException("Agendamento ja esta cancelado");
         }
         if (agendamento.getStatus() == StatusAgendamento.CONCLUIDO) {
             throw new AgendamentoStatusInvalidoException("Agendamento concluído nao pode ser cancelado");
@@ -201,7 +201,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
 
-        if (!temPermissaoParaModificar(agendamento, usuario.uuid(), usuario.roles().iterator().next())) {
+        if (!temPermissaoParaModificar(agendamento, usuario.uuid(), usuario.perfis().iterator().next())) {
             throw new UsuarioSemAutorizacaoException("Usuário nao autorizado a concluir este agendamento");
         }
         if (agendamento.getStatus() == StatusAgendamento.CONCLUIDO) {
@@ -219,10 +219,10 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     @Override
     public List<AgendamentoViewDTO> visualizarAgenda(LocalDate data, String tipoVisualizacao) {
         UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
-        String role = usuario.roles().iterator().next();
+        String perfil = usuario.perfis().iterator().next();
 
-        if ("PACIENTE".equals(role)) {
-            throw new UsuarioSemAutorizacaoException("Paciente nao pode visualizar agenda de profissional");
+        if ("PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException("Paciente não pode visualizar agenda de profissional");
         }
 
         LocalDateTime inicio;
@@ -258,7 +258,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         UsuarioDTO usuario = autenticacaoService.getUsuarioAtual();
 
-        if (!temPermissaoParaVisualizar(avaliacao, usuario.uuid(), usuario.roles().iterator().next())) {
+        if (!temPermissaoParaVisualizar(avaliacao, usuario.uuid(), usuario.perfis().iterator().next())) {
             throw new UsuarioSemAutorizacaoException("Usuario nao autorizado a ver tratamentos desta avaliacao");
         }
 

@@ -22,7 +22,7 @@ public class Perfil {
     private UUID uuid;
 
     @Column(name="nome", nullable = false, unique = true, length = 20)
-    private String nome;  // Ex: "ROLE_ADMIN", "ROLE_USER" — mantém convenção Spring Security
+    private String nome;
 
     @Column(name = "descricao", length = 200)
     private String descricao;

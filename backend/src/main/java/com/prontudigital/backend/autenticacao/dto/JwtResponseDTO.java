@@ -22,13 +22,13 @@ public record JwtResponseDTO(
         @Schema(description = "Nome de usuário", example = "joaosilva")
         String username,
 
-        @Schema(description = "Roles do usuário", example = "[\"ENFERMEIRO\"]")
-        Collection<String> roles
+        @Schema(description = "Perfis do usuário", example = "[\"ENFERMEIRO\"]")
+        Collection<String> perfis
 
 ) {
 
     public JwtResponseDTO(String accessToken, String refreshToken,
-                          String username, Collection<String> roles) {
-        this(accessToken, refreshToken, "Bearer", 900L, username, roles);
+                          String username, Collection<String> perfis) {
+        this(accessToken, refreshToken, "Bearer", 900L, username, perfis);
     }
 }

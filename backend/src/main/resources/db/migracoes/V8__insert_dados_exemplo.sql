@@ -1,4 +1,4 @@
--- Popula as tabelas de autenticação com usuários e perfis (roles)
+-- Popula as tabelas de autenticação com usuários e perfis (perfis)
 -- Os UUIDs são gerados automaticamente pelo PostgreSQL
 
 -- Inserir perfis padrão do sistema

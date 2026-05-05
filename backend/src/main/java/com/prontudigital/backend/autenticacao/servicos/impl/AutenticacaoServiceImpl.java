@@ -60,11 +60,11 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
         String accessToken = tokenProvider.generateAccessToken(authentication);
         String refreshToken = refreshTokenService.gerarRefreshToken(principal.getUsername());
 
-        List<String> roles = principal.getAuthorities().stream()
+        List<String> perfis = principal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        return new JwtResponseDTO(accessToken, refreshToken, principal.getUsername(), roles);
+        return new JwtResponseDTO(accessToken, refreshToken, principal.getUsername(), perfis);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     }
 
     private UsuarioDTO mapearParaUsuarioDTO(Usuario usuario) {
-        Set<String> roles = usuario.getPerfis().stream()
+        Set<String> perfis = usuario.getPerfis().stream()
                 .map(Perfil::getNome)
                 .collect(Collectors.toSet());
 
@@ -122,7 +122,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
                 .username(usuario.getUsername())
                 .email(usuario.getEmail())
                 .ativo(usuario.getAtivo())
-                .roles(roles)
+                .perfis(perfis)
                 .createdAt(usuario.getCreatedAt())
                 .updatedAt(usuario.getUpdatedAt())
                 .build();

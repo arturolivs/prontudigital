@@ -41,11 +41,6 @@ public class Usuario {
     @Builder.Default
     private Boolean ativo = true;
 
-    /*
-     * Relação gerenciada APENAS por UsuarioPerfil.
-     * mappedBy garante que o @JoinTable não conflita com a entidade UsuarioPerfil.
-     * Use UsuarioPerfilRepository para atribuir/remover perfis.
-     */
     @Builder.Default
     @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER,
             cascade = CascadeType.ALL, orphanRemoval = true)
@@ -77,7 +72,6 @@ public class Usuario {
         this.usuarioPerfis.removeIf(up -> up.getPerfil().equals(perfil));
     }
 
-    // Atalho para Spring Security sem expor a entidade UsuarioPerfil
     public Set<Perfil> getPerfis() {
         Set<Perfil> perfis = new HashSet<>();
         for (UsuarioPerfil up : usuarioPerfis) {
