@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.util.Set;
 
 @Schema(description = "Dados para registro de novo usuario")
-public record RegisterRequestDTO(
+public record RegistrarRequestDTO(
 
         @Schema(description = "Nome completo", example = "Joao Silva")
         @NotBlank

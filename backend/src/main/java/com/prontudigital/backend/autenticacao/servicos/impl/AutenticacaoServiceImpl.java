@@ -3,7 +3,6 @@ package com.prontudigital.backend.autenticacao.servicos.impl;
 
 import com.prontudigital.backend.autenticacao.dto.*;
 import com.prontudigital.backend.autenticacao.excecoes.TokenInvalidoException;
-import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.seguranca.JwtTokenProvider;
 import com.prontudigital.backend.autenticacao.seguranca.UserDetailsImpl;
 import com.prontudigital.backend.autenticacao.servicos.AutenticacaoService;
@@ -30,10 +29,9 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
-    private final UsuarioRepository usuarioRepository;
 
     @Override
-    public UsuarioDTO registrar(RegisterRequestDTO request) {
+    public UsuarioDTO registrar(RegistrarRequestDTO request) {
         UsuarioDTO dto = UsuarioDTO.builder()
                 .email(request.email())
                 .username(request.username())

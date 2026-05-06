@@ -1,0 +1,71 @@
+# ============================================================
+# application-prod.yaml — Backend
+# Ativado com: -Dspring.profiles.active=prod
+# TODAS as variáveis sensíveis devem vir de variáveis de ambiente
+# — nenhum valor hardcoded aqui.
+# ============================================================
+
+spring:
+  application:
+    name: prontudigital
+
+  datasource:
+    url:      ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false           # nunca logar SQL em produção
+
+  flyway:
+    url:      ${SPRING_FLYWAY_URL}
+    user:     ${SPRING_FLYWAY_USER}
+    password: ${SPRING_FLYWAY_PASSWORD}
+    locations: classpath:db/migracoes
+    baseline-on-migrate: false  # false em prod — migrações devem ser explícitas
+
+server:
+  port: 8080
+  # Oculta informações do servidor nos headers HTTP
+  server-header: ""
+  error:
+    include-message: never
+    include-stacktrace: never
+
+app:
+  jwt:
+    secret:                ${APP_JWT_SECRET}
+    access-expiration-ms:  ${APP_JWT_ACCESS_EXPIRATION_MS}
+    refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS}
+
+logging:
+  level:
+    root:              WARN
+    com.prontudigital: INFO   # logs de negócio mantidos
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Actuator — apenas health exposto (usado pelo healthcheck do Docker)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+# Swagger desabilitado em produção
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

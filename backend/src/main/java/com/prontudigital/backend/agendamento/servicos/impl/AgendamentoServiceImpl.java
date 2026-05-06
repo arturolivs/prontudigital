@@ -133,25 +133,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         validarDataFutura(request.inicioEm());
         validarDisponibilidadeProfissional(request.profissionalUuid(), request.inicioEm(), request.fimEm());
         validarDisponibilidadePaciente(request.pacienteUuid(), request.inicioEm(), request.fimEm());
-
-        if (request.tipo() == TipoAgendamento.TRATAMENTO) {
-            if (request.avaliacaoId() == null) {
-                throw new AgendamentoInvalidoException("Tratamento deve estar associado a uma avaliação");
-            }
-            Agendamento avaliacao = agendamentoRepository.findById(request.avaliacaoId())
-                    .orElseThrow(() -> new AvaliacaoNaoEncontradaException("Avaliação nao encontrada"));
-            if (avaliacao.getTipo() != TipoAgendamento.AVALIACAO) {
-                throw new AgendamentoInvalidoException("O agendamento referenciado não e uma avaliação");
-            }
-            if (!avaliacao.getPacienteUuid().equals(request.pacienteUuid())) {
-                throw new AgendamentoInvalidoException("O paciente do tratamento deve ser o mesmo da avaliação");
-            }
-            if (avaliacao.getStatus() != StatusAgendamento.CONCLUIDO) {
-                throw new AgendamentoInvalidoException("A avaliação deve estar concluída para agendar tratamentos");
-            }
-        } else if (request.tipo() == TipoAgendamento.AVALIACAO && request.avaliacaoId() != null) {
-            throw new AgendamentoInvalidoException("Avaliação nao pode ter avaliacaoId");
-        }
+        validarRegraAvaliacaoTratamento(request);
 
         Agendamento agendamento = Agendamento.builder()
                 .pacienteUuid(request.pacienteUuid())
@@ -273,5 +255,30 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         return usuario.perfis().stream()
                 .findFirst()
                 .orElseThrow(() -> new NaoAutenticadoException("Usuário sem perfil atribuído"));
+    }
+
+    private void validarRegraAvaliacaoTratamento(AgendamentoRequestDTO request) {
+        if (request.tipo() == TipoAgendamento.AVALIACAO) {
+            if (request.avaliacaoId() != null) {
+                throw new AgendamentoInvalidoException("Avaliação nao pode ter avaliacaoId");
+            }
+            return;
+        }
+        if (request.tipo() == TipoAgendamento.TRATAMENTO) {
+            if (request.avaliacaoId() == null) {
+                throw new AgendamentoInvalidoException("Tratamento deve estar associado a uma avaliação");
+            }
+            Agendamento avaliacao = agendamentoRepository.findById(request.avaliacaoId())
+                    .orElseThrow(() -> new AvaliacaoNaoEncontradaException("Avaliação nao encontrada"));
+            if (avaliacao.getTipo() != TipoAgendamento.AVALIACAO) {
+                throw new AgendamentoInvalidoException("O agendamento referenciado nao e uma avaliação");
+            }
+            if (!avaliacao.getPacienteUuid().equals(request.pacienteUuid())) {
+                throw new AgendamentoInvalidoException("O paciente do tratamento deve ser o mesmo da avaliação");
+            }
+            if (avaliacao.getStatus() != StatusAgendamento.CONCLUIDO) {
+                throw new AgendamentoInvalidoException("A avaliação deve estar concluída para agendar tratamentos");
+            }
+        }
     }
 }
