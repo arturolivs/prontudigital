@@ -1,4 +1,4 @@
-package com.prontudigital.backend.config;
+package com.prontudigital.backend.compartilhado.config;
 
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;

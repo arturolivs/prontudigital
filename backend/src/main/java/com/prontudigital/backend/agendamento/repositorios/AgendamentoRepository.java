@@ -1,7 +1,9 @@
 package com.prontudigital.backend.agendamento.repositorios;
 
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,20 +21,22 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     List<Agendamento> findByProfissionalUuidAndInicioEmBetween(
             UUID profissionalUuid, LocalDateTime inicio, LocalDateTime fim);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Agendamento a WHERE " +
             "a.profissionalUuid = :profissionalUuid AND " +
             "a.status <> 'CANCELADO' AND " +
             "(a.inicioEm < :fim AND a.fimEm > :inicio)")
-    List<Agendamento> findConflitosParaProfissional(
+    List<Agendamento> findConflitosParaProfissionalComLock(
             @Param("profissionalUuid") UUID profissionalUuid,
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Agendamento a WHERE " +
             "a.pacienteUuid = :pacienteUuid AND " +
             "a.status <> 'CANCELADO' AND " +
             "(a.inicioEm < :fim AND a.fimEm > :inicio)")
-    List<Agendamento> findConflitosParaPaciente(
+    List<Agendamento> findConflitosParaPacienteComLock(
             @Param("pacienteUuid") UUID pacienteUuid,
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
