@@ -1,6 +1,6 @@
 # ============================================================
 # application-dev.yaml — Backend
-# Ativado com: -Dspring.profiles.active=dev
+# Ativado com: --spring.profiles.active=local
 # Variáveis injetadas pelo docker-compose (ou .env local)
 # ============================================================
 

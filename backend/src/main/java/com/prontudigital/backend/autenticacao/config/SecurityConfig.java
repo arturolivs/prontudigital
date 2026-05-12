@@ -25,33 +25,31 @@ public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
 
-    private static final String[] SWAGGER_PATHS = {
+    // =====================================================================
+    // Rotas de infraestrutura (Swagger, healthcheck, estaticos)
+    // =====================================================================
+    private static final String[] PATHS_PUBLICOS_INFRA = {
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/v3/api-docs.yaml",
             "/swagger-resources/**",
-            "/swagger-resources",
-            "/swagger-resources/configuration/ui",
-            "/swagger-resources/configuration/security",
             "/webjars/**",
             "/api-docs/**",
-            "/api-docs",
-            "/",
-            "/home",
-            "/index",
+            "/actuator/health",
             "/favicon.ico",
             "/error"
     };
 
-
-    private static final String[] AUTH_PUBLIC_PATHS = {
-            "/api/auth/v1/register",
-            "/api/auth/v1/signin"
-    };
-
-    private static final String[] USER_PUBLIC_PATHS = {
-            "/api/auth/v1/users/uuid/**"
+    // =====================================================================
+    // Rotas POST publicas — autenticacao
+    // Login, registro e renovacao de token precisam ser acessiveis
+    // sem JWT (senao o usuario nunca consegue se autenticar).
+    // =====================================================================
+    private static final String[] AUTH_POST_PUBLICOS = {
+            "/api/auth/registrar",
+            "/api/auth/login",
+            "/api/auth/renovar-token"
     };
 
     @Bean
@@ -63,12 +61,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(SWAGGER_PATHS).permitAll()
-                        .requestMatchers(HttpMethod.POST, AUTH_PUBLIC_PATHS).permitAll()
-                        .requestMatchers(HttpMethod.GET, USER_PUBLIC_PATHS).permitAll()
-                        .requestMatchers("/api/auth/v1/me").authenticated()  // <-- adicione esta linha
+                        .requestMatchers(PATHS_PUBLICOS_INFRA).permitAll()
+                        .requestMatchers(HttpMethod.POST, AUTH_POST_PUBLICOS).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -80,5 +78,4 @@ public class SecurityConfig {
             AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-
 }

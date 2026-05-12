@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL) // omite campos nulos no JSON
-public record ErroPadraoDTO(
+public record ErroRespostaDTO(
         int status,
         String erro,
         String mensagem,
@@ -13,11 +13,11 @@ public record ErroPadraoDTO(
         LocalDateTime timestamp,
         List<String> detalhes
 ) {
-    public ErroPadraoDTO(int status, String erro, String mensagem, String caminho) {
+    public ErroRespostaDTO(int status, String erro, String mensagem, String caminho) {
         this(status, erro, mensagem, caminho, LocalDateTime.now(), null);
     }
 
-    public ErroPadraoDTO(int status, String erro, String mensagem,
+    public ErroRespostaDTO(int status, String erro, String mensagem,
                          String caminho, List<String> detalhes) {
         this(status, erro, mensagem, caminho, LocalDateTime.now(), detalhes);
     }

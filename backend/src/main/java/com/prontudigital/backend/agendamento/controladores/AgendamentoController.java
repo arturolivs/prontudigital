@@ -3,7 +3,7 @@ package com.prontudigital.backend.agendamento.controladores;
 import com.prontudigital.backend.agendamento.dto.*;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
-import io.swagger.v3.oas.annotations.Operation;
+import com.prontudigital.backend.agendamento.swagger.AgendamentoSwagger.*;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,14 +22,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/agendamentos")
 @RequiredArgsConstructor
-@Tag(name = "Agendamentos")
+@Tag(name = "Agendamentos", description = "Criacao, cancelamento, reagendamento e visualizacao de agendamentos")
 @SecurityRequirement(name = "bearerAuth")
 public class AgendamentoController {
 
     private final AgendamentoService agendamentoService;
 
-    @Operation(summary = "Criar novo agendamento (RF07)")
     @PostMapping
+    @AgendarSwagger
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'PACIENTE')")
     public ResponseEntity<AgendamentoResponseDTO> agendar(
             @Valid @RequestBody AgendamentoRequestDTO request) {
@@ -37,16 +37,16 @@ public class AgendamentoController {
                 .body(agendamentoService.agendar(request));
     }
 
-    @Operation(summary = "Cancelar agendamento (RF10)")
     @PatchMapping("/{id}/cancelar")
+    @CancelarSwagger
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'PACIENTE')")
     public ResponseEntity<Void> cancelar(@PathVariable Long id) {
         agendamentoService.cancelar(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Reagendar (RF10)")
     @PatchMapping("/{id}/reagendar")
+    @ReagendarSwagger
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'PACIENTE')")
     public ResponseEntity<AgendamentoResponseDTO> reagendar(
             @PathVariable Long id,
@@ -54,16 +54,16 @@ public class AgendamentoController {
         return ResponseEntity.ok(agendamentoService.reagendar(id, request));
     }
 
-    @Operation(summary = "Concluir agendamento")
     @PatchMapping("/{id}/concluir")
+    @ConcluirSwagger
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public ResponseEntity<Void> concluir(@PathVariable Long id) {
         agendamentoService.concluir(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Visualizar agenda dia/semana/mes (RF08)")
     @GetMapping("/agenda")
+    @VisualizarAgendaSwagger
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public ResponseEntity<List<AgendamentoViewDTO>> visualizarAgenda(
             @Parameter(description = "Data de referencia", example = "2026-05-07")
@@ -78,8 +78,8 @@ public class AgendamentoController {
                 agendamentoService.visualizarAgenda(data, tipo, profissionalUuid));
     }
 
-    @Operation(summary = "Listar tratamentos da avaliacao")
     @GetMapping("/avaliacoes/{avaliacaoId}/tratamentos")
+    @TratamentosPorAvaliacaoSwagger
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'PACIENTE')")
     public ResponseEntity<List<AgendamentoViewDTO>> getTratamentosPorAvaliacao(
             @PathVariable Long avaliacaoId) {
