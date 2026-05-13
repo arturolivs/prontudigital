@@ -134,7 +134,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     private void atualizarPerfis(Usuario usuario, Set<String> perfis) {
-        usuario.getPerfis().clear();
+        usuario.getUsuarioPerfis().clear();
         if (perfis != null && !perfis.isEmpty()) {
             perfis.forEach(nomePerfil -> {
                 Perfil perfil = perfilRepository.findByNome(nomePerfil)

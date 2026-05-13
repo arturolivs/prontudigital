@@ -4,8 +4,8 @@
 -- Inserir perfis padrão do sistema
 INSERT INTO perfis (nome, descricao) VALUES
 ('ADMIN', 'Administrador do sistema com acesso total'),
-('NURSE', 'Profissional de enfermagem com acesso a agendamentos e pacientes'),
-('PATIENT', 'Paciente com acesso ao próprio perfil e agendamentos');
+('PROFISSIONAL', 'Profissional de enfermagem com acesso a agendamentos e pacientes'),
+('PACIENTE', 'Paciente com acesso ao próprio perfil e agendamentos');
 
 -- Inserir usuário ADMIN
 INSERT INTO usuarios (username, email, password_hash, nome_completo) VALUES

@@ -19,7 +19,7 @@ public record UsuarioDTO(
         @Schema(description = "Nome completo", example = "Joao Silva")
         String nomeCompleto,
 
-        @Schema(description = "Nome de usuario", example = "joao.silva")
+        @Schema(description = "Nome de usuÁrio", example = "joaosilva")
         String username,
 
         @Schema(description = "E-mail", example = "joao@email.com")

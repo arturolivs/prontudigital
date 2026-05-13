@@ -58,7 +58,6 @@ public class Usuario {
         updatedAt = Instant.now();
     }
 
-    // Helpers de conveniência
     public void adicionarPerfil(Perfil perfil) {
         UsuarioPerfil up = UsuarioPerfil.builder()
                 .id(new UsuarioPerfilId(this.id, perfil.getId()))

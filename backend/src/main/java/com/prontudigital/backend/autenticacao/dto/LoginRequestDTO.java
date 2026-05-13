@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Credenciais para autenticação")
 public record LoginRequestDTO(
 
-        @Schema(description = "Nome de usuário", example = "joao.silva")
+        @Schema(description = "Nome de usuário", example = "joaosilva")
         @NotBlank
         String username,
 
