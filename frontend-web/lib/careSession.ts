@@ -1,10 +1,10 @@
 // lib/appointments.ts
 import axios from 'axios'
-import { Appointment } from '../types/appointment'
+import { Appointment } from '../tipos/appointment'
 
 import careSessions from '../mock/careSession'
-import { CareSession } from '@/types/CareSession'
-import { SessionStatus } from '@/types/SessionStatus'
+import { CareSession } from '@/tipos/CareSession'
+import { SessionStatus } from '@/tipos/SessionStatus'
 const API_URL =
   process.env.NEXT_PUBLIC_APPOINTMENTS_API_URL ||
   'http://localhost:9090/api/schedule/appointments'

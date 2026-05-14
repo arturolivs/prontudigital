@@ -7,7 +7,7 @@ import {
   faHourglassHalf,
 } from '@fortawesome/free-solid-svg-icons'
 import './styles.css'
-import { CareSession } from '@/types/CareSession'
+import { CareSession } from '@/tipos/CareSession'
 
 export type GroupedSessions = Record<string, CareSession[]>
 

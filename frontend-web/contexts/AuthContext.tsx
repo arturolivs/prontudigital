@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { authAPI, tokenService } from '../lib/auth.service'
-import { User, LoginCredentials, AuthResponse } from '../types/auth'
+import { User, LoginCredentials, AuthResponse } from '../tipos/autenticacao'
 
 interface AuthContextType {
   user: User | null

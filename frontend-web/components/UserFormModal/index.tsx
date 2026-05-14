@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { UserFull } from '@/types/auth'
+import { UserFull } from '@/tipos/autenticacao'
 import './userFormModal.style.css'
 
 const ROLE_OPTIONS = [

@@ -4,7 +4,7 @@
 import { useState, FormEvent } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
-import { LoginCredentials } from '@/types/auth'
+import { LoginCredentials } from '@/tipos/autenticacao'
 
 export default function Login() {
   const [username, setUsername] = useState('')

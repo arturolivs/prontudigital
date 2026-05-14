@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { AuthResponse, LoginCredentials, User } from '../types/auth'
+import { AuthResponse, LoginCredentials, User } from '../tipos/autenticacao'
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/auth/v1'

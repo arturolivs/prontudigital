@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Appointment } from '@/types/appointment'
+import { Appointment } from '@/tipos/appointment'
 import './styles.css'
 
 interface AppointmentFormModalProps {

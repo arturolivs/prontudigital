@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { tokenService } from './auth.service'
-import { User, RegisterRequest, UserFull } from '../types/auth'
+import { User, RegisterRequest, UserFull } from '../tipos/autenticacao'
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/auth/v1'

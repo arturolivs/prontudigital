@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import { ProtectedRoute } from '../../components/ProtectedRoute'
 import { useAuth } from '../../contexts/AuthContext'
 import { careSessionAPI } from '../../lib/careSession'
-import { Appointment } from '../../types/appointment'
+import { Appointment } from '../../tipos/appointment'
 import Layout from '@/components/Layout/Layout'
 import AppointmentFormModal from '@/components/AppointmentFormModal'
 import './schedule.css'
 import CareSessionList from '@/components/CareSessionList'
-import { CareSession } from '@/types/CareSession'
+import { CareSession } from '@/tipos/CareSession'
 
 export default function CareSessionsPage() {
   const { user, hasRole, getProfessionalUuid } = useAuth()
