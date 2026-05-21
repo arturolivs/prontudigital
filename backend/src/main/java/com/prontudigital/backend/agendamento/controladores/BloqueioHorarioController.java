@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -28,7 +27,6 @@ public class BloqueioHorarioController {
 
     @Operation(summary = "Criar bloqueio de horario")
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public ResponseEntity<BloqueioHorarioDTO> criar(
             @Valid @RequestBody BloqueioHorarioDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(request));
@@ -36,7 +34,6 @@ public class BloqueioHorarioController {
 
     @Operation(summary = "Listar bloqueios de um profissional em um periodo")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public ResponseEntity<List<BloqueioHorarioDTO>> listar(
             @RequestParam UUID profissionalUuid,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
@@ -46,7 +43,6 @@ public class BloqueioHorarioController {
 
     @Operation(summary = "Remover bloqueio")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public ResponseEntity<Void> remover(@PathVariable Long id) {
         service.remover(id);
         return ResponseEntity.noContent().build();

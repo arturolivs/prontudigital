@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,7 +26,6 @@ public class FilaEsperaController {
 
     @Operation(summary = "Entrar na fila de espera")
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'PACIENTE')")
     public ResponseEntity<FilaEsperaDTO> entrar(
             @Valid @RequestBody FilaEsperaRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.entrar(request));
@@ -35,7 +33,6 @@ public class FilaEsperaController {
 
     @Operation(summary = "Sair da fila")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'PACIENTE')")
     public ResponseEntity<Void> sair(@PathVariable Long id) {
         service.sair(id);
         return ResponseEntity.noContent().build();
@@ -43,7 +40,6 @@ public class FilaEsperaController {
 
     @Operation(summary = "Listar fila ativa de um profissional")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public ResponseEntity<List<FilaEsperaDTO>> listar(
             @RequestParam UUID profissionalUuid) {
         return ResponseEntity.ok(service.listarFilaDoProfissional(profissionalUuid));
@@ -51,7 +47,6 @@ public class FilaEsperaController {
 
     @Operation(summary = "Marcar entrada da fila como notificada")
     @PatchMapping("/{id}/notificar")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public ResponseEntity<Void> marcarNotificado(@PathVariable Long id) {
         service.marcarComoNotificado(id);
         return ResponseEntity.noContent().build();

@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,7 +39,6 @@ public class UsuarioController {
     @Operation(summary = "Listar todos os usuarios")
     @ApiResponse(responseCode = "200", description = "Lista retornada")
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UsuarioDTO>> listarTodos() {
         return ResponseEntity.ok(usuarioService.listarTodos());
     }
@@ -51,7 +49,6 @@ public class UsuarioController {
             @ApiResponse(responseCode = "404", description = "Usuario nao encontrado")
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UsuarioDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(usuarioService.buscarPorId(id));
     }
@@ -62,7 +59,6 @@ public class UsuarioController {
             @ApiResponse(responseCode = "404", description = "Usuario nao encontrado")
     })
     @GetMapping("/uuid/{uuid}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public ResponseEntity<UsuarioDTO> buscarPorUuid(@PathVariable UUID uuid) {
         return ResponseEntity.ok(usuarioService.buscarPorUuid(uuid));
     }
@@ -74,7 +70,6 @@ public class UsuarioController {
             @ApiResponse(responseCode = "409", description = "E-mail ja em uso")
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UsuarioDTO> atualizar(
             @PathVariable Long id,
             @Valid @RequestBody UsuarioDTO dto) {
@@ -87,7 +82,6 @@ public class UsuarioController {
             @ApiResponse(responseCode = "404", description = "Usuario nao encontrado")
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         usuarioService.deletar(id);
         return ResponseEntity.noContent().build();

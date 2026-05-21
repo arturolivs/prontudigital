@@ -37,6 +37,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
                 .username(request.username())
                 .nomeCompleto(request.nomeCompleto())
                 .ativo(true)
+                .perfis(request.perfis())
                 .build();
 
         return usuarioService.criar(dto, request.password());
