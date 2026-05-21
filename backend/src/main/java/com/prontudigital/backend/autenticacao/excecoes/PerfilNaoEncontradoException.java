@@ -1,6 +1,8 @@
 package com.prontudigital.backend.autenticacao.excecoes;
 
-public class PerfilNaoEncontradoException extends RuntimeException {
+import com.prontudigital.backend.compartilhado.excecoes.ExcecaoBase;
+
+public class PerfilNaoEncontradoException extends ExcecaoBase {
     public PerfilNaoEncontradoException(String perfil) {
         super("Perfil não encontrado : " + perfil);
     }

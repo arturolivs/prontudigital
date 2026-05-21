@@ -1,6 +1,8 @@
 package com.prontudigital.backend.agendamento.excecoes;
 
-public class AvaliacaoNaoEncontradaException extends RuntimeException {
+import com.prontudigital.backend.compartilhado.excecoes.ExcecaoBase;
+
+public class AvaliacaoNaoEncontradaException extends ExcecaoBase {
     public AvaliacaoNaoEncontradaException(String message) {
         super(message);
     }

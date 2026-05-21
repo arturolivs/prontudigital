@@ -43,10 +43,8 @@ class AgendamentoServiceImplTest {
     @Mock private AgendamentoUtil agendamentoUtil;
     @Mock private ApplicationEventPublisher eventPublisher;
 
-    // Policy real — testar a lógica de autorizacao de fato
     private final AgendamentoPermissaoPolicy permissaoPolicy = new AgendamentoPermissaoPolicy();
 
-    // Clock fixo: 01/05/2026 — anterior aos agendamentos das fixtures
     private final Clock clock = Clock.fixed(
             LocalDateTime.of(2026, 5, 1, 10, 0)
                     .atZone(ZoneId.systemDefault()).toInstant(),
@@ -62,7 +60,6 @@ class AgendamentoServiceImplTest {
                 agendamentoUtil, eventPublisher, clock);
     }
 
-    // Auxiliar: configura mocks de disponibilidade sem conflitos
     private void mockSemConflitos() {
         when(bloqueioHorarioRepository.findConflitos(any(), any(), any()))
                 .thenReturn(List.of());
@@ -72,9 +69,6 @@ class AgendamentoServiceImplTest {
                 .thenReturn(List.of());
     }
 
-    // =========================================================
-    // RF07 — agendar()
-    // =========================================================
     @Nested
     @DisplayName("agendar()")
     class Agendar {
@@ -99,7 +93,7 @@ class AgendamentoServiceImplTest {
         }
 
         @Test
-        @DisplayName("paciente nao pode criar agendamento para outro paciente")
+        @DisplayName("paciente não pode criar agendamento para outro paciente")
         void deveRejeitarPacienteAgendandoParaOutro() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     OUTRO_UUID, PROFISSIONAL_UUID, null, INICIO, FIM,
@@ -142,7 +136,7 @@ class AgendamentoServiceImplTest {
             AgendamentoInvalidoException ex = assertThrows(
                     AgendamentoInvalidoException.class,
                     () -> service.agendar(request));
-            assertTrue(ex.getMessage().contains("Duracao minima"));
+            assertTrue(ex.getMessage().contains("Duracão minima"));
         }
 
         @Test
@@ -159,7 +153,7 @@ class AgendamentoServiceImplTest {
         }
 
         @Test
-        @DisplayName("rejeita conflito de horario do profissional")
+        @DisplayName("rejeita conflito de horário do profissional")
         void deveRejeitarConflitoProfissional() {
             AgendamentoRequestDTO request = requestAvaliacao();
 
@@ -208,9 +202,6 @@ class AgendamentoServiceImplTest {
         }
     }
 
-    // =========================================================
-    // RF10 — cancelar()
-    // =========================================================
     @Nested
     @DisplayName("cancelar()")
     class Cancelar {
@@ -267,9 +258,6 @@ class AgendamentoServiceImplTest {
         }
     }
 
-    // =========================================================
-    // RF10 — reagendar()
-    // =========================================================
     @Nested
     @DisplayName("reagendar()")
     class Reagendar {

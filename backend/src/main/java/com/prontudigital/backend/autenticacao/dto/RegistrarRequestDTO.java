@@ -27,7 +27,7 @@ public record RegistrarRequestDTO(
         @Size(min = 8, max = 30)
         String password,
 
-        @Schema(description = "Perfis do usuário (padrão: USER)", example = "[\"USER\", \"ADMIN\"]")
+        @Schema(description = "Perfis do usuário (padrão: USER)", example = "[\"ADMIN\"]")
         Set<String> perfis
 
 ) {}

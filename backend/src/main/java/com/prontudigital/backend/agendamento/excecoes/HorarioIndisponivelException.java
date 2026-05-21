@@ -1,6 +1,8 @@
 package com.prontudigital.backend.agendamento.excecoes;
 
-public class HorarioIndisponivelException extends RuntimeException {
+import com.prontudigital.backend.compartilhado.excecoes.ExcecaoBase;
+
+public class HorarioIndisponivelException extends ExcecaoBase {
     public HorarioIndisponivelException(String message) {
         super(message);
     }

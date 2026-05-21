@@ -1,6 +1,8 @@
 package com.prontudigital.backend.autenticacao.excecoes;
 
-public class UsuarioSemAutorizacaoException extends RuntimeException {
+import com.prontudigital.backend.compartilhado.excecoes.ExcecaoBase;
+
+public class UsuarioSemAutorizacaoException extends ExcecaoBase {
     public UsuarioSemAutorizacaoException(String message) {
         super(message);
     }

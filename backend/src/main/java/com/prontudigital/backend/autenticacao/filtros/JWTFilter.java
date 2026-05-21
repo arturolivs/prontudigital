@@ -30,67 +30,32 @@ public class JWTFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
 
-    // Paths que não precisam de autenticação JWT
-    private static final List<String> PUBLIC_PATHS = Arrays.asList(
-            "/swagger-ui.html",
-            "/swagger-ui/**",
-            "/v3/api-docs/**",
-            "/v3/api-docs.yaml",
-            "/swagger-resources/**",
-            "/swagger-resources",
-            "/swagger-resources/configuration/ui",
-            "/swagger-resources/configuration/security",
-            "/webjars/**",
-            "/api-docs/**",
-            "/api-docs",
-            "/home",
-            "/index",
-            "/favicon.ico",
-            "/error",
-            "/api/auth/v1/register"
-    );
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        AntPathMatcher pathMatcher = new AntPathMatcher();
-
-        return PUBLIC_PATHS.stream()
-                .anyMatch(p -> pathMatcher.match(p, path));
-    }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        log.debug("Processando requisição: {} {}", request.getMethod(), request.getRequestURI());
-        try {
-            String jwt = getJwtFromRequest(request);
-            log.debug("Token extraído: {}", jwt != null ? "presente" : "ausente");
+        String jwt = getJwtFromRequest(request);
 
-            if(Objects.isNull(jwt)) throw new TokenInvalidoException("InvalidTokenException no filtro !!!");
-
-            boolean valid = tokenProvider.validateToken(jwt);
-            log.debug("Token válido: {}", valid);
-            if (valid) {
-                String username = tokenProvider.getUsernameFromToken(jwt);
-                log.debug("Username do token: {}", username);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                log.debug("UserDetails carregado: {} - authorities: {}",
-                        userDetails.getUsername(), userDetails.getAuthorities());
-
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("Autenticação definida no SecurityContext");
-            } else {
-                log.debug("Token inválido ou expirado");
+        if (jwt != null) {
+            try {
+                if (tokenProvider.validateToken(jwt)) {
+                    String username = tokenProvider.getUsernameFromToken(jwt);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                } else {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido");
+                    return;
+                }
+            } catch (Exception ex) {
+                log.error("Erro ao validar token JWT", ex);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Erro de autenticação");
+                return;
             }
-        } catch (Exception ex) {
-            log.error("Exceção no filtro JWT: {}", ex.getMessage(), ex);
         }
+
         filterChain.doFilter(request, response);
     }
 

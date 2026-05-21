@@ -19,9 +19,11 @@ public class UserDetailsImpl implements UserDetails {
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
 
+    private static final String PREFIXO_PERFIL = "ROLE_";
+
     public static UserDetailsImpl build(Usuario usuario) {
         List<GrantedAuthority> authorities = usuario.getPerfis().stream()
-                .map(perfil -> new SimpleGrantedAuthority(perfil.getNome()))
+                .map(perfil -> new SimpleGrantedAuthority(PREFIXO_PERFIL + perfil.getNome()))
                 .collect(Collectors.toList());
 
         return new UserDetailsImpl(

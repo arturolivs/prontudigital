@@ -1,6 +1,8 @@
 package com.prontudigital.backend.agendamento.excecoes;
 
-public class AgendamentoStatusInvalidoException extends RuntimeException {
+import com.prontudigital.backend.compartilhado.excecoes.ExcecaoBase;
+
+public class AgendamentoStatusInvalidoException extends ExcecaoBase {
     public AgendamentoStatusInvalidoException(String message) {
         super(message);
     }

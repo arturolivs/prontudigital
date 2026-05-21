@@ -1,6 +1,8 @@
 package com.prontudigital.backend.agendamento.excecoes;
 
-public class PacienteIndisponivelException extends RuntimeException {
+import com.prontudigital.backend.compartilhado.excecoes.ExcecaoBase;
+
+public class PacienteIndisponivelException extends ExcecaoBase {
     public PacienteIndisponivelException(String message) {
         super(message);
     }

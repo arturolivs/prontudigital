@@ -25,9 +25,6 @@ public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
 
-    // =====================================================================
-    // Rotas de infraestrutura (Swagger, healthcheck, estaticos)
-    // =====================================================================
     private static final String[] PATHS_PUBLICOS_INFRA = {
             "/swagger-ui.html",
             "/swagger-ui/**",
@@ -41,11 +38,6 @@ public class SecurityConfig {
             "/error"
     };
 
-    // =====================================================================
-    // Rotas POST publicas — autenticacao
-    // Login, registro e renovacao de token precisam ser acessiveis
-    // sem JWT (senao o usuario nunca consegue se autenticar).
-    // =====================================================================
     private static final String[] AUTH_POST_PUBLICOS = {
             "/api/auth/registrar",
             "/api/auth/login",
