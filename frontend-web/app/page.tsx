@@ -6,22 +6,22 @@ import { useAuth } from '../contexts/AuthContext'
 import Loading from './loading'
 
 export default function Home() {
-  const { user, isLoading } = useAuth()
+  const { usuario, isLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!isLoading) {
-      if (user) {
-        if (user.roles.includes('ADMIN')) {
+      if (usuario) {
+        if (usuario.perfis.includes('ROLE_ADMIN')) {
           router.push('/dashboard')
-        } else {
-          router.push('/schedule')
+        } else if (usuario.perfis.includes('PROFISSIONAL')) {
+          router.push('/agenda')
         }
       } else {
         router.push('/login')
       }
     }
-  }, [user, isLoading, router])
+  }, [usuario, isLoading, router])
 
   return <Loading />
 }

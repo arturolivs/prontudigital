@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
-import { usersAPI } from '@/lib/users.service'
+import { usersAPI } from '@/lib/usuario.service'
 import { RegisterRequest, UserFull } from '@/tipos/autenticacao'
 import './usuariosPage.css' // Importando o CSS customizado
 import { useToast } from '@/contexts/ToastContext'

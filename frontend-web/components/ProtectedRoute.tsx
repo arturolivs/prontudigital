@@ -11,7 +11,7 @@ export const ProtectedRoute = ({
   children,
   requiredRoles = [],
 }: ProtectedRouteProps) => {
-  const { user, isLoading, hasRole } = useAuth()
+  const { user, isLoading, temPerfil } = useAuth()
 
   if (isLoading) {
     return (
@@ -29,7 +29,7 @@ export const ProtectedRoute = ({
   }
 
   const hasRequiredRole =
-    requiredRoles.length === 0 || requiredRoles.some(role => hasRole(role))
+    requiredRoles.length === 0 || requiredRoles.some(role => temPerfil(role))
 
   if (!hasRequiredRole) {
     return (

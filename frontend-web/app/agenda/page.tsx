@@ -7,12 +7,12 @@ import { careSessionAPI } from '../../lib/careSession'
 import { Appointment } from '../../tipos/appointment'
 import Layout from '@/components/Layout/Layout'
 import AppointmentFormModal from '@/components/AppointmentFormModal'
-import './schedule.css'
+import './agenda.css'
 import CareSessionList from '@/components/CareSessionList'
 import { CareSession } from '@/tipos/CareSession'
 
 export default function CareSessionsPage() {
-  const { user, hasRole, getProfessionalUuid } = useAuth()
+  const { user, temPerfil, getProfessionalUuid } = useAuth()
   const [careSessions, setCaresessions] = useState<CareSession[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +22,7 @@ export default function CareSessionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const hasRequiredRole =
-    hasRole('NURSE') || hasRole('DOCTOR') || hasRole('ADMIN')
+    temPerfil('NURSE') || temPerfil('DOCTOR') || temPerfil('ROLE_ADMIN')
 
   useEffect(() => {
     if (user && hasRequiredRole) {

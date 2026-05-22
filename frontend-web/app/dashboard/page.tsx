@@ -3,7 +3,7 @@
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function DashboardPage() {
-  const { user, hasRole } = useAuth()
+  const { user: usuraio, temPerfil } = useAuth()
 
   return (
     <div>
@@ -16,12 +16,12 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-600">Username</p>
-            <p className="font-medium">{user?.username}</p>
+            <p className="font-medium">{usuraio?.username}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Roles</p>
             <div className="flex space-x-1 mt-1">
-              {user?.roles.map(role => (
+              {usuraio?.roles.map(role => (
                 <span
                   key={role}
                   className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
@@ -31,11 +31,11 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-          {user?.professionalUuid && (
+          {usuraio?.professionalUuid && (
             <div className="md:col-span-2">
               <p className="text-sm text-gray-600">Professional UUID</p>
               <p className="font-medium text-sm break-all">
-                {user.professionalUuid}
+                {usuraio.professionalUuid}
               </p>
             </div>
           )}

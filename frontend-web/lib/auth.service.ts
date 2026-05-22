@@ -1,25 +1,22 @@
 import axios from 'axios'
-import { AuthResponse, LoginCredentials, User } from '../tipos/autenticacao'
+import {
+  JwtResposta,
+  LoginRequisicao,
+  UsuarioAutenticado,
+} from '../tipos/autenticacao'
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/auth/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/auth'
 
-const mockAuthResponse: AuthResponse = {
-  accessToken:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-  refreshToken: 'dGhpcy1pcy1hLXJlZnJlc2gtdG9rZW4tZXhhbXBsZQ==',
-  tokenType: 'Bearer',
-  expiresIn: 3600,
-  username: 'enfermeira.silva',
-  roles: ['NURSE'],
-  professionalUuid: '123e4567-e89b-12d3-a456-426614174000',
-}
-
-export const authAPI = {
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    //const result = await axios.post(`${API_URL}/signin`, credentials)
-    return mockAuthResponse
+export const autenticacaoAPI = {
+  login: async (credenciais: LoginRequisicao): Promise<JwtResposta> => {
+    const { data } = await axios.post<JwtResposta>(
+      `${API_URL}/login`,
+      credenciais,
+    )
+    return data
   },
+
   logout: async (): Promise<void> => {
     const refreshToken = localStorage.getItem('refreshToken')
     if (refreshToken) {
@@ -28,10 +25,20 @@ export const authAPI = {
   },
 }
 
+// TODO segurança: localStorage é vulnerável a XSS. O refreshToken deveria estar
+// em cookie httpOnly + Secure + SameSite. Mantido aqui apenas pela paridade
+// com o código original. Não é seguro pra produção como está.
 export const tokenService = {
   getToken: (): string | null => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('authToken')
+    }
+    return null
+  },
+
+  getRefreshToken: (): string | null => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('refreshToken')
     }
     return null
   },
@@ -44,24 +51,17 @@ export const tokenService = {
   clearTokens: (): void => {
     localStorage.removeItem('authToken')
     localStorage.removeItem('refreshToken')
-    localStorage.removeItem('userData')
+    localStorage.removeItem('dadosUsuario')
   },
 
-  getProfessionalUuid: (): string | null => {
+  setDadosUsuario: (usuario: UsuarioAutenticado): void => {
+    localStorage.setItem('dadosUsuario', JSON.stringify(usuario))
+  },
+
+  getDadosUsuario: (): UsuarioAutenticado | null => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('professionalUuid')
-    }
-    return null
-  },
-
-  setUserData: (userData: User): void => {
-    localStorage.setItem('userData', JSON.stringify(userData))
-  },
-
-  getUserData: (): User | null => {
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('userData')
-      return userData ? JSON.parse(userData) : null
+      const dados = localStorage.getItem('dadosUsuario')
+      return dados ? JSON.parse(dados) : null
     }
     return null
   },

@@ -27,7 +27,7 @@ import {
 export default function CareSessionDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { user, hasRole } = useAuth()
+  const { user, temPerfil } = useAuth()
   const [session, setSession] = useState<CareSession | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +45,7 @@ export default function CareSessionDetailPage() {
   }, [sessionId, user])
 
   const hasRequiredRole =
-    hasRole('NURSE') || hasRole('DOCTOR') || hasRole('ADMIN')
+    temPerfil('NURSE') || temPerfil('DOCTOR') || temPerfil('ADMIN')
 
   const fetchSession = async () => {
     try {

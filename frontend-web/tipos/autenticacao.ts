@@ -1,21 +1,21 @@
-export interface UsuarioDTO {
+export interface Usuario {
   id: number
   uuid: string
   nomeCompleto: string
   username: string
   email: string
   ativo: boolean
-  perfis: string[] // ex: ["ADMIN", "PROFISSIONAL"]
+  perfis: string[]
   createdAt: string
   updatedAt: string
 }
 
-export interface LoginRequisicaoDTO {
+export interface LoginRequisicao {
   username: string
   password: string
 }
 
-export interface RegistrarRequisicaoDTO {
+export interface RegistrarRequisicao {
   nomeCompleto: string
   email: string
   username: string
@@ -23,7 +23,7 @@ export interface RegistrarRequisicaoDTO {
   perfis?: string[]
 }
 
-export interface JwtRespostaDTO {
+export interface JwtResposta {
   accessToken: string
   refreshToken: string
   tokenType: string
@@ -32,13 +32,28 @@ export interface JwtRespostaDTO {
   perfis: string[]
 }
 
-export interface RefreshTokenRequisicaoDTO {
+export interface RefreshTokenRequisicao {
   refreshToken: string
 }
 
-export interface RefreshTokenRespostaDTO {
+export interface RefreshTokenResposta {
   accessToken: string
   refreshToken: string
   tokenType: string
   expiresIn: number
 }
+
+export interface UsuarioAutenticado {
+  username: string
+  perfis: string[]
+  token: string
+}
+
+export const PERFIS = {
+  ADMIN: 'ROLE_ADMIN',
+  ENFERMEIRO: 'ENFERMEIRO',
+  MEDICO: 'MEDICO',
+  USUARIO: 'USUARIO',
+} as const
+
+export type Perfil = (typeof PERFIS)[keyof typeof PERFIS]
