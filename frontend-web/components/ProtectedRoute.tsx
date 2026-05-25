@@ -11,7 +11,7 @@ export const ProtectedRoute = ({
   children,
   requiredRoles = [],
 }: ProtectedRouteProps) => {
-  const { user, isLoading, temPerfil } = useAuth()
+  const { usuario, isLoading, temPerfil } = useAuth()
 
   if (isLoading) {
     return (
@@ -24,7 +24,7 @@ export const ProtectedRoute = ({
     )
   }
 
-  if (!user) {
+  if (!usuario) {
     return null
   }
 
@@ -43,10 +43,10 @@ export const ProtectedRoute = ({
             Você não tem permissão para acessar esta página.
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            Roles necessárias: {requiredRoles.join(', ')}
+            Perfis necessários: {requiredRoles.join(', ')}
           </p>
           <p className="text-sm text-gray-500">
-            Suas roles: {user.roles.join(', ')}
+            Seus perfis: {usuario.perfis.join(', ')}
           </p>
         </div>
       </div>

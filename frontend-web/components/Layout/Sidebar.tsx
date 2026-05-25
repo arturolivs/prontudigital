@@ -6,14 +6,14 @@ import './Layout.css'
 interface SidebarProps {
   isOpen: boolean
   toggleSidebar: () => void
-  userRole: 'ADMIN' | 'NURSE'
+  userRole: 'ROLE_ADMIN' | 'NURSE'
 }
 
 interface MenuItem {
   label: string
   path: string
   icon: string
-  roles: ('ADMIN' | 'NURSE')[]
+  roles: ('ROLE_ADMIN' | 'NURSE')[]
 }
 
 const Sidebar = ({ isOpen, toggleSidebar, userRole }: SidebarProps) => {
@@ -25,37 +25,37 @@ const Sidebar = ({ isOpen, toggleSidebar, userRole }: SidebarProps) => {
       label: 'Dashboard',
       path: '/dashboard',
       icon: '📊',
-      roles: ['ADMIN'],
+      roles: ['ROLE_ADMIN'],
     },
     {
       label: 'Calendário',
       path: '/calendar',
       icon: '📅',
-      roles: ['ADMIN', 'NURSE'],
+      roles: ['ROLE_ADMIN', 'NURSE'],
     },
     {
       label: 'Pacientes',
       path: '/patients',
       icon: '👥',
-      roles: ['ADMIN', 'NURSE'],
+      roles: ['ROLE_ADMIN', 'NURSE'],
     },
     {
       label: 'Prontuários',
       path: '/records',
       icon: '📋',
-      roles: ['ADMIN', 'NURSE'],
+      roles: ['ROLE_ADMIN', 'NURSE'],
     },
     {
       label: 'Relatórios',
       path: '/reports',
       icon: '📈',
-      roles: ['ADMIN'],
+      roles: ['ROLE_ADMIN'],
     },
     {
       label: 'Configurações',
       path: '/settings',
       icon: '⚙️',
-      roles: ['ADMIN'],
+      roles: ['ROLE_ADMIN'],
     },
   ]
 

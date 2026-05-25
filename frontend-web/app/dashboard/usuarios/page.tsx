@@ -2,25 +2,25 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
-import { usersAPI } from '@/lib/usuario.service'
-import { RegisterRequest, UserFull } from '@/tipos/autenticacao'
-import './usuariosPage.css' // Importando o CSS customizado
+import { usuariosAPI } from '@/lib/usuario.service'
+import { Usuario, RegistrarRequisicao } from '@/tipos/autenticacao'
+import './usuariosPage.css'
 import { useToast } from '@/contexts/ToastContext'
 import UserFormModal from '@/components/UserFormModal'
 
 export default function UsuariosPage() {
-  const [users, setUsers] = useState<UserFull[]>([])
+  const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<UserFull | null>(null)
-  const { user } = useAuth()
+  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null)
+  const { usuario } = useAuth()
   const { showToast } = useToast()
 
-  const fetchUsers = async () => {
+  const fetchUsuarios = async () => {
     try {
       setLoading(true)
-      const data = await usersAPI.listUsers()
-      setUsers(data)
+      const data = await usuariosAPI.listarUsuarios()
+      setUsuarios(data)
     } catch (error) {
       showToast('Erro ao carregar lista de usuários', 'error', 6000)
     } finally {
@@ -29,15 +29,15 @@ export default function UsuariosPage() {
   }
 
   useEffect(() => {
-    fetchUsers()
+    fetchUsuarios()
   }, [])
 
   const handleDelete = async (id: number) => {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return
 
     try {
-      await usersAPI.deleteUser(id)
-      setUsers(users.filter(user => user.id !== id))
+      await usuariosAPI.excluirUsuario(id)
+      setUsuarios(usuarios.filter(u => u.id !== id))
       showToast('Usuário excluído com sucesso!', 'success', 6000)
     } catch (error: any) {
       console.error('Erro ao excluir usuário', error)
@@ -45,10 +45,16 @@ export default function UsuariosPage() {
     }
   }
 
-  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+  const handleToggleStatus = async (id: number, ativoAtual: boolean) => {
+    const usuarioAtual = usuarios.find(u => u.id === id)
+    if (!usuarioAtual) return
+
     try {
-      const updatedUser = await usersAPI.toggleUserStatus(id, !currentStatus)
-      setUsers(users.map(user => (user.id === id ? updatedUser : user)))
+      const atualizado = await usuariosAPI.atualizarUsuario(id, {
+        ...usuarioAtual,
+        ativo: !ativoAtual,
+      })
+      setUsuarios(usuarios.map(u => (u.id === id ? atualizado : u)))
     } catch (error: any) {
       console.error('Erro ao alterar status', error)
       showToast(
@@ -59,49 +65,52 @@ export default function UsuariosPage() {
     }
   }
 
-  const openEditModal = (user: UserFull) => {
-    setEditingUser(user)
+  const openEditModal = (u: Usuario) => {
+    setUsuarioEditando(u)
     setModalOpen(true)
   }
 
   const openCreateModal = () => {
-    setEditingUser(null)
+    setUsuarioEditando(null)
     setModalOpen(true)
   }
 
   const closeModal = () => {
     setModalOpen(false)
-    setEditingUser(null)
+    setUsuarioEditando(null)
   }
 
   const handleSave = async (
-    userData: Partial<UserFull> & { password?: string },
+    dados: Partial<Usuario> & { password?: string },
   ) => {
     try {
-      if (editingUser) {
-        const updatedUser = await usersAPI.updateUser(editingUser.id, {
-          fullName: userData.fullName,
-          username: userData.username,
-          email: userData.email,
-          isActive: userData.isActive,
-          roles: userData.roles,
-        })
+      if (usuarioEditando) {
+        const atualizado = await usuariosAPI.atualizarUsuario(
+          usuarioEditando.id,
+          {
+            nomeCompleto: dados.nomeCompleto,
+            username: dados.username,
+            email: dados.email,
+            ativo: dados.ativo,
+            perfis: dados.perfis,
+          },
+        )
 
-        setUsers(
-          users.map(user => (user.id === editingUser.id ? updatedUser : user)),
+        setUsuarios(
+          usuarios.map(u => (u.id === usuarioEditando.id ? atualizado : u)),
         )
         showToast('Usuário atualizado com sucesso!', 'success', 6000)
       } else {
-        const newUserData: RegisterRequest = {
-          fullName: userData.fullName || '',
-          username: userData.username || '',
-          email: userData.email || '',
-          password: userData.password || '',
-          roles: userData.roles,
+        const novoUsuario: RegistrarRequisicao = {
+          nomeCompleto: dados.nomeCompleto || '',
+          username: dados.username || '',
+          email: dados.email || '',
+          password: dados.password || '',
+          perfis: dados.perfis,
         }
 
-        const newUser = await usersAPI.createUser(newUserData)
-        setUsers([...users, newUser])
+        const criado = await usuariosAPI.criarUsuario(novoUsuario)
+        setUsuarios([...usuarios, criado])
         showToast('Usuário criado com sucesso!', 'success', 6000)
       }
 
@@ -137,38 +146,33 @@ export default function UsuariosPage() {
               <th>Username</th>
               <th>Email</th>
               <th>Status</th>
-              <th>Roles</th>
+              <th>Perfis</th>
               <th className="action-buttons">Ações</th>
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
-              <tr key={user.id}>
-                <td>{user.fullName}</td>
-                <td>{user.username}</td>
-                <td>{user.email}</td>
+            {usuarios.map(u => (
+              <tr key={u.id}>
+                <td>{u.nomeCompleto}</td>
+                <td>{u.username}</td>
+                <td>{u.email}</td>
                 <td>
                   <button
-                    onClick={() => handleToggleStatus(user.id, user.isActive)}
+                    onClick={() => handleToggleStatus(u.id, u.ativo)}
                     className={`status-badge ${
-                      user.isActive
-                        ? 'status-badge-active'
-                        : 'status-badge-inactive'
+                      u.ativo ? 'status-badge-active' : 'status-badge-inactive'
                     }`}
                   >
-                    {user.isActive ? 'Ativo' : 'Inativo'}
+                    {u.ativo ? 'Ativo' : 'Inativo'}
                   </button>
                 </td>
-                <td className="roles-text">{user.roles.join(', ')}</td>
+                <td className="roles-text">{u.perfis.join(', ')}</td>
                 <td className="action-buttons">
-                  <button
-                    onClick={() => openEditModal(user)}
-                    className="btn-edit"
-                  >
+                  <button onClick={() => openEditModal(u)} className="btn-edit">
                     Editar
                   </button>
                   <button
-                    onClick={() => handleDelete(user.id)}
+                    onClick={() => handleDelete(u.id)}
                     className="btn-delete"
                   >
                     Excluir
@@ -182,7 +186,7 @@ export default function UsuariosPage() {
 
       {modalOpen && (
         <UserFormModal
-          user={editingUser}
+          user={usuarioEditando}
           onClose={closeModal}
           onSave={handleSave}
         />

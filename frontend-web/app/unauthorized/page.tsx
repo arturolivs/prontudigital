@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function Unauthorized() {
-  const { user, logout } = useAuth()
+  const { usuario, logout } = useAuth()
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -14,9 +14,9 @@ export default function Unauthorized() {
             <div className="flex items-center">
               <h1 className="text-xl font-semibold">Acesso Não Autorizado</h1>
             </div>
-            {user && (
+            {usuario && (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">{user.username}</span>
+                <span className="text-gray-700">{usuario.username}</span>
                 <button
                   onClick={logout}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"

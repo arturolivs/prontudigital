@@ -4,13 +4,13 @@
 import { useState, FormEvent } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
-import { LoginCredentials } from '@/tipos/autenticacao'
+import { LoginRequisicao } from '@/tipos/autenticacao'
 
 export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { login, user, isLoading: authLoading } = useAuth()
+  const { login, usuario, isLoading: authLoading } = useAuth()
   const { showToast } = useToast()
 
   const handleSubmit = async (e: FormEvent) => {
@@ -18,11 +18,11 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      const credentials: LoginCredentials = {
+      const credenciais: LoginRequisicao = {
         username: username.trim(),
         password: password,
       }
-      await login(credentials)
+      await login(credenciais)
     } catch (err: any) {
       showToast(err.message || 'Erro ao fazer login', 'error', 6000)
     } finally {
@@ -43,7 +43,7 @@ export default function Login() {
     )
   }
 
-  if (user) {
+  if (usuario) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f4f9ff]">
         <div className="text-center">

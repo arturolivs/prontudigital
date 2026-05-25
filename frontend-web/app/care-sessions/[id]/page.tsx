@@ -27,7 +27,7 @@ import {
 export default function CareSessionDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { user, temPerfil } = useAuth()
+  const { usuario, temPerfil } = useAuth()
   const [session, setSession] = useState<CareSession | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -39,13 +39,13 @@ export default function CareSessionDetailPage() {
   const sessionId = params.id as string
 
   useEffect(() => {
-    if (user && hasRequiredRole) {
+    if (usuario && hasRequiredRole) {
       fetchSession()
     }
-  }, [sessionId, user])
+  }, [sessionId, usuario])
 
   const hasRequiredRole =
-    temPerfil('NURSE') || temPerfil('DOCTOR') || temPerfil('ADMIN')
+    temPerfil('ENFERMEIRO') || temPerfil('MEDICO') || temPerfil('ROLE_ADMIN')
 
   const fetchSession = async () => {
     try {
@@ -115,7 +115,7 @@ export default function CareSessionDetailPage() {
     return translations[type] || type
   }
 
-  if (!user || !hasRequiredRole) {
+  if (!usuario || !hasRequiredRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -157,7 +157,7 @@ export default function CareSessionDetailPage() {
 
   return (
     <Layout userRole={'NURSE'}>
-      <ProtectedRoute requiredRoles={['NURSE', 'DOCTOR', 'ADMIN']}>
+      <ProtectedRoute requiredRoles={['NURSE', 'DOCTOR', 'ROLE_ADMIN']}>
         <div className="session-detail-page">
           {/* Header */}
           <div className="session-header">

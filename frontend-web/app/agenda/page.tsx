@@ -12,7 +12,7 @@ import CareSessionList from '@/components/CareSessionList'
 import { CareSession } from '@/tipos/CareSession'
 
 export default function CareSessionsPage() {
-  const { user, temPerfil, getProfessionalUuid } = useAuth()
+  const { usuario, temPerfil } = useAuth()
   const [careSessions, setCaresessions] = useState<CareSession[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -22,13 +22,13 @@ export default function CareSessionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const hasRequiredRole =
-    temPerfil('NURSE') || temPerfil('DOCTOR') || temPerfil('ROLE_ADMIN')
+    temPerfil('ENFERMEIRO') || temPerfil('MEDICO') || temPerfil('ROLE_ADMIN')
 
   useEffect(() => {
-    if (user && hasRequiredRole) {
+    if (usuario && hasRequiredRole) {
       fetchAppointments()
     }
-  }, [selectedDate, user, hasRequiredRole])
+  }, [selectedDate, usuario, hasRequiredRole])
 
   const fetchAppointments = async () => {
     try {
@@ -62,16 +62,8 @@ export default function CareSessionsPage() {
     appointmentData: Partial<Appointment>,
   ) => {
     try {
-      const professionalUuid = getProfessionalUuid()
-
-      if (!professionalUuid) {
-        setError('Professional UUID não encontrado')
-        return
-      }
-
       const newAppointment = {
         ...appointmentData,
-        professionalUuid,
         createdAt: new Date().toISOString(),
       }
 
@@ -85,7 +77,7 @@ export default function CareSessionsPage() {
     }
   }
 
-  if (!user || !hasRequiredRole) {
+  if (!usuario || !hasRequiredRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -95,7 +87,7 @@ export default function CareSessionsPage() {
 
   return (
     <Layout userRole={'NURSE'}>
-      <ProtectedRoute requiredRoles={['NURSE', 'DOCTOR', 'ADMIN']}>
+      <ProtectedRoute requiredRoles={['NURSE', 'DOCTOR', 'ROLE_ADMIN']}>
         <div className="appointments-page">
           <div className="flex justify-between items-center mb-6">
             <button
