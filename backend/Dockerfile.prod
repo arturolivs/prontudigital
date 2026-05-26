@@ -1,0 +1,45 @@
+# ============================================================
+# Backend — Produção
+# Multi-stage: build separado do runtime, imagem final mínima
+# ============================================================
+
+# --- Estágio 1: Build ---
+FROM eclipse-temurin:21-jdk AS builder
+
+WORKDIR /app
+
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+
+# Baixa dependências em camada separada (cache eficiente no CI)
+RUN ./mvnw dependency:go-offline -q
+
+COPY src ./src
+
+RUN ./mvnw package -DskipTests -q
+
+# --- Estágio 2: Runtime mínimo ---
+FROM eclipse-temurin:21-jre AS runtime
+
+WORKDIR /app
+
+# Usuário não-root por segurança
+RUN groupadd --system prontu && useradd --system --gid prontu prontu
+
+COPY --from=builder /app/target/*.jar app.jar
+
+RUN chown prontu:prontu app.jar
+
+USER prontu
+
+EXPOSE 8080
+
+# Flags JVM otimizadas para container:
+# -XX:+UseContainerSupport  → respeita limits do cgroup
+# -XX:MaxRAMPercentage=75   → usa até 75% da RAM do container
+ENTRYPOINT ["java", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=75.0", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-Dspring.profiles.active=prod", \
+  "-jar", "app.jar"]

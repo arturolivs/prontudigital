@@ -2,59 +2,29 @@ version: '3.8'
 
 services:
   # Banco para Auth Service
-  postgres-auth:
+  postgres-prontudigital:
     image: postgres:15
-    container_name: postgres-auth
+    container_name: postgres-prontudigital
     environment:
-      POSTGRES_DB: auth_db
+      POSTGRES_DB: prontudigital
       POSTGRES_USER: user_admin
       POSTGRES_PASSWORD: secret123
     ports:
       - "5432:5432"
     volumes:
-      - postgres_auth_data:/var/lib/postgresql/data
-    networks:
-      - microservices-net
+      - postgres_prontudigital_data:/var/lib/postgresql/data
 
-  # Banco para Schedule Service
-  postgres-schedule:
-    image: postgres:15
-    container_name: postgres-schedule
-    environment:
-      POSTGRES_DB: schedule_db
-      POSTGRES_USER: user_admin
-      POSTGRES_PASSWORD: secret123
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_schedule_data:/var/lib/postgresql/data
-    networks:
-      - microservices-net
-
-  # Microserviços - SEM portas expostas
-  auth-service:
+  prontudigital-backend:
     build:
-      context: ./services/auth-service
+      context: ./backend
       dockerfile: Dockerfile
     # REMOVER: ports - não expor para fora
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - postgres-auth
+      - postgres-prontudigital
     networks:
-      - microservices-net
-
-  schedule-service:
-    build:
-      context: ./services/schedule-service
-      dockerfile: Dockerfile
-    # REMOVER: ports - não expor para fora
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - postgres-schedule
-    networks:
-      - microservices-net
+      - prontudigital-net
 
   # Gateway - ÚNICO com porta exposta
   gateway:
@@ -66,15 +36,13 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - auth-service
-      - schedule-service
+      - prontudigital-backend
     networks:
-      - microservices-net
+      - prontudigital-net
 
 volumes:
-  postgres_auth_data:
-  postgres_schedule_data:
+  postgres_prontudigital_data:
 
 networks:
-  microservices-net:
+  prontudigital-net:
     driver: bridge

@@ -3,9 +3,10 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import { useEffect } from 'react'
+import { PERFIS } from '../tipos/autenticacao'
 
 export const useRouteProtection = () => {
-  const { user, isLoading } = useAuth()
+  const { usuario, isLoading } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
 
@@ -14,66 +15,65 @@ export const useRouteProtection = () => {
 
     console.log('🔄 Verificando proteção de rota:', {
       pathname,
-      user: user?.username,
-      roles: user?.roles,
+      username: usuario?.username,
+      perfis: usuario?.perfis,
     })
 
-    const routeConfig = {
-      public: ['/login'],
+    const configRotas = {
+      publicas: ['/login'],
 
-      protected: {
-        '/dashboard': ['ADMIN'],
-        '/schedule': ['NURSE', 'DOCTOR', 'ADMIN'],
-      },
+      protegidas: {
+        '/dashboard': [PERFIS.ADMIN],
+        '/agenda': [PERFIS.ENFERMEIRO, PERFIS.MEDICO, PERFIS.ADMIN],
+      } as Record<string, string[]>,
 
-      defaultRedirects: {
-        ADMIN: '/dashboard',
-        NURSE: '/schedule',
-        DOCTOR: '/schedule',
-      },
+      redirecionamentosPadrao: {
+        [PERFIS.ADMIN]: '/dashboard',
+        [PERFIS.ENFERMEIRO]: '/agenda',
+      } as Record<string, string>,
     }
 
-    const isPublicRoute = routeConfig.public.includes(pathname)
-    const isProtectedRoute = Object.keys(routeConfig.protected).some(route =>
-      pathname.startsWith(route),
+    const rotaPublica = configRotas.publicas.includes(pathname)
+    const rotaProtegida = Object.keys(configRotas.protegidas).some(rota =>
+      pathname.startsWith(rota),
     )
 
-    if (isProtectedRoute && !user) {
+    // Não autenticado tentando acessar rota protegida → login
+    if (rotaProtegida && !usuario) {
       console.log('🚫 Usuário não autenticado, redirecionando para login')
       router.push('/login')
       return
     }
 
-    if (isPublicRoute && user) {
+    // Autenticado em rota pública → redireciona pra home do perfil
+    if (rotaPublica && usuario) {
       console.log('✅ Usuário autenticado em rota pública, redirecionando')
-      const defaultRoute =
-        routeConfig.defaultRedirects[
-          user.roles[0] as keyof typeof routeConfig.defaultRedirects
-        ] || '/schedule'
-      router.push(defaultRoute)
+      const rotaPadrao =
+        configRotas.redirecionamentosPadrao[usuario.perfis[0]] || '/agenda'
+      router.push(rotaPadrao)
       return
     }
 
-    if (isProtectedRoute && user) {
-      const routeKey = Object.keys(routeConfig.protected).find(route =>
-        pathname.startsWith(route),
+    // Autenticado em rota protegida → verifica permissão
+    if (rotaProtegida && usuario) {
+      const chaveRota = Object.keys(configRotas.protegidas).find(rota =>
+        pathname.startsWith(rota),
       )
 
-      if (routeKey) {
-        const requiredRoles =
-          routeConfig.protected[routeKey as keyof typeof routeConfig.protected]
-        const hasPermission = requiredRoles.some(role =>
-          user.roles.includes(role),
+      if (chaveRota) {
+        const perfisNecessarios = configRotas.protegidas[chaveRota]
+        const temPermissao = perfisNecessarios.some(perfil =>
+          usuario.perfis.includes(perfil),
         )
 
-        if (!hasPermission) {
+        if (!temPermissao) {
           console.log(
-            `🚫 Usuário sem permissão para ${routeKey}, redirecionando para unauthorized`,
+            `🚫 Usuário sem permissão para ${chaveRota}, redirecionando para unauthorized`,
           )
           router.push('/unauthorized')
           return
         }
       }
     }
-  }, [pathname, user, isLoading, router])
+  }, [pathname, usuario, isLoading, router])
 }

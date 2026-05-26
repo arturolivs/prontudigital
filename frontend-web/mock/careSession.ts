@@ -1,6 +1,6 @@
-import { CareType } from '@/types/CareType'
-import { SessionStatus } from '@/types/SessionStatus'
-import { SessionType } from '@/types/SessionType'
+import { CareType } from '@/tipos/CareType'
+import { SessionStatus } from '@/tipos/SessionStatus'
+import { SessionType } from '@/tipos/SessionType'
 
 export default [
   {

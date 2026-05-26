@@ -1,7 +1,31 @@
 .env
+docker/dev/.env
+docker/prod/.env
 
-### IntelliJ IDEA ###
-.idea
-*.iws
+# Java / Maven
+backend/target/
+gateway/target/
+**/.mvn/wrapper/maven-wrapper.jar
+**/mvnw.cmd
+*.class
+*.jar
+*.war
+
+# Node / Frontend
+frontend-web/node_modules/
+frontend-web/dist/
+frontend-web/.next/
+frontend-web/out/
+frontend-web/.nuxt/
+
+# IDEs
+.idea/
 *.iml
-*.ipr
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs/

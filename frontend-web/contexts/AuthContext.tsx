@@ -8,16 +8,20 @@ import {
   ReactNode,
 } from 'react'
 import { useRouter } from 'next/navigation'
-import { authAPI, tokenService } from '../lib/auth.service'
-import { User, LoginCredentials, AuthResponse } from '../types/auth'
+import { autenticacaoAPI, tokenService } from '../lib/auth.service'
+import {
+  UsuarioAutenticado,
+  LoginRequisicao,
+  JwtResposta,
+  PERFIS,
+} from '../tipos/autenticacao'
 
 interface AuthContextType {
-  user: User | null
-  login: (credentials: LoginCredentials) => Promise<void>
+  usuario: UsuarioAutenticado | null
+  login: (credenciais: LoginRequisicao) => Promise<void>
   logout: () => Promise<void>
   isLoading: boolean
-  hasRole: (role: string) => boolean
-  getProfessionalUuid: () => string | null
+  temPerfil: (perfil: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -27,66 +31,79 @@ interface AuthProviderProps {
 }
 
 const AuthProviderContent = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null)
+  const [usuario, setUsuario] = useState<UsuarioAutenticado | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    checkAuth()
+    verificarAutenticacao()
   }, [])
 
-  const checkAuth = async () => {
+  const verificarAutenticacao = async () => {
     try {
       const token = tokenService.getToken()
-      console.log('🔐 CheckAuth - Token encontrado:', !!token)
+      console.log('🔐 verificarAutenticacao - Token encontrado:', !!token)
 
-      if (token) {
-        const storedUserData = tokenService.getUserData()
-
-        if (storedUserData) {
-          console.log('✅ Usuário recuperado do localStorage:', storedUserData)
-          setUser(storedUserData)
-          setIsLoading(false)
-          return
-        }
-
-        try {
-          const userData = decodeJWT(token)
-          console.log('✅ Usuário do JWT:', userData)
-
-          tokenService.setUserData(userData)
-          setUser(userData)
-        } catch (error) {
-          console.error('❌ Erro ao decodificar JWT:', error)
-          tokenService.clearTokens()
-          setUser(null)
-        }
-      } else {
+      if (!token) {
         console.log('❌ Nenhum token encontrado')
-        setUser(null)
+        setUsuario(null)
+        return
+      }
+
+      const dadosArmazenados = tokenService.getDadosUsuario()
+      if (dadosArmazenados) {
+        console.log('✅ Usuário recuperado do localStorage:', dadosArmazenados)
+        setUsuario(dadosArmazenados)
+        return
+      }
+
+      try {
+        const dadosUsuario = decodificarJWT(token)
+        console.log('✅ Usuário do JWT:', dadosUsuario)
+        tokenService.setDadosUsuario(dadosUsuario)
+        setUsuario(dadosUsuario)
+      } catch (error) {
+        console.error('❌ Erro ao decodificar JWT:', error)
+        tokenService.clearTokens()
+        setUsuario(null)
       }
     } catch (error) {
-      console.error('❌ Erro no checkAuth:', error)
+      console.error('❌ Erro em verificarAutenticacao:', error)
       tokenService.clearTokens()
-      setUser(null)
+      setUsuario(null)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const decodeJWT = (token: string): User => {
+  /**
+   * Decodifica o payload do JWT. NÃO valida assinatura — isso é só pra ler
+   * os claims no client. A validação real acontece no backend.
+   *
+   * JWT usa base64url (não base64 padrão), então é preciso converter antes
+   * de chamar atob().
+   */
+  const decodificarJWT = (token: string): UsuarioAutenticado => {
     try {
-      const payload = token.split('.')[1]
-      const decoded = atob(payload)
-      const tokenData = JSON.parse(decoded)
+      const payloadBase64Url = token.split('.')[1]
+      if (!payloadBase64Url) throw new Error('JWT sem payload')
 
-      console.log('📄 Payload do JWT:', tokenData)
+      // Converte base64url → base64 padrão e adiciona padding
+      const base64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+      const decoded = atob(padded)
+      const claims = JSON.parse(decoded)
+
+      console.log('📄 Payload do JWT:', claims)
+
+      // O backend coloca os perfis no claim "perfis" (ou "roles" dependendo da
+      // configuração do JwtService). Tenta os dois pra dar resiliência.
+      const perfis: string[] = claims.perfis ?? claims.roles ?? []
 
       return {
-        username: tokenData.sub,
-        roles: tokenData.roles || [],
-        token: token,
-        professionalUuid: tokenData.professionalUuid,
+        username: claims.sub,
+        perfis,
+        token,
       }
     } catch (error) {
       console.error('❌ Erro ao decodificar JWT:', error)
@@ -94,44 +111,44 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
     }
   }
 
-  const hasRole = (role: string): boolean => {
-    return user?.roles.includes(role) || false
+  const temPerfil = (perfil: string): boolean => {
+    return usuario?.perfis.includes(perfil) ?? false
   }
 
-  const getProfessionalUuid = (): string | null => {
-    return user?.professionalUuid || null
-  }
-
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credenciais: LoginRequisicao) => {
     try {
       console.log('🔐 Iniciando login...')
-      const response: AuthResponse = await authAPI.login(credentials)
-      console.log('✅ Resposta do login:', response)
+      const resposta: JwtResposta = await autenticacaoAPI.login(credenciais)
+      console.log('✅ Resposta do login:', resposta)
 
-      tokenService.setTokens(response.accessToken, response.refreshToken)
+      tokenService.setTokens(resposta.accessToken, resposta.refreshToken)
 
-      const userData: User = {
-        username: response.username,
-        roles: response.roles,
-        token: response.accessToken,
-        professionalUuid: response.professionalUuid,
+      const dadosUsuario: UsuarioAutenticado = {
+        username: resposta.username,
+        perfis: resposta.perfis,
+        token: resposta.accessToken,
       }
 
-      console.log('💾 Salvando userData no localStorage:', userData)
-      tokenService.setUserData(userData)
+      console.log('💾 Salvando dadosUsuario no localStorage:', dadosUsuario)
+      tokenService.setDadosUsuario(dadosUsuario)
+      setUsuario(dadosUsuario)
 
-      setUser(userData)
-
-      const primaryRole = response.roles[0]
-      const redirectMap: { [key: string]: string } = {
-        ADMIN: '/dashboard',
-        NURSE: '/appointments',
-        DOCTOR: '/appointments',
+      // TODO design: usar o primeiro perfil do array é frágil. Se o usuário
+      // tiver múltiplos perfis, a ordem decide o redirect. Considerar prioridade
+      // explícita ou deixar o usuário escolher.
+      const perfilPrincipal = resposta.perfis[0]
+      const mapaRedirecionamento: { [key: string]: string } = {
+        [PERFIS.ADMIN]: '/dashboard',
+        [PERFIS.ENFERMEIRO]: '/appointments',
+        [PERFIS.MEDICO]: '/appointments',
+        [PERFIS.USUARIO]: '/appointments',
       }
 
-      const redirectTo = redirectMap[primaryRole] || '/appointments'
-      console.log(`🔄 Redirecionando para ${redirectTo} (role: ${primaryRole})`)
-      router.push(redirectTo)
+      const destino = mapaRedirecionamento[perfilPrincipal] || '/appointments'
+      console.log(
+        `🔄 Redirecionando para ${destino} (perfil: ${perfilPrincipal})`,
+      )
+      router.push(destino)
     } catch (error: any) {
       console.error('❌ Erro no login:', error)
       throw new Error(error.response?.data?.message || 'Erro ao fazer login')
@@ -142,10 +159,11 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
     try {
       console.log('🚪 Fazendo logout...')
 
-      setUser(null)
-      setIsLoading(false)
+      setUsuario(null)
       tokenService.clearTokens()
-      authAPI.logout().catch(error => {
+
+      // Fire-and-forget no backend — se falhar, o usuário já foi deslogado localmente
+      autenticacaoAPI.logout().catch(error => {
         console.error('Erro no logout do backend:', error)
       })
 
@@ -153,18 +171,17 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error('❌ Erro no logout:', error)
       tokenService.clearTokens()
-      setUser(null)
+      setUsuario(null)
       router.push('/login')
     }
   }
 
   const value: AuthContextType = {
-    user,
+    usuario,
     login,
     logout,
     isLoading,
-    hasRole,
-    getProfessionalUuid,
+    temPerfil,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -177,7 +194,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider')
   }
   return context
 }

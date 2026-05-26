@@ -1,0 +1,156 @@
+# ============================================================
+# Docker Compose — Produção
+#
+# Uso:
+#   cp .env.example .env          # primeira vez — preencha TODOS os valores
+#   docker compose up -d          # sobe em background
+#   docker compose logs -f        # acompanha logs
+#   docker compose pull && docker compose up -d  # atualiza imagens
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # Banco de dados PostgreSQL
+  # ----------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: prontudigital-db
+    restart: always
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Produção: porta NÃO exposta no host — acesso apenas pela rede interna
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+    # Limite de recursos
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  # ----------------------------------------------------------
+  # Backend (monolito Spring Boot)
+  # ----------------------------------------------------------
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.prod
+    image: prontudigital/backend:latest
+    container_name: prontudigital-backend
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_FLYWAY_URL:          jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_FLYWAY_USER:         ${POSTGRES_USER}
+      SPRING_FLYWAY_PASSWORD:     ${POSTGRES_PASSWORD}
+      APP_JWT_ACCESS_EXPIRATION_MS:  ${JWT_ACCESS_EXPIRATION_MS}
+      APP_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS}
+      APP_JWT_SECRET:             ${JWT_SECRET}
+    # Produção: porta NÃO exposta — acesso apenas via gateway
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
+    # Aguarda o backend estar respondendo antes de aceitar tráfego
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s   # tempo para o Spring Boot inicializar
+
+  # ----------------------------------------------------------
+  # Gateway (Spring Cloud Gateway)
+  # ----------------------------------------------------------
+  gateway:
+    build:
+      context: ../../gateway
+      dockerfile: Dockerfile.prod
+    image: prontudigital/gateway:latest
+    container_name: prontudigital-gateway
+    restart: always
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://backend:8080
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+    expose:
+      - "9090"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - backend-network
+      - frontend-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+  # ----------------------------------------------------------
+  # Frontend Web (build estático servido pelo Nginx)
+  # ----------------------------------------------------------
+  frontend:
+    build:
+      context: ../../frontend-web
+      dockerfile: Dockerfile.prod
+    image: prontudigital/frontend:latest
+    container_name: prontudigital-frontend
+    restart: always
+    ports:
+      # Único serviço com porta exposta — ponto de entrada HTTP
+      - "80:80"
+      # Se usar SSL com Nginx: descomente e configure os certificados
+      # - "443:443"
+    depends_on:
+      - gateway
+    networks:
+      - frontend-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+# ----------------------------------------------------------
+# Volumes
+# ----------------------------------------------------------
+volumes:
+  postgres_data:
+    name: prontudigital_postgres_prod
+
+# ----------------------------------------------------------
+# Redes — segmentadas por responsabilidade
+#
+#  backend-network:  postgres ↔ backend ↔ gateway
+#  frontend-network: gateway ↔ frontend
+#
+# O postgres nunca é acessível pelo frontend diretamente.
+# ----------------------------------------------------------
+networks:
+  backend-network:
+    name: prontudigital_backend_network
+    internal: true   # sem acesso à internet — tráfego apenas interno
+  frontend-network:
+    name: prontudigital_frontend_network

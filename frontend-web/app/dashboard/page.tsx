@@ -3,59 +3,127 @@
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function DashboardPage() {
-  const { user, hasRole } = useAuth()
+  const { usuario, temPerfil } = useAuth()
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        Dashboard Administrativo
-      </h1>
+      <h1 className="dashboard-title">Dashboard Administrativo</h1>
 
-      <div className="bg-white p-6 rounded-lg shadow mb-6">
-        <h3 className="text-lg font-medium mb-4">Informações do Usuário</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="info-card">
+        <h3 className="info-card-title">Informações do Usuário</h3>
+        <div className="info-grid">
           <div>
-            <p className="text-sm text-gray-600">Username</p>
-            <p className="font-medium">{user?.username}</p>
+            <p className="info-label">Username</p>
+            <p className="info-value">{usuario?.username}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Roles</p>
-            <div className="flex space-x-1 mt-1">
-              {user?.roles.map(role => (
-                <span
-                  key={role}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                >
-                  {role}
+            <p className="info-label">Perfis</p>
+            <div className="perfis-container">
+              {usuario?.perfis.map((perfil: string) => (
+                <span key={perfil} className="perfil-badge">
+                  {perfil}
                 </span>
               ))}
             </div>
           </div>
-          {user?.professionalUuid && (
-            <div className="md:col-span-2">
-              <p className="text-sm text-gray-600">Professional UUID</p>
-              <p className="font-medium text-sm break-all">
-                {user.professionalUuid}
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium mb-2">Estatísticas</h3>
-          <p className="text-gray-600">Visualize métricas do sistema</p>
+      <div className="stats-grid">
+        <div className="stat-card">
+          <h3>Estatísticas</h3>
+          <p>Visualize métricas do sistema</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium mb-2">Gerenciar Usuários</h3>
-          <p className="text-gray-600">Administre contas de usuários</p>
+        <div className="stat-card">
+          <h3>Gerenciar Usuários</h3>
+          <p>Administre contas de usuários</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium mb-2">Configurações</h3>
-          <p className="text-gray-600">Configure o sistema</p>
+        <div className="stat-card">
+          <h3>Configurações</h3>
+          <p>Configure o sistema</p>
         </div>
       </div>
+
+      <style jsx>{`
+        .dashboard-title {
+          font-size: 1.875rem;
+          font-weight: 700;
+          color: #2b6cb0;
+          margin-bottom: 1.5rem;
+        }
+        .info-card {
+          background: white;
+          border-radius: 1rem;
+          padding: 1.5rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          margin-bottom: 2rem;
+          border: 1px solid #e6f4f1;
+        }
+        .info-card-title {
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: #2b6cb0;
+          margin-bottom: 1rem;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 1rem;
+        }
+        .info-label {
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          font-weight: 600;
+          color: #7991bc;
+          margin-bottom: 0.25rem;
+        }
+        .info-value {
+          font-weight: 500;
+          color: #1e293b;
+        }
+        .perfis-container {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+        .perfil-badge {
+          background: #e6f4f1;
+          color: #2b6cb0;
+          padding: 0.25rem 0.75rem;
+          border-radius: 2rem;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 1.5rem;
+        }
+        .stat-card {
+          background: white;
+          border-radius: 1rem;
+          padding: 1.5rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          border: 1px solid #e6f4f1;
+          transition:
+            transform 0.2s,
+            box-shadow 0.2s;
+        }
+        .stat-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(43, 108, 176, 0.1);
+        }
+        .stat-card h3 {
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: #2b6cb0;
+          margin-bottom: 0.5rem;
+        }
+        .stat-card p {
+          color: #5a6e82;
+          font-size: 0.875rem;
+        }
+      `}</style>
     </div>
   )
 }

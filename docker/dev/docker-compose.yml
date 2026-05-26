@@ -1,0 +1,130 @@
+# ============================================================
+# Docker Compose — Desenvolvimento
+#
+# Uso:
+#   cp .env.example .env          # primeira vez
+#   docker compose up             # sobe tudo
+#   docker compose up backend     # sobe só um serviço
+#   docker compose down -v        # derruba e limpa volumes
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # Banco de dados PostgreSQL
+  # ----------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: prontudigital-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"   # exposto no host para uso com DBeaver/IntelliJ
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - prontudigital-dev
+
+  # ----------------------------------------------------------
+  # Backend (monolito Spring Boot)
+  # ----------------------------------------------------------
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.dev
+    container_name: prontudigital-backend-dev
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_FLYWAY_URL:          jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_FLYWAY_USER:         ${POSTGRES_USER}
+      SPRING_FLYWAY_PASSWORD:     ${POSTGRES_PASSWORD}
+      APP_JWT_ACCESS_EXPIRATION_MS:  ${JWT_ACCESS_EXPIRATION_MS}
+      APP_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS}
+      APP_JWT_SECRET:             ${JWT_SECRET}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      # Monta o código-fonte para hot reload via DevTools
+      - ../../backend/src:/app/src
+      - ../../backend/pom.xml:/app/pom.xml
+      # Cache do Maven fora do container (builds mais rápidos)
+      - maven_cache:/root/.m2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prontudigital-dev
+
+  # ----------------------------------------------------------
+  # Gateway (Spring Cloud Gateway)
+  # ----------------------------------------------------------
+  gateway:
+    build:
+      context: ../../gateway
+      dockerfile: Dockerfile.dev
+    container_name: prontudigital-gateway-dev
+    restart: unless-stopped
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://backend:8080
+      CORS_ALLOWED_ORIGINS: "http://localhost:${FRONTEND_PORT:-3000}"
+    ports:
+      - "${GATEWAY_PORT:-9090}:9090"
+    volumes:
+      - ../../gateway/src:/app/src
+      - ../../gateway/pom.xml:/app/pom.xml
+      - maven_cache:/root/.m2
+    depends_on:
+      - backend
+    networks:
+      - prontudigital-dev
+
+  # ----------------------------------------------------------
+  # Frontend Web
+  # ----------------------------------------------------------
+  frontend:
+    build:
+      context: ../../frontend-web
+      dockerfile: Dockerfile.dev
+    container_name: prontudigital-frontend-dev
+    restart: unless-stopped
+    environment:
+      # Aponta para o gateway — ajuste a variável conforme seu framework
+      VITE_API_URL: http://localhost:${GATEWAY_PORT:-9090}
+      # Next.js:  NEXT_PUBLIC_API_URL: http://localhost:${GATEWAY_PORT:-9090}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      # Hot reload: monta src e ignora node_modules do host
+      - ../../frontend-web:/app
+      - /app/node_modules
+    depends_on:
+      - gateway
+    networks:
+      - prontudigital-dev
+
+# ----------------------------------------------------------
+# Volumes
+# ----------------------------------------------------------
+volumes:
+  postgres_data_dev:
+    name: prontudigital_postgres_dev
+  maven_cache:
+    name: prontudigital_maven_cache   # compartilhado entre backend e gateway
+
+# ----------------------------------------------------------
+# Rede interna isolada
+# ----------------------------------------------------------
+networks:
+  prontudigital-dev:
+    name: prontudigital_dev_network

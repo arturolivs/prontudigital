@@ -1,0 +1,55 @@
+# ============================================================
+# application-dev.yaml — Backend
+# Ativado com: --spring.profiles.active=local
+# Variáveis injetadas pelo docker-compose (ou .env local)
+# ============================================================
+
+spring:
+  application:
+    name: prontudigital
+
+  datasource:
+    url:      ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/prontudigital}
+    username: ${SPRING_DATASOURCE_USERNAME:user_admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:secret123}
+    hikari:
+      maximum-pool-size: 5    # pool menor em dev — economiza recursos
+
+  jpa:
+    hibernate:
+      ddl-auto: validate      # Flyway gerencia o schema — Hibernate só valida
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    url:      ${SPRING_FLYWAY_URL:jdbc:postgresql://localhost:5432/prontudigital}
+    user:     ${SPRING_FLYWAY_USER:user_admin}
+    password: ${SPRING_FLYWAY_PASSWORD:secret123}
+    locations: classpath:db/migracoes
+    baseline-on-migrate: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret:                ${APP_JWT_SECRET:dev-secret-key-minimo-32-caracteres-aqui}
+    access-expiration-ms:  ${APP_JWT_ACCESS_EXPIRATION_MS:600000000}
+    refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS:600000000}
+
+logging:
+  level:
+    root:                                         INFO
+    com.prontudigital:                            DEBUG
+    org.hibernate.SQL:                            DEBUG
+    org.hibernate.type.descriptor.sql:            TRACE
+    org.springframework.security:                 DEBUG
+    org.springframework.web:                      DEBUG
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

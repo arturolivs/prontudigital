@@ -1,21 +1,22 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { UserFull } from '@/types/auth'
+import { Usuario } from '@/tipos/autenticacao'
 import './userFormModal.style.css'
 
-const ROLE_OPTIONS = [
-  { label: 'Administrador', value: 'ADMIN' },
-  { label: 'Enfermeiro', value: 'NURSE' },
-  { label: 'Paciente', value: 'PATIENT' },
+const OPCOES_PERFIL = [
+  { label: 'Administrador', value: 'ROLE_ADMIN' },
+  { label: 'Enfermeiro', value: 'ENFERMEIRO' },
+  { label: 'Médico', value: 'MEDICO' },
+  { label: 'Usuário', value: 'USUARIO' },
 ]
 
-function RolesCombobox({
+function PerfisCombobox({
   value,
   onChange,
 }: {
   value: string[]
-  onChange: (roles: string[]) => void
+  onChange: (perfis: string[]) => void
 }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -33,16 +34,16 @@ function RolesCombobox({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const toggleRole = (role: string) => {
-    if (value.includes(role)) {
-      onChange(value.filter(r => r !== role))
+  const togglePerfil = (perfil: string) => {
+    if (value.includes(perfil)) {
+      onChange(value.filter(p => p !== perfil))
     } else {
-      onChange([...value, role])
+      onChange([...value, perfil])
     }
   }
 
   const selectedLabels = value
-    .map(v => ROLE_OPTIONS.find(o => o.value === v)?.label ?? v)
+    .map(v => OPCOES_PERFIL.find(o => o.value === v)?.label ?? v)
     .join(', ')
 
   return (
@@ -57,7 +58,7 @@ function RolesCombobox({
         <span
           className={`combobox-value${value.length === 0 ? ' combobox-placeholder' : ''}`}
         >
-          {value.length === 0 ? 'Selecione as funções...' : selectedLabels}
+          {value.length === 0 ? 'Selecione os perfis...' : selectedLabels}
         </span>
         <svg
           className={`combobox-chevron${open ? ' combobox-chevron--open' : ''}`}
@@ -82,15 +83,15 @@ function RolesCombobox({
           role="listbox"
           aria-multiselectable="true"
         >
-          {ROLE_OPTIONS.map(option => {
-            const selected = value.includes(option.value)
+          {OPCOES_PERFIL.map(opcao => {
+            const selected = value.includes(opcao.value)
             return (
               <li
-                key={option.value}
+                key={opcao.value}
                 role="option"
                 aria-selected={selected}
                 className={`combobox-option${selected ? ' combobox-option--selected' : ''}`}
-                onClick={() => toggleRole(option.value)}
+                onClick={() => togglePerfil(opcao.value)}
               >
                 <span className="combobox-checkbox" aria-hidden="true">
                   {selected && (
@@ -109,8 +110,8 @@ function RolesCombobox({
                     </svg>
                   )}
                 </span>
-                {option.label}
-                <span className="combobox-badge">{option.value}</span>
+                {opcao.label}
+                <span className="combobox-badge">{opcao.value}</span>
               </li>
             )
           })}
@@ -125,17 +126,17 @@ function UserFormModal({
   onClose,
   onSave,
 }: {
-  user: UserFull | null
+  user: Usuario | null
   onClose: () => void
-  onSave: (data: Partial<UserFull> & { password?: string }) => void
+  onSave: (data: Partial<Usuario> & { password?: string }) => void
 }) {
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || '',
+    nomeCompleto: user?.nomeCompleto || '',
     username: user?.username || '',
     email: user?.email || '',
     password: '',
-    isActive: user?.isActive !== undefined ? user.isActive : true,
-    roles: user?.roles || ['USER'],
+    ativo: user?.ativo !== undefined ? user.ativo : true,
+    perfis: user?.perfis || ['USUARIO'],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -150,7 +151,7 @@ function UserFormModal({
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2 className="modal-title">
+        <h2 className="modal-title" style={{ color: '#2b6cb0' }}>
           {user ? 'Editar Usuário' : 'Novo Usuário'}
         </h2>
         <form onSubmit={handleSubmit}>
@@ -158,9 +159,9 @@ function UserFormModal({
             <label className="form-label">Nome Completo</label>
             <input
               type="text"
-              value={formData.fullName}
+              value={formData.nomeCompleto}
               onChange={e =>
-                setFormData({ ...formData, fullName: e.target.value })
+                setFormData({ ...formData, nomeCompleto: e.target.value })
               }
               className="form-input"
               required
@@ -208,11 +209,11 @@ function UserFormModal({
           <div className="form-group">
             <label className="form-label">Status</label>
             <select
-              value={formData.isActive ? 'true' : 'false'}
+              value={formData.ativo ? 'true' : 'false'}
               onChange={e =>
                 setFormData({
                   ...formData,
-                  isActive: e.target.value === 'true',
+                  ativo: e.target.value === 'true',
                 })
               }
               className="form-select"
@@ -222,10 +223,10 @@ function UserFormModal({
             </select>
           </div>
           <div className="form-group">
-            <label className="form-label">Funções</label>
-            <RolesCombobox
-              value={formData.roles}
-              onChange={roles => setFormData({ ...formData, roles })}
+            <label className="form-label">Perfis</label>
+            <PerfisCombobox
+              value={formData.perfis}
+              onChange={perfis => setFormData({ ...formData, perfis })}
             />
           </div>
           <div className="form-actions">
