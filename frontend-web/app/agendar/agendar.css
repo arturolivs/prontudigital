@@ -1,0 +1,703 @@
+/* ===== PÁGINA PÚBLICA DE AGENDAMENTO ===== */
+
+* { box-sizing: border-box; }
+
+.pagina-agendar {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f4f9ff 0%, #e6f4f1 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.agendar-header {
+  background: linear-gradient(135deg, #2b6cb0 0%, #7991bc 100%);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+.agendar-header-logo {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: rgba(255,255,255,0.2);
+  border-radius: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.agendar-header-logo svg { color: white; width: 1.25rem; height: 1.25rem; }
+
+.agendar-header-texto h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.agendar-header-texto p {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.8);
+  margin: 0;
+}
+
+/* ── Main ── */
+.agendar-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 3rem;
+  gap: 1.5rem;
+}
+
+/* ── Step indicator ── */
+.indicador-etapas {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  max-width: 560px;
+}
+
+.etapa-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  position: relative;
+}
+
+.etapa-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 1.05rem;
+  left: calc(50% + 1.1rem);
+  right: calc(-50% + 1.1rem);
+  height: 2px;
+  background: #d1dde8;
+  z-index: 0;
+  transition: background 0.3s;
+}
+
+.etapa-item.concluida:not(:last-child)::after,
+.etapa-item.ativa:not(:last-child)::after {
+  background: #7991bc;
+}
+
+.etapa-circulo {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  z-index: 1;
+  transition: all 0.3s;
+  border: 2px solid #d1dde8;
+  background: white;
+  color: #94a3b8;
+}
+
+.etapa-item.ativa .etapa-circulo {
+  background: linear-gradient(135deg, #2b6cb0, #7991bc);
+  border-color: #2b6cb0;
+  color: white;
+  box-shadow: 0 2px 10px rgba(43,108,176,0.35);
+}
+
+.etapa-item.concluida .etapa-circulo {
+  background: #e6f4f1;
+  border-color: #7991bc;
+  color: #2b6cb0;
+}
+
+.etapa-rotulo {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #94a3b8;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.etapa-item.ativa .etapa-rotulo  { color: #2b6cb0; font-weight: 600; }
+.etapa-item.concluida .etapa-rotulo { color: #7991bc; }
+
+/* ── Card principal ── */
+.agendar-card {
+  background: white;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 32px rgba(43,108,176,0.1), 0 2px 8px rgba(0,0,0,0.06);
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+}
+
+.card-cabecalho {
+  background: linear-gradient(135deg, #2b6cb0 0%, #7991bc 100%);
+  padding: 1.25rem 1.5rem;
+}
+
+.card-cabecalho h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 0.15rem;
+}
+
+.card-cabecalho p {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.85);
+  margin: 0;
+}
+
+.card-corpo {
+  padding: 1.5rem;
+}
+
+.card-rodape {
+  padding: 1rem 1.5rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  gap: 0.75rem;
+}
+
+/* ── Botões de navegação ── */
+.btn-voltar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-voltar:hover { border-color: #94a3b8; color: #334155; background: #f8fafc; }
+
+.btn-continuar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #2b6cb0 0%, #7991bc 100%);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(43,108,176,0.3);
+  margin-left: auto;
+}
+
+.btn-continuar:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1f4e7a 0%, #6480aa 100%);
+  box-shadow: 0 4px 14px rgba(43,108,176,0.4);
+  transform: translateY(-1px);
+}
+
+.btn-continuar:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* ── Campos de formulário ── */
+.campo { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+
+.campo:last-child { margin-bottom: 0; }
+
+.campo label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.campo label .opcional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #94a3b8;
+}
+
+.campo-input, .campo-select {
+  padding: 0.65rem 0.875rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.55rem;
+  font-size: 0.9rem;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  font-family: inherit;
+  width: 100%;
+}
+
+.campo-input:focus, .campo-select:focus {
+  outline: none;
+  border-color: #7991bc;
+  box-shadow: 0 0 0 3px rgba(121,145,188,0.15);
+  background: white;
+}
+
+.campo-select { cursor: pointer; }
+
+.campo-erro { font-size: 0.75rem; color: #dc2626; margin-top: 0.2rem; }
+
+/* ── Etapa 1: Profissionais ── */
+.profissionais-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.profissional-card {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f8fafc;
+  text-align: left;
+}
+
+.profissional-card:hover {
+  border-color: #7991bc;
+  background: #f0f5ff;
+}
+
+.profissional-card.selecionado {
+  border-color: #2b6cb0;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(43,108,176,0.1);
+}
+
+.profissional-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2b6cb0, #7991bc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.profissional-info { flex: 1; min-width: 0; }
+
+.profissional-nome {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profissional-subtitulo {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.profissional-check {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  border: 2px solid #d1dde8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.profissional-card.selecionado .profissional-check {
+  background: #2b6cb0;
+  border-color: #2b6cb0;
+}
+
+/* ── Etapa 2: Horários ── */
+.slots-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.slots-data-input {
+  padding: 0.55rem 0.875rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  flex: 1;
+  min-width: 140px;
+}
+
+.slots-data-input:focus {
+  outline: none;
+  border-color: #7991bc;
+  background: white;
+}
+
+.slots-legenda {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.legenda-item { display: flex; align-items: center; gap: 0.35rem; }
+
+.legenda-cor {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.2rem;
+  border: 1.5px solid transparent;
+}
+
+.legenda-cor--disponivel { background: white; border-color: #d1dde8; }
+.legenda-cor--selecionado { background: #2b6cb0; border-color: #2b6cb0; }
+.legenda-cor--bloqueado { background: #f1f5f9; border-color: #e2e8f0; }
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.slot-btn {
+  padding: 0.7rem 0.5rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.slot-btn:hover:not(:disabled) {
+  border-color: #7991bc;
+  background: #f0f5ff;
+  color: #2b6cb0;
+}
+
+.slot-btn.selecionado {
+  background: linear-gradient(135deg, #2b6cb0, #7991bc);
+  border-color: #2b6cb0;
+  color: white;
+  box-shadow: 0 2px 8px rgba(43,108,176,0.3);
+}
+
+.slot-btn:disabled {
+  background: #f8fafc;
+  color: #cbd5e1;
+  border-color: #f1f5f9;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.slots-vazio {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+/* ── Etapa 3: Identificação ── */
+.auth-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 0.65rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.auth-tab.ativo {
+  background: white;
+  color: #2b6cb0;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.campo-linha-dupla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.auth-separador {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0.5rem 0 0;
+}
+
+/* ── Etapa 4: Confirmação ── */
+.resumo-confirmacao {
+  background: #f8fafc;
+  border: 1.5px solid #e2edf7;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.resumo-cabecalho {
+  background: linear-gradient(135deg, #2b6cb0, #7991bc);
+  padding: 0.875rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resumo-cabecalho span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+
+.resumo-corpo { padding: 0.1rem 0; }
+
+.resumo-linha {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid #e2edf7;
+}
+
+.resumo-linha:last-child { border-bottom: none; }
+
+.resumo-icone-wrapper {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.45rem;
+  background: #e6f0fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.resumo-icone-wrapper svg { color: #2b6cb0; width: 0.9rem; height: 0.9rem; }
+
+.resumo-linha-info { flex: 1; min-width: 0; }
+
+.resumo-linha-rotulo {
+  font-size: 0.72rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.resumo-linha-valor {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-top: 0.1rem;
+}
+
+.campo-obs textarea {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #1e293b;
+  background: #f8fafc;
+  resize: vertical;
+  min-height: 4rem;
+  transition: border-color 0.2s;
+  line-height: 1.5;
+}
+
+.campo-obs textarea:focus {
+  outline: none;
+  border-color: #7991bc;
+  box-shadow: 0 0 0 3px rgba(121,145,188,0.15);
+  background: white;
+}
+
+/* ── Erro inline ── */
+.alerta-erro {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.55rem;
+  font-size: 0.82rem;
+  color: #991b1b;
+  margin-bottom: 1rem;
+}
+
+/* ── Loading state ── */
+.agendar-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  gap: 0.75rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.spinner-sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid #e2edf7;
+  border-top-color: #2b6cb0;
+  border-radius: 50%;
+  animation: girar 0.75s linear infinite;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* ── Tela de Sucesso ── */
+.sucesso-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  gap: 0.75rem;
+}
+
+.sucesso-icone {
+  width: 5rem;
+  height: 5rem;
+  background: linear-gradient(135deg, #2b6cb0, #7991bc);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  animation: escalar 0.4s ease-out;
+  box-shadow: 0 4px 20px rgba(43,108,176,0.35);
+}
+
+@keyframes escalar {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.sucesso-icone svg { color: white; width: 2.5rem; height: 2.5rem; }
+
+.sucesso-container h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.sucesso-container p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+.sucesso-detalhes {
+  background: #f8fafc;
+  border: 1px solid #e2edf7;
+  border-radius: 0.875rem;
+  padding: 1rem 1.25rem;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.sucesso-detalhe-linha {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  gap: 1rem;
+}
+
+.sucesso-detalhe-linha span:first-child { color: #64748b; }
+
+.sucesso-detalhe-linha span:last-child { font-weight: 600; color: #1e293b; }
+
+.btn-novo-agendamento {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #2b6cb0, #7991bc);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(43,108,176,0.3);
+  margin-top: 0.5rem;
+}
+
+.btn-novo-agendamento:hover {
+  background: linear-gradient(135deg, #1f4e7a, #6480aa);
+  box-shadow: 0 4px 14px rgba(43,108,176,0.4);
+}
+
+/* ── Responsividade ── */
+@media (max-width: 500px) {
+  .agendar-main { padding: 1.25rem 0.75rem 2.5rem; gap: 1rem; }
+  .card-corpo { padding: 1.25rem; }
+  .card-rodape { padding: 0.875rem 1.25rem 1.25rem; }
+  .etapa-rotulo { display: none; }
+  .slots-grid { grid-template-columns: repeat(3, 1fr); }
+  .campo-linha-dupla { grid-template-columns: 1fr; }
+}
