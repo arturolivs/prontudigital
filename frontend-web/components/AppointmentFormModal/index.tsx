@@ -4,14 +4,16 @@ import { useState } from 'react'
 import { AgendamentoRequisicao } from '@/tipos/appointment'
 import './styles.css'
 
-interface AppointmentFormModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (dados: AgendamentoRequisicao) => void
+interface PropsModalFormularioAgendamento {
+  aberto: boolean
+  aoFechar: () => void
+  aoEnviar: (dados: AgendamentoRequisicao) => void
   profissionalUuid?: string
 }
 
-const initialForm = (profissionalUuid?: string): Partial<AgendamentoRequisicao> => ({
+const formularioInicial = (
+  profissionalUuid?: string,
+): Partial<AgendamentoRequisicao> => ({
   pacienteUuid: '',
   profissionalUuid: profissionalUuid ?? '',
   inicioEm: '',
@@ -21,83 +23,99 @@ const initialForm = (profissionalUuid?: string): Partial<AgendamentoRequisicao> 
   avaliacaoId: undefined,
 })
 
-export default function AppointmentFormModal({
-  isOpen,
-  onClose,
-  onSubmit,
+export default function ModalFormularioAgendamento({
+  aberto,
+  aoFechar,
+  aoEnviar,
   profissionalUuid,
-}: AppointmentFormModalProps) {
-  const [formData, setFormData] = useState<Partial<AgendamentoRequisicao>>(
-    initialForm(profissionalUuid),
-  )
-  const [errors, setErrors] = useState<Record<string, string>>({})
+}: PropsModalFormularioAgendamento) {
+  const [dadosFormulario, setDadosFormulario] = useState<
+    Partial<AgendamentoRequisicao>
+  >(formularioInicial(profissionalUuid))
+  const [erros, setErros] = useState<Record<string, string>>({})
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  const aoAlterar = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setDadosFormulario(prev => ({
       ...prev,
-      [name]: name === 'avaliacaoId' ? (value ? Number(value) : undefined) : value,
+      [name]:
+        name === 'avaliacaoId' ? (value ? Number(value) : undefined) : value,
     }))
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+    if (erros[name]) setErros(prev => ({ ...prev, [name]: '' }))
   }
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
+  const validarFormulario = (): boolean => {
+    const novosErros: Record<string, string> = {}
 
-    if (!formData.pacienteUuid?.trim())
-      newErrors.pacienteUuid = 'UUID do paciente é obrigatório'
-    if (!formData.profissionalUuid?.trim())
-      newErrors.profissionalUuid = 'UUID do profissional é obrigatório'
-    if (!formData.inicioEm)
-      newErrors.inicioEm = 'Data/hora de início é obrigatória'
-    if (!formData.fimEm)
-      newErrors.fimEm = 'Data/hora de término é obrigatória'
-    if (formData.tipo === 'TRATAMENTO' && !formData.avaliacaoId)
-      newErrors.avaliacaoId = 'ID da avaliação é obrigatório para tratamentos'
+    if (!dadosFormulario.pacienteUuid?.trim())
+      novosErros.pacienteUuid = 'UUID do paciente é obrigatório'
+    if (!dadosFormulario.profissionalUuid?.trim())
+      novosErros.profissionalUuid = 'UUID do profissional é obrigatório'
+    if (!dadosFormulario.inicioEm)
+      novosErros.inicioEm = 'Data/hora de início é obrigatória'
+    if (!dadosFormulario.fimEm)
+      novosErros.fimEm = 'Data/hora de término é obrigatória'
+    if (dadosFormulario.tipo === 'TRATAMENTO' && !dadosFormulario.avaliacaoId)
+      novosErros.avaliacaoId = 'ID da avaliação é obrigatório para tratamentos'
 
-    if (formData.inicioEm && formData.fimEm) {
-      if (new Date(formData.fimEm) <= new Date(formData.inicioEm))
-        newErrors.fimEm = 'Término deve ser após o início'
+    if (dadosFormulario.inicioEm && dadosFormulario.fimEm) {
+      if (new Date(dadosFormulario.fimEm) <= new Date(dadosFormulario.inicioEm))
+        novosErros.fimEm = 'Término deve ser após o início'
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErros(novosErros)
+    return Object.keys(novosErros).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const aoSubmeter = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validateForm()) return
+    if (!validarFormulario()) return
 
-    onSubmit(formData as AgendamentoRequisicao)
-    setFormData(initialForm(profissionalUuid))
-    setErrors({})
+    aoEnviar(dadosFormulario as AgendamentoRequisicao)
+    setDadosFormulario(formularioInicial(profissionalUuid))
+    setErros({})
   }
 
-  const handleCancel = () => {
-    setFormData(initialForm(profissionalUuid))
-    setErrors({})
-    onClose()
+  const aoCancelar = () => {
+    setDadosFormulario(formularioInicial(profissionalUuid))
+    setErros({})
+    aoFechar()
   }
 
-  if (!isOpen) return null
+  if (!aberto) return null
 
   return (
-    <div className="modal-overlay" onClick={handleCancel}>
+    <div className="modal-overlay" onClick={aoCancelar}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="text-xl font-bold text-[#2b6cb0]">Novo Agendamento</h2>
-          <button onClick={handleCancel} className="text-gray-400 hover:text-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={aoCancelar}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
+        <form onSubmit={aoSubmeter} className="modal-form">
           <div className="form-grid">
-
             <div className="form-group">
               <label htmlFor="pacienteUuid" className="form-label">
                 UUID do Paciente *
@@ -106,13 +124,13 @@ export default function AppointmentFormModal({
                 type="text"
                 id="pacienteUuid"
                 name="pacienteUuid"
-                value={formData.pacienteUuid || ''}
-                onChange={handleChange}
-                className={`form-input ${errors.pacienteUuid ? 'border-red-500' : ''}`}
+                value={dadosFormulario.pacienteUuid || ''}
+                onChange={aoAlterar}
+                className={`form-input ${erros.pacienteUuid ? 'border-red-500' : ''}`}
                 placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               />
-              {errors.pacienteUuid && (
-                <span className="error-message">{errors.pacienteUuid}</span>
+              {erros.pacienteUuid && (
+                <span className="error-message">{erros.pacienteUuid}</span>
               )}
             </div>
 
@@ -124,14 +142,14 @@ export default function AppointmentFormModal({
                 type="text"
                 id="profissionalUuid"
                 name="profissionalUuid"
-                value={formData.profissionalUuid || ''}
-                onChange={handleChange}
+                value={dadosFormulario.profissionalUuid || ''}
+                onChange={aoAlterar}
                 readOnly={!!profissionalUuid}
-                className={`form-input ${profissionalUuid ? 'bg-gray-100 cursor-not-allowed' : ''} ${errors.profissionalUuid ? 'border-red-500' : ''}`}
+                className={`form-input ${profissionalUuid ? 'bg-gray-100 cursor-not-allowed' : ''} ${erros.profissionalUuid ? 'border-red-500' : ''}`}
                 placeholder="Preenchido automaticamente"
               />
-              {errors.profissionalUuid && (
-                <span className="error-message">{errors.profissionalUuid}</span>
+              {erros.profissionalUuid && (
+                <span className="error-message">{erros.profissionalUuid}</span>
               )}
             </div>
 
@@ -143,12 +161,12 @@ export default function AppointmentFormModal({
                 type="datetime-local"
                 id="inicioEm"
                 name="inicioEm"
-                value={formData.inicioEm || ''}
-                onChange={handleChange}
-                className={`form-input ${errors.inicioEm ? 'border-red-500' : ''}`}
+                value={dadosFormulario.inicioEm || ''}
+                onChange={aoAlterar}
+                className={`form-input ${erros.inicioEm ? 'border-red-500' : ''}`}
               />
-              {errors.inicioEm && (
-                <span className="error-message">{errors.inicioEm}</span>
+              {erros.inicioEm && (
+                <span className="error-message">{erros.inicioEm}</span>
               )}
             </div>
 
@@ -160,12 +178,12 @@ export default function AppointmentFormModal({
                 type="datetime-local"
                 id="fimEm"
                 name="fimEm"
-                value={formData.fimEm || ''}
-                onChange={handleChange}
-                className={`form-input ${errors.fimEm ? 'border-red-500' : ''}`}
+                value={dadosFormulario.fimEm || ''}
+                onChange={aoAlterar}
+                className={`form-input ${erros.fimEm ? 'border-red-500' : ''}`}
               />
-              {errors.fimEm && (
-                <span className="error-message">{errors.fimEm}</span>
+              {erros.fimEm && (
+                <span className="error-message">{erros.fimEm}</span>
               )}
             </div>
 
@@ -176,8 +194,8 @@ export default function AppointmentFormModal({
               <select
                 id="tipo"
                 name="tipo"
-                value={formData.tipo || 'AVALIACAO'}
-                onChange={handleChange}
+                value={dadosFormulario.tipo || 'AVALIACAO'}
+                onChange={aoAlterar}
                 className="form-input"
               >
                 <option value="AVALIACAO">Avaliação</option>
@@ -185,7 +203,7 @@ export default function AppointmentFormModal({
               </select>
             </div>
 
-            {formData.tipo === 'TRATAMENTO' && (
+            {dadosFormulario.tipo === 'TRATAMENTO' && (
               <div className="form-group">
                 <label htmlFor="avaliacaoId" className="form-label">
                   ID da Avaliação de Origem *
@@ -194,14 +212,14 @@ export default function AppointmentFormModal({
                   type="number"
                   id="avaliacaoId"
                   name="avaliacaoId"
-                  value={formData.avaliacaoId ?? ''}
-                  onChange={handleChange}
-                  className={`form-input ${errors.avaliacaoId ? 'border-red-500' : ''}`}
+                  value={dadosFormulario.avaliacaoId ?? ''}
+                  onChange={aoAlterar}
+                  className={`form-input ${erros.avaliacaoId ? 'border-red-500' : ''}`}
                   placeholder="ID do agendamento de avaliação"
                   min={1}
                 />
-                {errors.avaliacaoId && (
-                  <span className="error-message">{errors.avaliacaoId}</span>
+                {erros.avaliacaoId && (
+                  <span className="error-message">{erros.avaliacaoId}</span>
                 )}
               </div>
             )}
@@ -213,18 +231,21 @@ export default function AppointmentFormModal({
               <textarea
                 id="observacoes"
                 name="observacoes"
-                value={formData.observacoes || ''}
-                onChange={handleChange}
+                value={dadosFormulario.observacoes || ''}
+                onChange={aoAlterar}
                 className="form-input"
                 placeholder="Observações opcionais sobre o agendamento"
                 rows={3}
               />
             </div>
-
           </div>
 
           <div className="modal-footer">
-            <button type="button" onClick={handleCancel} className="btn-secondary">
+            <button
+              type="button"
+              onClick={aoCancelar}
+              className="btn-secondary"
+            >
               Cancelar
             </button>
             <button type="submit" className="btn-primary">

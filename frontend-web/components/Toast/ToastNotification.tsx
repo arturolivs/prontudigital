@@ -10,69 +10,69 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import './ToastNotification.css'
 
-export type ToastType = 'error' | 'success' | 'info' | 'warning'
+export type TipoNotificacao = 'error' | 'success' | 'info' | 'warning'
 
-interface ToastNotificationProps {
-  message: string
-  type?: ToastType
-  duration?: number
-  onClose?: () => void
-  isOpen?: boolean
+interface PropsNotificacao {
+  mensagem: string
+  tipo?: TipoNotificacao
+  duracao?: number
+  aoFechar?: () => void
+  aberto?: boolean
 }
 
-export default function ToastNotification({
-  message,
-  type = 'error',
-  duration = 5000,
-  onClose,
-  isOpen: externalIsOpen,
-}: ToastNotificationProps) {
-  const [isOpen, setIsOpen] = useState(true)
-  const [isExiting, setIsExiting] = useState(false)
-  const progressBarRef = useRef<HTMLDivElement>(null)
-  const animationFrameRef = useRef<number>(0)
+export default function Notificacao({
+  mensagem,
+  tipo = 'error',
+  duracao = 5000,
+  aoFechar,
+  aberto: abertoExterno,
+}: PropsNotificacao) {
+  const [visivel, setVisivel] = useState(true)
+  const [saindo, setSaindo] = useState(false)
+  const refBarraProgresso = useRef<HTMLDivElement>(null)
+  const refAnimacao = useRef<number>(0)
 
   useEffect(() => {
-    if (externalIsOpen !== undefined) {
-      setIsOpen(externalIsOpen)
+    if (abertoExterno !== undefined) {
+      setVisivel(abertoExterno)
     }
-  }, [externalIsOpen])
+  }, [abertoExterno])
 
   useEffect(() => {
-    if (isOpen && duration > 0 && progressBarRef.current) {
-      const progressBar = progressBarRef.current
-      progressBar.style.transition = 'none'
-      progressBar.style.transform = 'scaleX(0)'
+    if (visivel && duracao > 0 && refBarraProgresso.current) {
+      const barra = refBarraProgresso.current
+      barra.style.transition = 'none'
+      barra.style.transform = 'scaleX(0)'
 
-      progressBar.getBoundingClientRect()
+      barra.getBoundingClientRect()
 
-      progressBar.style.transition = `transform ${duration}ms linear`
-      progressBar.style.transform = 'scaleX(1)'
+      barra.style.transition = `transform ${duracao}ms linear`
+      barra.style.transform = 'scaleX(1)'
     }
-  }, [isOpen, duration])
+  }, [visivel, duracao])
 
   useEffect(() => {
-    if (isOpen && duration > 0) {
-      const timer = setTimeout(() => {
-        handleClose()
-      }, duration)
+    if (visivel && duracao > 0) {
+      const temporizador = setTimeout(() => {
+        fechar()
+      }, duracao)
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(temporizador)
     }
-  }, [isOpen, duration])
+  }, [visivel, duracao])
 
-  const handleClose = () => {
-    setIsExiting(true)
+  const fechar = () => {
+    setSaindo(true)
     setTimeout(() => {
-      setIsOpen(false)
-      onClose?.()
+      setVisivel(false)
+      aoFechar?.()
     }, 300)
   }
 
-  if (!isOpen) return null
+  if (!visivel) return null
 
-  const getIcon = () => {
-    switch (type) {
+  const obterIcone = () => {
+    switch (tipo) {
       case 'error':
         return faExclamationTriangle
       case 'success':
@@ -86,21 +86,21 @@ export default function ToastNotification({
     }
   }
 
-  const toastClasses = `toast-notification ${isExiting ? 'exiting' : ''}`
-  const contentClasses = `toast-content toast-${type}`
+  const classesNotificacao = `toast-notification ${saindo ? 'exiting' : ''}`
+  const classesConteudo = `toast-content toast-${tipo}`
 
   return (
-    <div className={toastClasses}>
-      <div className={contentClasses}>
+    <div className={classesNotificacao}>
+      <div className={classesConteudo}>
         <div className="toast-icon">
-          <FontAwesomeIcon icon={getIcon()} />
+          <FontAwesomeIcon icon={obterIcone()} />
         </div>
 
-        <p className="toast-message">{message}</p>
+        <p className="toast-message">{mensagem}</p>
 
         <button
           type="button"
-          onClick={handleClose}
+          onClick={fechar}
           className="toast-close-btn"
           aria-label="Fechar notificação"
         >
@@ -108,9 +108,9 @@ export default function ToastNotification({
         </button>
       </div>
 
-      {duration > 0 && (
+      {duracao > 0 && (
         <div className="toast-progress">
-          <div ref={progressBarRef} className="toast-progress-bar" />
+          <div ref={refBarraProgresso} className="toast-progress-bar" />
         </div>
       )}
     </div>

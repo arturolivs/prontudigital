@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { ProtectedRoute } from '../../components/ProtectedRoute'
+import { RotaProtegida } from '../../components/ProtectedRoute'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/careSession'
 import { AgendamentoRequisicao } from '../../tipos/appointment'
 import Layout from '@/components/Layout/Layout'
-import AppointmentFormModal from '@/components/AppointmentFormModal'
+import ModalFormularioAgendamento from '@/components/AppointmentFormModal'
 import './agenda.css'
 import ListaAgendamentos from '@/components/ListaAgendamentos'
 import { Agendamento } from '@/tipos/CareSession'
@@ -90,8 +90,8 @@ export default function AgendaPage() {
   }
 
   return (
-    <Layout userRole={isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'}>
-      <ProtectedRoute requiredRoles={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
+    <Layout perfil={isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'}>
+      <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
         <div className="appointments-page">
           <div className="flex justify-between items-center mb-6">
             <button
@@ -148,13 +148,13 @@ export default function AgendaPage() {
           />
         </div>
 
-        <AppointmentFormModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleCreateAppointment}
+        <ModalFormularioAgendamento
+          aberto={isModalOpen}
+          aoFechar={() => setIsModalOpen(false)}
+          aoEnviar={handleCreateAppointment}
           profissionalUuid={isEnfermeiro ? usuario.uuid : undefined}
         />
-      </ProtectedRoute>
+      </RotaProtegida>
     </Layout>
   )
 }

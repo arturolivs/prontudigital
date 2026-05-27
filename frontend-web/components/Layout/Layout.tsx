@@ -1,30 +1,30 @@
 'use client'
 
 import { ReactNode, useState } from 'react'
-import Sidebar from './Sidebar'
+import BarraLateral from './Sidebar'
 import './Layout.css'
 
-interface LayoutProps {
+interface PropsLayout {
   children: ReactNode
-  userRole: 'ROLE_ADMIN' | 'ROLE_PROFISSIONAL'
+  perfil: 'ROLE_ADMIN' | 'ROLE_PROFISSIONAL'
 }
 
-const Layout = ({ children, userRole }: LayoutProps) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+const Layout = ({ children, perfil }: PropsLayout) => {
+  const [barraLateralAberta, setBarraLateralAberta] = useState(true)
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
+  const alternarBarraLateral = () => {
+    setBarraLateralAberta(!barraLateralAberta)
   }
 
   return (
     <div className="layout">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
-        userRole={userRole}
+      <BarraLateral
+        aberta={barraLateralAberta}
+        alternar={alternarBarraLateral}
+        perfil={perfil}
       />
       <main
-        className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
+        className={`main-content ${barraLateralAberta ? 'sidebar-open' : 'sidebar-closed'}`}
       >
         {children}
       </main>

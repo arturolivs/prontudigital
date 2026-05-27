@@ -2,13 +2,11 @@
 
 import { useRouteProtection } from '../hooks/useRouteProtection'
 
-interface RouteProtectionWrapperProps {
+interface PropsProtetorDeRota {
   children: React.ReactNode
 }
 
-export const RouteProtectionWrapper = ({
-  children,
-}: RouteProtectionWrapperProps) => {
+export const ProtetorDeRota = ({ children }: PropsProtetorDeRota) => {
   useRouteProtection()
   return <>{children}</>
 }

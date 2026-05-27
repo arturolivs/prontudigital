@@ -3,100 +3,102 @@
 import { useRouter, usePathname } from 'next/navigation'
 import './Layout.css'
 
-interface SidebarProps {
-  isOpen: boolean
-  toggleSidebar: () => void
-  userRole: 'ROLE_ADMIN' | 'ROLE_PROFISSIONAL'
+interface PropsBarraLateral {
+  aberta: boolean
+  alternar: () => void
+  perfil: 'ROLE_ADMIN' | 'ROLE_PROFISSIONAL'
 }
 
-interface MenuItem {
-  label: string
-  path: string
-  icon: string
-  roles: ('ROLE_ADMIN' | 'ROLE_PROFISSIONAL')[]
+interface ItemMenu {
+  rotulo: string
+  caminho: string
+  icone: string
+  perfis: ('ROLE_ADMIN' | 'ROLE_PROFISSIONAL')[]
 }
 
-const Sidebar = ({ isOpen, toggleSidebar, userRole }: SidebarProps) => {
+const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
   const router = useRouter()
   const pathname = usePathname()
 
-  const menuItems: MenuItem[] = [
+  const itensMenu: ItemMenu[] = [
     {
-      label: 'Dashboard',
-      path: '/dashboard',
-      icon: '📊',
-      roles: ['ROLE_ADMIN'],
+      rotulo: 'Dashboard',
+      caminho: '/dashboard',
+      icone: '📊',
+      perfis: ['ROLE_ADMIN'],
     },
     {
-      label: 'Calendário',
-      path: '/calendar',
-      icon: '📅',
-      roles: ['ROLE_ADMIN', 'ENFERMEIRO'],
+      rotulo: 'Calendário',
+      caminho: '/calendar',
+      icone: '📅',
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
-      label: 'Pacientes',
-      path: '/patients',
-      icon: '👥',
-      roles: ['ROLE_ADMIN', 'ENFERMEIRO'],
+      rotulo: 'Indisponibilidades',
+      caminho: '/bloqueios',
+      icone: '🚫',
+      perfis: ['ROLE_PROFISSIONAL'],
     },
     {
-      label: 'Prontuários',
-      path: '/records',
-      icon: '📋',
-      roles: ['ROLE_ADMIN', 'ENFERMEIRO'],
+      rotulo: 'Pacientes',
+      caminho: '/patients',
+      icone: '👥',
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
-      label: 'Relatórios',
-      path: '/reports',
-      icon: '📈',
-      roles: ['ROLE_ADMIN'],
+      rotulo: 'Prontuários',
+      caminho: '/records',
+      icone: '📋',
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
-      label: 'Configurações',
-      path: '/settings',
-      icon: '⚙️',
-      roles: ['ROLE_ADMIN'],
+      rotulo: 'Relatórios',
+      caminho: '/reports',
+      icone: '📈',
+      perfis: ['ROLE_ADMIN'],
+    },
+    {
+      rotulo: 'Configurações',
+      caminho: '/settings',
+      icone: '⚙️',
+      perfis: ['ROLE_ADMIN'],
     },
   ]
 
-  const filteredMenuItems = menuItems.filter(item =>
-    item.roles.includes(userRole),
-  )
+  const itensFiltrados = itensMenu.filter(item => item.perfis.includes(perfil))
 
-  const handleNavigation = (path: string) => {
-    router.push(path)
+  const navegarPara = (caminho: string) => {
+    router.push(caminho)
   }
 
-  const handleLogout = () => {
-    // Implementar lógica de logout
-    console.log('Logout realizado')
+  const sair = () => {
     router.push('/login')
   }
 
   return (
-    <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
+    <div className={`sidebar ${aberta ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
-        {isOpen && (
+        {aberta && (
           <div className="logo">
             <h2>ProntoDigital</h2>
           </div>
         )}
-        <button className="toggle-btn" onClick={toggleSidebar}>
-          {isOpen ? '◀' : '▶'}
+        <button className="toggle-btn" onClick={alternar}>
+          {aberta ? '◀' : '▶'}
         </button>
       </div>
 
       <nav className="sidebar-nav">
         <ul>
-          {filteredMenuItems.map(item => (
-            <li key={item.path}>
+          {itensFiltrados.map(item => (
+            <li key={item.caminho}>
               <button
-                className={`nav-item ${pathname === item.path ? 'active' : ''}`}
-                onClick={() => handleNavigation(item.path)}
-                title={item.label}
+                className={`nav-item ${pathname === item.caminho ? 'active' : ''}`}
+                onClick={() => navegarPara(item.caminho)}
+                title={item.rotulo}
               >
-                <span className="nav-icon">{item.icon}</span>
-                {isOpen && <span className="nav-label">{item.label}</span>}
+                <span className="nav-icon">{item.icone}</span>
+                {aberta && <span className="nav-label">{item.rotulo}</span>}
               </button>
             </li>
           ))}
@@ -104,13 +106,13 @@ const Sidebar = ({ isOpen, toggleSidebar, userRole }: SidebarProps) => {
       </nav>
 
       <div className="sidebar-footer">
-        <button className="logout-btn" onClick={handleLogout} title="Sair">
+        <button className="logout-btn" onClick={sair} title="Sair">
           <span className="nav-icon">🚪</span>
-          {isOpen && <span className="nav-label">Sair</span>}
+          {aberta && <span className="nav-label">Sair</span>}
         </button>
       </div>
     </div>
   )
 }
 
-export default Sidebar
+export default BarraLateral

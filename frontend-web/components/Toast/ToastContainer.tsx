@@ -1,23 +1,23 @@
 'use client'
 
-import ToastNotification from './ToastNotification'
+import Notificacao from './ToastNotification'
 import './ToastContainer.css'
-import { useToast } from '@/contexts/ToastContext'
+import { useNotificacao } from '@/contexts/ToastContext'
 
-export default function ToastContainer() {
-  const { toasts, removeToast } = useToast()
+export default function ConteinerNotificacoes() {
+  const { notificacoes, removerNotificacao } = useNotificacao()
 
-  if (toasts.length === 0) return null
+  if (notificacoes.length === 0) return null
 
   return (
     <div className="toast-container">
-      {toasts.map(toast => (
-        <ToastNotification
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          duration={toast.duration}
-          onClose={() => removeToast(toast.id)}
+      {notificacoes.map(notificacao => (
+        <Notificacao
+          key={notificacao.id}
+          mensagem={notificacao.mensagem}
+          tipo={notificacao.tipo}
+          duracao={notificacao.duracao}
+          aoFechar={() => removerNotificacao(notificacao.id)}
         />
       ))}
     </div>

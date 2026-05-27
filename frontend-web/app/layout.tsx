@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '../contexts/AuthContext'
-import { RouteProtectionWrapper } from '../components/RouteProtectionWrapper'
+import { ProtetorDeRota } from '../components/RouteProtectionWrapper'
 import './globals.css'
-import ToastContainer from '@/components/Toast/ToastContainer'
-import { ToastProvider } from '@/contexts/ToastContext'
+import ConteinerNotificacoes from '@/components/Toast/ToastContainer'
+import { ProvedorNotificacao } from '@/contexts/ToastContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,10 +22,10 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={inter.className}>
         <AuthProvider>
-          <ToastProvider>
-            <RouteProtectionWrapper>{children}</RouteProtectionWrapper>
-            <ToastContainer />
-          </ToastProvider>
+          <ProvedorNotificacao>
+            <ProtetorDeRota>{children}</ProtetorDeRota>
+            <ConteinerNotificacoes />
+          </ProvedorNotificacao>
         </AuthProvider>
       </body>
     </html>

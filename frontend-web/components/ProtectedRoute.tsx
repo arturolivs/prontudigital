@@ -2,15 +2,15 @@
 
 import { useAuth } from '../contexts/AuthContext'
 
-interface ProtectedRouteProps {
+interface PropsRotaProtegida {
   children: React.ReactNode
-  requiredRoles?: string[]
+  perfisNecessarios?: string[]
 }
 
-export const ProtectedRoute = ({
+export const RotaProtegida = ({
   children,
-  requiredRoles = [],
-}: ProtectedRouteProps) => {
+  perfisNecessarios = [],
+}: PropsRotaProtegida) => {
   const { usuario, isLoading, temPerfil } = useAuth()
 
   if (isLoading) {
@@ -28,10 +28,11 @@ export const ProtectedRoute = ({
     return null
   }
 
-  const hasRequiredRole =
-    requiredRoles.length === 0 || requiredRoles.some(role => temPerfil(role))
+  const temPerfilNecessario =
+    perfisNecessarios.length === 0 ||
+    perfisNecessarios.some(perfil => temPerfil(perfil))
 
-  if (!hasRequiredRole) {
+  if (!temPerfilNecessario) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -43,7 +44,7 @@ export const ProtectedRoute = ({
             Você não tem permissão para acessar esta página.
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            Perfis necessários: {requiredRoles.join(', ')}
+            Perfis necessários: {perfisNecessarios.join(', ')}
           </p>
           <p className="text-sm text-gray-500">
             Seus perfis: {usuario.perfis.join(', ')}

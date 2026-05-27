@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ProtectedRoute } from '../../components/ProtectedRoute'
+import { RotaProtegida } from '../../components/ProtectedRoute'
 import { useAuth } from '../../contexts/AuthContext'
 import './dashboardLayout.css'
 
@@ -20,7 +20,7 @@ export default function DashboardLayout({
   ]
 
   return (
-    <ProtectedRoute requiredRoles={['ROLE_ADMIN']}>
+    <RotaProtegida perfisNecessarios={['ROLE_ADMIN']}>
       <div className="dashboard-layout">
         {/* Sidebar */}
         <aside className="dashboard-sidebar">
@@ -54,6 +54,6 @@ export default function DashboardLayout({
           <div className="dashboard-content">{children}</div>
         </main>
       </div>
-    </ProtectedRoute>
+    </RotaProtegida>
   )
 }

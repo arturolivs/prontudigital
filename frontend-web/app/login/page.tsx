@@ -3,7 +3,7 @@
 
 import { useState, FormEvent } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useToast } from '../../contexts/ToastContext'
+import { useNotificacao } from '../../contexts/ToastContext'
 import { LoginRequisicao } from '@/tipos/autenticacao'
 
 export default function Login() {
@@ -11,7 +11,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { login, usuario, isLoading: authLoading } = useAuth()
-  const { showToast } = useToast()
+  const { exibirNotificacao } = useNotificacao()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -24,7 +24,7 @@ export default function Login() {
       }
       await login(credenciais)
     } catch (err: any) {
-      showToast(err.message || 'Erro ao fazer login', 'error', 6000)
+      exibirNotificacao(err.message || 'Erro ao fazer login', 'error', 6000)
     } finally {
       setIsLoading(false)
     }
