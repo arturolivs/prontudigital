@@ -8,7 +8,7 @@ import { AgendamentoRequisicao } from '../../tipos/appointment'
 import Layout from '@/components/Layout/Layout'
 import AppointmentFormModal from '@/components/AppointmentFormModal'
 import './agenda.css'
-import CareSessionList from '@/components/CareSessionList'
+import ListaAgendamentos from '@/components/ListaAgendamentos'
 import { Agendamento } from '@/tipos/CareSession'
 
 const formatarDataISO = (date: Date): string => date.toISOString().split('T')[0]
@@ -20,6 +20,9 @@ const formatarDataExibicao = (dateStr: string): string => {
   const amanha = new Date(hoje)
   amanha.setDate(amanha.getDate() + 1)
 
+  console.log(date, 'date @@')
+  console.log(hoje, 'hoje @@')
+  console.log(amanha, 'amanha @@')
   if (date.toDateString() === hoje.toDateString()) return 'Hoje'
   if (date.toDateString() === amanha.toDateString()) return 'Amanhã'
   return date.toLocaleDateString('pt-BR', {
@@ -138,10 +141,10 @@ export default function AgendaPage() {
             </button>
           </div>
 
-          <CareSessionList
-            sessions={agendamentos}
-            loading={loading}
-            error={error}
+          <ListaAgendamentos
+            agendamentos={agendamentos}
+            carregando={loading}
+            erro={error}
           />
         </div>
 
