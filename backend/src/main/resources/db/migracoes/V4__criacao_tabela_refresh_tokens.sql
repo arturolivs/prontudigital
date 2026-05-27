@@ -4,7 +4,7 @@ CREATE TABLE refresh_tokens (
     usuario_id BIGINT NOT NULL,
     expira_em TIMESTAMP NOT NULL,
     revogado BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_refresh_tokens_usuario
         FOREIGN KEY (usuario_id)

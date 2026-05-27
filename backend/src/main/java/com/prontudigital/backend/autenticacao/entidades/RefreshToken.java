@@ -34,6 +34,6 @@ public class RefreshToken {
     private boolean revogado = false;
 
     @CreationTimestamp
-    @Column(name = "created_at")
-    private Instant createdAt;
+    @Column(name = "criado_em")
+    private Instant criadoEm;
 }

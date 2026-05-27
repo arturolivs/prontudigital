@@ -18,7 +18,7 @@ CREATE TABLE bloqueios_horario (
     -- Valores validos: INDISPONIVEL, URGENCIA
     tipo              VARCHAR(20)  NOT NULL,
 
-    created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    criado_em         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- Garante integridade temporal: fim sempre apos o inicio
     CONSTRAINT chk_bloqueio_periodo_valido

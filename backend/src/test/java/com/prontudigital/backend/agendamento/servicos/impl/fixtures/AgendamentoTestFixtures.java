@@ -84,7 +84,7 @@ public final class AgendamentoTestFixtures {
     public static Agendamento avaliacaoConcluida() {
         Agendamento a = agendamentoAgendado();
         a.setId(99L);
-        a.setStatus(StatusAgendamento.CONCLUIDO);
+        a.setStatus(StatusAgendamento.REALIZADO);
         a.setTipo(TipoAgendamento.AVALIACAO);
         return a;
     }

@@ -32,9 +32,9 @@ public record UsuarioDTO(
         Set<String> perfis,
 
         @Schema(description = "Data de criação do registro")
-        Instant createdAt,
+        Instant criadoEm,
 
         @Schema(description = "Data da ultima atualização")
-        Instant updatedAt
+        Instant atualizadoEm
 
 ) {}

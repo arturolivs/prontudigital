@@ -22,7 +22,7 @@ CREATE TABLE fila_espera (
     -- Valores validos: ATIVO, NOTIFICADO, CANCELADO
     status            VARCHAR(20)  NOT NULL DEFAULT 'ATIVO',
 
-    created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    criado_em         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Buscas por paciente

@@ -46,6 +46,6 @@ public class FilaEspera {
     private StatusFilaEspera status;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "criado_em", updatable = false)
+    private LocalDateTime criadoEm;
 }

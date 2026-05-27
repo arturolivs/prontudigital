@@ -16,7 +16,7 @@ CREATE TABLE agendamentos (
     inicio_em         TIMESTAMP    NOT NULL,
     fim_em            TIMESTAMP    NOT NULL,
 
-    -- Valores validos: AGENDADO, CONFIRMADO, CANCELADO, CONCLUIDO
+    -- Valores validos: AGENDADO, CONFIRMADO, CANCELADO, REMARCADO, REALIZADO, NAO_COMPARECEU
     status            VARCHAR(20)  NOT NULL,
 
     -- Valores validos: AVALIACAO, TRATAMENTO
@@ -26,8 +26,8 @@ CREATE TABLE agendamentos (
     avaliacao_id      BIGINT,
 
     concluido_em      TIMESTAMP,
-    created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at        TIMESTAMP,
+    criado_em         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em     TIMESTAMP,
 
     -- Impede deletar uma avaliacao que possui tratamentos vinculados
     CONSTRAINT fk_agendamento_avaliacao

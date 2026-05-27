@@ -108,7 +108,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
             throw new AgendamentoJaCanceladoException("Agendamento ja esta cancelado");
         }
-        if (agendamento.getStatus() == StatusAgendamento.CONCLUIDO) {
+        if (agendamento.getStatus() == StatusAgendamento.REALIZADO) {
             throw new AgendamentoStatusInvalidoException(
                     "Agendamento concluido nao pode ser cancelado");
         }
@@ -131,7 +131,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         }
 
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO ||
-                agendamento.getStatus() == StatusAgendamento.CONCLUIDO) {
+                agendamento.getStatus() == StatusAgendamento.REALIZADO) {
             throw new AgendamentoStatusInvalidoException(
                     "Agendamento " + agendamento.getStatus().name().toLowerCase() +
                             " nao pode ser reagendado");
@@ -179,7 +179,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
             throw new UsuarioSemAutorizacaoException(
                     "Usuario nao autorizado a concluir este agendamento");
         }
-        if (agendamento.getStatus() == StatusAgendamento.CONCLUIDO) {
+        if (agendamento.getStatus() == StatusAgendamento.REALIZADO) {
             throw new AgendamentoJaConcluidoException("Agendamento ja esta concluido");
         }
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
@@ -187,7 +187,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                     "Agendamento cancelado nao pode ser concluido");
         }
 
-        agendamento.setStatus(StatusAgendamento.CONCLUIDO);
+        agendamento.setStatus(StatusAgendamento.REALIZADO);
         agendamento.setConcluidoEm(LocalDateTime.now(clock));
         agendamentoRepository.save(agendamento);
     }
@@ -340,7 +340,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 throw new AgendamentoInvalidoException(
                         "O paciente do tratamento deve ser o mesmo da avaliacao");
             }
-            if (avaliacao.getStatus() != StatusAgendamento.CONCLUIDO) {
+            if (avaliacao.getStatus() != StatusAgendamento.REALIZADO) {
                 throw new AgendamentoInvalidoException(
                         "A avaliacao deve estar concluida para agendar tratamentos");
             }

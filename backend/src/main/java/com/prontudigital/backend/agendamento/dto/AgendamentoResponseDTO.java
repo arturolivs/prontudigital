@@ -18,7 +18,7 @@ public record AgendamentoResponseDTO(
         TipoAgendamento tipo,
         StatusAgendamento status,
         String observacoes,
-        LocalDateTime createdAt,
+        LocalDateTime criadoEm,
         Long avaliacaoId,
         LocalDateTime concluidoEm
 

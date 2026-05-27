@@ -14,5 +14,5 @@ public record FilaEsperaDTO(
         LocalDateTime dataPreferida,
         Integer prioridade,
         StatusFilaEspera status,
-        LocalDateTime createdAt
+        LocalDateTime criadoEm
 ) {}

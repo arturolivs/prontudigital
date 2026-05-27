@@ -18,8 +18,8 @@ public class UsuarioUtil {
                 .perfis(usuario.getPerfis().stream()
                         .map(Perfil::getNome)
                         .collect(Collectors.toSet()))
-                .createdAt(usuario.getCreatedAt())
-                .updatedAt(usuario.getUpdatedAt())
+                .criadoEm(usuario.getCriadoEm())
+                .atualizadoEm(usuario.getAtualizadoEm())
                 .build();
     }
 }

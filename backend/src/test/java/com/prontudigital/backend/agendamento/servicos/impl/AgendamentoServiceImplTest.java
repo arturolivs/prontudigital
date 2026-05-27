@@ -309,7 +309,7 @@ class AgendamentoServiceImplTest {
         @Test
         @DisplayName("rejeita reagendamento de agendamento concluido")
         void deveRejeitarSeConcluido() {
-            Agendamento agendamento = agendamentoComStatus(StatusAgendamento.CONCLUIDO);
+            Agendamento agendamento = agendamentoComStatus(StatusAgendamento.REALIZADO);
 
             when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
@@ -336,7 +336,7 @@ class AgendamentoServiceImplTest {
 
             service.concluir(1L);
 
-            assertEquals(StatusAgendamento.CONCLUIDO, agendamento.getStatus());
+            assertEquals(StatusAgendamento.REALIZADO, agendamento.getStatus());
             assertNotNull(agendamento.getConcluidoEm());
             verify(agendamentoRepository).save(agendamento);
         }

@@ -31,7 +31,7 @@ public class AgendamentoUtil {
                 agendamento.getTipo(),
                 agendamento.getStatus(),
                 agendamento.getObservacoes(),
-                agendamento.getCreatedAt(),
+                agendamento.getCriadoEm(),
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
                 agendamento.getConcluidoEm()
         );

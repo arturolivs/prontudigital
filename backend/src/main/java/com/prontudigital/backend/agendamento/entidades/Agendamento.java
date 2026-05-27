@@ -60,14 +60,14 @@ public class Agendamento {
     private LocalDateTime concluidoEm;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "criado_em", updatable = false)
+    private LocalDateTime criadoEm;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "atualizado_em")
+    private LocalDateTime atualizadoEm;
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        atualizadoEm = LocalDateTime.now();
     }
 }

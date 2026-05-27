@@ -6,8 +6,8 @@ CREATE TABLE usuarios (
     password_hash VARCHAR(255) NOT NULL,
     nome_completo VARCHAR(100) NOT NULL,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP
 );
 
 CREATE INDEX idx_usuarios_email ON usuarios(email);

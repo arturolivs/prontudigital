@@ -47,15 +47,15 @@ public class Usuario {
     private Set<UsuarioPerfil> usuarioPerfis = new HashSet<>();
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    @Column(name = "criado_em", nullable = false, updatable = false)
+    private Instant criadoEm;
 
-    @Column(name = "updated_at")
-    private Instant updatedAt;
+    @Column(name = "atualizado_em")
+    private Instant atualizadoEm;
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        atualizadoEm = Instant.now();
     }
 
     public void adicionarPerfil(Perfil perfil) {
