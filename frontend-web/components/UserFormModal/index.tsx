@@ -133,6 +133,7 @@ function UserFormModal({
     nomeCompleto: user?.nomeCompleto || '',
     username: user?.username || '',
     email: user?.email || '',
+    telefone: user?.telefone || '',
     password: '',
     ativo: user?.ativo !== undefined ? user.ativo : true,
     perfis: user?.perfis || ['USUARIO'],
@@ -188,6 +189,18 @@ function UserFormModal({
               }
               className="form-input"
               required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Telefone</label>
+            <input
+              type="tel"
+              value={formData.telefone}
+              onChange={e =>
+                setFormData({ ...formData, telefone: e.target.value })
+              }
+              className="form-input"
+              placeholder="(00) 00000-0000"
             />
           </div>
           <div className="form-group">

@@ -14,6 +14,7 @@ public class UsuarioUtil {
                 .email(usuario.getEmail())
                 .username(usuario.getUsername())
                 .nomeCompleto(usuario.getNomeCompleto())
+                .telefone(usuario.getTelefone())
                 .ativo(usuario.getAtivo())
                 .perfis(usuario.getPerfis().stream()
                         .map(Perfil::getNome)

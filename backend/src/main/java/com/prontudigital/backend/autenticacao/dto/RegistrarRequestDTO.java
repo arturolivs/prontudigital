@@ -27,6 +27,9 @@ public record RegistrarRequestDTO(
         @Size(min = 8, max = 30)
         String password,
 
+        @Schema(description = "Telefone", example = "(11) 99999-9999")
+        String telefone,
+
         @Schema(description = "Perfis do usuário (padrão: USER)", example = "[\"ADMIN\"]")
         Set<String> perfis
 

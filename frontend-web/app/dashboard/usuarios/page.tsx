@@ -5,7 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { usuariosAPI } from '@/lib/usuario.service'
 import { Usuario, RegistrarRequisicao } from '@/tipos/autenticacao'
 import './usuariosPage.css'
-import { useToast } from '@/contexts/ToastContext'
+import { useNotificacao } from '@/contexts/ToastContext'
 import UserFormModal from '@/components/UserFormModal'
 
 export default function UsuariosPage() {
@@ -14,7 +14,7 @@ export default function UsuariosPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null)
   const { usuario } = useAuth()
-  const { showToast } = useToast()
+  const { exibirNotificacao } = useNotificacao()
 
   const fetchUsuarios = async () => {
     try {
@@ -22,7 +22,7 @@ export default function UsuariosPage() {
       const data = await usuariosAPI.listarUsuarios()
       setUsuarios(data)
     } catch (error) {
-      showToast('Erro ao carregar lista de usuários', 'error', 6000)
+      exibirNotificacao('Erro ao carregar lista de usuários', 'error', 6000)
     } finally {
       setLoading(false)
     }
@@ -38,10 +38,10 @@ export default function UsuariosPage() {
     try {
       await usuariosAPI.excluirUsuario(id)
       setUsuarios(usuarios.filter(u => u.id !== id))
-      showToast('Usuário excluído com sucesso!', 'success', 6000)
+      exibirNotificacao('Usuário excluído com sucesso!', 'success', 6000)
     } catch (error: any) {
       console.error('Erro ao excluir usuário', error)
-      showToast(error.message || 'Erro ao excluir usuário', 'error', 6000)
+      exibirNotificacao(error.message || 'Erro ao excluir usuário', 'error', 6000)
     }
   }
 
@@ -57,7 +57,7 @@ export default function UsuariosPage() {
       setUsuarios(usuarios.map(u => (u.id === id ? atualizado : u)))
     } catch (error: any) {
       console.error('Erro ao alterar status', error)
-      showToast(
+      exibirNotificacao(
         error.message || 'Erro ao alterar status do usuário',
         'error',
         6000,
@@ -91,6 +91,7 @@ export default function UsuariosPage() {
             nomeCompleto: dados.nomeCompleto,
             username: dados.username,
             email: dados.email,
+            telefone: dados.telefone,
             ativo: dados.ativo,
             perfis: dados.perfis,
           },
@@ -99,25 +100,26 @@ export default function UsuariosPage() {
         setUsuarios(
           usuarios.map(u => (u.id === usuarioEditando.id ? atualizado : u)),
         )
-        showToast('Usuário atualizado com sucesso!', 'success', 6000)
+        exibirNotificacao('Usuário atualizado com sucesso!', 'success', 6000)
       } else {
         const novoUsuario: RegistrarRequisicao = {
           nomeCompleto: dados.nomeCompleto || '',
           username: dados.username || '',
           email: dados.email || '',
           password: dados.password || '',
+          telefone: dados.telefone,
           perfis: dados.perfis,
         }
 
         const criado = await usuariosAPI.criarUsuario(novoUsuario)
         setUsuarios([...usuarios, criado])
-        showToast('Usuário criado com sucesso!', 'success', 6000)
+        exibirNotificacao('Usuário criado com sucesso!', 'success', 6000)
       }
 
       closeModal()
     } catch (error: any) {
       console.error('Erro ao salvar usuário', error)
-      showToast(error.message || 'Erro ao salvar usuário', 'error', 6000)
+      exibirNotificacao(error.message || 'Erro ao salvar usuário', 'error', 6000)
     }
   }
 
@@ -145,6 +147,7 @@ export default function UsuariosPage() {
               <th>Nome</th>
               <th>Username</th>
               <th>Email</th>
+              <th>Telefone</th>
               <th>Status</th>
               <th>Perfis</th>
               <th className="action-buttons">Ações</th>
@@ -156,6 +159,7 @@ export default function UsuariosPage() {
                 <td>{u.nomeCompleto}</td>
                 <td>{u.username}</td>
                 <td>{u.email}</td>
+                <td>{u.telefone || '—'}</td>
                 <td>
                   <button
                     onClick={() => handleToggleStatus(u.id, u.ativo)}

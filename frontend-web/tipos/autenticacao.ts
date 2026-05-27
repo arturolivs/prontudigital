@@ -4,6 +4,7 @@ export interface Usuario {
   nomeCompleto: string
   username: string
   email: string
+  telefone?: string
   ativo: boolean
   perfis: string[]
   criadoEm: string
@@ -20,6 +21,7 @@ export interface RegistrarRequisicao {
   email: string
   username: string
   password: string
+  telefone?: string
   perfis?: string[]
 }
 

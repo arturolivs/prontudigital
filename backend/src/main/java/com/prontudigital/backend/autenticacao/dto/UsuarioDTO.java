@@ -25,6 +25,9 @@ public record UsuarioDTO(
         @Schema(description = "E-mail", example = "joao@email.com")
         String email,
 
+        @Schema(description = "Telefone", example = "(11) 99999-9999")
+        String telefone,
+
         @Schema(description = "Indica se o usuário esta ativo")
         Boolean ativo,
 

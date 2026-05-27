@@ -73,6 +73,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         usuario.setEmail(dto.email());
         usuario.setNomeCompleto(dto.nomeCompleto());
+        usuario.setTelefone(dto.telefone());
         usuario.setAtivo(dto.ativo());
 
         atualizarPerfis(usuario, dto.perfis());
@@ -109,6 +110,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .username(dto.username())
                 .passwordHash(passwordEncoder.encode(senhaRaw))
                 .nomeCompleto(dto.nomeCompleto())
+                .telefone(dto.telefone())
                 .ativo(Objects.requireNonNullElse(dto.ativo(), true))
                 .build();
 

@@ -37,6 +37,9 @@ public class Usuario {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "telefone", length = 20)
+    private String telefone;
+
     @Column(name = "ativo", nullable = false)
     @Builder.Default
     private Boolean ativo = true;

@@ -36,6 +36,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
                 .email(request.email())
                 .username(request.username())
                 .nomeCompleto(request.nomeCompleto())
+                .telefone(request.telefone())
                 .ativo(true)
                 .perfis(request.perfis())
                 .build();
