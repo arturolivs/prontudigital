@@ -4,6 +4,7 @@ import com.prontudigital.backend.agendamento.dto.BloqueioHorarioDTO;
 import com.prontudigital.backend.agendamento.servicos.BloqueioHorarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +47,15 @@ public class BloqueioHorarioController {
     public ResponseEntity<Void> remover(@PathVariable Long id) {
         service.remover(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Listar bloqueios de um profissional (público, sem autenticação)")
+    @SecurityRequirements
+    @GetMapping("/public")
+    public ResponseEntity<List<BloqueioHorarioDTO>> listarPublico(
+            @RequestParam UUID profissionalUuid,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+        return ResponseEntity.ok(service.listarPorProfissional(profissionalUuid, inicio, fim));
     }
 }

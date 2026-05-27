@@ -44,6 +44,10 @@ public class SecurityConfig {
             "/api/auth/renovar-token"
     };
 
+    private static final String[] GET_PUBLICOS = {
+            "/api/bloqueios-horario/public"
+    };
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -57,6 +61,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PATHS_PUBLICOS_INFRA).permitAll()
                         .requestMatchers(HttpMethod.POST, AUTH_POST_PUBLICOS).permitAll()
+                        .requestMatchers(HttpMethod.GET, GET_PUBLICOS).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         .anyRequest().authenticated()
