@@ -6,7 +6,7 @@ import './Layout.css'
 
 interface LayoutProps {
   children: ReactNode
-  userRole: 'ROLE_ADMIN' | 'NURSE'
+  userRole: 'ROLE_ADMIN' | 'ROLE_PROFISSIONAL'
 }
 
 const Layout = ({ children, userRole }: LayoutProps) => {

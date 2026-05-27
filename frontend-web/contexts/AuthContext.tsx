@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { autenticacaoAPI, tokenService } from '../lib/auth.service'
+import { usuariosAPI } from '../lib/usuario.service'
 import {
   UsuarioAutenticado,
   LoginRequisicao,
@@ -76,19 +77,11 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
     }
   }
 
-  /**
-   * Decodifica o payload do JWT. NÃO valida assinatura — isso é só pra ler
-   * os claims no client. A validação real acontece no backend.
-   *
-   * JWT usa base64url (não base64 padrão), então é preciso converter antes
-   * de chamar atob().
-   */
   const decodificarJWT = (token: string): UsuarioAutenticado => {
     try {
       const payloadBase64Url = token.split('.')[1]
       if (!payloadBase64Url) throw new Error('JWT sem payload')
 
-      // Converte base64url → base64 padrão e adiciona padding
       const base64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/')
       const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
       const decoded = atob(padded)
@@ -96,8 +89,6 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
 
       console.log('📄 Payload do JWT:', claims)
 
-      // O backend coloca os perfis no claim "perfis" (ou "roles" dependendo da
-      // configuração do JwtService). Tenta os dois pra dar resiliência.
       const perfis: string[] = claims.perfis ?? claims.roles ?? []
 
       return {
@@ -129,22 +120,28 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
         token: resposta.accessToken,
       }
 
+      try {
+        const usuarioCompleto = await usuariosAPI.buscarUsuarioAtual()
+        dadosUsuario.uuid = usuarioCompleto.uuid
+        dadosUsuario.nomeCompleto = usuarioCompleto.nomeCompleto
+      } catch {
+        console.warn(
+          'Não foi possível obter dados completos do usuário após login',
+        )
+      }
+
       console.log('💾 Salvando dadosUsuario no localStorage:', dadosUsuario)
       tokenService.setDadosUsuario(dadosUsuario)
       setUsuario(dadosUsuario)
 
-      // TODO design: usar o primeiro perfil do array é frágil. Se o usuário
-      // tiver múltiplos perfis, a ordem decide o redirect. Considerar prioridade
-      // explícita ou deixar o usuário escolher.
       const perfilPrincipal = resposta.perfis[0]
       const mapaRedirecionamento: { [key: string]: string } = {
         [PERFIS.ADMIN]: '/dashboard',
-        [PERFIS.ENFERMEIRO]: '/appointments',
-        [PERFIS.MEDICO]: '/appointments',
-        [PERFIS.USUARIO]: '/appointments',
+        [PERFIS.PROFISSIONAL]: '/agenda',
+        [PERFIS.USUARIO]: '/agenda',
       }
 
-      const destino = mapaRedirecionamento[perfilPrincipal] || '/appointments'
+      const destino = mapaRedirecionamento[perfilPrincipal] || '/agenda'
       console.log(
         `🔄 Redirecionando para ${destino} (perfil: ${perfilPrincipal})`,
       )

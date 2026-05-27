@@ -1,13 +1,29 @@
-export interface Appointment {
+export interface AgendamentoRequisicao {
+  pacienteUuid: string
+  profissionalUuid: string
+  inicioEm: string
+  fimEm: string
+  tipo: 'AVALIACAO' | 'TRATAMENTO'
+  observacoes?: string
+  avaliacaoId?: number
+}
+
+export interface AgendamentoResposta {
   id: number
-  startDateTime: string
-  endDateTime: string
-  professionalUuid: string
-  patientUuid: string
-  patientName: string
-  patientPhone: string
-  professionalName: string
-  bedridden: boolean
-  type: 'AVALIACAO' | 'TRATAMENTO'
-  tratamentType: 'PODEATRIA' | 'TRATAMENTO_FERIDAS'
+  inicioEm: string
+  fimEm: string
+  profissionalUuid: string
+  pacienteUuid: string
+  tipo: 'AVALIACAO' | 'TRATAMENTO'
+  status: string
+  observacoes?: string
+  criadoEm: string
+  avaliacaoId?: number
+  concluidoEm?: string
+}
+
+export interface ReagendarRequisicao {
+  novoInicioEm: string
+  novoFimEm: string
+  motivo?: string
 }

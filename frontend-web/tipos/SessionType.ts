@@ -1,1 +1,1 @@
-export type SessionType = 'AVALIACAO' | 'TRATAMENTO'
+export type TipoAgendamento = 'AVALIACAO' | 'TRATAMENTO'

@@ -6,14 +6,14 @@ import './Layout.css'
 interface SidebarProps {
   isOpen: boolean
   toggleSidebar: () => void
-  userRole: 'ROLE_ADMIN' | 'NURSE'
+  userRole: 'ROLE_ADMIN' | 'ROLE_PROFISSIONAL'
 }
 
 interface MenuItem {
   label: string
   path: string
   icon: string
-  roles: ('ROLE_ADMIN' | 'NURSE')[]
+  roles: ('ROLE_ADMIN' | 'ROLE_PROFISSIONAL')[]
 }
 
 const Sidebar = ({ isOpen, toggleSidebar, userRole }: SidebarProps) => {
@@ -31,19 +31,19 @@ const Sidebar = ({ isOpen, toggleSidebar, userRole }: SidebarProps) => {
       label: 'Calendário',
       path: '/calendar',
       icon: '📅',
-      roles: ['ROLE_ADMIN', 'NURSE'],
+      roles: ['ROLE_ADMIN', 'ENFERMEIRO'],
     },
     {
       label: 'Pacientes',
       path: '/patients',
       icon: '👥',
-      roles: ['ROLE_ADMIN', 'NURSE'],
+      roles: ['ROLE_ADMIN', 'ENFERMEIRO'],
     },
     {
       label: 'Prontuários',
       path: '/records',
       icon: '📋',
-      roles: ['ROLE_ADMIN', 'NURSE'],
+      roles: ['ROLE_ADMIN', 'ENFERMEIRO'],
     },
     {
       label: 'Relatórios',

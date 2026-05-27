@@ -6,8 +6,8 @@ export interface Usuario {
   email: string
   ativo: boolean
   perfis: string[]
-  createdAt: string
-  updatedAt: string
+  criadoEm: string
+  atualizadoEm: string
 }
 
 export interface LoginRequisicao {
@@ -47,12 +47,13 @@ export interface UsuarioAutenticado {
   username: string
   perfis: string[]
   token: string
+  uuid?: string
+  nomeCompleto?: string
 }
 
 export const PERFIS = {
   ADMIN: 'ROLE_ADMIN',
-  ENFERMEIRO: 'ENFERMEIRO',
-  MEDICO: 'MEDICO',
+  PROFISSIONAL: 'ROLE_PROFISSIONAL',
   USUARIO: 'USUARIO',
 } as const
 

@@ -7,24 +7,28 @@ import {
   faHourglassHalf,
 } from '@fortawesome/free-solid-svg-icons'
 import './styles.css'
-import { CareSession } from '@/tipos/CareSession'
+import { Agendamento } from '@/tipos/CareSession'
 
-export type GroupedSessions = Record<string, CareSession[]>
+export type GroupedSessions = Record<string, Agendamento[]>
 
 interface CareSessionProps {
-  sessions?: CareSession[]
+  sessions?: Agendamento[]
   loading?: boolean
   error?: string | null
 }
 
-const tratamentTypeDescription = {
-  PODEATRIA: 'Podiatria',
-  TRATAMENTO_FERIDAS: 'Tratamento de feridas',
-}
-
-const typeDescription = {
+const tipoLabel: Record<string, string> = {
   AVALIACAO: 'Avaliação',
   TRATAMENTO: 'Tratamento',
+}
+
+const statusLabel: Record<string, string> = {
+  AGENDADO: 'Agendado',
+  CONFIRMADO: 'Confirmado',
+  CANCELADO: 'Cancelado',
+  REMARCADO: 'Remarcado',
+  REALIZADO: 'Realizado',
+  NAO_COMPARECEU: 'Não compareceu',
 }
 
 const DurationDisplay: React.FC<{ start: string; end: string }> = ({
@@ -51,18 +55,18 @@ const DurationDisplay: React.FC<{ start: string; end: string }> = ({
   )
 }
 
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const getStatusClass = (status: string): string => {
+const TipoBadge: React.FC<{ tipo: string }> = ({ tipo }) => {
+  const getStatusClass = (t: string): string => {
     const map: Record<string, string> = {
-      Avaliação: 'avaliacao',
-      Tratamento: 'tratamento',
+      AVALIACAO: 'avaliacao',
+      TRATAMENTO: 'tratamento',
     }
-    return map[status] || 'default'
+    return map[t] || 'default'
   }
 
   return (
-    <div className={`status-badge status-${getStatusClass(status)}`}>
-      {status}
+    <div className={`status-badge status-${getStatusClass(tipo)}`}>
+      {tipoLabel[tipo] ?? tipo}
     </div>
   )
 }
@@ -102,12 +106,12 @@ const DateHeader: React.FC<{ dateKey: string; count: number }> = ({
   )
 }
 
-const getBorderColorClass = (status: string): string => {
+const getBorderColorClass = (tipo: string): string => {
   const colorMap: Record<string, string> = {
     AVALIACAO: 'border-status-avaliacao',
     TRATAMENTO: 'border-status-tratamento',
   }
-  return colorMap[status] || 'border-status-default'
+  return colorMap[tipo] || 'border-status-default'
 }
 
 const CareSessionList: React.FC<CareSessionProps> = ({
@@ -126,9 +130,7 @@ const CareSessionList: React.FC<CareSessionProps> = ({
   const GroupedSessions = useMemo(() => {
     const grouped: GroupedSessions = {}
     sessions.forEach(session => {
-      const dateKey = new Date(session.scheduledStart)
-        .toISOString()
-        .split('T')[0]
+      const dateKey = new Date(session.inicioEm).toISOString().split('T')[0]
       if (!grouped[dateKey]) grouped[dateKey] = []
       grouped[dateKey].push(session)
     })
@@ -137,8 +139,7 @@ const CareSessionList: React.FC<CareSessionProps> = ({
     sortedDates.forEach(date => {
       sortedGrouped[date] = grouped[date].sort(
         (a, b) =>
-          new Date(a.scheduledStart).getTime() -
-          new Date(b.scheduledStart).getTime(),
+          new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime(),
       )
     })
     return sortedGrouped
@@ -209,36 +210,34 @@ const CareSessionList: React.FC<CareSessionProps> = ({
             <DateHeader dateKey={dateKey} count={dateSessions.length} />
             <div className="appointments-list">
               {dateSessions.map(session => {
-                const borderClass = getBorderColorClass(session.careType)
+                const borderClass = getBorderColorClass(session.tipo)
                 return (
                   <div
                     key={session.id}
                     className={`appointment-card ${borderClass}`}
                     role="article"
-                    aria-label={`Agendamento de ${session.patientName}`}
+                    aria-label={`Agendamento de ${session.nomePaciente}`}
                   >
                     <div className="time-info">
                       <span className="time-text">
-                        {formatTime(session.scheduledStart)} -{' '}
-                        {formatTime(session.scheduledEnd)}
+                        {formatTime(session.inicioEm)} -{' '}
+                        {formatTime(session.fimEm)}
                       </span>
                       <div className="time-display">
                         <FontAwesomeIcon icon={faClock} />
                         <DurationDisplay
-                          start={session.scheduledStart}
-                          end={session.scheduledEnd}
+                          start={session.inicioEm}
+                          end={session.fimEm}
                         />
                       </div>
                     </div>
                     <div className="details-info">
-                      <span className="detail-text">{session.patientName}</span>
+                      <span className="detail-text">{session.nomePaciente}</span>
                       <span className="detail-sub-text">
-                        {tratamentTypeDescription[session.careType]}
+                        {statusLabel[session.status] ?? session.status}
                       </span>
                     </div>
-                    <StatusBadge
-                      status={typeDescription[session.sessionType]}
-                    />
+                    <TipoBadge tipo={session.tipo} />
                   </div>
                 )
               })}

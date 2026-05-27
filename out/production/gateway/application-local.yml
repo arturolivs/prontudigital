@@ -1,0 +1,52 @@
+server:
+  port: 9090
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns:
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowed-headers:
+              - Authorization
+              - Content-Type
+              - X-Requested-With
+              - Accept
+              - Origin
+            exposed-headers:
+              - Authorization
+              - Content-Type
+            allow-credentials: true
+            max-age: 3600
+
+      routes:
+        # Todo o tráfego vai para o monolito na porta 8080
+        - id: prontudigital
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/**
+          filters:
+            - PreserveHostHeader
+
+        # Swagger do monolito
+        - id: prontudigital-swagger
+          uri: http://localhost:8080
+          predicates:
+            - Path=/swagger-ui/**, /v3/api-docs/**
+          filters:
+            - PreserveHostHeader
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO  # DEBUG só em desenvolvimento
+    reactor.netty.http.client: INFO

@@ -6,8 +6,7 @@ import './userFormModal.style.css'
 
 const OPCOES_PERFIL = [
   { label: 'Administrador', value: 'ROLE_ADMIN' },
-  { label: 'Enfermeiro', value: 'ENFERMEIRO' },
-  { label: 'Médico', value: 'MEDICO' },
+  { label: 'Enfermeiro', value: 'ROLE_PROFISSIONAL' },
   { label: 'Usuário', value: 'USUARIO' },
 ]
 

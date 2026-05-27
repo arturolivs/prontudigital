@@ -90,7 +90,7 @@ public class FilaEsperaServiceImpl implements FilaEsperaService {
     @Override
     public List<FilaEsperaDTO> listarFilaDoProfissional(UUID profissionalUuid) {
         return repository
-                .findByProfissionalUuidAndStatusOrderByPrioridadeAscCreatedAtAsc(
+                .findByProfissionalUuidAndStatusOrderByPrioridadeAscCriadoEmAsc(
                         profissionalUuid, StatusFilaEspera.ATIVO)
                 .stream()
                 .map(this::toDTO)
@@ -102,7 +102,7 @@ public class FilaEsperaServiceImpl implements FilaEsperaService {
     public void onAgendamentoCancelado(AgendamentoCanceladoEvento evento) {
         UUID profissionalUuid = evento.agendamento().getProfissionalUuid();
         List<FilaEspera> fila = repository
-                .findByProfissionalUuidAndStatusOrderByPrioridadeAscCreatedAtAsc(
+                .findByProfissionalUuidAndStatusOrderByPrioridadeAscCriadoEmAsc(
                         profissionalUuid, StatusFilaEspera.ATIVO);
 
         if (fila.isEmpty()) {
@@ -125,7 +125,7 @@ public class FilaEsperaServiceImpl implements FilaEsperaService {
                 f.getId(), f.getUuid(),
                 f.getPacienteUuid(), f.getProfissionalUuid(),
                 f.getTipoPreferido(), f.getDataPreferida(),
-                f.getPrioridade(), f.getStatus(), f.getCreatedAt()
+                f.getPrioridade(), f.getStatus(), f.getCriadoEm()
         );
     }
 }

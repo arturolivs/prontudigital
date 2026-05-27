@@ -1,6 +1,7 @@
-export type SessionStatus =
-  | 'SCHEDULED'
-  | 'CONFIRMED'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'CANCELLED'
+export type StatusAgendamento =
+  | 'AGENDADO'
+  | 'CONFIRMADO'
+  | 'CANCELADO'
+  | 'REMARCADO'
+  | 'REALIZADO'
+  | 'NAO_COMPARECEU'

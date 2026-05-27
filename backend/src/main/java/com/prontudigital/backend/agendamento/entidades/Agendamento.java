@@ -48,10 +48,6 @@ public class Agendamento {
     @Column(name = "tipo")
     private TipoAgendamento tipo;
 
-    /*
-     * Auto-relacionamento: tratamentos referenciam sua avaliação de origem.
-     * Apenas agendamentos do tipo TRATAMENTO terão este campo preenchido.
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "avaliacao_id")
     private Agendamento avaliacao;

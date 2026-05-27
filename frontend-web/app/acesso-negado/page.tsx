@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function Unauthorized() {
+export default function AcessoNegado() {
   const { usuario, logout } = useAuth()
 
   return (
@@ -42,10 +42,10 @@ export default function Unauthorized() {
             </p>
             <div className="space-y-3">
               <Link
-                href="/appointments"
+                href="/agenda"
                 className="block w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
               >
-                Ir para Agendamentos
+                Ir para Agenda
               </Link>
               <Link
                 href="/dashboard"

@@ -1,13 +1,9 @@
-// lib/appointments.ts
 import axios from 'axios'
-import { Appointment } from '../tipos/appointment'
+import { Agendamento } from '../tipos/CareSession'
+import { AgendamentoRequisicao, AgendamentoResposta, ReagendarRequisicao } from '../tipos/appointment'
 
-import careSessions from '../mock/careSession'
-import { CareSession } from '@/tipos/CareSession'
-import { SessionStatus } from '@/tipos/SessionStatus'
-const API_URL =
-  process.env.NEXT_PUBLIC_APPOINTMENTS_API_URL ||
-  'http://localhost:9090/api/schedule/appointments'
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_AGENDAMENTOS_API_URL || 'http://localhost:9090/api/agendamentos'
 
 const api = axios.create()
 
@@ -21,85 +17,54 @@ api.interceptors.request.use(config => {
   return config
 })
 
-export const careSessionAPI = {
-  getCareSessions: async (
-    viewType: string,
-    date: Date | string,
-  ): Promise<CareSession[]> => {
-    /*  viewType = 'month'
+const tipoVisualizacaoMap: Record<string, string> = {
+  day: 'DIA',
+  week: 'SEMANA',
+  month: 'MES',
+}
+
+export const agendamentoAPI = {
+  getCareSessions: async (viewType: string, date: Date | string): Promise<Agendamento[]> => {
     const formattedDate =
       typeof date === 'string' ? date : date.toISOString().split('T')[0]
-    console.log('formattedDate @@@@@', formattedDate)
-    const response = await api.get(`${API_URL}/view`, {
-      params: {
-        viewType,
-        date: formattedDate,
-      },
+    const tipo = tipoVisualizacaoMap[viewType] || 'DIA'
+    const response = await api.get<Agendamento[]>(`${API_BASE_URL}/agenda`, {
+      params: { data: formattedDate, tipo },
     })
     return response.data
-*/
-    return careSessions
   },
 
-  createAppointment: async (
-    appointmentData: Partial<Appointment>,
-  ): Promise<Appointment> => {
-    const response = await api.post(`${API_URL}`, appointmentData)
+  criarAgendamento: async (dados: AgendamentoRequisicao): Promise<AgendamentoResposta> => {
+    const response = await api.post<AgendamentoResposta>(API_BASE_URL, dados)
     return response.data
   },
 
-  updateAppointment: async (
+  cancelarAgendamento: async (id: number): Promise<void> => {
+    await api.patch(`${API_BASE_URL}/${id}/cancelar`)
+  },
+
+  concluirAgendamento: async (id: number): Promise<void> => {
+    await api.patch(`${API_BASE_URL}/${id}/concluir`)
+  },
+
+  reagendarAgendamento: async (
     id: number,
-    appointmentData: Partial<Appointment>,
-  ): Promise<Appointment> => {
-    const response = await api.put(`${API_URL}/${id}`, appointmentData)
+    dados: ReagendarRequisicao,
+  ): Promise<AgendamentoResposta> => {
+    const response = await api.patch<AgendamentoResposta>(
+      `${API_BASE_URL}/${id}/reagendar`,
+      dados,
+    )
     return response.data
   },
 
-  deleteAppointment: async (id: number): Promise<void> => {
-    await api.delete(`${API_URL}/${id}`)
-  },
-
-  async getCareSessionById(id: string): Promise<CareSession> {
-    /*  const response = await fetch(`/api/care-sessions/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Erro ao buscar sessão')
-    }
-
-    return response.json()
-
-    */
-
-    await new Promise(resolve => setTimeout(resolve, 300))
-
-    // Buscar a sessão pelo ID no array de mocks
-    const session = careSessions.find(s => s.sessionUuid === id)
-
-    if (!session) {
-      throw new Error(`Sessão com ID ${id} não encontrada`)
-    }
-
-    // Retornar uma cópia para evitar mutação acidental
-    return { ...session }
-  },
-
-  async updateSessionStatus(id: string, status: SessionStatus): Promise<void> {
-    const response = await fetch(`/api/care-sessions/${id}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({ status }),
-    })
-
-    if (!response.ok) {
-      throw new Error('Erro ao atualizar status da sessão')
-    }
+  getTratamentosPorAvaliacao: async (avaliacaoId: number): Promise<Agendamento[]> => {
+    const response = await api.get<Agendamento[]>(
+      `${API_BASE_URL}/avaliacoes/${avaliacaoId}/tratamentos`,
+    )
+    return response.data
   },
 }
+
+// Alias mantido por compatibilidade com a página de detalhes
+export const careSessionAPI = agendamentoAPI

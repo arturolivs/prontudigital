@@ -1,99 +1,82 @@
 'use client'
 
 import { useState } from 'react'
-import { Appointment } from '@/tipos/appointment'
+import { AgendamentoRequisicao } from '@/tipos/appointment'
 import './styles.css'
 
 interface AppointmentFormModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (appointmentData: Partial<Appointment>) => void
+  onSubmit: (dados: AgendamentoRequisicao) => void
+  profissionalUuid?: string
 }
+
+const initialForm = (profissionalUuid?: string): Partial<AgendamentoRequisicao> => ({
+  pacienteUuid: '',
+  profissionalUuid: profissionalUuid ?? '',
+  inicioEm: '',
+  fimEm: '',
+  tipo: 'AVALIACAO',
+  observacoes: '',
+  avaliacaoId: undefined,
+})
 
 export default function AppointmentFormModal({
   isOpen,
   onClose,
   onSubmit,
+  profissionalUuid,
 }: AppointmentFormModalProps) {
-  const [formData, setFormData] = useState<Partial<Appointment>>({
-    startDateTime: '',
-    endDateTime: '',
-    patientPhone: '',
-    patientName: '',
-    professionalName: '',
-    bedridden: false,
-    type: 'AVALIACAO',
-    tratamentType: 'PODEATRIA',
-  })
-
+  const [formData, setFormData] = useState<Partial<AgendamentoRequisicao>>(
+    initialForm(profissionalUuid),
+  )
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
-    const { name, value, type } = e.target
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked
-      setFormData(prev => ({ ...prev, [name]: checked }))
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }))
-    }
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }))
-    }
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'avaliacaoId' ? (value ? Number(value) : undefined) : value,
+    }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
   }
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
-    if (!formData.startDateTime)
-      newErrors.startDateTime = 'Data/hora de início é obrigatória'
-    if (!formData.endDateTime)
-      newErrors.endDateTime = 'Data/hora de término é obrigatória'
-    if (!formData.patientName)
-      newErrors.patientName = 'Nome do paciente é obrigatório'
-    if (!formData.patientPhone)
-      newErrors.patientPhone = 'Telefone do paciente é obrigatório'
 
-    if (formData.startDateTime && formData.endDateTime) {
-      const start = new Date(formData.startDateTime)
-      const end = new Date(formData.endDateTime)
-      if (end <= start) {
-        newErrors.endDateTime =
-          'Data/hora de término deve ser após a data/hora de início'
-      }
+    if (!formData.pacienteUuid?.trim())
+      newErrors.pacienteUuid = 'UUID do paciente é obrigatório'
+    if (!formData.profissionalUuid?.trim())
+      newErrors.profissionalUuid = 'UUID do profissional é obrigatório'
+    if (!formData.inicioEm)
+      newErrors.inicioEm = 'Data/hora de início é obrigatória'
+    if (!formData.fimEm)
+      newErrors.fimEm = 'Data/hora de término é obrigatória'
+    if (formData.tipo === 'TRATAMENTO' && !formData.avaliacaoId)
+      newErrors.avaliacaoId = 'ID da avaliação é obrigatório para tratamentos'
+
+    if (formData.inicioEm && formData.fimEm) {
+      if (new Date(formData.fimEm) <= new Date(formData.inicioEm))
+        newErrors.fimEm = 'Término deve ser após o início'
     }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (validateForm()) {
-      onSubmit(formData)
-      setFormData({
-        startDateTime: '',
-        endDateTime: '',
-        patientPhone: '',
-        patientName: '',
-        professionalName: '',
-        bedridden: false,
-        type: 'AVALIACAO',
-        tratamentType: 'PODEATRIA',
-      })
-    }
+    if (!validateForm()) return
+
+    onSubmit(formData as AgendamentoRequisicao)
+    setFormData(initialForm(profissionalUuid))
+    setErrors({})
   }
 
   const handleCancel = () => {
-    setFormData({
-      startDateTime: '',
-      endDateTime: '',
-      patientPhone: '',
-      patientName: '',
-      professionalName: '',
-      bedridden: false,
-      type: 'AVALIACAO',
-      tratamentType: 'PODEATRIA',
-    })
+    setFormData(initialForm(profissionalUuid))
     setErrors({})
     onClose()
   }
@@ -105,107 +88,95 @@ export default function AppointmentFormModal({
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="text-xl font-bold text-[#2b6cb0]">Novo Agendamento</h2>
-          <button
-            onClick={handleCancel}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+          <button onClick={handleCancel} className="text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-grid">
+
             <div className="form-group">
-              <label htmlFor="patientName" className="form-label">
-                Nome do Paciente *
+              <label htmlFor="pacienteUuid" className="form-label">
+                UUID do Paciente *
               </label>
               <input
                 type="text"
-                id="patientName"
-                name="patientName"
-                value={formData.patientName || ''}
+                id="pacienteUuid"
+                name="pacienteUuid"
+                value={formData.pacienteUuid || ''}
                 onChange={handleChange}
-                className={`form-input ${errors.patientName ? 'border-red-500' : ''}`}
-                placeholder="Digite o nome do paciente"
+                className={`form-input ${errors.pacienteUuid ? 'border-red-500' : ''}`}
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               />
-              {errors.patientName && (
-                <span className="error-message">{errors.patientName}</span>
+              {errors.pacienteUuid && (
+                <span className="error-message">{errors.pacienteUuid}</span>
               )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="patientPhone" className="form-label">
-                Telefone *
+              <label htmlFor="profissionalUuid" className="form-label">
+                UUID do Profissional *
               </label>
               <input
-                type="tel"
-                id="patientPhone"
-                name="patientPhone"
-                value={formData.patientPhone || ''}
+                type="text"
+                id="profissionalUuid"
+                name="profissionalUuid"
+                value={formData.profissionalUuid || ''}
                 onChange={handleChange}
-                className={`form-input ${errors.patientPhone ? 'border-red-500' : ''}`}
-                placeholder="(11) 99999-9999"
+                readOnly={!!profissionalUuid}
+                className={`form-input ${profissionalUuid ? 'bg-gray-100 cursor-not-allowed' : ''} ${errors.profissionalUuid ? 'border-red-500' : ''}`}
+                placeholder="Preenchido automaticamente"
               />
-              {errors.patientPhone && (
-                <span className="error-message">{errors.patientPhone}</span>
+              {errors.profissionalUuid && (
+                <span className="error-message">{errors.profissionalUuid}</span>
               )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="startDateTime" className="form-label">
+              <label htmlFor="inicioEm" className="form-label">
                 Data/Hora Início *
               </label>
               <input
                 type="datetime-local"
-                id="startDateTime"
-                name="startDateTime"
-                value={formData.startDateTime || ''}
+                id="inicioEm"
+                name="inicioEm"
+                value={formData.inicioEm || ''}
                 onChange={handleChange}
-                className={`form-input ${errors.startDateTime ? 'border-red-500' : ''}`}
+                className={`form-input ${errors.inicioEm ? 'border-red-500' : ''}`}
               />
-              {errors.startDateTime && (
-                <span className="error-message">{errors.startDateTime}</span>
+              {errors.inicioEm && (
+                <span className="error-message">{errors.inicioEm}</span>
               )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="endDateTime" className="form-label">
+              <label htmlFor="fimEm" className="form-label">
                 Data/Hora Término *
               </label>
               <input
                 type="datetime-local"
-                id="endDateTime"
-                name="endDateTime"
-                value={formData.endDateTime || ''}
+                id="fimEm"
+                name="fimEm"
+                value={formData.fimEm || ''}
                 onChange={handleChange}
-                className={`form-input ${errors.endDateTime ? 'border-red-500' : ''}`}
+                className={`form-input ${errors.fimEm ? 'border-red-500' : ''}`}
               />
-              {errors.endDateTime && (
-                <span className="error-message">{errors.endDateTime}</span>
+              {errors.fimEm && (
+                <span className="error-message">{errors.fimEm}</span>
               )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="type" className="form-label">
-                Tipo de Agendamento *
+              <label htmlFor="tipo" className="form-label">
+                Tipo *
               </label>
               <select
-                id="type"
-                name="type"
-                value={formData.type || 'AVALIACAO'}
+                id="tipo"
+                name="tipo"
+                value={formData.tipo || 'AVALIACAO'}
                 onChange={handleChange}
                 className="form-input"
               >
@@ -214,62 +185,46 @@ export default function AppointmentFormModal({
               </select>
             </div>
 
-            {formData.type === 'TRATAMENTO' && (
+            {formData.tipo === 'TRATAMENTO' && (
               <div className="form-group">
-                <label htmlFor="tratamentType" className="form-label">
-                  Tipo de Tratamento *
+                <label htmlFor="avaliacaoId" className="form-label">
+                  ID da Avaliação de Origem *
                 </label>
-                <select
-                  id="tratamentType"
-                  name="tratamentType"
-                  value={formData.tratamentType || 'PODEATRIA'}
+                <input
+                  type="number"
+                  id="avaliacaoId"
+                  name="avaliacaoId"
+                  value={formData.avaliacaoId ?? ''}
                   onChange={handleChange}
-                  className="form-input"
-                >
-                  <option value="PODEATRIA">Podiatria</option>
-                  <option value="TRATAMENTO_FERIDAS">
-                    Tratamento de Feridas
-                  </option>
-                </select>
+                  className={`form-input ${errors.avaliacaoId ? 'border-red-500' : ''}`}
+                  placeholder="ID do agendamento de avaliação"
+                  min={1}
+                />
+                {errors.avaliacaoId && (
+                  <span className="error-message">{errors.avaliacaoId}</span>
+                )}
               </div>
             )}
 
-            <div className="form-group">
-              <label htmlFor="professionalName" className="form-label">
-                Nome do Profissional
+            <div className="form-group col-span-2">
+              <label htmlFor="observacoes" className="form-label">
+                Observações
               </label>
-              <input
-                type="text"
-                id="professionalName"
-                name="professionalName"
-                value={formData.professionalName || ''}
+              <textarea
+                id="observacoes"
+                name="observacoes"
+                value={formData.observacoes || ''}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="Digite o nome do profissional"
+                placeholder="Observações opcionais sobre o agendamento"
+                rows={3}
               />
             </div>
 
-            <div className="form-group flex items-center">
-              <input
-                type="checkbox"
-                id="bedridden"
-                name="bedridden"
-                checked={formData.bedridden || false}
-                onChange={handleChange}
-                className="h-4 w-4 rounded border-gray-300 text-[#2b6cb0] focus:ring-[#7991bc]"
-              />
-              <label htmlFor="bedridden" className="ml-2 text-gray-700">
-                Paciente acamado
-              </label>
-            </div>
           </div>
 
           <div className="modal-footer">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="btn-secondary"
-            >
+            <button type="button" onClick={handleCancel} className="btn-secondary">
               Cancelar
             </button>
             <button type="submit" className="btn-primary">

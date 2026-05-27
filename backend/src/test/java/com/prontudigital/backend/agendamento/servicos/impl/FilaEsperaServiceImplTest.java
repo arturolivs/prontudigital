@@ -173,14 +173,14 @@ class FilaEsperaServiceImplTest {
         @Test
         @DisplayName("retorna apenas entradas ativas ordenadas por prioridade")
         void deveListarApenasAtivas() {
-            when(repository.findByProfissionalUuidAndStatusOrderByPrioridadeAscCreatedAtAsc(
+            when(repository.findByProfissionalUuidAndStatusOrderByPrioridadeAscCriadoEmAsc(
                     eq(PROFISSIONAL_UUID), eq(StatusFilaEspera.ATIVO)))
                     .thenReturn(List.of(filaAtiva(), filaAtiva()));
 
             List<FilaEsperaDTO> resultado = service.listarFilaDoProfissional(PROFISSIONAL_UUID);
 
             assertEquals(2, resultado.size());
-            verify(repository).findByProfissionalUuidAndStatusOrderByPrioridadeAscCreatedAtAsc(
+            verify(repository).findByProfissionalUuidAndStatusOrderByPrioridadeAscCriadoEmAsc(
                     PROFISSIONAL_UUID, StatusFilaEspera.ATIVO);
         }
     }
@@ -198,7 +198,7 @@ class FilaEsperaServiceImplTest {
             AgendamentoCanceladoEvento evento = eventoCancelamento();
             FilaEspera proximo = filaAtiva();
 
-            when(repository.findByProfissionalUuidAndStatusOrderByPrioridadeAscCreatedAtAsc(
+            when(repository.findByProfissionalUuidAndStatusOrderByPrioridadeAscCriadoEmAsc(
                     eq(PROFISSIONAL_UUID), eq(StatusFilaEspera.ATIVO)))
                     .thenReturn(List.of(proximo));
 
@@ -213,7 +213,7 @@ class FilaEsperaServiceImplTest {
         void naoFazNadaSeFilaVazia() {
             AgendamentoCanceladoEvento evento = eventoCancelamento();
 
-            when(repository.findByProfissionalUuidAndStatusOrderByPrioridadeAscCreatedAtAsc(
+            when(repository.findByProfissionalUuidAndStatusOrderByPrioridadeAscCriadoEmAsc(
                     any(), any()))
                     .thenReturn(List.of());
 
@@ -230,7 +230,7 @@ class FilaEsperaServiceImplTest {
             FilaEspera segundo = filaAtiva();
             segundo.setId(2L);
 
-            when(repository.findByProfissionalUuidAndStatusOrderByPrioridadeAscCreatedAtAsc(
+            when(repository.findByProfissionalUuidAndStatusOrderByPrioridadeAscCriadoEmAsc(
                     any(), any()))
                     .thenReturn(List.of(primeiro, segundo));
 
