@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { RotaProtegida } from '../../components/ProtectedRoute'
+import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/careSession'
 import { AgendamentoRequisicao } from '../../tipos/appointment'

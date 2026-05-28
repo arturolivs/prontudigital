@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '../contexts/AuthContext'
-import { ProtetorDeRota } from '../components/RouteProtectionWrapper'
+import { ProtetorDeRota } from '../components/ProtetorDeRota'
 import './globals.css'
 import ConteinerNotificacoes from '@/components/Toast/ToastContainer'
 import { ProvedorNotificacao } from '@/contexts/ToastContext'

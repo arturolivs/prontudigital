@@ -41,7 +41,11 @@ export default function UsuariosPage() {
       exibirNotificacao('Usuário excluído com sucesso!', 'success', 6000)
     } catch (error: any) {
       console.error('Erro ao excluir usuário', error)
-      exibirNotificacao(error.message || 'Erro ao excluir usuário', 'error', 6000)
+      exibirNotificacao(
+        error.message || 'Erro ao excluir usuário',
+        'error',
+        6000,
+      )
     }
   }
 
@@ -80,9 +84,7 @@ export default function UsuariosPage() {
     setUsuarioEditando(null)
   }
 
-  const handleSave = async (
-    dados: Partial<Usuario> & { password?: string },
-  ) => {
+  const handleSave = async (dados: Partial<Usuario> & { senha?: string }) => {
     try {
       if (usuarioEditando) {
         const atualizado = await usuariosAPI.atualizarUsuario(
@@ -106,7 +108,7 @@ export default function UsuariosPage() {
           nomeCompleto: dados.nomeCompleto || '',
           username: dados.username || '',
           email: dados.email || '',
-          password: dados.password || '',
+          senha: dados.senha || '',
           telefone: dados.telefone,
           perfis: dados.perfis,
         }
@@ -119,7 +121,11 @@ export default function UsuariosPage() {
       closeModal()
     } catch (error: any) {
       console.error('Erro ao salvar usuário', error)
-      exibirNotificacao(error.message || 'Erro ao salvar usuário', 'error', 6000)
+      exibirNotificacao(
+        error.message || 'Erro ao salvar usuário',
+        'error',
+        6000,
+      )
     }
   }
 
