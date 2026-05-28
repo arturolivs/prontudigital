@@ -19,4 +19,6 @@ public interface AgendamentoService {
                                               TipoVisualizacaoAgenda tipo,
                                               UUID profissionalUuidOpcional);
     List<AgendamentoViewDTO> getTratamentosPorAvaliacao(Long avaliacaoId);
+
+    List<AgendamentoViewDTO> obterMeusAgendamentos();
 }

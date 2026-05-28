@@ -51,4 +51,6 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             @Param("fim") LocalDateTime fim);
 
     List<Agendamento> findByAvaliacaoId(Long avaliacaoId);
+
+    List<Agendamento> findByPacienteUuidOrderByInicioEmDesc(UUID pacienteUuid);
 }

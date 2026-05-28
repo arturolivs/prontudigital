@@ -72,6 +72,12 @@ public class AgendamentoController {
                 agendamentoService.visualizarAgenda(data, tipo, profissionalUuid));
     }
 
+    @GetMapping("/meus")
+    @MeusAgendamentosSwagger
+    public ResponseEntity<List<AgendamentoViewDTO>> obterMeus() {
+        return ResponseEntity.ok(agendamentoService.obterMeusAgendamentos());
+    }
+
     @GetMapping("/avaliacoes/{avaliacaoId}/tratamentos")
     @TratamentosPorAvaliacaoSwagger
     public ResponseEntity<List<AgendamentoViewDTO>> getTratamentosPorAvaliacao(

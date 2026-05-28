@@ -219,6 +219,23 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     }
 
     @Override
+    public List<AgendamentoViewDTO> obterMeusAgendamentos() {
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+
+        if (!"PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Apenas pacientes podem acessar este endpoint");
+        }
+
+        return agendamentoRepository
+                .findByPacienteUuidOrderByInicioEmDesc(usuario.uuid())
+                .stream()
+                .map(agendamentoUtil::convertToViewDTO)
+                .toList();
+    }
+
+    @Override
     public List<AgendamentoViewDTO> getTratamentosPorAvaliacao(Long avaliacaoId) {
         Agendamento avaliacao = agendamentoRepository.findById(avaliacaoId)
                 .orElseThrow(() -> new AvaliacaoNaoEncontradaException(

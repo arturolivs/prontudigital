@@ -196,4 +196,32 @@ public class AgendamentoSwagger {
     @CommonsSwagger.ApiResponseNotFound
     @CommonsSwagger.ApiResponseInternalServerError
     public @interface TratamentosPorAvaliacaoSwagger {}
+
+    // =========================================================
+    // GET /api/agendamentos/meus
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Listar meus agendamentos (paciente)",
+            description = """
+            Retorna todos os agendamentos do paciente autenticado, ordenados do mais recente para o mais antigo. \n
+            Regras:
+            - Exclusivo para usuarios com perfil PACIENTE
+            - Filtra automaticamente pelo UUID do paciente extraido do JWT
+            - Nao requer parametros
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Lista de agendamentos do paciente autenticado",
+            content = @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = AgendamentoViewDTO.class))
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface MeusAgendamentosSwagger {}
 }
