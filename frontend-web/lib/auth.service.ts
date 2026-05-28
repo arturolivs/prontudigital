@@ -1,72 +1,126 @@
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import {
-  JwtResposta,
   LoginRequisicao,
+  JwtResposta,
   UsuarioAutenticado,
 } from '../tipos/autenticacao'
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/auth'
+let _accessToken: string | null = null
+
+let _refreshing = false
+let _queue: Array<(token: string | null) => void> = []
+
+function _drainQueue(token: string | null) {
+  _queue.forEach(cb => cb(token))
+  _queue = []
+}
 
 export const autenticacaoAPI = {
   login: async (credenciais: LoginRequisicao): Promise<JwtResposta> => {
-    const mock = {
-      username: 'joaosilva',
-      senha: 'senha123',
-    } as LoginRequisicao
     const { data } = await axios.post<JwtResposta>(
-      `${API_URL}/login`,
+      '/api/auth/session',
       credenciais,
     )
     return data
   },
 
   logout: async (): Promise<void> => {
-    const refreshToken = localStorage.getItem('refreshToken')
-    if (refreshToken) {
-      await axios.post(`${API_URL}/logout`, { refreshToken })
-    }
+    await axios.delete('/api/auth/session')
   },
 }
 
-// TODO segurança: localStorage é vulnerável a XSS. O refreshToken deveria estar
-// em cookie httpOnly + Secure + SameSite. Mantido aqui apenas pela paridade
-// com o código original. Não é seguro pra produção como está.
 export const tokenService = {
-  getToken: (): string | null => {
+  getToken(): string | null {
+    return _accessToken
+  },
+
+  setTokens(accessToken: string, _refreshToken?: string): void {
+    _accessToken = accessToken
+  },
+
+  clearTokens(): void {
+    _accessToken = null
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('authToken')
+      sessionStorage.removeItem('dadosUsuario')
     }
-    return null
   },
 
-  getRefreshToken: (): string | null => {
+  setDadosUsuario(usuario: UsuarioAutenticado): void {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('refreshToken')
+      sessionStorage.setItem('dadosUsuario', JSON.stringify(usuario))
     }
-    return null
   },
 
-  setTokens: (token: string, refreshToken: string): void => {
-    localStorage.setItem('authToken', token)
-    localStorage.setItem('refreshToken', refreshToken)
+  getDadosUsuario(): UsuarioAutenticado | null {
+    if (typeof window === 'undefined') return null
+    const raw = sessionStorage.getItem('dadosUsuario')
+    return raw ? (JSON.parse(raw) as UsuarioAutenticado) : null
   },
 
-  clearTokens: (): void => {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('dadosUsuario')
+  async refresh(): Promise<string> {
+    const { data } = await axios.post<{ accessToken: string }>(
+      '/api/auth/refresh',
+    )
+    _accessToken = data.accessToken
+    return data.accessToken
   },
+}
 
-  setDadosUsuario: (usuario: UsuarioAutenticado): void => {
-    localStorage.setItem('dadosUsuario', JSON.stringify(usuario))
-  },
+export function setupRefreshInterceptor(instance: AxiosInstance): void {
+  instance.interceptors.request.use(config => {
+    const token = tokenService.getToken()
+    if (token) config.headers.Authorization = `Bearer ${token}`
+    return config
+  })
 
-  getDadosUsuario: (): UsuarioAutenticado | null => {
-    if (typeof window !== 'undefined') {
-      const dados = localStorage.getItem('dadosUsuario')
-      return dados ? JSON.parse(dados) : null
-    }
-    return null
-  },
+  instance.interceptors.response.use(
+    response => response,
+    async error => {
+      const original = error.config as typeof error.config & {
+        _retry?: boolean
+      }
+
+      if (error.response?.status === 401 && !original._retry) {
+        original._retry = true
+
+        if (_refreshing) {
+          return new Promise<string>((resolve, reject) => {
+            _queue.push(token => {
+              if (token) {
+                original.headers.Authorization = `Bearer ${token}`
+                resolve(instance(original))
+              } else {
+                reject(error)
+              }
+            })
+          })
+        }
+
+        _refreshing = true
+        try {
+          const newToken = await tokenService.refresh()
+          _drainQueue(newToken)
+          original.headers.Authorization = `Bearer ${newToken}`
+          return instance(original)
+        } catch {
+          _drainQueue(null)
+          tokenService.clearTokens()
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login'
+          }
+          return Promise.reject(error)
+        } finally {
+          _refreshing = false
+        }
+      }
+
+      if (error.response?.status === 403) {
+        return Promise.reject(
+          new Error('Acesso negado. Permissão insuficiente.'),
+        )
+      }
+
+      return Promise.reject(error)
+    },
+  )
 }

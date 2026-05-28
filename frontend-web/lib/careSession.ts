@@ -1,21 +1,19 @@
 import axios from 'axios'
+import { setupRefreshInterceptor } from './auth.service'
 import { Agendamento } from '../tipos/CareSession'
-import { AgendamentoRequisicao, AgendamentoResposta, ReagendarRequisicao } from '../tipos/appointment'
+import {
+  AgendamentoRequisicao,
+  AgendamentoResposta,
+  ReagendarRequisicao,
+} from '../tipos/appointment'
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_AGENDAMENTOS_API_URL || 'http://localhost:9090/api/agendamentos'
+  process.env.NEXT_PUBLIC_AGENDAMENTOS_API_URL ||
+  'http://localhost:9090/api/agendamentos'
 
 const api = axios.create()
 
-api.interceptors.request.use(config => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('authToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-  }
-  return config
-})
+setupRefreshInterceptor(api)
 
 const tipoVisualizacaoMap: Record<string, string> = {
   day: 'DIA',
@@ -24,7 +22,10 @@ const tipoVisualizacaoMap: Record<string, string> = {
 }
 
 export const agendamentoAPI = {
-  getCareSessions: async (viewType: string, date: Date | string): Promise<Agendamento[]> => {
+  getCareSessions: async (
+    viewType: string,
+    date: Date | string,
+  ): Promise<Agendamento[]> => {
     const formattedDate =
       typeof date === 'string' ? date : date.toISOString().split('T')[0]
     const tipo = tipoVisualizacaoMap[viewType] || 'DIA'
@@ -34,7 +35,9 @@ export const agendamentoAPI = {
     return response.data
   },
 
-  criarAgendamento: async (dados: AgendamentoRequisicao): Promise<AgendamentoResposta> => {
+  criarAgendamento: async (
+    dados: AgendamentoRequisicao,
+  ): Promise<AgendamentoResposta> => {
     const response = await api.post<AgendamentoResposta>(API_BASE_URL, dados)
     return response.data
   },
@@ -58,7 +61,9 @@ export const agendamentoAPI = {
     return response.data
   },
 
-  getTratamentosPorAvaliacao: async (avaliacaoId: number): Promise<Agendamento[]> => {
+  getTratamentosPorAvaliacao: async (
+    avaliacaoId: number,
+  ): Promise<Agendamento[]> => {
     const response = await api.get<Agendamento[]>(
       `${API_BASE_URL}/avaliacoes/${avaliacaoId}/tratamentos`,
     )
