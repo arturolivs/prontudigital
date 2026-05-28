@@ -9,27 +9,41 @@ import Layout from '@/components/Layout/Layout'
 import ModalFormularioAgendamento from '@/components/AppointmentFormModal'
 import './agenda.css'
 import ListaAgendamentos from '@/components/ListaAgendamentos'
+import AgendaSemanal from '@/components/AgendaSemanal'
+import AgendaMensal from '@/components/AgendaMensal'
 import { Agendamento } from '@/tipos/CareSession'
+
+type TipoVisualizacao = 'day' | 'week' | 'month'
 
 const formatarDataISO = (date: Date): string => date.toISOString().split('T')[0]
 
-const formatarDataExibicao = (dateStr: string): string => {
-  const date = new Date(dateStr + 'T00:00:00')
-  const hoje = new Date()
-  hoje.setHours(0, 0, 0, 0)
-  const amanha = new Date(hoje)
-  amanha.setDate(amanha.getDate() + 1)
+const obterInicioSemana = (dateStr: string): Date => {
+  const d = new Date(dateStr + 'T00:00:00')
+  const dia = d.getDay()
+  d.setDate(d.getDate() - dia + (dia === 0 ? -6 : 1))
+  return d
+}
 
-  console.log(date, 'date @@')
-  console.log(hoje, 'hoje @@')
-  console.log(amanha, 'amanha @@')
-  if (date.toDateString() === hoje.toDateString()) return 'Hoje'
-  if (date.toDateString() === amanha.toDateString()) return 'Amanhã'
-  return date.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
+const formatarPeriodo = (tipo: TipoVisualizacao, date: Date): string => {
+  if (tipo === 'day') {
+    const hoje = new Date()
+    hoje.setHours(0, 0, 0, 0)
+    const amanha = new Date(hoje)
+    amanha.setDate(amanha.getDate() + 1)
+    if (date.toDateString() === hoje.toDateString()) return 'Hoje'
+    if (date.toDateString() === amanha.toDateString()) return 'Amanhã'
+    return date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+  }
+  if (tipo === 'week') {
+    const inicio = obterInicioSemana(formatarDataISO(date))
+    const fim = new Date(inicio)
+    fim.setDate(fim.getDate() + 6)
+    if (inicio.getMonth() === fim.getMonth()) {
+      return `${inicio.getDate()} – ${fim.getDate()} de ${fim.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`
+    }
+    return `${inicio.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} – ${fim.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })}`
+  }
+  return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 }
 
 export default function AgendaPage() {
@@ -38,6 +52,7 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(formatarDataISO(new Date()))
+  const [viewType, setViewType] = useState<TipoVisualizacao>('day')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const isEnfermeiro = temPerfil('ROLE_PROFISSIONAL')
@@ -48,7 +63,7 @@ export default function AgendaPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await agendamentoAPI.getCareSessions('day', selectedDate)
+      const data = await agendamentoAPI.getCareSessions(viewType, selectedDate)
       setAgendamentos(data)
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar agendamentos')
@@ -56,18 +71,25 @@ export default function AgendaPage() {
     } finally {
       setLoading(false)
     }
-  }, [selectedDate])
+  }, [selectedDate, viewType])
 
   useEffect(() => {
     if (usuario && hasRequiredRole) {
       fetchAgendamentos()
     }
-  }, [selectedDate, usuario, hasRequiredRole, fetchAgendamentos])
+  }, [selectedDate, viewType, usuario, hasRequiredRole, fetchAgendamentos])
 
-  const navegar = (dias: number) => {
+  const navegar = (direcao: number) => {
     const date = new Date(selectedDate + 'T00:00:00')
-    date.setDate(date.getDate() + dias)
+    if (viewType === 'day') date.setDate(date.getDate() + direcao)
+    else if (viewType === 'week') date.setDate(date.getDate() + direcao * 7)
+    else date.setMonth(date.getMonth() + direcao)
     setSelectedDate(formatarDataISO(date))
+  }
+
+  const handleDiaSelecionado = (data: string) => {
+    setSelectedDate(data)
+    setViewType('day')
   }
 
   const handleCreateAppointment = async (dados: AgendamentoRequisicao) => {
@@ -81,6 +103,8 @@ export default function AgendaPage() {
     }
   }
 
+  const dataAtual = new Date(selectedDate + 'T00:00:00')
+
   if (!usuario || !hasRequiredRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -93,59 +117,85 @@ export default function AgendaPage() {
     <Layout perfil={isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'}>
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
         <div className="appointments-page">
-          <div className="flex justify-between items-center mb-6">
+
+          <div className="agenda-toolbar">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+              className="agenda-btn-novo"
               title="Novo agendamento"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
               Novo
             </button>
+
+            <div className="agenda-view-switcher">
+              {(['day', 'week', 'month'] as TipoVisualizacao[]).map(tipo => (
+                <button
+                  key={tipo}
+                  className={`agenda-view-btn${viewType === tipo ? ' agenda-view-btn-ativo' : ''}`}
+                  onClick={() => setViewType(tipo)}
+                >
+                  {tipo === 'day' ? 'Dia' : tipo === 'week' ? 'Semana' : 'Mês'}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center justify-center gap-4 mb-6">
+          <div className="agenda-nav">
             <button
               onClick={() => navegar(-1)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              title="Dia anterior"
+              className="agenda-nav-arrow"
+              title={viewType === 'day' ? 'Dia anterior' : viewType === 'week' ? 'Semana anterior' : 'Mês anterior'}
             >
-              ◀
+              ‹
             </button>
-            <span className="text-lg font-medium text-gray-700 min-w-[200px] text-center capitalize">
-              {formatarDataExibicao(selectedDate)}
+            <span className="agenda-nav-label capitalize">
+              {formatarPeriodo(viewType, dataAtual)}
             </span>
             <button
               onClick={() => navegar(1)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              title="Próximo dia"
+              className="agenda-nav-arrow"
+              title={viewType === 'day' ? 'Próximo dia' : viewType === 'week' ? 'Próxima semana' : 'Próximo mês'}
             >
-              ▶
+              ›
             </button>
             <button
               onClick={() => setSelectedDate(formatarDataISO(new Date()))}
-              className="text-sm text-blue-600 hover:underline"
+              className="agenda-nav-hoje"
             >
               Hoje
             </button>
           </div>
 
-          <ListaAgendamentos
-            agendamentos={agendamentos}
-            carregando={loading}
-            erro={error}
-          />
+          {viewType === 'day' && (
+            <ListaAgendamentos
+              agendamentos={agendamentos}
+              carregando={loading}
+              erro={error}
+            />
+          )}
+
+          {viewType === 'week' && (
+            <AgendaSemanal
+              agendamentos={agendamentos}
+              carregando={loading}
+              erro={error}
+              dataSelecionada={selectedDate}
+              aoSelecionarDia={handleDiaSelecionado}
+            />
+          )}
+
+          {viewType === 'month' && (
+            <AgendaMensal
+              agendamentos={agendamentos}
+              carregando={loading}
+              erro={error}
+              dataSelecionada={selectedDate}
+              aoSelecionarDia={handleDiaSelecionado}
+            />
+          )}
         </div>
 
         <ModalFormularioAgendamento

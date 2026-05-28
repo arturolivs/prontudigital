@@ -4,6 +4,135 @@
   padding: 20px;
 }
 
+/* ===== TOOLBAR ===== */
+
+.agenda-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.agenda-btn-novo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2b6cb0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.agenda-btn-novo:hover {
+  background: #245d9e;
+  transform: translateY(-1px);
+}
+
+.agenda-btn-novo:active {
+  transform: translateY(0);
+}
+
+/* ===== VIEW SWITCHER ===== */
+
+.agenda-view-switcher {
+  display: flex;
+  background: white;
+  border: 1px solid #e2edf7;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(43, 108, 176, 0.06);
+}
+
+.agenda-view-btn {
+  padding: 8px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #7991bc;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border-right: 1px solid #e2edf7;
+}
+
+.agenda-view-btn:last-child {
+  border-right: none;
+}
+
+.agenda-view-btn:hover:not(.agenda-view-btn-ativo) {
+  background: #f4f9ff;
+  color: #2b6cb0;
+}
+
+.agenda-view-btn-ativo {
+  background: #2b6cb0;
+  color: white;
+  font-weight: 600;
+}
+
+/* ===== NAVEGAÇÃO DE PERÍODO ===== */
+
+.agenda-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.agenda-nav-arrow {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2edf7;
+  border-radius: 8px;
+  background: white;
+  color: #2b6cb0;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.agenda-nav-arrow:hover {
+  background: #f4f9ff;
+  border-color: #2b6cb0;
+}
+
+.agenda-nav-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 240px;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+.agenda-nav-hoje {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2b6cb0;
+  background: #f4f9ff;
+  border: 1px solid #d1e3f5;
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.agenda-nav-hoje:hover {
+  background: #e6f0fb;
+}
+
 
 
 /* ===== HEADER ===== */

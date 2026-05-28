@@ -28,8 +28,8 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
       perfis: ['ROLE_ADMIN'],
     },
     {
-      rotulo: 'Calendário',
-      caminho: '/calendar',
+      rotulo: 'Agenda',
+      caminho: '/agenda',
       icone: '📅',
       perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
