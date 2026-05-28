@@ -1,6 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import {
+  Plus, Ban, AlertCircle, Umbrella, Wrench,
+  Clock, Trash2, Calendar, AlertTriangle,
+} from 'lucide-react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNotificacao } from '../../contexts/ToastContext'
@@ -73,11 +77,11 @@ interface FormState {
   motivo: string
 }
 
-const TIPOS: { valor: TipoBloqueio; emoji: string }[] = [
-  { valor: 'INDISPONIVEL', emoji: '🚫' },
-  { valor: 'URGENCIA', emoji: '🚨' },
-  { valor: 'FOLGA', emoji: '🌴' },
-  { valor: 'MANUTENCAO', emoji: '🔧' },
+const TIPOS: { valor: TipoBloqueio; icone: React.ElementType }[] = [
+  { valor: 'INDISPONIVEL', icone: Ban },
+  { valor: 'URGENCIA',     icone: AlertCircle },
+  { valor: 'FOLGA',        icone: Umbrella },
+  { valor: 'MANUTENCAO',   icone: Wrench },
 ]
 
 type FiltroRapido = 'SEMANA' | 'MES' | '30DIAS' | 'PERSONALIZADO'
@@ -235,16 +239,14 @@ export default function BloqueiosPage() {
               <p>Registre e gerencie seus períodos de indisponibilidade</p>
             </div>
             <button className="btn-novo-bloqueio" onClick={abrirModal}>
-              <svg viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
+              <Plus size={16} strokeWidth={2.5} />
               Registrar Bloqueio
             </button>
           </div>
 
           {/* ── Resumo por tipo ── */}
           <div className="bloqueios-resumo">
-            {TIPOS.map(({ valor, emoji }) => (
+            {TIPOS.map(({ valor, icone: Icone }) => (
               <div
                 key={valor}
                 className={`resumo-card resumo-card--${valor}`}
@@ -252,7 +254,7 @@ export default function BloqueiosPage() {
                 style={{ cursor: 'pointer' }}
                 title={`Filtrar por ${TIPO_BLOQUEIO_LABELS[valor]}`}
               >
-                <div className="resumo-icone">{emoji}</div>
+                <div className="resumo-icone"><Icone size={20} strokeWidth={1.75} /></div>
                 <div className="resumo-info">
                   <span className="resumo-numero">{contagens(valor)}</span>
                   <span className="resumo-rotulo">{TIPO_BLOQUEIO_LABELS[valor]}</span>
@@ -315,7 +317,7 @@ export default function BloqueiosPage() {
             </div>
           ) : bloqueiosFiltrados.length === 0 ? (
             <div className="bloqueios-vazio">
-              <div className="bloqueios-vazio-icone">📅</div>
+              <div className="bloqueios-vazio-icone"><Calendar size={32} strokeWidth={1.5} /></div>
               <h3>Nenhum bloqueio encontrado</h3>
               <p>
                 {filtroTipo
@@ -331,10 +333,12 @@ export default function BloqueiosPage() {
                 const duracao = calcularDuracao(bloqueio.inicioEm, bloqueio.fimEm)
                 const tipoInfo = TIPOS.find(t => t.valor === bloqueio.tipo)
 
+                const TipoIcone = tipoInfo?.icone
                 return (
                   <div key={bloqueio.id} className={`bloqueio-card bloqueio-card--${bloqueio.tipo}`}>
                     <span className={`bloqueio-tipo-badge badge--${bloqueio.tipo}`}>
-                      {tipoInfo?.emoji} {TIPO_BLOQUEIO_LABELS[bloqueio.tipo]}
+                      {TipoIcone && <TipoIcone size={12} strokeWidth={2} />}
+                      {TIPO_BLOQUEIO_LABELS[bloqueio.tipo]}
                     </span>
 
                     <div className="bloqueio-info">
@@ -355,9 +359,7 @@ export default function BloqueiosPage() {
                         )}
                       </div>
                       <div className="bloqueio-duracao">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                        </svg>
+                        <Clock size={11} strokeWidth={2} />
                         {duracao}
                       </div>
                     </div>
@@ -367,12 +369,7 @@ export default function BloqueiosPage() {
                       onClick={() => handleExcluir(bloqueio.id)}
                       title="Remover bloqueio"
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14H6L5 6"/>
-                        <path d="M10 11v6M14 11v6"/>
-                        <path d="M9 6V4h6v2"/>
-                      </svg>
+                      <Trash2 size={16} strokeWidth={1.75} />
                     </button>
                   </div>
                 )
@@ -386,7 +383,7 @@ export default function BloqueiosPage() {
           <div className="modal-overlay" onClick={e => e.target === e.currentTarget && fecharModal()}>
             <div className="modal-conteudo">
               <div className="modal-cabecalho">
-                <h2>🚫 Registrar Bloqueio</h2>
+                <h2><Ban size={18} strokeWidth={2} /> Registrar Bloqueio</h2>
                 <button className="modal-fechar" onClick={fecharModal} aria-label="Fechar">✕</button>
               </div>
 
@@ -422,7 +419,7 @@ export default function BloqueiosPage() {
                   <div className="campo">
                     <label>Tipo de bloqueio</label>
                     <div className="tipo-opcoes">
-                      {TIPOS.map(({ valor, emoji }) => (
+                      {TIPOS.map(({ valor, icone: Icone }) => (
                         <div key={valor} className={`tipo-opcao tipo-opcao--${valor}`}>
                           <input
                             type="radio"
@@ -434,7 +431,8 @@ export default function BloqueiosPage() {
                           />
                           <label htmlFor={`tipo-${valor}`} className="tipo-opcao-label">
                             <span className={`tipo-dot tipo-dot--${valor}`} />
-                            {emoji} {TIPO_BLOQUEIO_LABELS[valor]}
+                            <Icone size={14} strokeWidth={2} />
+                            {TIPO_BLOQUEIO_LABELS[valor]}
                           </label>
                         </div>
                       ))}
@@ -455,7 +453,10 @@ export default function BloqueiosPage() {
 
                   {/* Erro */}
                   {erroForm && (
-                    <p className="campo-erro">⚠ {erroForm}</p>
+                    <p className="campo-erro">
+                      <AlertTriangle size={13} strokeWidth={2} />
+                      {erroForm}
+                    </p>
                   )}
                 </div>
 

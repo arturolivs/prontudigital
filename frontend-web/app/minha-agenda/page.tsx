@@ -1,11 +1,15 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  Clock, CheckCircle2, XCircle, RefreshCw, AlertTriangle,
+  Calendar, AlertCircle,
+} from 'lucide-react'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import { useAuth } from '@/contexts/AuthContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
 import LayoutPaciente from '@/components/LayoutPaciente'
-import { Agendamento } from '@/tipos/CareSession'
+import { Agendamento } from '@/tipos/agendamento'
 import './minha-agenda.css'
 
 type Aba = 'proximos' | 'historico'
@@ -28,13 +32,13 @@ const CLASSE_STATUS: Record<string, string> = {
   NAO_COMPARECEU: 'ma-status-nao-compareceu',
 }
 
-const ICONE_STATUS: Record<string, string> = {
-  AGENDADO: '🕐',
-  CONFIRMADO: '✅',
-  CANCELADO: '❌',
-  REMARCADO: '🔄',
-  REALIZADO: '✔️',
-  NAO_COMPARECEU: '⚠️',
+const ICONE_STATUS: Record<string, React.ElementType> = {
+  AGENDADO:       Clock,
+  CONFIRMADO:     CheckCircle2,
+  CANCELADO:      XCircle,
+  REMARCADO:      RefreshCw,
+  REALIZADO:      CheckCircle2,
+  NAO_COMPARECEU: AlertTriangle,
 }
 
 const formatarHora = (iso: string): string =>
@@ -104,7 +108,7 @@ const CardAgendamento = ({
         <span
           className={`ma-card-status ${CLASSE_STATUS[agendamento.status] || ''}`}
         >
-          {ICONE_STATUS[agendamento.status]}{' '}
+          {(() => { const I = ICONE_STATUS[agendamento.status]; return I ? <I size={11} strokeWidth={2.5} /> : null })()}
           {ROTULO_STATUS[agendamento.status] ?? agendamento.status}
         </span>
       </div>
@@ -117,17 +121,7 @@ const CardAgendamento = ({
 
       <div className="ma-card-linha-rodape">
         <span className="ma-card-horario">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
+          <Clock size={13} strokeWidth={2} />
           {formatarHora(agendamento.inicioEm)} –{' '}
           {formatarHora(agendamento.fimEm)}
         </span>
@@ -250,19 +244,7 @@ export default function MinhaAgendaPage() {
           {!loading && !error && proximoAgendamento && (
             <div className="ma-proximo-destaque">
               <div className="ma-proximo-label">
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
+                <Calendar size={14} strokeWidth={2} />
                 Próximo agendamento
               </div>
               <div className="ma-proximo-info">
@@ -325,18 +307,7 @@ export default function MinhaAgendaPage() {
 
           {error && !loading && (
             <div className="ma-estado ma-estado-erro">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#ef4444"
-                strokeWidth="1.5"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+              <AlertCircle size={40} strokeWidth={1.5} />
               <p>{error}</p>
               <button className="ma-retry-btn" onClick={fetchAgendamentos}>
                 Tentar novamente
@@ -349,19 +320,7 @@ export default function MinhaAgendaPage() {
               {aba === 'proximos' &&
                 (proximos.length === 0 ? (
                   <div className="ma-estado">
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#d1d5db"
-                      strokeWidth="1.5"
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
+                    <Calendar size={48} strokeWidth={1} style={{ color: 'var(--color-neutral-300)' }} />
                     <p>Nenhum agendamento próximo.</p>
                   </div>
                 ) : (
@@ -377,17 +336,7 @@ export default function MinhaAgendaPage() {
               {aba === 'historico' &&
                 (historico.length === 0 ? (
                   <div className="ma-estado">
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#d1d5db"
-                      strokeWidth="1.5"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
+                    <Clock size={48} strokeWidth={1} style={{ color: 'var(--color-neutral-300)' }} />
                     <p>Nenhum agendamento no histórico.</p>
                   </div>
                 ) : (

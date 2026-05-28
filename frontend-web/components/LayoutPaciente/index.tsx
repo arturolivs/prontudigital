@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+import { Activity, LogOut } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import './LayoutPaciente.css'
 
@@ -16,18 +17,7 @@ const LayoutPaciente = ({ children }: PropsLayoutPaciente) => {
       <header className="lp-header">
         <div className="lp-header-inner">
           <div className="lp-logo">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+            <Activity size={24} strokeWidth={2} />
             <span>ProntuDigital</span>
           </div>
 
@@ -42,20 +32,7 @@ const LayoutPaciente = ({ children }: PropsLayoutPaciente) => {
               onClick={() => logout()}
               title="Sair"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
+              <LogOut size={15} strokeWidth={2} />
               Sair
             </button>
           </div>

@@ -1,13 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faExclamationTriangle,
-  faCircleCheck,
-  faCircleInfo,
-  faXmark,
-} from '@fortawesome/free-solid-svg-icons'
+import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react'
 import './ToastNotification.css'
 
 export type TipoNotificacao = 'error' | 'success' | 'info' | 'warning'
@@ -20,6 +14,13 @@ interface PropsNotificacao {
   aberto?: boolean
 }
 
+const ICONES: Record<TipoNotificacao, React.ElementType> = {
+  error:   AlertTriangle,
+  success: CheckCircle2,
+  warning: AlertTriangle,
+  info:    Info,
+}
+
 export default function Notificacao({
   mensagem,
   tipo = 'error',
@@ -30,12 +31,9 @@ export default function Notificacao({
   const [visivel, setVisivel] = useState(true)
   const [saindo, setSaindo] = useState(false)
   const refBarraProgresso = useRef<HTMLDivElement>(null)
-  const refAnimacao = useRef<number>(0)
 
   useEffect(() => {
-    if (abertoExterno !== undefined) {
-      setVisivel(abertoExterno)
-    }
+    if (abertoExterno !== undefined) setVisivel(abertoExterno)
   }, [abertoExterno])
 
   useEffect(() => {
@@ -43,9 +41,7 @@ export default function Notificacao({
       const barra = refBarraProgresso.current
       barra.style.transition = 'none'
       barra.style.transform = 'scaleX(0)'
-
       barra.getBoundingClientRect()
-
       barra.style.transition = `transform ${duracao}ms linear`
       barra.style.transform = 'scaleX(1)'
     }
@@ -53,11 +49,8 @@ export default function Notificacao({
 
   useEffect(() => {
     if (visivel && duracao > 0) {
-      const temporizador = setTimeout(() => {
-        fechar()
-      }, duracao)
-
-      return () => clearTimeout(temporizador)
+      const t = setTimeout(fechar, duracao)
+      return () => clearTimeout(t)
     }
   }, [visivel, duracao])
 
@@ -71,29 +64,13 @@ export default function Notificacao({
 
   if (!visivel) return null
 
-  const obterIcone = () => {
-    switch (tipo) {
-      case 'error':
-        return faExclamationTriangle
-      case 'success':
-        return faCircleCheck
-      case 'warning':
-        return faExclamationTriangle
-      case 'info':
-        return faCircleInfo
-      default:
-        return faExclamationTriangle
-    }
-  }
-
-  const classesNotificacao = `toast-notification ${saindo ? 'exiting' : ''}`
-  const classesConteudo = `toast-content toast-${tipo}`
+  const Icone = ICONES[tipo]
 
   return (
-    <div className={classesNotificacao}>
-      <div className={classesConteudo}>
+    <div className={`toast-notification${saindo ? ' exiting' : ''}`}>
+      <div className={`toast-content toast-${tipo}`}>
         <div className="toast-icon">
-          <FontAwesomeIcon icon={obterIcone()} />
+          <Icone size={18} strokeWidth={2} />
         </div>
 
         <p className="toast-message">{mensagem}</p>
@@ -104,7 +81,7 @@ export default function Notificacao({
           className="toast-close-btn"
           aria-label="Fechar notificação"
         >
-          <FontAwesomeIcon icon={faXmark} className="toast-close-icon" />
+          <X size={16} className="toast-close-icon" />
         </button>
       </div>
 
