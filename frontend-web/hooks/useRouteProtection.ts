@@ -20,10 +20,8 @@ export const useRouteProtection = () => {
     })
 
     const configRotas = {
-      // Acessíveis a todos, mas redireciona usuário já logado
       publicasComRedirect: ['/login'],
 
-      // Acessíveis a todos sem qualquer redirecionamento
       publicasLivres: ['/agendar'],
 
       protegidas: {

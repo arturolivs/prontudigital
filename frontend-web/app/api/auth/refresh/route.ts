@@ -13,9 +13,6 @@ const cookieOpts = {
   maxAge: 60 * 60 * 24 * 7,
 }
 
-/** POST /api/auth/refresh — Troca o refreshToken (cookie httpOnly) por um novo accessToken.
- *  Faz rotação do refreshToken (token-rotation): o backend invalida o antigo e emite um novo.
- */
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(COOKIE)?.value
 

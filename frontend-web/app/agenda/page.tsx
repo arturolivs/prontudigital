@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
-import { agendamentoAPI } from '../../lib/careSession'
+import { agendamentoAPI } from '../../lib/agendamento.service'
 import { Agendamento, AgendamentoRequisicao } from '../../tipos/agendamento'
 import Layout from '@/components/Layout/Layout'
 import './agenda.css'
@@ -65,7 +65,7 @@ export default function AgendaPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await agendamentoAPI.getCareSessions(viewType, selectedDate)
+      const data = await agendamentoAPI.getAgendamentos(viewType, selectedDate)
       setAgendamentos(data)
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar agendamentos')

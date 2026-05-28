@@ -26,7 +26,6 @@ export default function Modal({
   tamanho = 'md',
   ariaDescribedby,
 }: ModalProps) {
-  // Trava o scroll do body enquanto o modal está montado
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -35,7 +34,6 @@ export default function Modal({
     }
   }, [])
 
-  // Fecha ao pressionar ESC
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()

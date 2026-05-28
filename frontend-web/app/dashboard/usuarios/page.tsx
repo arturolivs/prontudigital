@@ -6,7 +6,7 @@ import { usuariosAPI } from '@/lib/usuario.service'
 import { Usuario, RegistrarRequisicao } from '@/tipos/autenticacao'
 import './usuariosPage.css'
 import { useNotificacao } from '@/contexts/ToastContext'
-import UserFormModal from '@/components/UserFormModal'
+import FormularioUsuarioModal from '@/components/FormularioUsuarioModal'
 
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
@@ -195,7 +195,7 @@ export default function UsuariosPage() {
       </div>
 
       {modalOpen && (
-        <UserFormModal
+        <FormularioUsuarioModal
           user={usuarioEditando}
           onClose={closeModal}
           onSave={handleSave}

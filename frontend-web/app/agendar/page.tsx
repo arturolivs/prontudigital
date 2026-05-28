@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { autenticacaoAPI, tokenService } from '../../lib/auth.service'
 import { usuariosAPI } from '../../lib/usuario.service'
-import { agendamentoAPI } from '../../lib/careSession'
+import { agendamentoAPI } from '../../lib/agendamento.service'
 import {
   agendamentoPublicoAPI,
   ProfissionalPublico,

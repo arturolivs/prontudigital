@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
-import { agendamentoAPI } from '../../lib/careSession'
+import { agendamentoAPI } from '../../lib/agendamento.service'
 import Layout from '@/components/Layout/Layout'
 import './patients.css'
 import { Agendamento } from '@/tipos/agendamento'
@@ -210,12 +210,12 @@ export default function PacientesPage() {
       setError(null)
       const hoje = new Date()
       const [r1, r2, r3] = await Promise.all([
-        agendamentoAPI.getCareSessions('month', formatarDataISO(hoje)),
-        agendamentoAPI.getCareSessions(
+        agendamentoAPI.getAgendamentos('month', formatarDataISO(hoje)),
+        agendamentoAPI.getAgendamentos(
           'month',
           formatarDataISO(new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1)),
         ),
-        agendamentoAPI.getCareSessions(
+        agendamentoAPI.getAgendamentos(
           'month',
           formatarDataISO(new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1)),
         ),

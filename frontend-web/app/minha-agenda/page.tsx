@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import { useAuth } from '@/contexts/AuthContext'
-import { agendamentoAPI } from '@/lib/careSession'
+import { agendamentoAPI } from '@/lib/agendamento.service'
 import LayoutPaciente from '@/components/LayoutPaciente'
 import { Agendamento } from '@/tipos/CareSession'
 import './minha-agenda.css'

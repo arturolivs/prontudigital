@@ -51,7 +51,7 @@
 
 ---
 
-## RF03 – Confirmação de consultas via SMS/e-mail
+## RF03 – Confirmação de consultas via whatsapp
 
 **Objetivo:** Enviar lembretes e solicitar confirmação para reduzir faltas.
 
