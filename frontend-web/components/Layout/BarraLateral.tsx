@@ -45,7 +45,7 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
       rotulo: 'Agenda',
       caminho: '/agenda',
       icone: Calendar,
-      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
+      perfis: ['ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Indisponibilidades',
@@ -57,13 +57,13 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
       rotulo: 'Pacientes',
       caminho: '/pacientes',
       icone: Users,
-      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
+      perfis: ['ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Prontuários',
       caminho: '/records',
       icone: FileText,
-      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
+      perfis: ['ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Relatórios',
