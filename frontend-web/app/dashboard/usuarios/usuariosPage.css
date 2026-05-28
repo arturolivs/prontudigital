@@ -1,8 +1,6 @@
-/* usersPage.css - com paleta #2b6cb0, #7991bc, #f4f9ff, #e6f4f1 */
+/* usuariosPage.css */
 
-.users-container {
-  padding: 1rem;
-}
+.users-container { padding: 1rem; }
 
 .users-header {
   display: flex;
@@ -13,15 +11,10 @@
   gap: 1rem;
 }
 
-.users-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #2b6cb0;
-  margin: 0;
-}
+.users-title { font-size: 1.5rem; font-weight: bold; color: var(--color-brand); margin: 0; }
 
 .btn-primary {
-  background-color: #2b6cb0;
+  background-color: var(--color-brand);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
@@ -31,9 +24,7 @@
   transition: background-color 0.2s;
 }
 
-.btn-primary:hover {
-  background-color: #1f4e7a;
-}
+.btn-primary:hover { background-color: var(--color-brand-dark); }
 
 /* Tabela */
 .users-table-container {
@@ -41,17 +32,14 @@
   border-radius: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow-x: auto;
-  border: 1px solid #e6f4f1;
+  border: 1px solid var(--color-bg-alt);
 }
 
-.users-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+.users-table { width: 100%; border-collapse: collapse; }
 
 .users-table thead {
-  background-color: #f4f9ff;
-  border-bottom: 1px solid #e2edf7;
+  background-color: var(--color-bg-page);
+  border-bottom: 1px solid var(--color-border-brand);
 }
 
 .users-table th {
@@ -61,13 +49,13 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #2b6cb0;
+  color: var(--color-brand);
 }
 
 .users-table td {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e9edf2;
-  color: #1e293b;
+  border-bottom: 1px solid var(--color-border-brand);
+  color: var(--color-text-heading);
   font-size: 0.875rem;
 }
 
@@ -83,30 +71,14 @@
   border: none;
 }
 
-.status-badge-active {
-  background-color: #e6f4f1;
-  color: #2b6cb0;
-}
+.status-badge-active       { background-color: var(--color-bg-alt); color: var(--color-brand); }
+.status-badge-active:hover { background-color: var(--color-border-light); }
 
-.status-badge-active:hover {
-  background-color: #cde3e0;
-}
-
-.status-badge-inactive {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-.status-badge-inactive:hover {
-  background-color: #fecaca;
-}
+.status-badge-inactive       { background-color: var(--color-error-bg-alt); color: var(--color-error-deeper); }
+.status-badge-inactive:hover { background-color: var(--color-error-border); }
 
 /* Roles column */
-.roles-text {
-  white-space: normal;
-  word-break: break-word;
-  max-width: 200px;
-}
+.roles-text { white-space: normal; word-break: break-word; max-width: 200px; }
 
 /* Action buttons */
 .action-buttons {
@@ -117,7 +89,7 @@
 }
 
 .btn-edit {
-  color: #2b6cb0;
+  color: var(--color-brand);
   background: none;
   border: none;
   cursor: pointer;
@@ -126,13 +98,10 @@
   font-size: inherit;
 }
 
-.btn-edit:hover {
-  color: #1f4e7a;
-  text-decoration: underline;
-}
+.btn-edit:hover { color: var(--color-brand-dark); text-decoration: underline; }
 
 .btn-delete {
-  color: #dc2626;
+  color: var(--color-error);
   background: none;
   border: none;
   cursor: pointer;
@@ -140,10 +109,7 @@
   font-size: inherit;
 }
 
-.btn-delete:hover {
-  color: #b91c1c;
-  text-decoration: underline;
-}
+.btn-delete:hover { color: var(--color-error-dark); text-decoration: underline; }
 
 /* Loading spinner */
 .loading-container {
@@ -157,11 +123,9 @@
   border-radius: 50%;
   width: 2.5rem;
   height: 2.5rem;
-  border: 3px solid #e2e8f0;
-  border-top-color: #2b6cb0;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-brand);
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -2,13 +2,13 @@
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f4f9ff;
+  background-color: var(--color-bg-page);
 }
 
-/* Sidebar */
+/* ── Sidebar ── */
 .dashboard-sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #2b6cb0 0%, #7991bc 100%);
+  background: linear-gradient(180deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -63,8 +63,8 @@
 }
 
 .sidebar-link.active {
-  background-color: #e6f4f1;
-  color: #2b6cb0;
+  background-color: var(--color-bg-alt);
+  color: var(--color-brand);
   font-weight: 500;
 }
 
@@ -88,15 +88,15 @@
 
 .logout-button:hover {
   background-color: rgba(231, 76, 60, 0.25);
-  color: #ffb3b3;
+  color: var(--color-error-light);
 }
 
-/* Conteúdo principal */
+/* ── Conteúdo principal ── */
 .dashboard-main {
   flex: 1;
   margin-left: 260px;
   padding: 1.5rem;
-  background-color: #f4f9ff;
+  background-color: var(--color-bg-page);
   min-height: 100vh;
 }
 
@@ -105,17 +105,8 @@
   margin: 0 auto;
 }
 
-/* Responsivo */
 @media (max-width: 768px) {
-  .dashboard-sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-  .dashboard-main {
-    margin-left: 0;
-  }
-  .dashboard-layout {
-    flex-direction: column;
-  }
+  .dashboard-sidebar { width: 100%; height: auto; position: relative; }
+  .dashboard-main    { margin-left: 0; }
+  .dashboard-layout  { flex-direction: column; }
 }

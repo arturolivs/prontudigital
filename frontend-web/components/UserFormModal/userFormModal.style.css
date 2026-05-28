@@ -1,63 +1,30 @@
-/* userFormModal.style.css - com nova paleta */
+/* userFormModal.style.css */
 
-.users-title {
-  color: #2b6cb0;
-}
+.users-title { color: var(--color-brand); }
 
-.btn-primary {
-  background-color: #2b6cb0;
-}
-.btn-primary:hover {
-  background-color: #1f4e7a;
-}
+.btn-primary       { background-color: var(--color-brand); }
+.btn-primary:hover { background-color: var(--color-brand-dark); }
 
-.status-badge-active {
-  background-color: #e6f4f1;
-  color: #2b6cb0;
-}
-.status-badge-active:hover {
-  background-color: #cbdde6;
-}
+.status-badge-active       { background-color: var(--color-bg-alt); color: var(--color-brand); }
+.status-badge-active:hover { background-color: var(--color-border-light); }
 
-.status-badge-inactive {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
+.status-badge-inactive { background-color: var(--color-error-bg-alt); color: var(--color-error-deeper); }
 
-.btn-edit {
-  color: #2b6cb0;
-}
-.btn-edit:hover {
-  color: #1f4e7a;
-}
+.btn-edit       { color: var(--color-brand); }
+.btn-edit:hover { color: var(--color-brand-dark); }
 
 /* Combobox (multiselect) */
 .combobox-trigger--open,
 .combobox-trigger:focus {
-  border-color: #2b6cb0;
+  border-color: var(--color-brand);
   box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.15);
 }
 
-.combobox-option--selected {
-  background-color: #f4f9ff;
-  color: #2b6cb0;
-}
-.combobox-option--selected .combobox-checkbox {
-  background-color: #2b6cb0;
-  border-color: #2b6cb0;
-}
+.combobox-option--selected                  { background-color: var(--color-bg-page); color: var(--color-brand); }
+.combobox-option--selected .combobox-checkbox { background-color: var(--color-brand); border-color: var(--color-brand); }
 
-.combobox-badge {
-  background-color: #e6f4f1;
-  color: #2b6cb0;
-}
-
-.combobox-option--selected .combobox-badge {
-  background-color: #d0e2f0;
-  color: #2b6cb0;
-}
+.combobox-badge                              { background-color: var(--color-bg-alt); color: var(--color-brand); }
+.combobox-option--selected .combobox-badge   { background-color: var(--color-bg-soft); color: var(--color-brand); }
 
 /* Loading spinner */
-.spinner {
-  border-top-color: #2b6cb0;
-}
+.spinner { border-top-color: var(--color-brand); }

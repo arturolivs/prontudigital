@@ -48,7 +48,7 @@ export default function DashboardPage() {
         .dashboard-title {
           font-size: 1.875rem;
           font-weight: 700;
-          color: #2b6cb0;
+          color: var(--color-brand);
           margin-bottom: 1.5rem;
         }
         .info-card {
@@ -57,12 +57,12 @@ export default function DashboardPage() {
           padding: 1.5rem;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
           margin-bottom: 2rem;
-          border: 1px solid #e6f4f1;
+          border: 1px solid var(--color-bg-alt);
         }
         .info-card-title {
           font-size: 1.125rem;
           font-weight: 600;
-          color: #2b6cb0;
+          color: var(--color-brand);
           margin-bottom: 1rem;
         }
         .info-grid {
@@ -74,12 +74,12 @@ export default function DashboardPage() {
           font-size: 0.75rem;
           text-transform: uppercase;
           font-weight: 600;
-          color: #7991bc;
+          color: var(--color-brand-light);
           margin-bottom: 0.25rem;
         }
         .info-value {
           font-weight: 500;
-          color: #1e293b;
+          color: var(--color-text-heading);
         }
         .perfis-container {
           display: flex;
@@ -87,8 +87,8 @@ export default function DashboardPage() {
           flex-wrap: wrap;
         }
         .perfil-badge {
-          background: #e6f4f1;
-          color: #2b6cb0;
+          background: var(--color-bg-alt);
+          color: var(--color-brand);
           padding: 0.25rem 0.75rem;
           border-radius: 2rem;
           font-size: 0.75rem;
@@ -104,7 +104,7 @@ export default function DashboardPage() {
           border-radius: 1rem;
           padding: 1.5rem;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-          border: 1px solid #e6f4f1;
+          border: 1px solid var(--color-bg-alt);
           transition:
             transform 0.2s,
             box-shadow 0.2s;
@@ -116,11 +116,11 @@ export default function DashboardPage() {
         .stat-card h3 {
           font-size: 1.125rem;
           font-weight: 600;
-          color: #2b6cb0;
+          color: var(--color-brand);
           margin-bottom: 0.5rem;
         }
         .stat-card p {
-          color: #5a6e82;
+          color: var(--color-text-mid);
           font-size: 0.875rem;
         }
       `}</style>

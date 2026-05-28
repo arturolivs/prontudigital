@@ -1,15 +1,147 @@
 @import 'tailwindcss';
 
+/* ═══════════════════════════════════════════════════════════════════════
+   PALETA DE CORES — fonte única de verdade para todo o projeto.
+   Uso: var(--color-<token>) em qualquer arquivo CSS.
+   ═══════════════════════════════════════════════════════════════════════ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Brand / Primária ────────────────────────────────────────────── */
+  --color-brand:         #2b6cb0;   /* azul principal */
+  --color-brand-hover:   #245d9e;   /* hover mais escuro */
+  --color-brand-dark:    #1f4e7a;   /* estado ativo / dark */
+  --color-brand-medium:  #3a7bc8;   /* par de gradiente */
+  --color-brand-light:   #7991bc;   /* azul claro */
+  --color-brand-muted:   #6480aa;   /* variante esmaecida */
+  --color-brand-subtle:  #4a6fa5;   /* sutil (calendário) */
+
+  /* ── Fundos de Página / Superfície ──────────────────────────────── */
+  --color-bg-page:     #f4f9ff;   /* fundo padrão de páginas */
+  --color-bg-alt:      #e6f4f1;   /* fundo secundário / item ativo */
+  --color-bg-surface:  #f8fafc;   /* inputs e superfícies de card */
+  --color-bg-hover:    #f0f5ff;   /* hover genérico */
+  --color-bg-tint:     #eff6ff;   /* tint azul-info */
+  --color-bg-soft:     #e6f0fa;   /* acento brand suave */
+  --color-bg-today:    #f0f7ff;   /* destaque de "hoje" */
+  --color-bg-selected: #e8f2ff;   /* célula selecionada */
+  --color-bg-subtle:   #fafcff;   /* tint quase-branco */
+
+  /* ── Texto ───────────────────────────────────────────────────────── */
+  --color-text-heading:   #1e293b;
+  --color-text-body:      #374151;
+  --color-text-secondary: #64748b;
+  --color-text-muted:     #94a3b8;
+  --color-text-dark:      #111827;
+  --color-text-navy:      #2c3e50;
+  --color-text-slate:     #334155;
+  --color-text-mid:       #5a6e82;
+
+  /* ── Bordas ──────────────────────────────────────────────────────── */
+  --color-border:        #e2e8f0;
+  --color-border-brand:  #e2edf7;
+  --color-border-light:  #d1dde8;
+
+  /* ── Status: Sucesso / Verde ─────────────────────────────────────── */
+  --color-success:             #10b981;
+  --color-success-medium:      #16a34a;
+  --color-success-dark:        #059669;
+  --color-success-deeper:      #065f46;
+  --color-success-text:        #166534;
+  --color-success-hover:       #34d399;
+  --color-success-bg:          #d1fae5;
+  --color-success-bg-alt:      #dcfce7;
+  --color-success-bg-green:    #f0fdf4;
+  --color-success-border:      #a7f3d0;
+  --color-success-border-alt:  #bbf7d0;
+
+  /* ── Status: Erro / Vermelho ─────────────────────────────────────── */
+  --color-error:        #dc2626;
+  --color-error-alt:    #ef4444;
+  --color-error-hover:  #f87171;
+  --color-error-dark:   #b91c1c;
+  --color-error-deeper: #991b1b;
+  --color-error-light:  #ffb3b3;
+  --color-error-bg:     #fef2f2;
+  --color-error-bg-alt: #fee2e2;
+  --color-error-border: #fecaca;
+
+  /* ── Status: Aviso / Âmbar ───────────────────────────────────────── */
+  --color-warning:          #f59e0b;
+  --color-warning-bright:   #fbbf24;
+  --color-warning-medium:   #ca8a04;
+  --color-warning-dark:     #d97706;
+  --color-warning-deeper:   #92400e;
+  --color-warning-bg:       #fef3c7;
+  --color-warning-bg-light: #fefce8;
+  --color-warning-bg-alt:   #fffbeb;
+  --color-warning-border:   #fde68a;
+  --color-warning-border-light: #fef08a;
+
+  /* ── Status: Informação / Azul ───────────────────────────────────── */
+  --color-info:        #3b82f6;
+  --color-info-hover:  #60a5fa;
+  --color-info-dark:   #2563eb;
+  --color-info-deeper: #1e40af;
+  --color-info-bg:     #dbeafe;
+  --color-info-border: #bfdbfe;
+
+  /* ── Tipos de Agendamento ────────────────────────────────────────── */
+  --color-type-avaliacao:         #10b981;
+  --color-type-avaliacao-bg:      #d1fae5;
+  --color-type-avaliacao-bg-alt:  #dcfce7;
+  --color-type-avaliacao-border:  #bbf7d0;
+  --color-type-avaliacao-text:    #065f46;
+  --color-type-tratamento:        #3b82f6;
+  --color-type-tratamento-bg:     #dbeafe;
+  --color-type-tratamento-border: #bfdbfe;
+  --color-type-tratamento-text:   #1e40af;
+  --color-type-retorno:           #8b5cf6;
+  --color-type-retorno-light:     #a78bfa;
+  --color-type-retorno-bg:        #f3e8ff;
+  --color-type-retorno-border:    #e9d5ff;
+  --color-type-retorno-text:      #6b21a8;
+
+  /* ── Tipos de Bloqueio ───────────────────────────────────────────── */
+  --color-block-indisponivel:        #f59e0b;
+  --color-block-indisponivel-bg:     #fffbeb;
+  --color-block-indisponivel-text:   #92400e;
+  --color-block-indisponivel-border: #fde68a;
+  --color-block-urgencia:            #ef4444;
+  --color-block-urgencia-bg:         #fef2f2;
+  --color-block-urgencia-text:       #991b1b;
+  --color-block-urgencia-border:     #fecaca;
+  --color-block-folga:               #10b981;
+  --color-block-folga-bg:            #f0fdf4;
+  --color-block-folga-text:          #065f46;
+  --color-block-folga-border:        #bbf7d0;
+  --color-block-manutencao:          #6366f1;
+  --color-block-manutencao-dark:     #4f46e5;
+  --color-block-manutencao-deeper:   #3730a3;
+  --color-block-manutencao-bg:       #eef2ff;
+  --color-block-manutencao-border:   #c7d2fe;
+
+  /* ── Neutros ─────────────────────────────────────────────────────── */
+  --color-neutral-50:  #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-900: #111827;
 }
 
+/* ── Tokens Tailwind v4 (fontes + background/foreground do Next.js) ── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 @media (prefers-color-scheme: dark) {

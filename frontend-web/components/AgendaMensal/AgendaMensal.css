@@ -12,7 +12,7 @@
 .mensal-cabecalho {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  background: linear-gradient(180deg, #2b6cb0 0%, #3a7bc8 100%);
+  background: linear-gradient(180deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
 }
 
 .mensal-cab-dia {
@@ -30,15 +30,15 @@
 .mensal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  border-left: 1px solid #e2edf7;
-  border-top: 1px solid #e2edf7;
+  border-left: 1px solid var(--color-border-brand);
+  border-top: 1px solid var(--color-border-brand);
 }
 
 /* ===== CÉLULAS ===== */
 
 .mensal-celula {
-  border-right: 1px solid #e2edf7;
-  border-bottom: 1px solid #e2edf7;
+  border-right: 1px solid var(--color-border-brand);
+  border-bottom: 1px solid var(--color-border-brand);
   min-height: 110px;
   padding: 8px 6px 6px;
   cursor: pointer;
@@ -49,30 +49,17 @@
   position: relative;
 }
 
-.mensal-celula:hover {
-  background: #f4f9ff;
-}
+.mensal-celula:hover { background: var(--color-bg-page); }
 
-.mensal-celula-fora {
-  background: #fafbfc;
-  cursor: default;
-}
+.mensal-celula-fora        { background: var(--color-bg-surface); cursor: default; }
+.mensal-celula-fora:hover  { background: var(--color-bg-surface); }
 
-.mensal-celula-fora:hover {
-  background: #fafbfc;
-}
-
-.mensal-celula-hoje {
-  background: #f0f7ff;
-}
-
-.mensal-celula-hoje:hover {
-  background: #e8f2ff;
-}
+.mensal-celula-hoje        { background: var(--color-bg-today); }
+.mensal-celula-hoje:hover  { background: var(--color-bg-selected); }
 
 .mensal-celula-selecionada {
-  background: #e8f2ff;
-  box-shadow: inset 0 0 0 2px #2b6cb0;
+  background: var(--color-bg-selected);
+  box-shadow: inset 0 0 0 2px var(--color-brand);
 }
 
 .mensal-celula-com-aptos:not(.mensal-celula-fora)::after {
@@ -83,7 +70,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #2b6cb0;
+  background: var(--color-brand);
   opacity: 0.4;
 }
 
@@ -92,7 +79,7 @@
 .mensal-num {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-text-body);
   width: 26px;
   height: 26px;
   display: flex;
@@ -105,7 +92,7 @@
 }
 
 .mensal-num-hoje {
-  background: #2b6cb0;
+  background: var(--color-brand);
   color: white;
   font-weight: 700;
 }
@@ -130,24 +117,15 @@
   transition: filter 0.1s;
 }
 
-.mensal-apto-item:hover {
-  filter: brightness(0.95);
-}
+.mensal-apto-item:hover { filter: brightness(0.95); }
 
-.mensal-item-avaliacao {
-  background: #dcfce7;
-  border-left-color: #10b981;
-}
-
-.mensal-item-tratamento {
-  background: #dbeafe;
-  border-left-color: #3b82f6;
-}
+.mensal-item-avaliacao  { background: var(--color-type-avaliacao-bg-alt);  border-left-color: var(--color-type-avaliacao); }
+.mensal-item-tratamento { background: var(--color-type-tratamento-bg);      border-left-color: var(--color-type-tratamento); }
 
 .mensal-apto-hora {
   font-size: 0.6rem;
   font-weight: 700;
-  color: #374151;
+  color: var(--color-text-body);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -155,7 +133,7 @@
 .mensal-apto-nome {
   font-size: 0.65rem;
   font-weight: 500;
-  color: #111827;
+  color: var(--color-text-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -164,9 +142,9 @@
 .mensal-apto-mais {
   font-size: 0.6rem;
   font-weight: 600;
-  color: #7991bc;
+  color: var(--color-brand-light);
   padding: 1px 4px;
-  background: #f4f9ff;
+  background: var(--color-bg-page);
   border-radius: 4px;
   text-align: center;
 }
@@ -180,68 +158,39 @@
   justify-content: center;
   padding: 60px 20px;
   gap: 16px;
-  color: #6b7280;
+  color: var(--color-neutral-500);
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(43, 108, 176, 0.08);
 }
 
-.mensal-estado-erro {
-  color: #991b1b;
-  background: #fef2f2;
-}
+.mensal-estado-erro { color: var(--color-error-deeper); background: var(--color-error-bg); }
 
 .mensal-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid #e2edf7;
-  border-top-color: #2b6cb0;
+  border: 3px solid var(--color-border-brand);
+  border-top-color: var(--color-brand);
   border-radius: 50%;
   animation: mensal-spin 0.8s linear infinite;
 }
 
-@keyframes mensal-spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes mensal-spin { to { transform: rotate(360deg); } }
 
 /* ===== RESPONSIVE ===== */
 
-@media (max-width: 1024px) {
-  .mensal-celula {
-    min-height: 90px;
-  }
-}
+@media (max-width: 1024px) { .mensal-celula { min-height: 90px; } }
 
 @media (max-width: 768px) {
-  .mensal-celula {
-    min-height: 70px;
-    padding: 6px 4px 4px;
-  }
-
-  .mensal-apto-hora {
-    display: none;
-  }
-
-  .mensal-apto-nome {
-    font-size: 0.6rem;
-  }
-
-  .mensal-num {
-    font-size: 0.75rem;
-    width: 22px;
-    height: 22px;
-  }
+  .mensal-celula  { min-height: 70px; padding: 6px 4px 4px; }
+  .mensal-apto-hora { display: none; }
+  .mensal-apto-nome { font-size: 0.6rem; }
+  .mensal-num     { font-size: 0.75rem; width: 22px; height: 22px; }
 }
 
 @media (max-width: 480px) {
-  .mensal-celula {
-    min-height: 56px;
-    padding: 4px 3px 3px;
-  }
-
-  .mensal-aptos {
-    display: none;
-  }
+  .mensal-celula { min-height: 56px; padding: 4px 3px 3px; }
+  .mensal-aptos  { display: none; }
 
   .mensal-celula-com-aptos::after {
     display: block;
@@ -252,8 +201,5 @@
     opacity: 0.7;
   }
 
-  .mensal-cab-dia {
-    font-size: 0.6rem;
-    padding: 8px 4px;
-  }
+  .mensal-cab-dia { font-size: 0.6rem; padding: 8px 4px; }
 }
