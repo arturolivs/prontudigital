@@ -7,7 +7,7 @@ import {
   faHourglassHalf,
 } from '@fortawesome/free-solid-svg-icons'
 import './listaAgendamentos.styles.css'
-import { Agendamento } from '@/tipos/CareSession'
+import { Agendamento } from '@/tipos/agendamento'
 
 export type AgendamentosAgrupados = Record<string, Agendamento[]>
 
@@ -15,6 +15,7 @@ interface PropsListaAgendamentos {
   agendamentos?: Agendamento[]
   carregando?: boolean
   erro?: string | null
+  onAgendamentoClick?: (agendamento: Agendamento) => void
 }
 
 const rotuloDeTipo: Record<string, string> = {
@@ -117,6 +118,7 @@ const ListaAgendamentos: React.FC<PropsListaAgendamentos> = ({
   agendamentos = [],
   carregando = false,
   erro = null,
+  onAgendamentoClick,
 }) => {
   const formatarHora = (dataString: string): string => {
     const data = new Date(dataString)
@@ -221,8 +223,12 @@ const ListaAgendamentos: React.FC<PropsListaAgendamentos> = ({
                     <div
                       key={agendamento.id}
                       className={`appointment-card ${classeBorda}`}
-                      role="article"
-                      aria-label={`Agendamento de ${agendamento.nomePaciente}`}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Abrir consulta de ${agendamento.nomePaciente}`}
+                      onClick={() => onAgendamentoClick?.(agendamento)}
+                      onKeyDown={e => e.key === 'Enter' && onAgendamentoClick?.(agendamento)}
+                      style={onAgendamentoClick ? { cursor: 'pointer' } : undefined}
                     >
                       <div className="time-info">
                         <span className="time-text">

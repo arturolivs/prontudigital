@@ -1,6 +1,11 @@
 package com.prontudigital.backend.agendamento.controladores;
 
-import com.prontudigital.backend.agendamento.dto.*;
+import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.AtualizarObservacoesRequestDTO;
+import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
 import com.prontudigital.backend.agendamento.swagger.AgendamentoSwagger.*;
@@ -26,6 +31,20 @@ import java.util.UUID;
 public class AgendamentoController {
 
     private final AgendamentoService agendamentoService;
+
+    @GetMapping("/{id}")
+    @BuscarPorIdSwagger
+    public ResponseEntity<AgendamentoDetalhadoDTO> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(agendamentoService.buscarPorId(id));
+    }
+
+    @PatchMapping("/{id}/observacoes")
+    @AtualizarObservacoesSwagger
+    public ResponseEntity<AgendamentoDetalhadoDTO> atualizarObservacoes(
+            @PathVariable Long id,
+            @RequestBody AtualizarObservacoesRequestDTO request) {
+        return ResponseEntity.ok(agendamentoService.atualizarObservacoes(id, request.observacoes()));
+    }
 
     @PostMapping
     @AgendarSwagger

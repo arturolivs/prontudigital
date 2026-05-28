@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
@@ -49,6 +50,7 @@ const formatarPeriodo = (tipo: TipoVisualizacao, date: Date): string => {
 }
 
 export default function AgendaPage() {
+  const router = useRouter()
   const { usuario, temPerfil } = useAuth()
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,6 +58,9 @@ export default function AgendaPage() {
   const [selectedDate, setSelectedDate] = useState(formatarDataISO(new Date()))
   const [viewType, setViewType] = useState<TipoVisualizacao>('day')
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const abrirProcedimento = (agendamento: Agendamento) =>
+    router.push(`/agenda/procedimento/${agendamento.id}`)
 
   const isEnfermeiro = temPerfil('ROLE_PROFISSIONAL')
   const isAdmin = temPerfil('ROLE_ADMIN')
@@ -197,6 +202,7 @@ export default function AgendaPage() {
               agendamentos={agendamentos}
               carregando={loading}
               erro={error}
+              onAgendamentoClick={abrirProcedimento}
             />
           )}
 
@@ -207,6 +213,7 @@ export default function AgendaPage() {
               erro={error}
               dataSelecionada={selectedDate}
               aoSelecionarDia={handleDiaSelecionado}
+              onAgendamentoClick={abrirProcedimento}
             />
           )}
 
@@ -217,8 +224,10 @@ export default function AgendaPage() {
               erro={error}
               dataSelecionada={selectedDate}
               aoSelecionarDia={handleDiaSelecionado}
+              onAgendamentoClick={abrirProcedimento}
             />
           )}
+
         </div>
       </RotaProtegida>
     </Layout>

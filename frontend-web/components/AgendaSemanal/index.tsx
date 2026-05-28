@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Agendamento } from '@/tipos/CareSession'
+import { Agendamento } from '@/tipos/agendamento'
 import './AgendaSemanal.css'
 
 interface PropsAgendaSemanal {
@@ -10,6 +10,7 @@ interface PropsAgendaSemanal {
   erro: string | null
   dataSelecionada: string
   aoSelecionarDia: (data: string) => void
+  onAgendamentoClick?: (agendamento: Agendamento) => void
 }
 
 const DIAS_SEMANA_CURTO = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -41,6 +42,7 @@ const AgendaSemanal: React.FC<PropsAgendaSemanal> = ({
   erro,
   dataSelecionada,
   aoSelecionarDia,
+  onAgendamentoClick,
 }) => {
   const diasSemana = useMemo(() => {
     const inicio = obterInicioSemana(dataSelecionada)
@@ -122,7 +124,10 @@ const AgendaSemanal: React.FC<PropsAgendaSemanal> = ({
                       key={a.id}
                       className={`semana-card ${obterClasseCard(a.tipo)}`}
                       title={`${a.nomePaciente} — ${formatarHora(a.inicioEm)} às ${formatarHora(a.fimEm)}`}
-                      onClick={e => { e.stopPropagation(); aoSelecionarDia(chave) }}
+                      onClick={e => {
+                        e.stopPropagation()
+                        onAgendamentoClick ? onAgendamentoClick(a) : aoSelecionarDia(chave)
+                      }}
                     >
                       <span className="semana-card-hora">{formatarHora(a.inicioEm)}</span>
                       <span className="semana-card-nome">{a.nomePaciente.split(' ')[0]}</span>

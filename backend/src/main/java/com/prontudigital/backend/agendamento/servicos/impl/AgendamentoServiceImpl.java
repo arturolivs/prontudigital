@@ -1,6 +1,10 @@
 package com.prontudigital.backend.agendamento.servicos.impl;
 
-import com.prontudigital.backend.agendamento.dto.*;
+import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
@@ -50,6 +54,42 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final AgendamentoUtil agendamentoUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
+
+    @Override
+    public AgendamentoDetalhadoDTO buscarPorId(Long id) {
+        Agendamento agendamento = buscarOuFalhar(id);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        if (!permissaoPolicy.podeVisualizar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Usuario nao autorizado a visualizar este agendamento");
+        }
+
+        return agendamentoUtil.convertToDetalhadoDTO(agendamento);
+    }
+
+    @Override
+    @Transactional
+    public AgendamentoDetalhadoDTO atualizarObservacoes(Long id, String observacoes) {
+        Agendamento agendamento = buscarOuFalhar(id);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+        if ("PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Paciente nao pode editar observacoes de agendamento");
+        }
+        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Usuario nao autorizado a editar este agendamento");
+        }
+
+        agendamento.setObservacoes(observacoes);
+        Agendamento salvo = agendamentoRepository.save(agendamento);
+        log.info("Observacoes atualizadas para agendamento id={}", salvo.getId());
+
+        return agendamentoUtil.convertToDetalhadoDTO(salvo);
+    }
 
     @Override
     @Transactional

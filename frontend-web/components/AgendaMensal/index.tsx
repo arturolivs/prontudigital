@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Agendamento } from '@/tipos/CareSession'
+import { Agendamento } from '@/tipos/agendamento'
 import './AgendaMensal.css'
 
 interface PropsAgendaMensal {
@@ -10,6 +10,7 @@ interface PropsAgendaMensal {
   erro: string | null
   dataSelecionada: string
   aoSelecionarDia: (data: string) => void
+  onAgendamentoClick?: (agendamento: Agendamento) => void
 }
 
 const DIAS_SEMANA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -27,6 +28,7 @@ const AgendaMensal: React.FC<PropsAgendaMensal> = ({
   erro,
   dataSelecionada,
   aoSelecionarDia,
+  onAgendamentoClick,
 }) => {
   const dataRef = new Date(dataSelecionada + 'T00:00:00')
   const ano = dataRef.getFullYear()
@@ -116,6 +118,7 @@ const AgendaMensal: React.FC<PropsAgendaMensal> = ({
                       key={a.id}
                       className={`mensal-apto-item ${a.tipo === 'AVALIACAO' ? 'mensal-item-avaliacao' : 'mensal-item-tratamento'}`}
                       title={`${a.nomePaciente} — ${formatarHora(a.inicioEm)}`}
+                      onClick={e => { e.stopPropagation(); onAgendamentoClick?.(a) }}
                     >
                       <span className="mensal-apto-hora">{formatarHora(a.inicioEm)}</span>
                       <span className="mensal-apto-nome">

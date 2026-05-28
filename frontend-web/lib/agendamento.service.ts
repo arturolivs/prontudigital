@@ -21,6 +21,11 @@ const tipoVisualizacaoMap: Record<string, string> = {
 }
 
 export const agendamentoAPI = {
+  buscarPorId: async (id: number): Promise<Agendamento> => {
+    const response = await api.get<Agendamento>(`${API_BASE_URL}/${id}`)
+    return response.data
+  },
+
   getAgendamentos: async (
     viewType: string,
     date: Date | string,
@@ -71,6 +76,14 @@ export const agendamentoAPI = {
 
   getMeusAgendamentos: async (): Promise<Agendamento[]> => {
     const response = await api.get<Agendamento[]>(`${API_BASE_URL}/meus`)
+    return response.data
+  },
+
+  atualizarObservacoes: async (id: number, observacoes: string): Promise<Agendamento> => {
+    const response = await api.patch<Agendamento>(
+      `${API_BASE_URL}/${id}/observacoes`,
+      { observacoes },
+    )
     return response.data
   },
 }

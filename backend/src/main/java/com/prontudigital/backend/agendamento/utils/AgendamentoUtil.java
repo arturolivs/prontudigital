@@ -1,6 +1,7 @@
 package com.prontudigital.backend.agendamento.utils;
 
 
+import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
@@ -64,6 +65,38 @@ public class AgendamentoUtil {
                 nomePaciente,
                 nomeProfissional,
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null
+        );
+    }
+
+    public AgendamentoDetalhadoDTO convertToDetalhadoDTO(Agendamento agendamento) {
+        String nomePaciente;
+        String nomeProfissional;
+
+        try {
+            UsuarioDTO paciente = usuarioService.buscarPorUuid(agendamento.getPacienteUuid());
+            UsuarioDTO profissional = usuarioService.buscarPorUuid(agendamento.getProfissionalUuid());
+            nomePaciente = paciente.nomeCompleto();
+            nomeProfissional = profissional.nomeCompleto();
+        } catch (Exception e) {
+            log.error("Erro ao resolver nomes para agendamento id={}", agendamento.getId(), e);
+            nomePaciente = "Indisponivel";
+            nomeProfissional = "Indisponivel";
+        }
+
+        return new AgendamentoDetalhadoDTO(
+                agendamento.getId(),
+                agendamento.getInicioEm(),
+                agendamento.getFimEm(),
+                agendamento.getProfissionalUuid(),
+                agendamento.getPacienteUuid(),
+                agendamento.getTipo(),
+                agendamento.getStatus(),
+                nomePaciente,
+                nomeProfissional,
+                agendamento.getObservacoes(),
+                agendamento.getCriadoEm(),
+                agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
+                agendamento.getConcluidoEm()
         );
     }
 }
