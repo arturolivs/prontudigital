@@ -3,8 +3,9 @@ CREATE TABLE usuarios (
     uuid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
     username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
     nome_completo VARCHAR(100) NOT NULL,
+    telefone VARCHAR(20),
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP

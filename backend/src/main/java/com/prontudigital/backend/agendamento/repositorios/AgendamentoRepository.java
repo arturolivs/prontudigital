@@ -41,5 +41,14 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
 
+    @Query("SELECT a FROM Agendamento a WHERE " +
+            "a.profissionalUuid = :profissionalUuid AND " +
+            "a.status NOT IN ('CANCELADO', 'REALIZADO', 'NAO_COMPARECEU') AND " +
+            "a.inicioEm < :fim AND a.fimEm > :inicio")
+    List<Agendamento> findOcupadosPorProfissional(
+            @Param("profissionalUuid") UUID profissionalUuid,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim);
+
     List<Agendamento> findByAvaliacaoId(Long avaliacaoId);
 }

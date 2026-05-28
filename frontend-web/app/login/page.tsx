@@ -8,7 +8,7 @@ import { LoginRequisicao } from '@/tipos/autenticacao'
 
 export default function Login() {
   const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+  const [senha, setSenha] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { login, usuario, isLoading: authLoading } = useAuth()
   const { exibirNotificacao } = useNotificacao()
@@ -20,7 +20,7 @@ export default function Login() {
     try {
       const credenciais: LoginRequisicao = {
         username: username.trim(),
-        password: password,
+        senha: senha,
       }
       await login(credenciais)
     } catch (err: any) {
@@ -181,19 +181,19 @@ export default function Login() {
 
               <div>
                 <label
-                  htmlFor="password"
+                  htmlFor="senha"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   Senha
                 </label>
                 <input
-                  id="password"
+                  id="senha"
                   type="password"
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7991bc] focus:border-[#7991bc] transition-all outline-none"
                   placeholder="Digite sua senha"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  value={senha}
+                  onChange={e => setSenha(e.target.value)}
                   autoComplete="current-password"
                 />
               </div>

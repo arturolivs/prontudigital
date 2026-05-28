@@ -10,6 +10,10 @@ const API_URL =
 
 export const autenticacaoAPI = {
   login: async (credenciais: LoginRequisicao): Promise<JwtResposta> => {
+    const mock = {
+      username: 'joaosilva',
+      senha: 'senha123',
+    } as LoginRequisicao
     const { data } = await axios.post<JwtResposta>(
       `${API_URL}/login`,
       credenciais,

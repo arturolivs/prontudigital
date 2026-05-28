@@ -41,13 +41,13 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
                 .perfis(request.perfis())
                 .build();
 
-        return usuarioService.criar(dto, request.password());
+        return usuarioService.criar(dto, request.senha());
     }
 
     @Override
     public JwtResponseDTO autenticar(LoginRequestDTO request) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password()));
+                new UsernamePasswordAuthenticationToken(request.username(), request.senha()));
 
         UserDetailsImpl principal = (UserDetailsImpl) authentication.getPrincipal();
         String accessToken = tokenProvider.generateAccessToken(authentication);

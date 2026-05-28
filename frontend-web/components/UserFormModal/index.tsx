@@ -127,14 +127,14 @@ function UserFormModal({
 }: {
   user: Usuario | null
   onClose: () => void
-  onSave: (data: Partial<Usuario> & { password?: string }) => void
+  onSave: (data: Partial<Usuario> & { senha?: string }) => void
 }) {
   const [formData, setFormData] = useState({
     nomeCompleto: user?.nomeCompleto || '',
     username: user?.username || '',
     email: user?.email || '',
     telefone: user?.telefone || '',
-    password: '',
+    senha: '',
     ativo: user?.ativo !== undefined ? user.ativo : true,
     perfis: user?.perfis || ['USUARIO'],
   })
@@ -142,8 +142,8 @@ function UserFormModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const dataToSave =
-      user && !formData.password
-        ? { ...formData, password: undefined }
+      user && !formData.senha
+        ? { ...formData, senha: undefined }
         : formData
     onSave(dataToSave)
   }
@@ -209,9 +209,9 @@ function UserFormModal({
             </label>
             <input
               type="password"
-              value={formData.password}
+              value={formData.senha}
               onChange={e =>
-                setFormData({ ...formData, password: e.target.value })
+                setFormData({ ...formData, senha: e.target.value })
               }
               className="form-input"
               required={!user}

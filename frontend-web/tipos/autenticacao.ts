@@ -13,14 +13,14 @@ export interface Usuario {
 
 export interface LoginRequisicao {
   username: string
-  password: string
+  senha: string
 }
 
 export interface RegistrarRequisicao {
   nomeCompleto: string
   email: string
   username: string
-  password: string
+  senha: string
   telefone?: string
   perfis?: string[]
 }

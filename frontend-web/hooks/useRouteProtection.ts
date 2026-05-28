@@ -20,7 +20,11 @@ export const useRouteProtection = () => {
     })
 
     const configRotas = {
-      publicas: ['/login'],
+      // Acessíveis a todos, mas redireciona usuário já logado
+      publicasComRedirect: ['/login'],
+
+      // Acessíveis a todos sem qualquer redirecionamento
+      publicasLivres: ['/agendar'],
 
       protegidas: {
         '/dashboard': [PERFIS.ADMIN],
@@ -33,10 +37,19 @@ export const useRouteProtection = () => {
       } as Record<string, string>,
     }
 
-    const rotaPublica = configRotas.publicas.includes(pathname)
-    const rotaProtegida = Object.keys(configRotas.protegidas).some(rota =>
-      pathname.startsWith(rota),
-    )
+    const match = (lista: string[]) =>
+      lista.some(rota => pathname === rota || pathname.startsWith(rota + '/'))
+
+    const rotaPublicaLivre = match(configRotas.publicasLivres)
+    const rotaPublicaComRedirect = match(configRotas.publicasComRedirect)
+    const rotaProtegida =
+      !rotaPublicaLivre &&
+      !rotaPublicaComRedirect &&
+      Object.keys(configRotas.protegidas).some(
+        rota => pathname === rota || pathname.startsWith(rota + '/'),
+      )
+
+    if (rotaPublicaLivre) return
 
     if (rotaProtegida && !usuario) {
       console.log('🚫 Usuário não autenticado, redirecionando para login')
@@ -44,7 +57,7 @@ export const useRouteProtection = () => {
       return
     }
 
-    if (rotaPublica && usuario) {
+    if (rotaPublicaComRedirect && usuario) {
       console.log('✅ Usuário autenticado em rota pública, redirecionando')
       const rotaPadrao =
         configRotas.redirecionamentosPadrao[usuario.perfis[0]] || '/agenda'
@@ -53,8 +66,8 @@ export const useRouteProtection = () => {
     }
 
     if (rotaProtegida && usuario) {
-      const chaveRota = Object.keys(configRotas.protegidas).find(rota =>
-        pathname.startsWith(rota),
+      const chaveRota = Object.keys(configRotas.protegidas).find(
+        rota => pathname === rota || pathname.startsWith(rota + '/'),
       )
 
       if (chaveRota) {

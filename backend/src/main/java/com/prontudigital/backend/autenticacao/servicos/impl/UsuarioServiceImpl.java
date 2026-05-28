@@ -108,7 +108,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = Usuario.builder()
                 .email(dto.email())
                 .username(dto.username())
-                .passwordHash(passwordEncoder.encode(senhaRaw))
+                .senhaHash(passwordEncoder.encode(senhaRaw))
                 .nomeCompleto(dto.nomeCompleto())
                 .telefone(dto.telefone())
                 .ativo(Objects.requireNonNullElse(dto.ativo(), true))

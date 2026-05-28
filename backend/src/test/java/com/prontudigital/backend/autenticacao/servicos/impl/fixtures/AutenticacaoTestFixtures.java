@@ -66,7 +66,7 @@ public final class AutenticacaoTestFixtures {
                 .username(USERNAME)
                 .email(EMAIL)
                 .nomeCompleto(NOME)
-                .passwordHash(SENHA_HASH)
+                .senhaHash(SENHA_HASH)
                 .ativo(true)
                 .usuarioPerfis(new HashSet<>())
                 .build();
@@ -81,7 +81,7 @@ public final class AutenticacaoTestFixtures {
     }
 
     public static RegistrarRequestDTO registrarRequest() {
-        return new RegistrarRequestDTO(NOME, EMAIL, USERNAME, SENHA_RAW, Set.of("PACIENTE"));
+        return new RegistrarRequestDTO(NOME, EMAIL, USERNAME, SENHA_RAW, null, Set.of("PACIENTE"));
     }
 
     public static LoginRequestDTO loginRequest() {

@@ -1,9 +1,12 @@
 package com.prontudigital.backend.agendamento.servicos.impl;
 
 import com.prontudigital.backend.agendamento.dto.BloqueioHorarioDTO;
+import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
+import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoInvalidoException;
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoNaoEncontradoException;
+import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.BloqueioHorarioService;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +29,7 @@ import java.util.UUID;
 public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
 
     private final BloqueioHorarioRepository repository;
+    private final AgendamentoRepository agendamentoRepository;
     private final UsuarioContexto usuarioContexto;
     private final AgendamentoPermissaoPolicy permissaoPolicy;
 
@@ -57,7 +62,7 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
                 .tipo(request.tipo())
                 .build();
 
-        return toDTO(repository.save(bloqueio));
+        return toBloqueioDTO(repository.save(bloqueio));
     }
 
     @Override
@@ -86,15 +91,31 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
         LocalDateTime inicioDt = inicio.atStartOfDay();
         LocalDateTime fimDt = fim.atTime(LocalTime.MAX);
 
-        return repository.findConflitos(profissionalUuid, inicioDt, fimDt)
+        List<BloqueioHorarioDTO> resultado = new ArrayList<>(
+                repository.findConflitos(profissionalUuid, inicioDt, fimDt)
+                        .stream()
+                        .map(this::toBloqueioDTO)
+                        .toList()
+        );
+
+        agendamentoRepository
+                .findOcupadosPorProfissional(profissionalUuid, inicioDt, fimDt)
                 .stream()
-                .map(this::toDTO)
-                .toList();
+                .map(this::agendamentoParaBloqueioDTO)
+                .forEach(resultado::add);
+
+        return resultado;
     }
 
-    private BloqueioHorarioDTO toDTO(BloqueioHorario b) {
+    private BloqueioHorarioDTO toBloqueioDTO(BloqueioHorario b) {
         return new BloqueioHorarioDTO(
                 b.getId(), b.getUuid(), b.getProfissionalUuid(),
                 b.getInicioEm(), b.getFimEm(), b.getMotivo(), b.getTipo());
+    }
+
+    private BloqueioHorarioDTO agendamentoParaBloqueioDTO(Agendamento a) {
+        return new BloqueioHorarioDTO(
+                null, a.getUuid(), a.getProfissionalUuid(),
+                a.getInicioEm(), a.getFimEm(), "Horário reservado", TipoBloqueio.INDISPONIVEL);
     }
 }
