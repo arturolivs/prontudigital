@@ -8,13 +8,30 @@ import { agendamentoAPI } from '@/lib/agendamento.service'
 import { Agendamento } from '@/tipos/agendamento'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import Layout from '@/components/Layout/Layout'
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  User,
+  Tag,
+  Circle,
+  CheckCircle,
+  FileText,
+  History,
+  Activity,
+  Pill,
+  Save,
+} from 'lucide-react'
 import './procedimento.css'
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────
 
 const fmt = {
   hora: (iso: string) =>
-    new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    new Date(iso).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
 
   data: (iso: string) =>
     new Date(iso).toLocaleDateString('pt-BR', {
@@ -25,7 +42,10 @@ const fmt = {
     }),
 
   dataCurta: (iso: string) =>
-    new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+    new Date(iso).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+    }),
 
   duracao: (inicio: string, fim: string): string => {
     const min = Math.floor(
@@ -52,7 +72,7 @@ const ROTULO_TIPO: Record<string, string> = {
   TRATAMENTO: 'Tratamento',
 }
 
-// ── Sub-componentes ───────────────────────────────────────────────────────────
+// ── Sub‑componentes com ícones ───────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
   return (
@@ -65,9 +85,11 @@ function StatusBadge({ status }: { status: string }) {
 function TipoBadge({ tipo }: { tipo: string }) {
   const classe =
     tipo === 'AVALIACAO' ? 'proc-tipo-avaliacao' : 'proc-tipo-tratamento'
+  const Icon = tipo === 'AVALIACAO' ? Activity : Pill
   return (
     <span className={`proc-tipo-badge ${classe}`}>
-      {tipo === 'AVALIACAO' ? '⚕' : '💊'} {ROTULO_TIPO[tipo] ?? tipo}
+      <Icon size={12} strokeWidth={2.5} />
+      {ROTULO_TIPO[tipo] ?? tipo}
     </span>
   )
 }
@@ -92,11 +114,9 @@ function HistoricoItem({
         : 'proc-hist-dot--tratamento'
 
   return (
-    <div
-      className={`proc-hist-item${isAtual ? ' proc-hist-item--atual' : ''}`}
-    >
+    <div className={`proc-hist-item${isAtual ? ' proc-hist-item--atual' : ''}`}>
       <div className={`proc-hist-dot ${dotClasse}`}>
-        {isRealizado && !isAtual ? '✓' : index + 1}
+        {isRealizado && !isAtual ? <CheckCircle size={14} /> : index + 1}
       </div>
       <div className="proc-hist-info">
         <div className="proc-hist-esq">
@@ -107,7 +127,7 @@ function HistoricoItem({
           </span>
         </div>
         {isAtual ? (
-          <span className="proc-hist-atual-tag">Esta consulta</span>
+          <span className="proc-hist-atual-tag">Consulta atual</span>
         ) : (
           <StatusBadge status={item.status} />
         )}
@@ -116,7 +136,7 @@ function HistoricoItem({
   )
 }
 
-// ── Página ────────────────────────────────────────────────────────────────────
+// ── Página principal ─────────────────────────────────────────────
 
 export default function ProcedimentoPage({
   params,
@@ -183,7 +203,7 @@ export default function ProcedimentoPage({
     setSalvando(true)
     try {
       await agendamentoAPI.atualizarObservacoes(agendamento.id, observacoes)
-      setAgendamento(prev => prev ? { ...prev, observacoes } : prev)
+      setAgendamento(prev => (prev ? { ...prev, observacoes } : prev))
       setObsAlterada(false)
       exibirNotificacao('Observações salvas.', 'success', 3000)
     } catch {
@@ -220,11 +240,11 @@ export default function ProcedimentoPage({
     <Layout perfil={perfilLayout}>
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
         <div className="proc-page">
-
           {/* Barra superior */}
           <div className="proc-topbar">
             <button className="proc-back-btn" onClick={() => router.back()}>
-              ← Voltar
+              <ArrowLeft size={18} />
+              Voltar
             </button>
 
             {agendamento && (
@@ -265,29 +285,33 @@ export default function ProcedimentoPage({
               <div className="proc-hero">
                 <div className="proc-hero-inner">
                   <div className="proc-hero-tipo">
-                    {agendamento.tipo === 'AVALIACAO' ? '⚕' : '💊'}{' '}
+                    {agendamento.tipo === 'AVALIACAO' ? (
+                      <Activity size={14} />
+                    ) : (
+                      <Pill size={14} />
+                    )}
                     {ROTULO_TIPO[agendamento.tipo]}
                   </div>
-                  <h1 className="proc-hero-nome">
-                    {agendamento.nomePaciente}
-                  </h1>
+                  <h1 className="proc-hero-nome">{agendamento.nomePaciente}</h1>
                   <div className="proc-hero-meta">
                     <span className="proc-hero-meta-item">
-                      📅{' '}
+                      <Calendar size={14} />
                       <span style={{ textTransform: 'capitalize' }}>
                         {fmt.data(agendamento.inicioEm)}
                       </span>
                     </span>
                     <span className="proc-hero-meta-item">
-                      ⏰ {fmt.hora(agendamento.inicioEm)} –{' '}
-                      {fmt.hora(agendamento.fimEm)}{' '}
-                      <span style={{ opacity: 0.7, fontSize: '0.8rem' }}>
+                      <Clock size={14} />
+                      {fmt.hora(agendamento.inicioEm)} –{' '}
+                      {fmt.hora(agendamento.fimEm)}
+                      <span className="proc-hero-duracao">
                         ({fmt.duracao(agendamento.inicioEm, agendamento.fimEm)})
                       </span>
                     </span>
                     {agendamento.nomeProfissional && (
                       <span className="proc-hero-meta-item">
-                        👤 {agendamento.nomeProfissional}
+                        <User size={14} />
+                        {agendamento.nomeProfissional}
                       </span>
                     )}
                   </div>
@@ -296,13 +320,15 @@ export default function ProcedimentoPage({
 
               {/* Grade de conteúdo */}
               <div className="proc-content">
-
                 {/* Coluna esquerda — Informações */}
                 <div className="proc-card proc-col-esq">
-                  <div className="proc-card-header">📋 Informações da consulta</div>
+                  <div className="proc-card-header">
+                    <FileText size={16} />
+                    Informações da consulta
+                  </div>
                   <div className="proc-info-lista">
                     <div className="proc-info-row">
-                      <span className="proc-info-icone">📅</span>
+                      <Calendar size={18} className="proc-info-icone" />
                       <div className="proc-info-texto">
                         <span className="proc-info-rotulo">Data</span>
                         <span
@@ -314,28 +340,26 @@ export default function ProcedimentoPage({
                       </div>
                     </div>
                     <div className="proc-info-row">
-                      <span className="proc-info-icone">⏰</span>
+                      <Clock size={18} className="proc-info-icone" />
                       <div className="proc-info-texto">
                         <span className="proc-info-rotulo">Horário</span>
                         <span className="proc-info-valor">
                           {fmt.hora(agendamento.inicioEm)} –{' '}
                           {fmt.hora(agendamento.fimEm)}
-                          <span
-                            style={{
-                              marginLeft: '0.4rem',
-                              fontWeight: 400,
-                              color: 'var(--color-text-muted)',
-                              fontSize: '0.8rem',
-                            }}
-                          >
-                            ({fmt.duracao(agendamento.inicioEm, agendamento.fimEm)})
+                          <span className="proc-info-duracao">
+                            (
+                            {fmt.duracao(
+                              agendamento.inicioEm,
+                              agendamento.fimEm,
+                            )}
+                            )
                           </span>
                         </span>
                       </div>
                     </div>
                     {agendamento.nomeProfissional && (
                       <div className="proc-info-row">
-                        <span className="proc-info-icone">👤</span>
+                        <User size={18} className="proc-info-icone" />
                         <div className="proc-info-texto">
                           <span className="proc-info-rotulo">Profissional</span>
                           <span className="proc-info-valor">
@@ -345,14 +369,14 @@ export default function ProcedimentoPage({
                       </div>
                     )}
                     <div className="proc-info-row">
-                      <span className="proc-info-icone">🏷</span>
+                      <Tag size={18} className="proc-info-icone" />
                       <div className="proc-info-texto">
                         <span className="proc-info-rotulo">Tipo</span>
                         <TipoBadge tipo={agendamento.tipo} />
                       </div>
                     </div>
                     <div className="proc-info-row">
-                      <span className="proc-info-icone">●</span>
+                      <Circle size={18} className="proc-info-icone" />
                       <div className="proc-info-texto">
                         <span className="proc-info-rotulo">Status</span>
                         <StatusBadge status={agendamento.status} />
@@ -360,7 +384,7 @@ export default function ProcedimentoPage({
                     </div>
                     {agendamento.concluidoEm && (
                       <div className="proc-info-row">
-                        <span className="proc-info-icone">✓</span>
+                        <CheckCircle size={18} className="proc-info-icone" />
                         <div className="proc-info-texto">
                           <span className="proc-info-rotulo">Concluído em</span>
                           <span className="proc-info-valor">
@@ -374,10 +398,16 @@ export default function ProcedimentoPage({
 
                 {/* Coluna direita — Histórico (tratamento) ou placeholder */}
                 <div className="proc-card proc-col-dir">
-                  <div className="proc-card-header">🕐 Histórico da série</div>
+                  <div className="proc-card-header">
+                    <History size={16} />
+                    Histórico da série
+                  </div>
 
                   {!ehTratamento ? (
-                    <div className="proc-hist-loading" style={{ color: 'var(--color-text-muted)' }}>
+                    <div
+                      className="proc-hist-loading"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       Disponível apenas para consultas do tipo Tratamento.
                     </div>
                   ) : carregandoHist ? (
@@ -386,7 +416,10 @@ export default function ProcedimentoPage({
                       Carregando histórico…
                     </div>
                   ) : historico.length === 0 ? (
-                    <div className="proc-hist-loading" style={{ color: 'var(--color-text-muted)' }}>
+                    <div
+                      className="proc-hist-loading"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       Nenhum registro anterior encontrado.
                     </div>
                   ) : (
@@ -405,7 +438,10 @@ export default function ProcedimentoPage({
 
                 {/* Observações — largura total */}
                 <div className="proc-card proc-full">
-                  <div className="proc-card-header">📝 Observações</div>
+                  <div className="proc-card-header">
+                    <FileText size={16} />
+                    Observações
+                  </div>
                   <div className="proc-obs-area">
                     <textarea
                       className="proc-obs-textarea"
@@ -423,13 +459,14 @@ export default function ProcedimentoPage({
                 </div>
               </div>
 
-              {/* Barra de ações */}
+              {/* Barra de ações (sticky) */}
               <div className="proc-actions-bar">
                 <button
                   className="proc-btn-salvar"
                   onClick={salvarObservacoes}
                   disabled={!obsAlterada || salvando || jaRealizado}
                 >
+                  <Save size={16} />
                   {salvando ? 'Salvando…' : 'Salvar observações'}
                 </button>
 
@@ -437,7 +474,8 @@ export default function ProcedimentoPage({
 
                 {jaRealizado ? (
                   <div className="proc-btn-realizado">
-                    ✓ Consulta realizada
+                    <CheckCircle size={16} />
+                    Consulta realizada
                   </div>
                 ) : (
                   <button
@@ -445,7 +483,8 @@ export default function ProcedimentoPage({
                     onClick={finalizarConsulta}
                     disabled={finalizando}
                   >
-                    {finalizando ? 'Finalizando…' : '✓ Finalizar consulta'}
+                    <CheckCircle size={16} />
+                    {finalizando ? 'Finalizando…' : 'Finalizar consulta'}
                   </button>
                 )}
               </div>

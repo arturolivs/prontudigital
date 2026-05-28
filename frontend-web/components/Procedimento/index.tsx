@@ -5,12 +5,15 @@ import { Agendamento } from '@/tipos/agendamento'
 import { agendamentoAPI } from '@/lib/agendamento.service'
 import { useNotificacao } from '@/contexts/ToastContext'
 import Modal from '@/components/Modal'
-import './ModalProcedimento.css'
+import './procedimento.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatarHora = (iso: string) =>
-  new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  new Date(iso).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 
 const formatarData = (iso: string) =>
   new Date(iso).toLocaleDateString('pt-BR', {
@@ -24,7 +27,9 @@ const formatarDataCurta = (iso: string) =>
   new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 
 const calcularDuracao = (inicio: string, fim: string): string => {
-  const diff = Math.floor((new Date(fim).getTime() - new Date(inicio).getTime()) / 60000)
+  const diff = Math.floor(
+    (new Date(fim).getTime() - new Date(inicio).getTime()) / 60000,
+  )
   if (diff < 60) return `${diff} min`
   const h = Math.floor(diff / 60)
   const m = diff % 60
@@ -48,7 +53,8 @@ const ROTULO_TIPO: Record<string, string> = {
 // ── Sub-componentes ───────────────────────────────────────────────────────────
 
 function TipoBadge({ tipo }: { tipo: string }) {
-  const classe = tipo === 'AVALIACAO' ? 'proc-tipo-avaliacao' : 'proc-tipo-tratamento'
+  const classe =
+    tipo === 'AVALIACAO' ? 'proc-tipo-avaliacao' : 'proc-tipo-tratamento'
   return (
     <span className={`proc-tipo-badge ${classe}`}>
       {tipo === 'AVALIACAO' ? '⚕' : '💊'} {ROTULO_TIPO[tipo] ?? tipo}
@@ -84,13 +90,17 @@ function HistoricoItem({
         : 'proc-hist-dot--tratamento'
 
   return (
-    <div className={`proc-historico-item${isAtual ? ' proc-historico-item--atual' : ''}`}>
+    <div
+      className={`proc-historico-item${isAtual ? ' proc-historico-item--atual' : ''}`}
+    >
       <div className={`proc-hist-dot ${dotClasse}`}>
         {isRealizado && !isAtual ? '✓' : index + 1}
       </div>
       <div className="proc-hist-info">
         <div className="proc-hist-esq">
-          <span className="proc-hist-data">{formatarDataCurta(item.inicioEm)}</span>
+          <span className="proc-hist-data">
+            {formatarDataCurta(item.inicioEm)}
+          </span>
           <span className="proc-hist-tipo">
             {ROTULO_TIPO[item.tipo] ?? item.tipo}
             {item.tipo === 'TRATAMENTO' && !isAtual && ` #${index}`}
@@ -200,7 +210,10 @@ export default function ModalProcedimento({
       </button>
 
       {jaRealizado ? (
-        <button className="proc-btn-finalizar proc-btn-finalizar--realizado" disabled>
+        <button
+          className="proc-btn-finalizar proc-btn-finalizar--realizado"
+          disabled
+        >
           ✓ Consulta realizada
         </button>
       ) : (
@@ -231,15 +244,16 @@ export default function ModalProcedimento({
 
         {/* Informações da consulta */}
         <div className="proc-secao">
-          <div className="proc-secao-titulo">
-            📋 Informações da consulta
-          </div>
+          <div className="proc-secao-titulo">📋 Informações da consulta</div>
           <div className="proc-info-grid">
             <div className="proc-info-item">
               <span className="proc-info-icone">📅</span>
               <div className="proc-info-conteudo">
                 <span className="proc-info-rotulo">Data</span>
-                <span className="proc-info-valor" style={{ textTransform: 'capitalize' }}>
+                <span
+                  className="proc-info-valor"
+                  style={{ textTransform: 'capitalize' }}
+                >
                   {formatarData(agendamento.inicioEm)}
                 </span>
               </div>
@@ -249,9 +263,15 @@ export default function ModalProcedimento({
               <div className="proc-info-conteudo">
                 <span className="proc-info-rotulo">Horário</span>
                 <span className="proc-info-valor">
-                  {formatarHora(agendamento.inicioEm)} – {formatarHora(agendamento.fimEm)}
-                  {' '}
-                  <span style={{ fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
+                  {formatarHora(agendamento.inicioEm)} –{' '}
+                  {formatarHora(agendamento.fimEm)}{' '}
+                  <span
+                    style={{
+                      fontWeight: 400,
+                      color: 'var(--color-text-muted)',
+                      fontSize: '0.8rem',
+                    }}
+                  >
                     ({calcularDuracao(agendamento.inicioEm, agendamento.fimEm)})
                   </span>
                 </span>
@@ -262,7 +282,9 @@ export default function ModalProcedimento({
                 <span className="proc-info-icone">👤</span>
                 <div className="proc-info-conteudo">
                   <span className="proc-info-rotulo">Profissional</span>
-                  <span className="proc-info-valor">{agendamento.nomeProfissional}</span>
+                  <span className="proc-info-valor">
+                    {agendamento.nomeProfissional}
+                  </span>
                 </div>
               </div>
             )}
@@ -279,16 +301,16 @@ export default function ModalProcedimento({
         {/* Histórico (apenas tratamentos) */}
         {ehTratamento && (
           <div className="proc-secao">
-            <div className="proc-secao-titulo">
-              🕐 Histórico da série
-            </div>
+            <div className="proc-secao-titulo">🕐 Histórico da série</div>
             {carregandoHist ? (
               <div className="proc-hist-loading">
                 <div className="proc-hist-spinner" />
                 Carregando histórico…
               </div>
             ) : listaHistorico.length === 0 ? (
-              <div className="proc-hist-loading">Nenhum registro anterior encontrado.</div>
+              <div className="proc-hist-loading">
+                Nenhum registro anterior encontrado.
+              </div>
             ) : (
               <div className="proc-historico-lista">
                 {listaHistorico.map((item, idx) => (
@@ -306,15 +328,17 @@ export default function ModalProcedimento({
 
         {/* Observações */}
         <div className="proc-secao">
-          <div className="proc-secao-titulo">
-            📝 Observações
-          </div>
+          <div className="proc-secao-titulo">📝 Observações</div>
           <div style={{ padding: '0.875rem 1rem' }}>
             <textarea
               className="proc-obs-textarea"
               value={observacoes}
               onChange={e => handleObsChange(e.target.value)}
-              placeholder={jaRealizado ? 'Sem observações registradas.' : 'Registre observações sobre esta consulta…'}
+              placeholder={
+                jaRealizado
+                  ? 'Sem observações registradas.'
+                  : 'Registre observações sobre esta consulta…'
+              }
               disabled={jaRealizado}
               rows={4}
             />
