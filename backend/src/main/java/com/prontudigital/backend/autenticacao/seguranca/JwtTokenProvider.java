@@ -9,11 +9,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -21,6 +24,9 @@ public class JwtTokenProvider {
 
     private final UserDetailsServiceImpl userDetailsService;
     private Key secretKey;
+
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
 
     @Value("${app.jwt.access-expiration-ms}")
     private Long accessExpirationMs;
@@ -34,23 +40,29 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateAccessToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-        return buildToken(userPrincipal.getUsername(), accessExpirationMs);
+        List<String> perfis = userPrincipal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        return Jwts.builder()
+                .setSubject(userPrincipal.getUsername())
+                .claim("perfis", perfis)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + accessExpirationMs))
+                .signWith(secretKey, SignatureAlgorithm.HS512)
+                .compact();
     }
 
     public String generateRefreshToken(String username) {
-        return buildToken(username, refreshExpirationMs);
-    }
-
-    private String buildToken(String username, Long expirationMs) {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpirationMs))
                 .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }

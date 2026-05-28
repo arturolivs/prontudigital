@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
   let backendResp: Response
   try {
-    backendResp = await fetch(`${BACKEND_AUTH}/refresh`, {
+    backendResp = await fetch(`${BACKEND_AUTH}/renovar-token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),

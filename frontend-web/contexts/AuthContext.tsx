@@ -48,6 +48,7 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
         try {
           token = await tokenService.refresh()
         } catch {
+          tokenService.clearTokens()
           setUsuario(null)
           return
         }
@@ -55,12 +56,23 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
 
       const dadosArmazenados = tokenService.getDadosUsuario()
       if (dadosArmazenados) {
-        setUsuario(dadosArmazenados)
+        const dadosAtualizados = { ...dadosArmazenados, token }
+        tokenService.setDadosUsuario(dadosAtualizados)
+        setUsuario(dadosAtualizados)
         return
       }
 
+      // sessionStorage vazio: decodifica JWT para obter perfis (o JWT agora os contém)
       try {
         const dadosUsuario = decodificarJWT(token)
+        if (dadosUsuario.perfis.length === 0) {
+          // JWT sem perfis: busca dados completos do usuário
+          try {
+            const usuarioCompleto = await usuariosAPI.buscarUsuarioAtual()
+            dadosUsuario.uuid = usuarioCompleto.uuid
+            dadosUsuario.nomeCompleto = usuarioCompleto.nomeCompleto
+          } catch {}
+        }
         tokenService.setDadosUsuario(dadosUsuario)
         setUsuario(dadosUsuario)
       } catch (error) {
