@@ -1,6 +1,7 @@
 package com.prontudigital.backend.compartilhado.excecoes;
 
 import com.prontudigital.backend.agendamento.excecoes.*;
+import com.prontudigital.backend.agendamento.excecoes.TokenConfirmacaoInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.*;
 import com.prontudigital.backend.compartilhado.dto.ErroRespostaDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -156,6 +157,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             ExcecaoBase ex, HttpServletRequest request) {
         return build(HttpStatus.UNPROCESSABLE_ENTITY, "Operação inválida",
                 ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TokenConfirmacaoInvalidoException.class)
+    public ResponseEntity<ErroRespostaDTO> handleTokenConfirmacaoInvalido(
+            TokenConfirmacaoInvalidoException ex, HttpServletRequest request) {
+        return build(HttpStatus.GONE, "Link inválido ou expirado", ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)

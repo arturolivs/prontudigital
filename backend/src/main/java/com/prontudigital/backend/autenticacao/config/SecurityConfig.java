@@ -46,7 +46,8 @@ public class SecurityConfig {
 
     private static final String[] GET_PUBLICOS = {
             "/api/bloqueios-horario/public",
-            "/api/public/**"
+            "/api/public/**",
+            "/api/confirmacao/**"
     };
 
     @Bean
