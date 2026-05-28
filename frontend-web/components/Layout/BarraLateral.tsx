@@ -2,6 +2,18 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import {
+  LayoutDashboard,
+  Calendar,
+  Ban,
+  Users,
+  FileText,
+  BarChart3,
+  Settings,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import './Layout.css'
 
 interface PropsBarraLateral {
@@ -13,7 +25,7 @@ interface PropsBarraLateral {
 interface ItemMenu {
   rotulo: string
   caminho: string
-  icone: string
+  icone: React.ElementType
   perfis: ('ROLE_ADMIN' | 'ROLE_PROFISSIONAL')[]
 }
 
@@ -26,43 +38,43 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
     {
       rotulo: 'Dashboard',
       caminho: '/dashboard',
-      icone: '📊',
+      icone: LayoutDashboard,
       perfis: ['ROLE_ADMIN'],
     },
     {
       rotulo: 'Agenda',
       caminho: '/agenda',
-      icone: '📅',
+      icone: Calendar,
       perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Indisponibilidades',
       caminho: '/bloqueios',
-      icone: '🚫',
+      icone: Ban,
       perfis: ['ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Pacientes',
       caminho: '/pacientes',
-      icone: '👥',
+      icone: Users,
       perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Prontuários',
       caminho: '/records',
-      icone: '📋',
+      icone: FileText,
       perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Relatórios',
       caminho: '/reports',
-      icone: '📈',
+      icone: BarChart3,
       perfis: ['ROLE_ADMIN'],
     },
     {
       rotulo: 'Configurações',
       caminho: '/settings',
-      icone: '⚙️',
+      icone: Settings,
       perfis: ['ROLE_ADMIN'],
     },
   ]
@@ -85,31 +97,43 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
             <h2>ProntoDigital</h2>
           </div>
         )}
-        <button className="toggle-btn" onClick={alternar}>
-          {aberta ? '◀' : '▶'}
+        <button
+          className="toggle-btn"
+          onClick={alternar}
+          aria-label={aberta ? 'Recolher menu' : 'Expandir menu'}
+        >
+          {aberta ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
         </button>
       </div>
 
       <nav className="sidebar-nav">
         <ul>
-          {itensFiltrados.map(item => (
-            <li key={item.caminho}>
-              <button
-                className={`nav-item ${pathname === item.caminho ? 'active' : ''}`}
-                onClick={() => navegarPara(item.caminho)}
-                title={item.rotulo}
-              >
-                <span className="nav-icon">{item.icone}</span>
-                {aberta && <span className="nav-label">{item.rotulo}</span>}
-              </button>
-            </li>
-          ))}
+          {itensFiltrados.map(item => {
+            const Icon = item.icone
+            const isActive = pathname === item.caminho
+            return (
+              <li key={item.caminho}>
+                <button
+                  className={`nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => navegarPara(item.caminho)}
+                  title={!aberta ? item.rotulo : undefined}
+                >
+                  <Icon size={20} className="nav-icon" />
+                  {aberta && <span className="nav-label">{item.rotulo}</span>}
+                </button>
+              </li>
+            )
+          })}
         </ul>
       </nav>
 
       <div className="sidebar-footer">
-        <button className="logout-btn" onClick={sair} title="Sair">
-          <span className="nav-icon">🚪</span>
+        <button
+          className="logout-btn"
+          onClick={sair}
+          title={!aberta ? 'Sair' : undefined}
+        >
+          <LogOut size={20} className="nav-icon" />
           {aberta && <span className="nav-label">Sair</span>}
         </button>
       </div>
