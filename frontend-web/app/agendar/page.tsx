@@ -9,7 +9,7 @@ import {
   ProfissionalPublico,
 } from '../../lib/agendamento-publico.service'
 import { BloqueioHorario } from '../../tipos/bloqueio'
-import { AgendamentoResposta } from '../../tipos/appointment'
+import { Agendamento } from '../../tipos/agendamento'
 import './agendar.css'
 
 /* ── helpers ── */
@@ -95,7 +95,7 @@ export default function AgendarPage() {
   const [slot, setSlot] = useState<string | null>(null)
   const [observacoes, setObservacoes] = useState('')
   const [pacienteUuid, setPacienteUuid] = useState<string | null>(null)
-  const [agendamento, setAgendamento] = useState<AgendamentoResposta | null>(
+  const [agendamento, setAgendamento] = useState<Agendamento | null>(
     null,
   )
 

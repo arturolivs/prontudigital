@@ -5,16 +5,23 @@ import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/careSession'
 import Layout from '@/components/Layout/Layout'
-import { Agendamento } from '@/tipos/CareSession'
 import './patients.css'
+import { Agendamento } from '@/tipos/agendamento'
 
 const formatarDataISO = (date: Date): string => date.toISOString().split('T')[0]
 
 const formatarHora = (dataString: string): string =>
-  new Date(dataString).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  new Date(dataString).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 
 const formatarDataCurta = (dataString: string): string =>
-  new Date(dataString).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  new Date(dataString).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 
 const obterIniciais = (nome: string): string => {
   const partes = nome.trim().split(' ').filter(Boolean)
@@ -41,8 +48,14 @@ const CLASSE_STATUS: Record<string, string> = {
 }
 
 const CORES_AVATAR = [
-  '#2b6cb0', '#7991bc', '#10b981', '#f59e0b',
-  '#8b5cf6', '#ef4444', '#3b82f6', '#ec4899',
+  '#2b6cb0',
+  '#7991bc',
+  '#10b981',
+  '#f59e0b',
+  '#8b5cf6',
+  '#ef4444',
+  '#3b82f6',
+  '#ec4899',
 ]
 
 const obterCorAvatar = (uuid: string): string => {
@@ -60,17 +73,25 @@ interface PacienteAgrupado {
 }
 
 const CardAgendamento = ({ agendamento }: { agendamento: Agendamento }) => (
-  <div className={`pac-appt-card ${agendamento.tipo === 'AVALIACAO' ? 'pac-appt-avaliacao' : 'pac-appt-tratamento'}`}>
+  <div
+    className={`pac-appt-card ${agendamento.tipo === 'AVALIACAO' ? 'pac-appt-avaliacao' : 'pac-appt-tratamento'}`}
+  >
     <div className="pac-appt-time">
-      <span className="pac-appt-hora">{formatarHora(agendamento.inicioEm)}</span>
-      <span className="pac-appt-data">{formatarDataCurta(agendamento.inicioEm)}</span>
+      <span className="pac-appt-hora">
+        {formatarHora(agendamento.inicioEm)}
+      </span>
+      <span className="pac-appt-data">
+        {formatarDataCurta(agendamento.inicioEm)}
+      </span>
     </div>
     <div className="pac-appt-info">
       <span className="pac-appt-tipo">
         {agendamento.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'}
       </span>
     </div>
-    <span className={`pac-appt-status ${CLASSE_STATUS[agendamento.status] || ''}`}>
+    <span
+      className={`pac-appt-status ${CLASSE_STATUS[agendamento.status] || ''}`}
+    >
       {ROTULO_STATUS[agendamento.status] ?? agendamento.status}
     </span>
   </div>
@@ -80,9 +101,15 @@ const CartaoPaciente = ({ paciente }: { paciente: PacienteAgrupado }) => {
   const [expandido, setExpandido] = useState(true)
 
   const stats = useMemo(() => {
-    const avaliacoes = paciente.agendamentos.filter(a => a.tipo === 'AVALIACAO').length
-    const tratamentos = paciente.agendamentos.filter(a => a.tipo === 'TRATAMENTO').length
-    const realizados = paciente.agendamentos.filter(a => a.status === 'REALIZADO').length
+    const avaliacoes = paciente.agendamentos.filter(
+      a => a.tipo === 'AVALIACAO',
+    ).length
+    const tratamentos = paciente.agendamentos.filter(
+      a => a.tipo === 'TRATAMENTO',
+    ).length
+    const realizados = paciente.agendamentos.filter(
+      a => a.status === 'REALIZADO',
+    ).length
     const agendados = paciente.agendamentos.filter(
       a => a.status === 'AGENDADO' || a.status === 'CONFIRMADO',
     ).length
@@ -135,12 +162,21 @@ const CartaoPaciente = ({ paciente }: { paciente: PacienteAgrupado }) => {
               Últ.: {formatarDataCurta(ultimoAgendamento.inicioEm)}
             </span>
           )}
-          <span className={`pac-total-badge`}>{paciente.agendamentos.length}</span>
+          <span className={`pac-total-badge`}>
+            {paciente.agendamentos.length}
+          </span>
           <svg
             className={`pac-chevron${expandido ? ' pac-chevron-aberto' : ''}`}
-            width="16" height="16" viewBox="0 0 20 20" fill="currentColor"
+            width="16"
+            height="16"
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
-            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
           </svg>
         </div>
       </button>
@@ -185,7 +221,9 @@ export default function PacientesPage() {
         ),
       ])
       const todos = [...r1, ...r2, ...r3]
-      const deduplicados = Array.from(new Map(todos.map(a => [a.id, a])).values())
+      const deduplicados = Array.from(
+        new Map(todos.map(a => [a.id, a])).values(),
+      )
       setAgendamentos(deduplicados)
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar agendamentos')
@@ -205,7 +243,8 @@ export default function PacientesPage() {
     const mapa: Record<string, PacienteAgrupado> = {}
 
     const filtrados = agendamentos.filter(a => {
-      const matchBusca = a.nomePaciente.toLowerCase().includes(busca.toLowerCase())
+      const matchBusca =
+        a.nomePaciente || ''.toLowerCase().includes(busca.toLowerCase())
       const matchStatus = filtroStatus === 'TODOS' || a.status === filtroStatus
       return matchBusca && matchStatus
     })
@@ -225,7 +264,8 @@ export default function PacientesPage() {
       .map(p => ({
         ...p,
         agendamentos: p.agendamentos.sort(
-          (a, b) => new Date(b.inicioEm).getTime() - new Date(a.inicioEm).getTime(),
+          (a, b) =>
+            new Date(b.inicioEm).getTime() - new Date(a.inicioEm).getTime(),
         ),
       }))
       .sort((a, b) => {
@@ -247,13 +287,15 @@ export default function PacientesPage() {
     <Layout perfil={isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'}>
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
         <div className="pac-page">
-
           <div className="pac-page-header">
             <div className="pac-page-titulo">
               <h1>Pacientes</h1>
               {!loading && (
                 <span className="pac-total-geral">
-                  {pacientesAgrupados.length} paciente{pacientesAgrupados.length !== 1 ? 's' : ''} · {agendamentos.length} agendamento{agendamentos.length !== 1 ? 's' : ''}
+                  {pacientesAgrupados.length} paciente
+                  {pacientesAgrupados.length !== 1 ? 's' : ''} ·{' '}
+                  {agendamentos.length} agendamento
+                  {agendamentos.length !== 1 ? 's' : ''}
                 </span>
               )}
             </div>
@@ -262,8 +304,18 @@ export default function PacientesPage() {
 
           <div className="pac-filtros">
             <div className="pac-busca-wrapper">
-              <svg className="pac-busca-icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+              <svg
+                className="pac-busca-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                  clipRule="evenodd"
+                />
               </svg>
               <input
                 type="text"
@@ -273,20 +325,35 @@ export default function PacientesPage() {
                 onChange={e => setBusca(e.target.value)}
               />
               {busca && (
-                <button className="pac-busca-limpar" onClick={() => setBusca('')} aria-label="Limpar busca">
+                <button
+                  className="pac-busca-limpar"
+                  onClick={() => setBusca('')}
+                  aria-label="Limpar busca"
+                >
                   ✕
                 </button>
               )}
             </div>
 
             <div className="pac-filtro-status">
-              {['TODOS', 'AGENDADO', 'CONFIRMADO', 'REALIZADO', 'CANCELADO', 'NAO_COMPARECEU'].map(s => (
+              {[
+                'TODOS',
+                'AGENDADO',
+                'CONFIRMADO',
+                'REALIZADO',
+                'CANCELADO',
+                'NAO_COMPARECEU',
+              ].map(s => (
                 <button
                   key={s}
                   className={`pac-filtro-btn${filtroStatus === s ? ' pac-filtro-ativo' : ''}`}
                   onClick={() => setFiltroStatus(s)}
                 >
-                  {s === 'TODOS' ? 'Todos' : s === 'NAO_COMPARECEU' ? 'Não compareceu' : ROTULO_STATUS[s]}
+                  {s === 'TODOS'
+                    ? 'Todos'
+                    : s === 'NAO_COMPARECEU'
+                      ? 'Não compareceu'
+                      : ROTULO_STATUS[s]}
                 </button>
               ))}
             </div>
@@ -310,7 +377,14 @@ export default function PacientesPage() {
 
           {!loading && !error && pacientesAgrupados.length === 0 && (
             <div className="pac-estado">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5">
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#d1d5db"
+                strokeWidth="1.5"
+              >
                 <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
@@ -330,7 +404,6 @@ export default function PacientesPage() {
               ))}
             </div>
           )}
-
         </div>
       </RotaProtegida>
     </Layout>

@@ -4,14 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/careSession'
-import { AgendamentoRequisicao } from '../../tipos/appointment'
+import { Agendamento, AgendamentoRequisicao } from '../../tipos/agendamento'
 import Layout from '@/components/Layout/Layout'
-import ModalFormularioAgendamento from '@/components/AppointmentFormModal'
 import './agenda.css'
 import ListaAgendamentos from '@/components/ListaAgendamentos'
 import AgendaSemanal from '@/components/AgendaSemanal'
 import AgendaMensal from '@/components/AgendaMensal'
-import { Agendamento } from '@/tipos/CareSession'
 
 type TipoVisualizacao = 'day' | 'week' | 'month'
 
@@ -32,7 +30,11 @@ const formatarPeriodo = (tipo: TipoVisualizacao, date: Date): string => {
     amanha.setDate(amanha.getDate() + 1)
     if (date.toDateString() === hoje.toDateString()) return 'Hoje'
     if (date.toDateString() === amanha.toDateString()) return 'Amanhã'
-    return date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    return date.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    })
   }
   if (tipo === 'week') {
     const inicio = obterInicioSemana(formatarDataISO(date))
@@ -117,15 +119,24 @@ export default function AgendaPage() {
     <Layout perfil={isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'}>
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
         <div className="appointments-page">
-
           <div className="agenda-toolbar">
             <button
               onClick={() => setIsModalOpen(true)}
               className="agenda-btn-novo"
               title="Novo agendamento"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               Novo
             </button>
@@ -147,7 +158,13 @@ export default function AgendaPage() {
             <button
               onClick={() => navegar(-1)}
               className="agenda-nav-arrow"
-              title={viewType === 'day' ? 'Dia anterior' : viewType === 'week' ? 'Semana anterior' : 'Mês anterior'}
+              title={
+                viewType === 'day'
+                  ? 'Dia anterior'
+                  : viewType === 'week'
+                    ? 'Semana anterior'
+                    : 'Mês anterior'
+              }
             >
               ‹
             </button>
@@ -157,7 +174,13 @@ export default function AgendaPage() {
             <button
               onClick={() => navegar(1)}
               className="agenda-nav-arrow"
-              title={viewType === 'day' ? 'Próximo dia' : viewType === 'week' ? 'Próxima semana' : 'Próximo mês'}
+              title={
+                viewType === 'day'
+                  ? 'Próximo dia'
+                  : viewType === 'week'
+                    ? 'Próxima semana'
+                    : 'Próximo mês'
+              }
             >
               ›
             </button>
@@ -197,13 +220,6 @@ export default function AgendaPage() {
             />
           )}
         </div>
-
-        <ModalFormularioAgendamento
-          aberto={isModalOpen}
-          aoFechar={() => setIsModalOpen(false)}
-          aoEnviar={handleCreateAppointment}
-          profissionalUuid={isEnfermeiro ? usuario.uuid : undefined}
-        />
       </RotaProtegida>
     </Layout>
   )

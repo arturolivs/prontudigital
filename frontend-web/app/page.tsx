@@ -14,7 +14,7 @@ export default function Home() {
       if (usuario) {
         if (usuario.perfis.includes('ROLE_ADMIN')) {
           router.push('/dashboard')
-        } else if (usuario.perfis.includes('ENFERMEIRO')) {
+        } else if (usuario.perfis.includes('ROLE_PROFISSIONAL')) {
           router.push('/agenda')
         }
       } else {

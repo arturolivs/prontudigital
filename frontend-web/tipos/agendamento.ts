@@ -1,3 +1,6 @@
+import { StatusAgendamento } from './StatusAgendamento'
+import { TipoAgendamento } from './TipoAgendamento'
+
 export interface AgendamentoRequisicao {
   pacienteUuid: string
   profissionalUuid: string
@@ -8,14 +11,16 @@ export interface AgendamentoRequisicao {
   avaliacaoId?: number
 }
 
-export interface AgendamentoResposta {
+export interface Agendamento {
   id: number
   inicioEm: string
   fimEm: string
   profissionalUuid: string
   pacienteUuid: string
-  tipo: 'AVALIACAO' | 'TRATAMENTO'
-  status: string
+  tipo: TipoAgendamento
+  status: StatusAgendamento
+  nomePaciente?: string
+  nomeProfissional?: string
   observacoes?: string
   criadoEm: string
   avaliacaoId?: number

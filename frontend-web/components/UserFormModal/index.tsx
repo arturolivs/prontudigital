@@ -2,13 +2,17 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Usuario } from '@/tipos/autenticacao'
+import Modal from '@/components/Modal'
 import './userFormModal.style.css'
 
 const OPCOES_PERFIL = [
   { label: 'Administrador', value: 'ROLE_ADMIN' },
   { label: 'Enfermeiro', value: 'ROLE_PROFISSIONAL' },
   { label: 'Usuário', value: 'USUARIO' },
+  { label: 'Paciente', value: 'ROLE_PACIENTE' },
 ]
+
+// ── Combobox multi-seleção de perfis ─────────────────────────────────────────
 
 function PerfisCombobox({
   value,
@@ -17,50 +21,52 @@ function PerfisCombobox({
   value: string[]
   onChange: (perfis: string[]) => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [aberto, setAberto] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    function fecharAoClicarFora(e: MouseEvent) {
       if (
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        setOpen(false)
+        setAberto(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', fecharAoClicarFora)
+    return () => document.removeEventListener('mousedown', fecharAoClicarFora)
   }, [])
 
-  const togglePerfil = (perfil: string) => {
-    if (value.includes(perfil)) {
-      onChange(value.filter(p => p !== perfil))
-    } else {
-      onChange([...value, perfil])
-    }
-  }
+  const toggle = (perfil: string) =>
+    onChange(
+      value.includes(perfil)
+        ? value.filter(p => p !== perfil)
+        : [...value, perfil],
+    )
 
-  const selectedLabels = value
-    .map(v => OPCOES_PERFIL.find(o => o.value === v)?.label ?? v)
-    .join(', ')
+  const textoSelecionados =
+    value.length === 0
+      ? null
+      : value
+          .map(v => OPCOES_PERFIL.find(o => o.value === v)?.label ?? v)
+          .join(', ')
 
   return (
-    <div className="combobox-container" ref={containerRef}>
+    <div className="uf-combobox" ref={containerRef}>
       <button
         type="button"
-        className={`combobox-trigger${open ? ' combobox-trigger--open' : ''}`}
-        onClick={() => setOpen(prev => !prev)}
+        className={`uf-combobox-trigger${aberto ? ' uf-combobox-trigger--aberto' : ''}`}
+        onClick={() => setAberto(prev => !prev)}
         aria-haspopup="listbox"
-        aria-expanded={open}
+        aria-expanded={aberto}
       >
         <span
-          className={`combobox-value${value.length === 0 ? ' combobox-placeholder' : ''}`}
+          className={`uf-combobox-valor${!textoSelecionados ? ' uf-combobox-placeholder' : ''}`}
         >
-          {value.length === 0 ? 'Selecione os perfis...' : selectedLabels}
+          {textoSelecionados ?? 'Selecione os perfis...'}
         </span>
         <svg
-          className={`combobox-chevron${open ? ' combobox-chevron--open' : ''}`}
+          className={`uf-combobox-seta${aberto ? ' uf-combobox-seta--aberta' : ''}`}
           viewBox="0 0 20 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -76,24 +82,24 @@ function PerfisCombobox({
         </svg>
       </button>
 
-      {open && (
+      {aberto && (
         <ul
-          className="combobox-dropdown"
+          className="uf-combobox-lista"
           role="listbox"
           aria-multiselectable="true"
         >
           {OPCOES_PERFIL.map(opcao => {
-            const selected = value.includes(opcao.value)
+            const selecionado = value.includes(opcao.value)
             return (
               <li
                 key={opcao.value}
                 role="option"
-                aria-selected={selected}
-                className={`combobox-option${selected ? ' combobox-option--selected' : ''}`}
-                onClick={() => togglePerfil(opcao.value)}
+                aria-selected={selecionado}
+                className={`uf-combobox-opcao${selecionado ? ' uf-combobox-opcao--selecionada' : ''}`}
+                onClick={() => toggle(opcao.value)}
               >
-                <span className="combobox-checkbox" aria-hidden="true">
-                  {selected && (
+                <span className="uf-combobox-check" aria-hidden="true">
+                  {selecionado && (
                     <svg
                       viewBox="0 0 12 12"
                       fill="none"
@@ -110,7 +116,7 @@ function PerfisCombobox({
                   )}
                 </span>
                 {opcao.label}
-                <span className="combobox-badge">{opcao.value}</span>
+                <span className="uf-badge-perfil">{opcao.value}</span>
               </li>
             )
           })}
@@ -120,139 +126,174 @@ function PerfisCombobox({
   )
 }
 
-function UserFormModal({
-  user,
-  onClose,
-  onSave,
-}: {
+// ── Modal de usuário ──────────────────────────────────────────────────────────
+
+interface UserFormModalProps {
   user: Usuario | null
   onClose: () => void
   onSave: (data: Partial<Usuario> & { senha?: string }) => void
-}) {
+}
+
+export default function UserFormModal({
+  user,
+  onClose,
+  onSave,
+}: UserFormModalProps) {
+  const editando = user !== null
+
   const [formData, setFormData] = useState({
-    nomeCompleto: user?.nomeCompleto || '',
-    username: user?.username || '',
-    email: user?.email || '',
-    telefone: user?.telefone || '',
+    nomeCompleto: user?.nomeCompleto ?? '',
+    username: user?.username ?? '',
+    email: user?.email ?? '',
+    telefone: user?.telefone ?? '',
     senha: '',
     ativo: user?.ativo !== undefined ? user.ativo : true,
-    perfis: user?.perfis || ['USUARIO'],
+    perfis: user?.perfis ?? ['USUARIO'],
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [salvando, setSalvando] = useState(false)
+
+  const set =
+    (field: keyof typeof formData) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setFormData(prev => ({ ...prev, [field]: e.target.value }))
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const dataToSave =
-      user && !formData.senha
-        ? { ...formData, senha: undefined }
-        : formData
-    onSave(dataToSave)
+    setSalvando(true)
+    try {
+      const payload =
+        editando && !formData.senha
+          ? { ...formData, senha: undefined }
+          : formData
+      await onSave(payload)
+    } finally {
+      setSalvando(false)
+    }
   }
 
+  const rodape = (
+    <>
+      <button type="button" className="uf-btn-cancelar" onClick={onClose}>
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        form="uf-form"
+        className="uf-btn-salvar"
+        disabled={salvando}
+      >
+        {salvando ? 'Salvando…' : 'Salvar'}
+      </button>
+    </>
+  )
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2 className="modal-title" style={{ color: '#2b6cb0' }}>
-          {user ? 'Editar Usuário' : 'Novo Usuário'}
-        </h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Nome Completo</label>
-            <input
-              type="text"
-              value={formData.nomeCompleto}
-              onChange={e =>
-                setFormData({ ...formData, nomeCompleto: e.target.value })
-              }
-              className="form-input"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Username</label>
+    <Modal
+      titulo={editando ? 'Editar Usuário' : 'Novo Usuário'}
+      onClose={onClose}
+      rodape={rodape}
+    >
+      <form id="uf-form" onSubmit={handleSubmit} className="uf-form">
+        <div className="uf-grupo">
+          <label className="uf-label">Nome Completo</label>
+          <input
+            type="text"
+            value={formData.nomeCompleto}
+            onChange={set('nomeCompleto')}
+            className="uf-input"
+            placeholder="Nome completo do usuário"
+            required
+            autoFocus
+          />
+        </div>
+
+        <div className="uf-linha-dupla">
+          <div className="uf-grupo">
+            <label className="uf-label">Username</label>
             <input
               type="text"
               value={formData.username}
-              onChange={e =>
-                setFormData({ ...formData, username: e.target.value })
-              }
-              className="form-input"
+              onChange={set('username')}
+              className="uf-input"
+              placeholder="nome.usuario"
               required
+              autoComplete="off"
             />
           </div>
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={e =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="form-input"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Telefone</label>
-            <input
-              type="tel"
-              value={formData.telefone}
-              onChange={e =>
-                setFormData({ ...formData, telefone: e.target.value })
-              }
-              className="form-input"
-              placeholder="(00) 00000-0000"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">
-              {user ? 'Nova Senha (deixe em branco para manter)' : 'Senha'}
+          <div className="uf-grupo">
+            <label className="uf-label">
+              {editando ? 'Nova Senha' : 'Senha'}
+              {editando && (
+                <span className="uf-label-opcional">(opcional)</span>
+              )}
             </label>
             <input
               type="password"
               value={formData.senha}
-              onChange={e =>
-                setFormData({ ...formData, senha: e.target.value })
+              onChange={set('senha')}
+              className="uf-input"
+              placeholder={
+                editando ? 'Deixe em branco para manter' : 'Mínimo 8 caracteres'
               }
-              className="form-input"
-              required={!user}
-              minLength={!user ? 8 : undefined}
+              required={!editando}
+              minLength={!editando ? 8 : undefined}
+              autoComplete="new-password"
             />
           </div>
-          <div className="form-group">
-            <label className="form-label">Status</label>
+        </div>
+
+        <div className="uf-grupo">
+          <label className="uf-label">Email</label>
+          <input
+            type="email"
+            value={formData.email}
+            onChange={set('email')}
+            className="uf-input"
+            placeholder="usuario@exemplo.com"
+            required
+          />
+        </div>
+
+        <div className="uf-linha-dupla">
+          <div className="uf-grupo">
+            <label className="uf-label">
+              Telefone<span className="uf-label-opcional">(opcional)</span>
+            </label>
+            <input
+              type="tel"
+              value={formData.telefone}
+              onChange={set('telefone')}
+              className="uf-input"
+              placeholder="(00) 00000-0000"
+            />
+          </div>
+          <div className="uf-grupo">
+            <label className="uf-label">Status</label>
             <select
               value={formData.ativo ? 'true' : 'false'}
               onChange={e =>
-                setFormData({
-                  ...formData,
+                setFormData(prev => ({
+                  ...prev,
                   ativo: e.target.value === 'true',
-                })
+                }))
               }
-              className="form-select"
+              className="uf-select"
             >
               <option value="true">Ativo</option>
               <option value="false">Inativo</option>
             </select>
           </div>
-          <div className="form-group">
-            <label className="form-label">Perfis</label>
-            <PerfisCombobox
-              value={formData.perfis}
-              onChange={perfis => setFormData({ ...formData, perfis })}
-            />
-          </div>
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-secondary">
-              Cancelar
-            </button>
-            <button type="submit" className="btn-primary">
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        <div className="uf-grupo">
+          <label className="uf-label">Perfis</label>
+          <PerfisCombobox
+            value={formData.perfis}
+            onChange={perfis => setFormData(prev => ({ ...prev, perfis }))}
+          />
+        </div>
+      </form>
+    </Modal>
   )
 }
-
-export default UserFormModal

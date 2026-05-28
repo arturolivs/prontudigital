@@ -3,9 +3,9 @@ import { setupRefreshInterceptor } from './auth.service'
 import { Agendamento } from '../tipos/CareSession'
 import {
   AgendamentoRequisicao,
-  AgendamentoResposta,
+  Agendamento,
   ReagendarRequisicao,
-} from '../tipos/appointment'
+} from '../tipos/agendamento'
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_AGENDAMENTOS_API_URL ||
@@ -37,8 +37,8 @@ export const agendamentoAPI = {
 
   criarAgendamento: async (
     dados: AgendamentoRequisicao,
-  ): Promise<AgendamentoResposta> => {
-    const response = await api.post<AgendamentoResposta>(API_BASE_URL, dados)
+  ): Promise<Agendamento> => {
+    const response = await api.post<Agendamento>(API_BASE_URL, dados)
     return response.data
   },
 
@@ -53,8 +53,8 @@ export const agendamentoAPI = {
   reagendarAgendamento: async (
     id: number,
     dados: ReagendarRequisicao,
-  ): Promise<AgendamentoResposta> => {
-    const response = await api.patch<AgendamentoResposta>(
+  ): Promise<Agendamento> => {
+    const response = await api.patch<Agendamento>(
       `${API_BASE_URL}/${id}/reagendar`,
       dados,
     )

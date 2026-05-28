@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useState } from 'react'
-import BarraLateral from './Sidebar'
+import BarraLateral from './BarraLateral'
 import './Layout.css'
 
 interface PropsLayout {

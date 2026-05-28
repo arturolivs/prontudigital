@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 import './Layout.css'
 
 interface PropsBarraLateral {
@@ -19,6 +20,7 @@ interface ItemMenu {
 const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
   const router = useRouter()
   const pathname = usePathname()
+  const { logout } = useAuth()
 
   const itensMenu: ItemMenu[] = [
     {
@@ -41,7 +43,7 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
     },
     {
       rotulo: 'Pacientes',
-      caminho: '/patients',
+      caminho: '/pacientes',
       icone: '👥',
       perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
@@ -72,7 +74,7 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
   }
 
   const sair = () => {
-    router.push('/login')
+    logout()
   }
 
   return (
