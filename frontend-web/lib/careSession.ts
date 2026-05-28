@@ -64,6 +64,11 @@ export const agendamentoAPI = {
     )
     return response.data
   },
+
+  getMeusAgendamentos: async (): Promise<Agendamento[]> => {
+    const response = await api.get<Agendamento[]>(`${API_BASE_URL}/meus`)
+    return response.data
+  },
 }
 
 // Alias mantido por compatibilidade com a página de detalhes

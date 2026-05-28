@@ -138,6 +138,7 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
       const mapaRedirecionamento: { [key: string]: string } = {
         [PERFIS.ADMIN]: '/dashboard',
         [PERFIS.PROFISSIONAL]: '/agenda',
+        [PERFIS.PACIENTE]: '/minha-agenda',
         [PERFIS.USUARIO]: '/agenda',
       }
 

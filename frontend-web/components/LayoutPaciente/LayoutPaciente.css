@@ -1,0 +1,109 @@
+/* ===== LAYOUT PACIENTE ===== */
+
+.lp-root {
+  min-height: 100vh;
+  background: #f4f9ff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== HEADER ===== */
+
+.lp-header {
+  background: linear-gradient(135deg, #2b6cb0 0%, #3a7bc8 100%);
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.25);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.lp-header-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lp-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.lp-logo svg {
+  opacity: 0.9;
+}
+
+.lp-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lp-saudacao {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lp-saudacao strong {
+  color: white;
+  font-weight: 600;
+}
+
+.lp-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.lp-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ===== MAIN ===== */
+
+.lp-main {
+  flex: 1;
+  padding: 32px 24px 48px;
+}
+
+.lp-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 600px) {
+  .lp-header-inner {
+    padding: 0 16px;
+  }
+
+  .lp-logo span {
+    font-size: 1rem;
+  }
+
+  .lp-saudacao {
+    display: none;
+  }
+
+  .lp-main {
+    padding: 20px 16px 40px;
+  }
+}
