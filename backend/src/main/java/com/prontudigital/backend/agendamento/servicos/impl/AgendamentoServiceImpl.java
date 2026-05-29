@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -288,10 +289,12 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                     "Usuario nao autorizado a ver tratamentos desta avaliacao");
         }
 
-        return agendamentoRepository.findByAvaliacaoId(avaliacaoId)
-                .stream()
+        List<AgendamentoViewDTO> historico = new ArrayList<>();
+        historico.add(agendamentoUtil.convertToViewDTO(avaliacao));
+        agendamentoRepository.findByAvaliacaoId(avaliacaoId).stream()
                 .map(agendamentoUtil::convertToViewDTO)
-                .toList();
+                .forEach(historico::add);
+        return historico;
     }
 
     private void validarPeriodo(LocalDateTime inicio, LocalDateTime fim) {
