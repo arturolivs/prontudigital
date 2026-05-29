@@ -437,6 +437,54 @@
   font-size: 0.875rem;
 }
 
+/* ── Tipo de Procedimento ── */
+.tipo-procedimento-secao {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.tipo-procedimento-titulo {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem 0;
+}
+
+.tipo-procedimento-opcoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.tipo-procedimento-btn {
+  padding: 0.875rem 0.75rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-slate);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.tipo-procedimento-btn:hover {
+  border-color: var(--color-brand-light);
+  background: var(--color-bg-hover);
+  color: var(--color-brand);
+}
+
+.tipo-procedimento-btn.selecionado {
+  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-light));
+  border-color: var(--color-brand);
+  color: white;
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.3);
+}
+
 /* ── Etapa 3: Identificação ── */
 .auth-tabs {
   display: flex;

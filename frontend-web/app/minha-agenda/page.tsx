@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
 import LayoutPaciente from '@/components/LayoutPaciente'
 import { Agendamento } from '@/tipos/agendamento'
+import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
 import './minha-agenda.css'
 
 type Aba = 'proximos' | 'historico'
@@ -117,6 +118,11 @@ const CardAgendamento = ({
         <span className="ma-card-tipo">
           {agendamento.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'}
         </span>
+        {agendamento.tipoProcedimento && (
+          <span className="ma-card-procedimento">
+            {ROTULO_TIPO_PROCEDIMENTO[agendamento.tipoProcedimento]}
+          </span>
+        )}
       </div>
 
       <div className="ma-card-linha-rodape">
@@ -266,13 +272,18 @@ export default function MinhaAgendaPage() {
                     {proximoAgendamento.nomeProfissional}
                   </p>
                 </div>
-                <span
-                  className={`ma-proximo-tipo ${proximoAgendamento.tipo === 'AVALIACAO' ? 'ma-tipo-avaliacao' : 'ma-tipo-tratamento'}`}
-                >
-                  {proximoAgendamento.tipo === 'AVALIACAO'
-                    ? 'Avaliação'
-                    : 'Tratamento'}
-                </span>
+                <div className="ma-proximo-tipo-grupo">
+                  <span
+                    className={`ma-proximo-tipo ${proximoAgendamento.tipo === 'AVALIACAO' ? 'ma-tipo-avaliacao' : 'ma-tipo-tratamento'}`}
+                  >
+                    {proximoAgendamento.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'}
+                  </span>
+                  {proximoAgendamento.tipoProcedimento && (
+                    <span className="ma-proximo-procedimento">
+                      {ROTULO_TIPO_PROCEDIMENTO[proximoAgendamento.tipoProcedimento]}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}

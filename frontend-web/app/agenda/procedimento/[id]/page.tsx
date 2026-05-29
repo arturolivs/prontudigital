@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
 import { Agendamento } from '@/tipos/agendamento'
+import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import Layout from '@/components/Layout/Layout'
 import {
@@ -291,6 +292,11 @@ export default function ProcedimentoPage({
                       <Pill size={14} />
                     )}
                     {ROTULO_TIPO[agendamento.tipo]}
+                    {agendamento.tipoProcedimento && (
+                      <span className="proc-hero-procedimento">
+                        {ROTULO_TIPO_PROCEDIMENTO[agendamento.tipoProcedimento]}
+                      </span>
+                    )}
                   </div>
                   <h1 className="proc-hero-nome">{agendamento.nomePaciente}</h1>
                   <div className="proc-hero-meta">
@@ -400,7 +406,7 @@ export default function ProcedimentoPage({
                 <div className="proc-card proc-col-dir">
                   <div className="proc-card-header">
                     <History size={16} />
-                    Histórico da série
+                    Histórico
                   </div>
 
                   {!ehTratamento ? (

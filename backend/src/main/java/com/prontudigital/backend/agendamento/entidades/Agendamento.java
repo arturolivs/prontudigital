@@ -2,6 +2,7 @@ package com.prontudigital.backend.agendamento.entidades;
 
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
+import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -47,6 +48,10 @@ public class Agendamento {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo")
     private TipoAgendamento tipo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_procedimento")
+    private TipoProcedimento tipoProcedimento;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "avaliacao_id")

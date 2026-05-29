@@ -154,6 +154,9 @@
 .status-avaliacao { background-color: var(--color-bg-alt); color: var(--color-brand); border: 1px solid var(--color-border-brand); }
 .status-tratamento { background-color: var(--color-bg-page); color: var(--color-brand); border: 1px solid var(--color-border-light); }
 .status-default   { background-color: var(--color-bg-surface); color: var(--color-neutral-600); }
+.status-procedimento { background-color: var(--color-bg-tint); color: var(--color-brand); border: 1px solid var(--color-border-brand); font-size: 0.68rem; }
+
+.badges-wrapper { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
 
 /* ===== ESTADOS DE CARREGAMENTO E ERRO ===== */
 .loading-state {

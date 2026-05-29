@@ -10,6 +10,7 @@ import {
 } from '../../lib/agendamento-publico.service'
 import { BloqueioHorario } from '../../tipos/bloqueio'
 import { Agendamento } from '../../tipos/agendamento'
+import { TipoProcedimento, ROTULO_TIPO_PROCEDIMENTO } from '../../tipos/TipoProcedimento'
 import './agendar.css'
 
 /* ── helpers ── */
@@ -93,6 +94,7 @@ export default function AgendarPage() {
   )
   const [data, setData] = useState(amanha)
   const [slot, setSlot] = useState<string | null>(null)
+  const [tipoProcedimento, setTipoProcedimento] = useState<TipoProcedimento | null>(null)
   const [observacoes, setObservacoes] = useState('')
   const [pacienteUuid, setPacienteUuid] = useState<string | null>(null)
   const [agendamento, setAgendamento] = useState<Agendamento | null>(
@@ -199,7 +201,7 @@ export default function AgendarPage() {
 
   /* ── confirmar agendamento ── */
   const handleConfirmar = async () => {
-    if (!profissional || !slot || !pacienteUuid) return
+    if (!profissional || !slot || !pacienteUuid || !tipoProcedimento) return
     setErro('')
     setCarregandoConfirmar(true)
     try {
@@ -209,6 +211,7 @@ export default function AgendarPage() {
         inicioEm: `${data}T${slot}:00`,
         fimEm: `${data}T${adicionarHora(slot)}:00`,
         tipo: 'AVALIACAO',
+        tipoProcedimento,
         observacoes: observacoes.trim() || undefined,
       })
       setAgendamento(criado)
@@ -228,6 +231,7 @@ export default function AgendarPage() {
     setProfissional(null)
     setData(amanha())
     setSlot(null)
+    setTipoProcedimento(null)
     setObservacoes('')
     setPacienteUuid(null)
     setAgendamento(null)
@@ -451,6 +455,21 @@ export default function AgendarPage() {
                   })}
                 </div>
               )}
+
+              <div className="tipo-procedimento-secao">
+                <p className="tipo-procedimento-titulo">Tipo de procedimento</p>
+                <div className="tipo-procedimento-opcoes">
+                  {(['PODIATRIA', 'TRATAMENTO_FERIDAS'] as TipoProcedimento[]).map(tp => (
+                    <button
+                      key={tp}
+                      className={`tipo-procedimento-btn${tipoProcedimento === tp ? ' selecionado' : ''}`}
+                      onClick={() => setTipoProcedimento(tp)}
+                    >
+                      {ROTULO_TIPO_PROCEDIMENTO[tp]}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="card-rodape">
@@ -475,7 +494,7 @@ export default function AgendarPage() {
               </button>
               <button
                 className="btn-continuar"
-                disabled={!slot}
+                disabled={!slot || !tipoProcedimento}
                 onClick={() => {
                   setEtapa(3)
                   setErro('')
@@ -756,9 +775,9 @@ export default function AgendarPage() {
                       </svg>
                     </div>
                     <div className="resumo-linha-info">
-                      <div className="resumo-linha-rotulo">Tipo</div>
+                      <div className="resumo-linha-rotulo">Procedimento</div>
                       <div className="resumo-linha-valor">
-                        Avaliação inicial
+                        {tipoProcedimento ? ROTULO_TIPO_PROCEDIMENTO[tipoProcedimento] : '—'}
                       </div>
                     </div>
                   </div>
@@ -877,8 +896,8 @@ export default function AgendarPage() {
                   </span>
                 </div>
                 <div className="sucesso-detalhe-linha">
-                  <span>Tipo</span>
-                  <span>Avaliação inicial</span>
+                  <span>Procedimento</span>
+                  <span>{tipoProcedimento ? ROTULO_TIPO_PROCEDIMENTO[tipoProcedimento] : '—'}</span>
                 </div>
               </div>
 

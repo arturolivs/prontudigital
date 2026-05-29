@@ -2,6 +2,7 @@ package com.prontudigital.backend.agendamento.dto;
 
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
+import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,9 @@ public record AgendamentoDetalhadoDTO(
 
         @Schema(description = "Tipo: AVALIACAO ou TRATAMENTO")
         TipoAgendamento tipo,
+
+        @Schema(description = "Tipo de procedimento: PODIATRIA ou TRATAMENTO_FERIDAS")
+        TipoProcedimento tipoProcedimento,
 
         @Schema(description = "Status atual do agendamento")
         StatusAgendamento status,

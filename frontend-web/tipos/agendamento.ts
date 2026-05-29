@@ -1,5 +1,6 @@
 import { StatusAgendamento } from './StatusAgendamento'
 import { TipoAgendamento } from './TipoAgendamento'
+import { TipoProcedimento } from './TipoProcedimento'
 
 export interface AgendamentoRequisicao {
   pacienteUuid: string
@@ -7,6 +8,7 @@ export interface AgendamentoRequisicao {
   inicioEm: string
   fimEm: string
   tipo: 'AVALIACAO' | 'TRATAMENTO'
+  tipoProcedimento: TipoProcedimento
   observacoes?: string
   avaliacaoId?: number
 }
@@ -18,6 +20,7 @@ export interface Agendamento {
   profissionalUuid: string
   pacienteUuid: string
   tipo: TipoAgendamento
+  tipoProcedimento?: TipoProcedimento
   status: StatusAgendamento
   nomePaciente?: string
   nomeProfissional?: string
