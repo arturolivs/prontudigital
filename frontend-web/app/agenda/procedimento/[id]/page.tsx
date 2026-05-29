@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
@@ -255,6 +256,7 @@ export default function ProcedimentoPage({
   const podeEditar = iniciado && !jaRealizado
 
   return (
+    <>
     <Layout perfil={perfilLayout}>
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
         <div className="proc-page">
@@ -507,14 +509,17 @@ export default function ProcedimentoPage({
           )}
         </div>
 
-        {/* Modal de próxima consulta */}
-        {modalAberto && (
-          <ModalProximaConsulta
-            onAgendar={() => router.push('/agenda')}
-            onFechar={() => router.push('/agenda')}
-          />
-        )}
       </RotaProtegida>
     </Layout>
+
+    {/* Modal renderizado fora da hierarquia de layout via portal */}
+    {modalAberto && createPortal(
+      <ModalProximaConsulta
+        onAgendar={() => router.push('/agenda')}
+        onFechar={() => setModalAberto(false)}
+      />,
+      document.body,
+    )}
+    </>
   )
 }
