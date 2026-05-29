@@ -3,9 +3,10 @@ export interface Usuario {
   uuid: string
   nomeCompleto: string
   username: string
-  email: string
+  email?: string
   telefone?: string
   ativo: boolean
+  acessoAtivado: boolean
   perfis: string[]
   criadoEm: string
   atualizadoEm: string
@@ -23,6 +24,18 @@ export interface RegistrarRequisicao {
   senha: string
   telefone?: string
   perfis?: string[]
+}
+
+export interface CadastrarPacienteRequisicao {
+  nomeCompleto: string
+  telefone: string
+}
+
+export interface AtivarAcessoRequisicao {
+  telefone: string
+  email: string
+  username: string
+  senha: string
 }
 
 export interface JwtResposta {

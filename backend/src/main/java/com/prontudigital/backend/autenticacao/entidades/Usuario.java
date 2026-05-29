@@ -31,7 +31,7 @@ public class Usuario {
     @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Column(length = 100, unique = true, nullable = false)
+    @Column(length = 100, unique = true)
     private String email;
 
     @Column(name = "senha_hash", nullable = false)
@@ -43,6 +43,10 @@ public class Usuario {
     @Column(name = "ativo", nullable = false)
     @Builder.Default
     private Boolean ativo = true;
+
+    @Column(name = "acesso_ativado", nullable = false)
+    @Builder.Default
+    private Boolean acessoAtivado = false;
 
     @Builder.Default
     @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER,

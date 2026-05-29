@@ -115,10 +115,7 @@ export default function AgendarPage() {
   const [loginForm, setLoginForm] = useState({ username: '', senha: '' })
   const [cadastroForm, setCadastroForm] = useState({
     nomeCompleto: '',
-    email: '',
-    username: '',
-    senha: '',
-    confirmar: '',
+    telefone: '',
   })
 
   /* ── carregar profissionais ── */
@@ -180,26 +177,11 @@ export default function AgendarPage() {
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault()
     setErro('')
-    if (cadastroForm.senha !== cadastroForm.confirmar) {
-      setErro('As senhas não coincidem.')
-      return
-    }
-    if (cadastroForm.senha.length < 8) {
-      setErro('A senha deve ter pelo menos 8 caracteres.')
-      return
-    }
     setCarregandoAuth(true)
     try {
-      await usuariosAPI.criarUsuario({
+      const resp = await usuariosAPI.cadastrarPaciente({
         nomeCompleto: cadastroForm.nomeCompleto.trim(),
-        email: cadastroForm.email.trim(),
-        username: cadastroForm.username.trim(),
-        senha: cadastroForm.senha,
-        perfis: ['PACIENTE'],
-      })
-      const resp = await autenticacaoAPI.login({
-        username: cadastroForm.username.trim(),
-        senha: cadastroForm.senha,
+        telefone: cadastroForm.telefone.trim(),
       })
       tokenService.setTokens(resp.accessToken, resp.refreshToken)
       const usuarioAtual = await usuariosAPI.buscarUsuarioAtual()
@@ -208,7 +190,7 @@ export default function AgendarPage() {
     } catch (err: any) {
       setErro(
         err?.response?.data?.message ||
-          'Erro ao criar conta. Verifique os dados.',
+          'Erro ao criar cadastro. Verifique os dados.',
       )
     } finally {
       setCarregandoAuth(false)
@@ -254,10 +236,7 @@ export default function AgendarPage() {
     setLoginForm({ username: '', senha: '' })
     setCadastroForm({
       nomeCompleto: '',
-      email: '',
-      username: '',
-      senha: '',
-      confirmar: '',
+      telefone: '',
     })
     setEtapa(1)
   }
@@ -603,82 +582,27 @@ export default function AgendarPage() {
                       }
                     />
                   </div>
-                  <div className="campo-linha-dupla">
-                    <div className="campo">
-                      <label>E-mail</label>
-                      <input
-                        type="email"
-                        className="campo-input"
-                        placeholder="email@exemplo.com"
-                        value={cadastroForm.email}
-                        required
-                        autoComplete="email"
-                        onChange={e =>
-                          setCadastroForm(f => ({
-                            ...f,
-                            email: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="campo">
-                      <label>Usuário</label>
-                      <input
-                        type="text"
-                        className="campo-input"
-                        placeholder="maria.silva"
-                        value={cadastroForm.username}
-                        required
-                        autoComplete="username"
-                        onChange={e =>
-                          setCadastroForm(f => ({
-                            ...f,
-                            username: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="campo-linha-dupla">
-                    <div className="campo">
-                      <label>Senha</label>
-                      <input
-                        type="password"
-                        className="campo-input"
-                        placeholder="mín. 8 caracteres"
-                        value={cadastroForm.senha}
-                        required
-                        minLength={8}
-                        autoComplete="new-password"
-                        onChange={e =>
-                          setCadastroForm(f => ({
-                            ...f,
-                            senha: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="campo">
-                      <label>Confirmar senha</label>
-                      <input
-                        type="password"
-                        className="campo-input"
-                        placeholder="repita a senha"
-                        value={cadastroForm.confirmar}
-                        required
-                        autoComplete="new-password"
-                        onChange={e =>
-                          setCadastroForm(f => ({
-                            ...f,
-                            confirmar: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
+                  <div className="campo">
+                    <label>Telefone</label>
+                    <input
+                      type="tel"
+                      className="campo-input"
+                      placeholder="(11) 99999-9999"
+                      value={cadastroForm.telefone}
+                      required
+                      autoComplete="tel"
+                      onChange={e =>
+                        setCadastroForm(f => ({
+                          ...f,
+                          telefone: e.target.value,
+                        }))
+                      }
+                    />
                   </div>
                   <p className="auth-separador">
-                    Ao criar conta, você aceita agendar como paciente neste
-                    sistema.
+                    Apenas nome e telefone são necessários para agendar. Para
+                    acessar o sistema depois, configure suas credenciais no
+                    perfil.
                   </p>
                 </form>
               )}

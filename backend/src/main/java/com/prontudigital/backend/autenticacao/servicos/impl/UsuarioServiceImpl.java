@@ -1,10 +1,13 @@
 package com.prontudigital.backend.autenticacao.servicos.impl;
 
+import com.prontudigital.backend.autenticacao.dto.AtivarAcessoRequestDTO;
+import com.prontudigital.backend.autenticacao.dto.CadastrarPacienteDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
 import com.prontudigital.backend.autenticacao.excecoes.EmailExistenteException;
 import com.prontudigital.backend.autenticacao.excecoes.PerfilNaoEncontradoException;
+import com.prontudigital.backend.autenticacao.excecoes.TelefoneExistenteException;
 import com.prontudigital.backend.autenticacao.excecoes.UserNameExistenteException;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioNaoEncontradoException;
 import com.prontudigital.backend.autenticacao.repositorios.PerfilRepository;
@@ -112,6 +115,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .nomeCompleto(dto.nomeCompleto())
                 .telefone(dto.telefone())
                 .ativo(Objects.requireNonNullElse(dto.ativo(), true))
+                .acessoAtivado(true)
                 .build();
 
         if (dto.perfis() != null) {
@@ -126,11 +130,72 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
     }
 
+    @Override
+    @Transactional
+    public Usuario cadastrarPaciente(CadastrarPacienteDTO dto) {
+        String telefone = dto.telefone().trim();
+        if (usuarioRepository.existsByTelefone(telefone)) {
+            throw new TelefoneExistenteException(telefone);
+        }
+
+        String telefoneLimpo = telefone.replaceAll("[^0-9]", "");
+        String username = gerarUsernameUnico("pac_" + telefoneLimpo);
+
+        Usuario usuario = Usuario.builder()
+                .nomeCompleto(dto.nomeCompleto().trim())
+                .telefone(telefone)
+                .username(username)
+                .senhaHash(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .acessoAtivado(false)
+                .ativo(true)
+                .build();
+
+        usuario = usuarioRepository.save(usuario);
+
+        Perfil perfilPaciente = perfilRepository.findByNome("PACIENTE")
+                .orElseThrow(() -> new PerfilNaoEncontradoException("ROLE_PACIENTE"));
+        usuario.adicionarPerfil(perfilPaciente);
+
+        return usuarioRepository.save(usuario);
+    }
+
+    @Override
+    @Transactional
+    public UsuarioDTO ativarAcesso(AtivarAcessoRequestDTO dto) {
+        String telefone = dto.telefone().trim();
+        Usuario usuario = usuarioRepository.findByTelefone(telefone)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Nenhum paciente encontrado com o telefone: " + telefone));
+
+        if (usuarioRepository.existsByUsername(dto.username()) &&
+                !usuario.getUsername().equals(dto.username())) {
+            throw new UserNameExistenteException(dto.username());
+        }
+        if (dto.email() != null && usuarioRepository.existsByEmail(dto.email().trim())) {
+            throw new EmailExistenteException(dto.email());
+        }
+
+        usuario.setEmail(dto.email().trim());
+        usuario.setUsername(dto.username().trim());
+        usuario.setSenhaHash(passwordEncoder.encode(dto.senha()));
+        usuario.setAcessoAtivado(true);
+
+        return converterUsuarioParaDTO(usuarioRepository.save(usuario));
+    }
+
+    private String gerarUsernameUnico(String base) {
+        String candidate = base;
+        int suffix = 1;
+        while (usuarioRepository.existsByUsername(candidate)) {
+            candidate = base + suffix++;
+        }
+        return candidate;
+    }
+
     private void validar(UsuarioDTO dto) {
         if (usuarioRepository.existsByUsername(dto.username())) {
             throw new UserNameExistenteException(dto.username());
         }
-        if (usuarioRepository.existsByEmail(dto.email())) {
+        if (dto.email() != null && usuarioRepository.existsByEmail(dto.email())) {
             throw new EmailExistenteException(dto.email());
         }
     }

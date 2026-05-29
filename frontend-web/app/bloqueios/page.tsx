@@ -2,8 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Plus, Ban, AlertCircle, Umbrella, Wrench,
-  Clock, Trash2, Calendar, AlertTriangle,
+  Plus,
+  Ban,
+  AlertCircle,
+  Umbrella,
+  Wrench,
+  Clock,
+  Trash2,
+  Calendar,
+  AlertTriangle,
 } from 'lucide-react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
@@ -54,7 +61,11 @@ const proximos30 = () => {
 const formatarDataHora = (iso: string) => {
   const d = new Date(iso)
   return {
-    data: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+    data: d.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }),
     hora: d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
   }
 }
@@ -79,9 +90,9 @@ interface FormState {
 
 const TIPOS: { valor: TipoBloqueio; icone: React.ElementType }[] = [
   { valor: 'INDISPONIVEL', icone: Ban },
-  { valor: 'URGENCIA',     icone: AlertCircle },
-  { valor: 'FOLGA',        icone: Umbrella },
-  { valor: 'MANUTENCAO',   icone: Wrench },
+  { valor: 'URGENCIA', icone: AlertCircle },
+  { valor: 'FOLGA', icone: Umbrella },
+  { valor: 'MANUTENCAO', icone: Wrench },
 ]
 
 type FiltroRapido = 'SEMANA' | 'MES' | '30DIAS' | 'PERSONALIZADO'
@@ -118,7 +129,13 @@ export default function BloqueiosPage() {
       usuariosAPI
         .buscarUsuarioAtual()
         .then(u => setProfissionalUuid(u.uuid))
-        .catch(() => exibirNotificacao('Não foi possível identificar o profissional.', 'error', 5000))
+        .catch(() =>
+          exibirNotificacao(
+            'Não foi possível identificar o profissional.',
+            'error',
+            5000,
+          ),
+        )
     }
   }, [usuario])
 
@@ -127,10 +144,18 @@ export default function BloqueiosPage() {
     if (!profissionalUuid) return
     setLoading(true)
     try {
-      const dados = await bloqueioAPI.listar(profissionalUuid, dataInicio, dataFim)
+      const dados = await bloqueioAPI.listar(
+        profissionalUuid,
+        dataInicio,
+        dataFim,
+      )
       setBloqueios(dados)
     } catch {
-      exibirNotificacao('Erro ao carregar horários indisponíveis.', 'error', 5000)
+      exibirNotificacao(
+        'Erro ao carregar horários indisponíveis.',
+        'error',
+        5000,
+      )
     } finally {
       setLoading(false)
     }
@@ -143,9 +168,18 @@ export default function BloqueiosPage() {
   /* ── filtros rápidos ── */
   const aplicarFiltroRapido = (filtro: FiltroRapido) => {
     setFiltroRapido(filtro)
-    if (filtro === 'SEMANA') { setDataInicio(inicioDaSemana()); setDataFim(fimDaSemana()) }
-    if (filtro === 'MES')    { setDataInicio(inicioDoMes());    setDataFim(fimDoMes()) }
-    if (filtro === '30DIAS') { setDataInicio(hoje());           setDataFim(proximos30()) }
+    if (filtro === 'SEMANA') {
+      setDataInicio(inicioDaSemana())
+      setDataFim(fimDaSemana())
+    }
+    if (filtro === 'MES') {
+      setDataInicio(inicioDoMes())
+      setDataFim(fimDoMes())
+    }
+    if (filtro === '30DIAS') {
+      setDataInicio(hoje())
+      setDataFim(proximos30())
+    }
     if (filtro === 'PERSONALIZADO') setFiltroRapido('PERSONALIZADO')
   }
 
@@ -171,15 +205,19 @@ export default function BloqueiosPage() {
     try {
       const requisicao: BloqueioHorarioRequisicao = {
         profissionalUuid,
-        inicioEm: form.inicioEm.length === 16 ? form.inicioEm + ':00' : form.inicioEm,
-        fimEm:    form.fimEm.length  === 16 ? form.fimEm  + ':00' : form.fimEm,
-        tipo:   form.tipo,
+        inicioEm:
+          form.inicioEm.length === 16 ? form.inicioEm + ':00' : form.inicioEm,
+        fimEm: form.fimEm.length === 16 ? form.fimEm + ':00' : form.fimEm,
+        tipo: form.tipo,
         motivo: form.motivo.trim() || undefined,
       }
       const criado = await bloqueioAPI.criar(requisicao)
-      setBloqueios(prev => [...prev, criado].sort(
-        (a, b) => new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime()
-      ))
+      setBloqueios(prev =>
+        [...prev, criado].sort(
+          (a, b) =>
+            new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime(),
+        ),
+      )
       fecharModal()
       exibirNotificacao('Horário registrado com sucesso!', 'success', 4000)
     } catch (err: any) {
@@ -191,14 +229,20 @@ export default function BloqueiosPage() {
   }
 
   /* ── excluir bloqueio ── */
-  const handleExcluir = async (id: number) => {
+  const handleExcluir = async (bloqueio: BloqueioHorario) => {
+    if (bloqueio.profissionalUuid !== profissionalUuid) return
+
     if (!confirm('Tem certeza que deseja remover este bloqueio?')) return
     try {
-      await bloqueioAPI.remover(id)
-      setBloqueios(prev => prev.filter(b => b.id !== id))
+      await bloqueioAPI.remover(bloqueio.id)
+      setBloqueios(prev => prev.filter(b => b.uuid !== bloqueio.uuid))
       exibirNotificacao('Bloqueio removido com sucesso!', 'success', 4000)
-    } catch {
-      exibirNotificacao('Erro ao remover o bloqueio.', 'error', 5000)
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        'Erro ao remover o bloqueio.'
+      exibirNotificacao(String(msg), 'error', 6000)
     }
   }
 
@@ -209,7 +253,12 @@ export default function BloqueiosPage() {
     depois.setHours(depois.getHours() + 1)
     const toLocal = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    setForm({ inicioEm: toLocal(agora), fimEm: toLocal(depois), tipo: 'INDISPONIVEL', motivo: '' })
+    setForm({
+      inicioEm: toLocal(agora),
+      fimEm: toLocal(depois),
+      tipo: 'INDISPONIVEL',
+      motivo: '',
+    })
     setErroForm('')
     setModalAberto(true)
   }
@@ -225,13 +274,13 @@ export default function BloqueiosPage() {
     : bloqueios
 
   /* ── contagens por tipo ── */
-  const contagens = (tipo: TipoBloqueio) => bloqueios.filter(b => b.tipo === tipo).length
+  const contagens = (tipo: TipoBloqueio) =>
+    bloqueios.filter(b => b.tipo === tipo).length
 
   return (
     <Layout perfil="ROLE_PROFISSIONAL">
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL']}>
         <div className="bloqueios-page">
-
           {/* ── Header ── */}
           <div className="bloqueios-header">
             <div className="bloqueios-header-texto">
@@ -250,14 +299,20 @@ export default function BloqueiosPage() {
               <div
                 key={valor}
                 className={`resumo-card resumo-card--${valor}`}
-                onClick={() => setFiltroTipo(prev => prev === valor ? '' : valor)}
+                onClick={() =>
+                  setFiltroTipo(prev => (prev === valor ? '' : valor))
+                }
                 style={{ cursor: 'pointer' }}
                 title={`Filtrar por ${TIPO_BLOQUEIO_LABELS[valor]}`}
               >
-                <div className="resumo-icone"><Icone size={20} strokeWidth={1.75} /></div>
+                <div className="resumo-icone">
+                  <Icone size={20} strokeWidth={1.75} />
+                </div>
                 <div className="resumo-info">
                   <span className="resumo-numero">{contagens(valor)}</span>
-                  <span className="resumo-rotulo">{TIPO_BLOQUEIO_LABELS[valor]}</span>
+                  <span className="resumo-rotulo">
+                    {TIPO_BLOQUEIO_LABELS[valor]}
+                  </span>
                 </div>
               </div>
             ))}
@@ -271,7 +326,10 @@ export default function BloqueiosPage() {
                 type="date"
                 className="filtro-input"
                 value={dataInicio}
-                onChange={e => { setDataInicio(e.target.value); setFiltroRapido('PERSONALIZADO') }}
+                onChange={e => {
+                  setDataInicio(e.target.value)
+                  setFiltroRapido('PERSONALIZADO')
+                }}
               />
             </div>
             <div className="filtro-grupo">
@@ -280,11 +338,20 @@ export default function BloqueiosPage() {
                 type="date"
                 className="filtro-input"
                 value={dataFim}
-                onChange={e => { setDataFim(e.target.value); setFiltroRapido('PERSONALIZADO') }}
+                onChange={e => {
+                  setDataFim(e.target.value)
+                  setFiltroRapido('PERSONALIZADO')
+                }}
               />
             </div>
             <div className="filtros-rapidos">
-              {([['SEMANA', 'Esta semana'], ['MES', 'Este mês'], ['30DIAS', 'Próx. 30 dias']] as [FiltroRapido, string][]).map(([val, label]) => (
+              {(
+                [
+                  ['SEMANA', 'Esta semana'],
+                  ['MES', 'Este mês'],
+                  ['30DIAS', 'Próx. 30 dias'],
+                ] as [FiltroRapido, string][]
+              ).map(([val, label]) => (
                 <button
                   key={val}
                   className={`btn-filtro-rapido${filtroRapido === val ? ' ativo' : ''}`}
@@ -299,11 +366,15 @@ export default function BloqueiosPage() {
               <select
                 className="filtro-tipo-select filtro-input"
                 value={filtroTipo}
-                onChange={e => setFiltroTipo(e.target.value as TipoBloqueio | '')}
+                onChange={e =>
+                  setFiltroTipo(e.target.value as TipoBloqueio | '')
+                }
               >
                 <option value="">Todos</option>
                 {TIPOS.map(({ valor }) => (
-                  <option key={valor} value={valor}>{TIPO_BLOQUEIO_LABELS[valor]}</option>
+                  <option key={valor} value={valor}>
+                    {TIPO_BLOQUEIO_LABELS[valor]}
+                  </option>
                 ))}
               </select>
             </div>
@@ -317,7 +388,9 @@ export default function BloqueiosPage() {
             </div>
           ) : bloqueiosFiltrados.length === 0 ? (
             <div className="bloqueios-vazio">
-              <div className="bloqueios-vazio-icone"><Calendar size={32} strokeWidth={1.5} /></div>
+              <div className="bloqueios-vazio-icone">
+                <Calendar size={32} strokeWidth={1.5} />
+              </div>
               <h3>Nenhum bloqueio encontrado</h3>
               <p>
                 {filtroTipo
@@ -330,13 +403,21 @@ export default function BloqueiosPage() {
               {bloqueiosFiltrados.map(bloqueio => {
                 const ini = formatarDataHora(bloqueio.inicioEm)
                 const fim = formatarDataHora(bloqueio.fimEm)
-                const duracao = calcularDuracao(bloqueio.inicioEm, bloqueio.fimEm)
+                const duracao = calcularDuracao(
+                  bloqueio.inicioEm,
+                  bloqueio.fimEm,
+                )
                 const tipoInfo = TIPOS.find(t => t.valor === bloqueio.tipo)
 
                 const TipoIcone = tipoInfo?.icone
                 return (
-                  <div key={bloqueio.id} className={`bloqueio-card bloqueio-card--${bloqueio.tipo}`}>
-                    <span className={`bloqueio-tipo-badge badge--${bloqueio.tipo}`}>
+                  <div
+                    key={bloqueio.id}
+                    className={`bloqueio-card bloqueio-card--${bloqueio.tipo}`}
+                  >
+                    <span
+                      className={`bloqueio-tipo-badge badge--${bloqueio.tipo}`}
+                    >
                       {TipoIcone && <TipoIcone size={12} strokeWidth={2} />}
                       {TIPO_BLOQUEIO_LABELS[bloqueio.tipo]}
                     </span>
@@ -348,14 +429,18 @@ export default function BloqueiosPage() {
                         </span>
                         <span className="bloqueio-seta">→</span>
                         <span className="bloqueio-data-fim">
-                          {ini.data === fim.data ? fim.hora : `${fim.data} ${fim.hora}`}
+                          {ini.data === fim.data
+                            ? fim.hora
+                            : `${fim.data} ${fim.hora}`}
                         </span>
                       </div>
                       <div className="bloqueio-motivo">
                         {bloqueio.motivo ? (
                           `"${bloqueio.motivo}"`
                         ) : (
-                          <span className="bloqueio-motivo-vazio">Sem motivo informado</span>
+                          <span className="bloqueio-motivo-vazio">
+                            Sem motivo informado
+                          </span>
                         )}
                       </div>
                       <div className="bloqueio-duracao">
@@ -364,13 +449,15 @@ export default function BloqueiosPage() {
                       </div>
                     </div>
 
-                    <button
-                      className="btn-excluir-bloqueio"
-                      onClick={() => handleExcluir(bloqueio.id)}
-                      title="Remover bloqueio"
-                    >
-                      <Trash2 size={16} strokeWidth={1.75} />
-                    </button>
+                    {bloqueio.profissionalUuid === profissionalUuid && (
+                      <button
+                        className="btn-excluir-bloqueio"
+                        onClick={() => handleExcluir(bloqueio)}
+                        title="Remover bloqueio"
+                      >
+                        <Trash2 size={16} strokeWidth={1.75} />
+                      </button>
+                    )}
                   </div>
                 )
               })}
@@ -380,16 +467,26 @@ export default function BloqueiosPage() {
 
         {/* ── Modal ── */}
         {modalAberto && (
-          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && fecharModal()}>
+          <div
+            className="modal-overlay"
+            onClick={e => e.target === e.currentTarget && fecharModal()}
+          >
             <div className="modal-conteudo">
               <div className="modal-cabecalho">
-                <h2><Ban size={18} strokeWidth={2} /> Registrar Bloqueio</h2>
-                <button className="modal-fechar" onClick={fecharModal} aria-label="Fechar">✕</button>
+                <h2>
+                  <Ban size={18} strokeWidth={2} /> Registrar Bloqueio
+                </h2>
+                <button
+                  className="modal-fechar"
+                  onClick={fecharModal}
+                  aria-label="Fechar"
+                >
+                  ✕
+                </button>
               </div>
 
               <form onSubmit={handleSubmit}>
                 <div className="modal-corpo">
-
                   {/* Período */}
                   <div className="campo-linha">
                     <div className="campo">
@@ -398,7 +495,9 @@ export default function BloqueiosPage() {
                         type="datetime-local"
                         className="campo-input"
                         value={form.inicioEm}
-                        onChange={e => setForm(f => ({ ...f, inicioEm: e.target.value }))}
+                        onChange={e =>
+                          setForm(f => ({ ...f, inicioEm: e.target.value }))
+                        }
                         required
                       />
                     </div>
@@ -409,7 +508,9 @@ export default function BloqueiosPage() {
                         className="campo-input"
                         value={form.fimEm}
                         min={form.inicioEm}
-                        onChange={e => setForm(f => ({ ...f, fimEm: e.target.value }))}
+                        onChange={e =>
+                          setForm(f => ({ ...f, fimEm: e.target.value }))
+                        }
                         required
                       />
                     </div>
@@ -420,16 +521,24 @@ export default function BloqueiosPage() {
                     <label>Tipo de bloqueio</label>
                     <div className="tipo-opcoes">
                       {TIPOS.map(({ valor, icone: Icone }) => (
-                        <div key={valor} className={`tipo-opcao tipo-opcao--${valor}`}>
+                        <div
+                          key={valor}
+                          className={`tipo-opcao tipo-opcao--${valor}`}
+                        >
                           <input
                             type="radio"
                             id={`tipo-${valor}`}
                             name="tipo"
                             value={valor}
                             checked={form.tipo === valor}
-                            onChange={() => setForm(f => ({ ...f, tipo: valor }))}
+                            onChange={() =>
+                              setForm(f => ({ ...f, tipo: valor }))
+                            }
                           />
-                          <label htmlFor={`tipo-${valor}`} className="tipo-opcao-label">
+                          <label
+                            htmlFor={`tipo-${valor}`}
+                            className="tipo-opcao-label"
+                          >
                             <span className={`tipo-dot tipo-dot--${valor}`} />
                             <Icone size={14} strokeWidth={2} />
                             {TIPO_BLOQUEIO_LABELS[valor]}
@@ -441,12 +550,16 @@ export default function BloqueiosPage() {
 
                   {/* Motivo */}
                   <div className="campo">
-                    <label>Motivo <span>(opcional)</span></label>
+                    <label>
+                      Motivo <span>(opcional)</span>
+                    </label>
                     <textarea
                       className="campo-textarea"
                       placeholder="Descreva o motivo da indisponibilidade…"
                       value={form.motivo}
-                      onChange={e => setForm(f => ({ ...f, motivo: e.target.value }))}
+                      onChange={e =>
+                        setForm(f => ({ ...f, motivo: e.target.value }))
+                      }
                       maxLength={255}
                     />
                   </div>
@@ -461,10 +574,18 @@ export default function BloqueiosPage() {
                 </div>
 
                 <div className="modal-rodape">
-                  <button type="button" className="btn-cancelar" onClick={fecharModal}>
+                  <button
+                    type="button"
+                    className="btn-cancelar"
+                    onClick={fecharModal}
+                  >
                     Cancelar
                   </button>
-                  <button type="submit" className="btn-salvar" disabled={salvando}>
+                  <button
+                    type="submit"
+                    className="btn-salvar"
+                    disabled={salvando}
+                  >
                     {salvando ? 'Salvando…' : 'Registrar Bloqueio'}
                   </button>
                 </div>

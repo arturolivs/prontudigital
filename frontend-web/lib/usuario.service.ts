@@ -1,6 +1,11 @@
 import axios from 'axios'
 import { tokenService, setupRefreshInterceptor } from './auth.service'
-import { Usuario, RegistrarRequisicao } from '../tipos/autenticacao'
+import {
+  Usuario,
+  RegistrarRequisicao,
+  CadastrarPacienteRequisicao,
+  JwtResposta,
+} from '../tipos/autenticacao'
 
 const USUARIOS_API_URL =
   process.env.NEXT_PUBLIC_USUARIOS_API_URL ||
@@ -37,6 +42,16 @@ export const usuariosAPI = {
   criarUsuario: async (dados: RegistrarRequisicao): Promise<Usuario> => {
     const response = await axios.post<Usuario>(
       `${AUTH_API_URL}/registrar`,
+      dados,
+    )
+    return response.data
+  },
+
+  cadastrarPaciente: async (
+    dados: CadastrarPacienteRequisicao,
+  ): Promise<JwtResposta> => {
+    const response = await axios.post<JwtResposta>(
+      `${AUTH_API_URL}/cadastrar-paciente`,
       dados,
     )
     return response.data

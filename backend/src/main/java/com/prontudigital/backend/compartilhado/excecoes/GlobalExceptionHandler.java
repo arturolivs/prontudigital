@@ -3,6 +3,8 @@ package com.prontudigital.backend.compartilhado.excecoes;
 import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.excecoes.TokenConfirmacaoInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.*;
+import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
+import com.prontudigital.backend.autenticacao.excecoes.TelefoneExistenteException;
 import com.prontudigital.backend.compartilhado.dto.ErroRespostaDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +102,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
             NaoAutenticadoException.class,
-            AuthenticationException.class
+            AuthenticationException.class,
+            AcessoNaoAtivadoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleNaoAutenticado(
             RuntimeException ex, HttpServletRequest  request) {
@@ -136,6 +139,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({
             UserNameExistenteException.class,
             EmailExistenteException.class,
+            TelefoneExistenteException.class,
             AgendamentoJaCanceladoException.class,
             AgendamentoJaConcluidoException.class,
             HorarioIndisponivelException.class,

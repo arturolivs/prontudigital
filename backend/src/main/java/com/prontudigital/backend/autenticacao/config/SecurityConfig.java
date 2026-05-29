@@ -41,7 +41,9 @@ public class SecurityConfig {
     private static final String[] AUTH_POST_PUBLICOS = {
             "/api/auth/registrar",
             "/api/auth/login",
-            "/api/auth/renovar-token"
+            "/api/auth/renovar-token",
+            "/api/auth/cadastrar-paciente",
+            "/api/auth/ativar-acesso"
     };
 
     private static final String[] GET_PUBLICOS = {

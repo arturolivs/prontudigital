@@ -31,6 +31,9 @@ public record UsuarioDTO(
         @Schema(description = "Indica se o usuário esta ativo")
         Boolean ativo,
 
+        @Schema(description = "Indica se o usuário possui acesso ao sistema configurado")
+        Boolean acessoAtivado,
+
         @Schema(description = "Perfis atribuídos ao usuário", example = "[\"USUARIO\"]")
         Set<String> perfis,
 

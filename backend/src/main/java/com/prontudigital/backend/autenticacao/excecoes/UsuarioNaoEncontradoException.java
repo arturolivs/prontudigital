@@ -11,4 +11,7 @@ public class UsuarioNaoEncontradoException extends ExcecaoBase {
     public UsuarioNaoEncontradoException(UUID uuid) {
         super("Usuário não encontrado com UUID: " + uuid);
     }
+    public UsuarioNaoEncontradoException(String mensagem) {
+        super(mensagem);
+    }
 }
