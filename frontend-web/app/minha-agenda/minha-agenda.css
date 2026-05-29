@@ -319,6 +319,12 @@
   border: 1px solid var(--color-border-brand);
 }
 
+.ma-card-acamado {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
 .ma-card-linha-rodape {
   display: flex;
   align-items: center;

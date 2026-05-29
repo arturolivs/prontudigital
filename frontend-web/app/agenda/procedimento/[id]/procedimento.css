@@ -102,6 +102,11 @@
   letter-spacing: 0.04em;
 }
 
+.proc-hero-acamado {
+  background: rgba(194, 65, 12, 0.25);
+  border-color: rgba(194, 65, 12, 0.4);
+}
+
 .proc-hero-nome {
   font-size: 1.75rem;
   font-weight: 700;

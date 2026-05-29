@@ -1,5 +1,6 @@
 package com.prontudigital.backend.agendamento.dto;
 
+import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
@@ -18,6 +19,8 @@ public record AgendamentoViewDTO(
         UUID pacienteUuid,
         TipoAgendamento tipo,
         TipoProcedimento tipoProcedimento,
+        LocalAtendimento localAtendimento,
+        Boolean pacienteAcamado,
         StatusAgendamento status,
         String nomePaciente,
         String nomeProfissional,

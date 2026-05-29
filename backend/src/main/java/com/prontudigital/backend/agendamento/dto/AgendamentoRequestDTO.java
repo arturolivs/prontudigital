@@ -1,5 +1,6 @@
 package com.prontudigital.backend.agendamento.dto;
 
+import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,6 +32,12 @@ public record AgendamentoRequestDTO(
 
         @Schema(description = "Tipo de procedimento: PODIATRIA ou TRATAMENTO_FERIDAS", example = "PODIATRIA")
         @NotNull TipoProcedimento tipoProcedimento,
+
+        @Schema(description = "Local do atendimento: CLINICA ou RESIDENCIAL", example = "CLINICA")
+        @NotNull LocalAtendimento localAtendimento,
+
+        @Schema(description = "Indica se o paciente esta acamado", example = "false")
+        @NotNull Boolean pacienteAcamado,
 
         @Schema(description = "ID da avaliacao de origem (obrigatorio apenas para TRATAMENTO)")
         Long avaliacaoId

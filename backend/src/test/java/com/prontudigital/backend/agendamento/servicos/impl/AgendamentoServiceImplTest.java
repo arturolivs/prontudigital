@@ -3,6 +3,7 @@ package com.prontudigital.backend.agendamento.servicos.impl;
 import com.prontudigital.backend.agendamento.dto.*;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
+import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
@@ -98,7 +99,8 @@ class AgendamentoServiceImplTest {
         void deveRejeitarPacienteAgendandoParaOutro() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     OUTRO_UUID, PROFISSIONAL_UUID, null, INICIO, FIM,
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null);
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
 
@@ -116,7 +118,8 @@ class AgendamentoServiceImplTest {
                     PACIENTE_UUID, PROFISSIONAL_UUID, null,
                     LocalDateTime.of(2020, 1, 1, 10, 0),
                     LocalDateTime.of(2020, 1, 1, 11, 0),
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null);
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
 
@@ -130,7 +133,8 @@ class AgendamentoServiceImplTest {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     PACIENTE_UUID, PROFISSIONAL_UUID, null,
                     INICIO, INICIO.plusMinutes(10),
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null);
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
 

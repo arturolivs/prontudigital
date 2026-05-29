@@ -11,6 +11,7 @@ import {
 import { BloqueioHorario } from '../../tipos/bloqueio'
 import { Agendamento } from '../../tipos/agendamento'
 import { TipoProcedimento, ROTULO_TIPO_PROCEDIMENTO } from '../../tipos/TipoProcedimento'
+import { LocalAtendimento, ROTULO_LOCAL_ATENDIMENTO } from '../../tipos/LocalAtendimento'
 import './agendar.css'
 
 /* ── helpers ── */
@@ -95,6 +96,8 @@ export default function AgendarPage() {
   const [data, setData] = useState(amanha)
   const [slot, setSlot] = useState<string | null>(null)
   const [tipoProcedimento, setTipoProcedimento] = useState<TipoProcedimento | null>(null)
+  const [localAtendimento, setLocalAtendimento] = useState<LocalAtendimento | null>(null)
+  const [pacienteAcamado, setPacienteAcamado] = useState<boolean | null>(null)
   const [observacoes, setObservacoes] = useState('')
   const [pacienteUuid, setPacienteUuid] = useState<string | null>(null)
   const [agendamento, setAgendamento] = useState<Agendamento | null>(
@@ -201,7 +204,7 @@ export default function AgendarPage() {
 
   /* ── confirmar agendamento ── */
   const handleConfirmar = async () => {
-    if (!profissional || !slot || !pacienteUuid || !tipoProcedimento) return
+    if (!profissional || !slot || !pacienteUuid || !tipoProcedimento || !localAtendimento || pacienteAcamado === null) return
     setErro('')
     setCarregandoConfirmar(true)
     try {
@@ -212,6 +215,8 @@ export default function AgendarPage() {
         fimEm: `${data}T${adicionarHora(slot)}:00`,
         tipo: 'AVALIACAO',
         tipoProcedimento,
+        localAtendimento: localAtendimento!,
+        pacienteAcamado: pacienteAcamado!,
         observacoes: observacoes.trim() || undefined,
       })
       setAgendamento(criado)
@@ -232,6 +237,8 @@ export default function AgendarPage() {
     setData(amanha())
     setSlot(null)
     setTipoProcedimento(null)
+    setLocalAtendimento(null)
+    setPacienteAcamado(null)
     setObservacoes('')
     setPacienteUuid(null)
     setAgendamento(null)
@@ -469,6 +476,32 @@ export default function AgendarPage() {
                     </button>
                   ))}
                 </div>
+
+                <p className="tipo-procedimento-titulo" style={{ marginTop: '1rem' }}>Local de atendimento</p>
+                <div className="tipo-procedimento-opcoes">
+                  {(['CLINICA', 'RESIDENCIAL'] as LocalAtendimento[]).map(l => (
+                    <button
+                      key={l}
+                      className={`tipo-procedimento-btn${localAtendimento === l ? ' selecionado' : ''}`}
+                      onClick={() => setLocalAtendimento(l)}
+                    >
+                      {ROTULO_LOCAL_ATENDIMENTO[l]}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="tipo-procedimento-titulo" style={{ marginTop: '1rem' }}>Paciente acamado?</p>
+                <div className="tipo-procedimento-opcoes">
+                  {([true, false] as boolean[]).map(v => (
+                    <button
+                      key={String(v)}
+                      className={`tipo-procedimento-btn${pacienteAcamado === v ? ' selecionado' : ''}`}
+                      onClick={() => setPacienteAcamado(v)}
+                    >
+                      {v ? 'Sim' : 'Não'}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -494,7 +527,7 @@ export default function AgendarPage() {
               </button>
               <button
                 className="btn-continuar"
-                disabled={!slot || !tipoProcedimento}
+                disabled={!slot || !tipoProcedimento || !localAtendimento || pacienteAcamado === null}
                 onClick={() => {
                   setEtapa(3)
                   setErro('')
@@ -765,12 +798,7 @@ export default function AgendarPage() {
                   </div>
                   <div className="resumo-linha">
                     <div className="resumo-icone-wrapper">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
@@ -778,6 +806,32 @@ export default function AgendarPage() {
                       <div className="resumo-linha-rotulo">Procedimento</div>
                       <div className="resumo-linha-valor">
                         {tipoProcedimento ? ROTULO_TIPO_PROCEDIMENTO[tipoProcedimento] : '—'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="resumo-linha">
+                    <div className="resumo-icone-wrapper">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                    </div>
+                    <div className="resumo-linha-info">
+                      <div className="resumo-linha-rotulo">Local</div>
+                      <div className="resumo-linha-valor">
+                        {localAtendimento ? ROTULO_LOCAL_ATENDIMENTO[localAtendimento] : '—'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="resumo-linha">
+                    <div className="resumo-icone-wrapper">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </div>
+                    <div className="resumo-linha-info">
+                      <div className="resumo-linha-rotulo">Paciente acamado</div>
+                      <div className="resumo-linha-valor">
+                        {pacienteAcamado === null ? '—' : pacienteAcamado ? 'Sim' : 'Não'}
                       </div>
                     </div>
                   </div>
@@ -898,6 +952,14 @@ export default function AgendarPage() {
                 <div className="sucesso-detalhe-linha">
                   <span>Procedimento</span>
                   <span>{tipoProcedimento ? ROTULO_TIPO_PROCEDIMENTO[tipoProcedimento] : '—'}</span>
+                </div>
+                <div className="sucesso-detalhe-linha">
+                  <span>Local</span>
+                  <span>{localAtendimento ? ROTULO_LOCAL_ATENDIMENTO[localAtendimento] : '—'}</span>
+                </div>
+                <div className="sucesso-detalhe-linha">
+                  <span>Paciente acamado</span>
+                  <span>{pacienteAcamado === null ? '—' : pacienteAcamado ? 'Sim' : 'Não'}</span>
                 </div>
               </div>
 

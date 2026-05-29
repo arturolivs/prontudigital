@@ -11,6 +11,7 @@ import { agendamentoAPI } from '@/lib/agendamento.service'
 import LayoutPaciente from '@/components/LayoutPaciente'
 import { Agendamento } from '@/tipos/agendamento'
 import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
+import { ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendimento'
 import './minha-agenda.css'
 
 type Aba = 'proximos' | 'historico'
@@ -122,6 +123,14 @@ const CardAgendamento = ({
           <span className="ma-card-procedimento">
             {ROTULO_TIPO_PROCEDIMENTO[agendamento.tipoProcedimento]}
           </span>
+        )}
+        {agendamento.localAtendimento && (
+          <span className="ma-card-procedimento">
+            {ROTULO_LOCAL_ATENDIMENTO[agendamento.localAtendimento]}
+          </span>
+        )}
+        {agendamento.pacienteAcamado && (
+          <span className="ma-card-procedimento ma-card-acamado">Acamado</span>
         )}
       </div>
 

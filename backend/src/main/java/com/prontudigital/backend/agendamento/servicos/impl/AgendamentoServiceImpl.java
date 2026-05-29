@@ -122,6 +122,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .status(StatusAgendamento.AGENDADO)
                 .tipo(request.tipo())
                 .tipoProcedimento(request.tipoProcedimento())
+                .localAtendimento(request.localAtendimento())
+                .pacienteAcamado(request.pacienteAcamado())
                 .build();
 
         if (request.tipo() == TipoAgendamento.TRATAMENTO) {

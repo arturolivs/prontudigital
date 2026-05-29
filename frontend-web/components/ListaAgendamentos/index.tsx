@@ -3,6 +3,7 @@ import { AlertTriangle, CalendarX, Clock, Timer } from 'lucide-react'
 import './listaAgendamentos.styles.css'
 import { Agendamento } from '@/tipos/agendamento'
 import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
+import { ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendimento'
 
 export type AgendamentosAgrupados = Record<string, Agendamento[]>
 
@@ -224,6 +225,14 @@ const ListaAgendamentos: React.FC<PropsListaAgendamentos> = ({
                       <div className="status-badge status-procedimento">
                         {ROTULO_TIPO_PROCEDIMENTO[agendamento.tipoProcedimento]}
                       </div>
+                    )}
+                    {agendamento.localAtendimento && (
+                      <div className="status-badge status-procedimento">
+                        {ROTULO_LOCAL_ATENDIMENTO[agendamento.localAtendimento]}
+                      </div>
+                    )}
+                    {agendamento.pacienteAcamado && (
+                      <div className="status-badge status-acamado">Acamado</div>
                     )}
                   </div>
                 </div>

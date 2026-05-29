@@ -1,5 +1,6 @@
 package com.prontudigital.backend.agendamento.entidades;
 
+import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
@@ -52,6 +53,13 @@ public class Agendamento {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_procedimento")
     private TipoProcedimento tipoProcedimento;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "local_atendimento")
+    private LocalAtendimento localAtendimento;
+
+    @Column(name = "paciente_acamado")
+    private Boolean pacienteAcamado;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "avaliacao_id")

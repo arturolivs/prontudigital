@@ -7,6 +7,7 @@ import { useNotificacao } from '@/contexts/ToastContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
 import { Agendamento } from '@/tipos/agendamento'
 import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
+import { ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendimento'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import Layout from '@/components/Layout/Layout'
 import {
@@ -296,6 +297,14 @@ export default function ProcedimentoPage({
                       <span className="proc-hero-procedimento">
                         {ROTULO_TIPO_PROCEDIMENTO[agendamento.tipoProcedimento]}
                       </span>
+                    )}
+                    {agendamento.localAtendimento && (
+                      <span className="proc-hero-procedimento">
+                        {ROTULO_LOCAL_ATENDIMENTO[agendamento.localAtendimento]}
+                      </span>
+                    )}
+                    {agendamento.pacienteAcamado && (
+                      <span className="proc-hero-procedimento proc-hero-acamado">Acamado</span>
                     )}
                   </div>
                   <h1 className="proc-hero-nome">{agendamento.nomePaciente}</h1>

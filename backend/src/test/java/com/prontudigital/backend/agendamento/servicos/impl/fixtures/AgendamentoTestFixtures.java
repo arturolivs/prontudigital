@@ -4,6 +4,7 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
+import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
@@ -54,14 +55,16 @@ public final class AgendamentoTestFixtures {
         return new AgendamentoRequestDTO(
                 PACIENTE_UUID, PROFISSIONAL_UUID,
                 "Consulta inicial", INICIO, FIM,
-                TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null);
+                TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                LocalAtendimento.CLINICA, false, null);
     }
 
     public static AgendamentoRequestDTO requestTratamento(Long avaliacaoId) {
         return new AgendamentoRequestDTO(
                 PACIENTE_UUID, PROFISSIONAL_UUID,
                 "Tratamento", INICIO, FIM,
-                TipoAgendamento.TRATAMENTO, TipoProcedimento.PODIATRIA, avaliacaoId);
+                TipoAgendamento.TRATAMENTO, TipoProcedimento.PODIATRIA,
+                LocalAtendimento.CLINICA, false, avaliacaoId);
     }
 
     public static Agendamento agendamentoAgendado() {
