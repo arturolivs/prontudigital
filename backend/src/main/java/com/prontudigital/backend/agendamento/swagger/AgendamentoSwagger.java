@@ -113,6 +113,29 @@ public class AgendamentoSwagger {
     public @interface AgendarSwagger {}
 
     // =========================================================
+    // PATCH /api/agendamentos/{id}/confirmar
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Confirmar agendamento",
+            description = """
+            Confirma a presença do paciente, alterando o status de AGENDADO para CONFIRMADO.\n
+            Regras:
+            - Apenas agendamentos com status AGENDADO podem ser confirmados
+            - Paciente só pode confirmar o próprio agendamento
+            - Profissional e Admin também podem confirmar
+            """
+    )
+    @ApiResponse(responseCode = "204", description = "Agendamento confirmado com sucesso")
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseConflict
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface ConfirmarSwagger {}
+
+    // =========================================================
     // PATCH /api/agendamentos/{id}/cancelar — RF10
     // =========================================================
     @Target(ElementType.METHOD)

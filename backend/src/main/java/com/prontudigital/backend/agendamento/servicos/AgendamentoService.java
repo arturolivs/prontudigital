@@ -15,6 +15,7 @@ public interface AgendamentoService {
     AgendamentoDetalhadoDTO buscarPorId(Long id);
     AgendamentoResponseDTO agendar(AgendamentoRequestDTO request);
     AgendamentoResponseDTO reagendar(Long agendamentoId, ReagendarRequestDTO request);
+    void confirmar(Long agendamentoId);
     void cancelar(Long agendamentoId);
     void concluir(Long agendamentoId);
     AgendamentoDetalhadoDTO atualizarObservacoes(Long id, String observacoes);

@@ -478,36 +478,31 @@
   flex: 1;
 }
 
-.proc-btn-salvar,
+.proc-btn-iniciar,
 .proc-btn-finalizar,
 .proc-btn-realizado {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
+  padding: 0.6rem 1.4rem;
   border-radius: 0.6rem;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
   background: none;
 }
 
-.proc-btn-salvar {
-  border: 1.5px solid var(--color-border-brand);
-  color: var(--color-brand);
-  background: var(--color-bg-page);
+.proc-btn-iniciar {
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.3);
 }
 
-.proc-btn-salvar:hover:not(:disabled) {
-  background: var(--color-bg-soft);
-  border-color: var(--color-brand);
-}
-
-.proc-btn-salvar:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.proc-btn-iniciar:hover {
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.4);
+  transform: translateY(-1px);
 }
 
 .proc-btn-finalizar {
@@ -534,6 +529,141 @@
   border: 1px solid var(--color-success-border);
   cursor: default;
   box-shadow: none;
+}
+
+/* ── Tag "Bloqueado" no header de observações ── */
+.proc-obs-bloqueado-tag {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-neutral-400);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Modal de próxima consulta ─────────────────── */
+.proc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.proc-modal {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: proc-modal-in 0.2s ease;
+}
+
+@keyframes proc-modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+
+.proc-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.proc-modal-icone {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--color-success-bg);
+  color: var(--color-success-deeper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proc-modal-fechar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all 0.15s;
+}
+
+.proc-modal-fechar:hover {
+  background: var(--color-bg-surface);
+  color: var(--color-text-heading);
+}
+
+.proc-modal-titulo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text-heading);
+  margin: 0 0 0.5rem;
+}
+
+.proc-modal-descricao {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 1.5rem;
+  line-height: 1.5;
+}
+
+.proc-modal-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.proc-modal-btn-agendar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.3);
+}
+
+.proc-modal-btn-agendar:hover {
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.4);
+  transform: translateY(-1px);
+}
+
+.proc-modal-btn-fechar {
+  padding: 0.65rem 1rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.proc-modal-btn-fechar:hover {
+  border-color: var(--color-brand-light);
+  color: var(--color-brand);
 }
 
 /* ── Estados de erro / loading da página ────── */
@@ -583,6 +713,7 @@
     flex-wrap: wrap;
   }
 
+  .proc-btn-iniciar,
   .proc-btn-finalizar,
   .proc-btn-realizado {
     width: 100%;

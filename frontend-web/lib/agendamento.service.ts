@@ -46,6 +46,10 @@ export const agendamentoAPI = {
     return response.data
   },
 
+  confirmarAgendamento: async (id: number): Promise<void> => {
+    await api.patch(`${API_BASE_URL}/${id}/confirmar`)
+  },
+
   cancelarAgendamento: async (id: number): Promise<void> => {
     await api.patch(`${API_BASE_URL}/${id}/cancelar`)
   },

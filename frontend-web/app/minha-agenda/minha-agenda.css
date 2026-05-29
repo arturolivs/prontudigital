@@ -325,6 +325,34 @@
   border-color: #fed7aa;
 }
 
+.ma-card-linha-acao {
+  padding: 8px 16px 12px;
+}
+
+.ma-btn-confirmar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--color-success-border, #10b981);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-success-deeper, #065f46);
+  background: var(--color-success-bg, #d1fae5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ma-btn-confirmar:hover:not(:disabled) {
+  background: #a7f3d0;
+}
+
+.ma-btn-confirmar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .ma-card-linha-rodape {
   display: flex;
   align-items: center;

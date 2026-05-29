@@ -140,6 +140,26 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     @Override
     @Transactional
+    public void confirmar(Long agendamentoId) {
+        Agendamento agendamento = buscarOuFalhar(agendamentoId);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Usuario nao autorizado a confirmar este agendamento");
+        }
+        if (agendamento.getStatus() != StatusAgendamento.AGENDADO) {
+            throw new AgendamentoStatusInvalidoException(
+                    "Apenas agendamentos com status AGENDADO podem ser confirmados");
+        }
+
+        agendamento.setStatus(StatusAgendamento.CONFIRMADO);
+        agendamentoRepository.save(agendamento);
+        log.info("Agendamento {} confirmado pelo usuario {}", agendamentoId, usuario.uuid());
+    }
+
+    @Override
+    @Transactional
     public void cancelar(Long agendamentoId) {
         Agendamento agendamento = buscarOuFalhar(agendamentoId);
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();

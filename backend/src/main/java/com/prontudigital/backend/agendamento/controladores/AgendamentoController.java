@@ -54,6 +54,13 @@ public class AgendamentoController {
                 .body(agendamentoService.agendar(request));
     }
 
+    @PatchMapping("/{id}/confirmar")
+    @ConfirmarSwagger
+    public ResponseEntity<Void> confirmar(@PathVariable Long id) {
+        agendamentoService.confirmar(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}/cancelar")
     @CancelarSwagger
     public ResponseEntity<Void> cancelar(@PathVariable Long id) {

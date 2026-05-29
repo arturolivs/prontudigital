@@ -22,7 +22,9 @@ import {
   History,
   Activity,
   Pill,
-  Save,
+  Play,
+  X,
+  CalendarPlus,
 } from 'lucide-react'
 import './procedimento.css'
 
@@ -74,7 +76,7 @@ const ROTULO_TIPO: Record<string, string> = {
   TRATAMENTO: 'Tratamento',
 }
 
-// ── Sub‑componentes com ícones ───────────────────────────────────
+// ── Sub‑componentes ───────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
   return (
@@ -106,7 +108,6 @@ function HistoricoItem({
   index: number
 }) {
   const isRealizado = item.status === 'REALIZADO'
-
   const dotClasse = isAtual
     ? 'proc-hist-dot--atual'
     : isRealizado
@@ -138,6 +139,44 @@ function HistoricoItem({
   )
 }
 
+// ── Modal de próxima consulta ─────────────────────────────────────
+
+function ModalProximaConsulta({
+  onAgendar,
+  onFechar,
+}: {
+  onAgendar: () => void
+  onFechar: () => void
+}) {
+  return (
+    <div className="proc-modal-overlay" onClick={onFechar}>
+      <div className="proc-modal" onClick={e => e.stopPropagation()}>
+        <div className="proc-modal-header">
+          <div className="proc-modal-icone">
+            <CheckCircle size={28} strokeWidth={1.5} />
+          </div>
+          <button className="proc-modal-fechar" onClick={onFechar}>
+            <X size={18} />
+          </button>
+        </div>
+        <h2 className="proc-modal-titulo">Consulta finalizada!</h2>
+        <p className="proc-modal-descricao">
+          Deseja agendar o próximo tratamento para este paciente?
+        </p>
+        <div className="proc-modal-acoes">
+          <button className="proc-modal-btn-agendar" onClick={onAgendar}>
+            <CalendarPlus size={16} />
+            Agendar próximo tratamento
+          </button>
+          <button className="proc-modal-btn-fechar" onClick={onFechar}>
+            Não, voltar para a agenda
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Página principal ─────────────────────────────────────────────
 
 export default function ProcedimentoPage({
@@ -158,14 +197,13 @@ export default function ProcedimentoPage({
   const [carregandoHist, setCarregandoHist] = useState(false)
 
   const [observacoes, setObservacoes] = useState('')
-  const [obsAlterada, setObsAlterada] = useState(false)
-  const [salvando, setSalvando] = useState(false)
+  const [iniciado, setIniciado] = useState(false)
   const [finalizando, setFinalizando] = useState(false)
+  const [modalAberto, setModalAberto] = useState(false)
 
   const isAdmin = temPerfil('ROLE_ADMIN')
   const perfilLayout = isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'
 
-  // Carrega o agendamento
   useEffect(() => {
     agendamentoAPI
       .buscarPorId(Number(id))
@@ -177,7 +215,6 @@ export default function ProcedimentoPage({
       .finally(() => setCarregando(false))
   }, [id])
 
-  // Carrega histórico para tratamentos
   useEffect(() => {
     if (!agendamento?.avaliacaoId || agendamento.tipo !== 'TRATAMENTO') return
     setCarregandoHist(true)
@@ -195,39 +232,17 @@ export default function ProcedimentoPage({
       .finally(() => setCarregandoHist(false))
   }, [agendamento])
 
-  const handleObsChange = (v: string) => {
-    setObservacoes(v)
-    setObsAlterada(v !== (agendamento?.observacoes ?? ''))
-  }
-
-  const salvarObservacoes = async () => {
-    if (!agendamento || !obsAlterada) return
-    setSalvando(true)
-    try {
-      await agendamentoAPI.atualizarObservacoes(agendamento.id, observacoes)
-      setAgendamento(prev => (prev ? { ...prev, observacoes } : prev))
-      setObsAlterada(false)
-      exibirNotificacao('Observações salvas.', 'success', 3000)
-    } catch {
-      exibirNotificacao('Erro ao salvar observações.', 'error', 5000)
-    } finally {
-      setSalvando(false)
-    }
-  }
-
   const finalizarConsulta = async () => {
     if (!agendamento) return
     setFinalizando(true)
     try {
-      if (obsAlterada) {
-        await agendamentoAPI.atualizarObservacoes(agendamento.id, observacoes)
-      }
+      await agendamentoAPI.atualizarObservacoes(agendamento.id, observacoes)
       await agendamentoAPI.concluirAgendamento(agendamento.id)
       setAgendamento(prev =>
         prev ? { ...prev, status: 'REALIZADO', observacoes } : prev,
       )
-      setObsAlterada(false)
-      exibirNotificacao('Consulta finalizada com sucesso!', 'success', 4000)
+      setIniciado(false)
+      setModalAberto(true)
     } catch {
       exibirNotificacao('Erro ao finalizar consulta.', 'error', 5000)
     } finally {
@@ -237,27 +252,25 @@ export default function ProcedimentoPage({
 
   const jaRealizado = agendamento?.status === 'REALIZADO'
   const ehTratamento = agendamento?.tipo === 'TRATAMENTO'
+  const podeEditar = iniciado && !jaRealizado
 
   return (
     <Layout perfil={perfilLayout}>
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
         <div className="proc-page">
+
           {/* Barra superior */}
           <div className="proc-topbar">
             <button className="proc-back-btn" onClick={() => router.back()}>
               <ArrowLeft size={18} />
               Voltar
             </button>
-
             {agendamento && (
               <div className="proc-topbar-info">
                 <TipoBadge tipo={agendamento.tipo} />
-                <span className="proc-topbar-nome">
-                  {agendamento.nomePaciente}
-                </span>
+                <span className="proc-topbar-nome">{agendamento.nomePaciente}</span>
               </div>
             )}
-
             {agendamento && (
               <div className="proc-topbar-actions">
                 <StatusBadge status={agendamento.status} />
@@ -275,7 +288,7 @@ export default function ProcedimentoPage({
           {erro && (
             <div className="proc-estado">
               <p style={{ color: 'var(--color-error)' }}>{erro}</p>
-              <button className="proc-btn-salvar" onClick={() => router.back()}>
+              <button className="proc-btn-finalizar" onClick={() => router.back()}>
                 Voltar para a agenda
               </button>
             </div>
@@ -335,7 +348,7 @@ export default function ProcedimentoPage({
 
               {/* Grade de conteúdo */}
               <div className="proc-content">
-                {/* Coluna esquerda — Informações */}
+                {/* Informações */}
                 <div className="proc-card proc-col-esq">
                   <div className="proc-card-header">
                     <FileText size={16} />
@@ -346,10 +359,7 @@ export default function ProcedimentoPage({
                       <Calendar size={18} className="proc-info-icone" />
                       <div className="proc-info-texto">
                         <span className="proc-info-rotulo">Data</span>
-                        <span
-                          className="proc-info-valor"
-                          style={{ textTransform: 'capitalize' }}
-                        >
+                        <span className="proc-info-valor" style={{ textTransform: 'capitalize' }}>
                           {fmt.data(agendamento.inicioEm)}
                         </span>
                       </div>
@@ -362,12 +372,7 @@ export default function ProcedimentoPage({
                           {fmt.hora(agendamento.inicioEm)} –{' '}
                           {fmt.hora(agendamento.fimEm)}
                           <span className="proc-info-duracao">
-                            (
-                            {fmt.duracao(
-                              agendamento.inicioEm,
-                              agendamento.fimEm,
-                            )}
-                            )
+                            ({fmt.duracao(agendamento.inicioEm, agendamento.fimEm)})
                           </span>
                         </span>
                       </div>
@@ -377,9 +382,7 @@ export default function ProcedimentoPage({
                         <User size={18} className="proc-info-icone" />
                         <div className="proc-info-texto">
                           <span className="proc-info-rotulo">Profissional</span>
-                          <span className="proc-info-valor">
-                            {agendamento.nomeProfissional}
-                          </span>
+                          <span className="proc-info-valor">{agendamento.nomeProfissional}</span>
                         </div>
                       </div>
                     )}
@@ -411,18 +414,14 @@ export default function ProcedimentoPage({
                   </div>
                 </div>
 
-                {/* Coluna direita — Histórico (tratamento) ou placeholder */}
+                {/* Histórico */}
                 <div className="proc-card proc-col-dir">
                   <div className="proc-card-header">
                     <History size={16} />
                     Histórico
                   </div>
-
                   {!ehTratamento ? (
-                    <div
-                      className="proc-hist-loading"
-                      style={{ color: 'var(--color-text-muted)' }}
-                    >
+                    <div className="proc-hist-loading" style={{ color: 'var(--color-text-muted)' }}>
                       Disponível apenas para consultas do tipo Tratamento.
                     </div>
                   ) : carregandoHist ? (
@@ -431,10 +430,7 @@ export default function ProcedimentoPage({
                       Carregando histórico…
                     </div>
                   ) : historico.length === 0 ? (
-                    <div
-                      className="proc-hist-loading"
-                      style={{ color: 'var(--color-text-muted)' }}
-                    >
+                    <div className="proc-hist-loading" style={{ color: 'var(--color-text-muted)' }}>
                       Nenhum registro anterior encontrado.
                     </div>
                   ) : (
@@ -451,40 +447,36 @@ export default function ProcedimentoPage({
                   )}
                 </div>
 
-                {/* Observações — largura total */}
+                {/* Observações */}
                 <div className="proc-card proc-full">
                   <div className="proc-card-header">
                     <FileText size={16} />
                     Observações
+                    {!podeEditar && !jaRealizado && (
+                      <span className="proc-obs-bloqueado-tag">Bloqueado — clique em Iniciar</span>
+                    )}
                   </div>
                   <div className="proc-obs-area">
                     <textarea
                       className="proc-obs-textarea"
                       value={observacoes}
-                      onChange={e => handleObsChange(e.target.value)}
+                      onChange={e => setObservacoes(e.target.value)}
                       placeholder={
                         jaRealizado
-                          ? 'Sem observações registradas.'
-                          : 'Registre observações, evoluções e anotações desta consulta…'
+                          ? 'Observações registradas nesta consulta.'
+                          : podeEditar
+                            ? 'Registre observações, evoluções e anotações desta consulta…'
+                            : 'Inicie a consulta para registrar observações.'
                       }
-                      disabled={jaRealizado}
-                      rows={5}
+                      disabled={!podeEditar}
+                      rows={6}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Barra de ações (sticky) */}
+              {/* Barra de ações */}
               <div className="proc-actions-bar">
-                <button
-                  className="proc-btn-salvar"
-                  onClick={salvarObservacoes}
-                  disabled={!obsAlterada || salvando || jaRealizado}
-                >
-                  <Save size={16} />
-                  {salvando ? 'Salvando…' : 'Salvar observações'}
-                </button>
-
                 <div className="proc-actions-spacer" />
 
                 {jaRealizado ? (
@@ -492,6 +484,14 @@ export default function ProcedimentoPage({
                     <CheckCircle size={16} />
                     Consulta realizada
                   </div>
+                ) : !iniciado ? (
+                  <button
+                    className="proc-btn-iniciar"
+                    onClick={() => setIniciado(true)}
+                  >
+                    <Play size={16} />
+                    Iniciar consulta
+                  </button>
                 ) : (
                   <button
                     className="proc-btn-finalizar"
@@ -506,6 +506,14 @@ export default function ProcedimentoPage({
             </>
           )}
         </div>
+
+        {/* Modal de próxima consulta */}
+        {modalAberto && (
+          <ModalProximaConsulta
+            onAgendar={() => router.push('/agenda')}
+            onFechar={() => router.push('/agenda')}
+          />
+        )}
       </RotaProtegida>
     </Layout>
   )

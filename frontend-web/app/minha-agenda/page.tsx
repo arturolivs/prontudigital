@@ -84,9 +84,13 @@ const isProximo = (a: Agendamento): boolean => {
 const CardAgendamento = ({
   agendamento,
   destaque,
+  onConfirmar,
+  confirmando,
 }: {
   agendamento: Agendamento
   destaque?: boolean
+  onConfirmar?: (id: number) => void
+  confirmando?: boolean
 }) => (
   <div
     className={`ma-card${agendamento.tipo === 'AVALIACAO' ? ' ma-card-avaliacao' : ' ma-card-tratamento'}${destaque ? ' ma-card-destaque' : ''}`}
@@ -144,6 +148,19 @@ const CardAgendamento = ({
           {calcularDuracao(agendamento.inicioEm, agendamento.fimEm)}
         </span>
       </div>
+
+      {agendamento.status === 'AGENDADO' && onConfirmar && (
+        <div className="ma-card-linha-acao">
+          <button
+            className="ma-btn-confirmar"
+            disabled={confirmando}
+            onClick={() => onConfirmar(agendamento.id)}
+          >
+            <CheckCircle2 size={13} strokeWidth={2.5} />
+            {confirmando ? 'Confirmando…' : 'Confirmar presença'}
+          </button>
+        </div>
+      )}
     </div>
   </div>
 )
@@ -171,6 +188,21 @@ export default function MinhaAgendaPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [aba, setAba] = useState<Aba>('proximos')
+  const [confirmandoId, setConfirmandoId] = useState<number | null>(null)
+
+  const handleConfirmar = useCallback(async (id: number) => {
+    setConfirmandoId(id)
+    try {
+      await agendamentoAPI.confirmarAgendamento(id)
+      setAgendamentos(prev =>
+        prev.map(a => (a.id === id ? { ...a, status: 'CONFIRMADO' as const } : a)),
+      )
+    } catch {
+      // silently ignore — user sees no change
+    } finally {
+      setConfirmandoId(null)
+    }
+  }, [])
 
   const fetchAgendamentos = useCallback(async () => {
     try {
@@ -349,6 +381,8 @@ export default function MinhaAgendaPage() {
                       key={a.id}
                       agendamento={a}
                       destaque={idx === 0}
+                      onConfirmar={handleConfirmar}
+                      confirmando={confirmandoId === a.id}
                     />
                   ))
                 ))}
