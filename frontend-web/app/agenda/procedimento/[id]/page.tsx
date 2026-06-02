@@ -898,7 +898,21 @@ export default function ProcedimentoPage({
                 </button>
                 <button
                   className="proc-modal-btn-primario"
-                  onClick={() => router.push('/agenda')}
+                  onClick={() => {
+                    if (!agendamento) return
+                    const avaliacaoId =
+                      agendamento.tipo === 'AVALIACAO'
+                        ? agendamento.id
+                        : agendamento.avaliacaoId
+                    const params = new URLSearchParams({ novoTratamento: '1', tipo: 'TRATAMENTO' })
+                    params.set('pacienteUuid', agendamento.pacienteUuid)
+                    params.set('profissionalUuid', agendamento.profissionalUuid)
+                    if (avaliacaoId) params.set('avaliacaoId', String(avaliacaoId))
+                    if (agendamento.tipoProcedimento) params.set('tipoProcedimento', agendamento.tipoProcedimento)
+                    if (agendamento.localAtendimento) params.set('localAtendimento', agendamento.localAtendimento)
+                    if (agendamento.pacienteAcamado != null) params.set('pacienteAcamado', String(agendamento.pacienteAcamado))
+                    router.push(`/agenda?${params.toString()}`)
+                  }}
                 >
                   <CalendarPlus size={15} />
                   Agendar próximo tratamento

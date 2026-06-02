@@ -9,11 +9,22 @@ import { LocalAtendimento, ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendim
 import { Usuario } from '@/tipos/autenticacao'
 import './ModalNovoAgendamento.css'
 
+interface PrefillNovoAgendamento {
+  pacienteUuid?: string
+  profissionalUuid?: string
+  avaliacaoId?: number
+  tipo?: 'AVALIACAO' | 'TRATAMENTO'
+  tipoProcedimento?: TipoProcedimento
+  localAtendimento?: LocalAtendimento
+  pacienteAcamado?: boolean
+}
+
 interface Props {
   onClose: () => void
   onSalvar: (dados: AgendamentoRequisicao) => Promise<void>
   profissionalUuidAtual: string
   isAdmin: boolean
+  prefill?: PrefillNovoAgendamento
 }
 
 const hojeISO = (): string => new Date().toISOString().split('T')[0]
@@ -23,6 +34,7 @@ export default function ModalNovoAgendamento({
   onSalvar,
   profissionalUuidAtual,
   isAdmin,
+  prefill,
 }: Props) {
   const [pacientes, setPacientes] = useState<Usuario[]>([])
   const [profissionais, setProfissionais] = useState<Usuario[]>([])
@@ -30,18 +42,18 @@ export default function ModalNovoAgendamento({
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
 
-  const [pacienteUuid, setPacienteUuid] = useState('')
+  const [pacienteUuid, setPacienteUuid] = useState(prefill?.pacienteUuid ?? '')
   const [profissionalUuid, setProfissionalUuid] = useState(
-    isAdmin ? '' : profissionalUuidAtual,
+    prefill?.profissionalUuid ?? (isAdmin ? '' : profissionalUuidAtual),
   )
   const [data, setData] = useState(hojeISO())
   const [horaInicio, setHoraInicio] = useState('08:00')
   const [horaFim, setHoraFim] = useState('09:00')
-  const [tipo, setTipo] = useState<'AVALIACAO' | 'TRATAMENTO'>('AVALIACAO')
-  const [tipoProcedimento, setTipoProcedimento] = useState<TipoProcedimento | ''>('')
-  const [localAtendimento, setLocalAtendimento] = useState<LocalAtendimento | ''>('')
-  const [pacienteAcamado, setPacienteAcamado] = useState<boolean | null>(null)
-  const [avaliacaoId, setAvaliacaoId] = useState('')
+  const [tipo, setTipo] = useState<'AVALIACAO' | 'TRATAMENTO'>(prefill?.tipo ?? 'AVALIACAO')
+  const [tipoProcedimento, setTipoProcedimento] = useState<TipoProcedimento | ''>(prefill?.tipoProcedimento ?? '')
+  const [localAtendimento, setLocalAtendimento] = useState<LocalAtendimento | ''>(prefill?.localAtendimento ?? '')
+  const [pacienteAcamado, setPacienteAcamado] = useState<boolean | null>(prefill?.pacienteAcamado ?? null)
+  const [avaliacaoId, setAvaliacaoId] = useState(prefill?.avaliacaoId?.toString() ?? '')
   const [observacoes, setObservacoes] = useState('')
 
   useEffect(() => {

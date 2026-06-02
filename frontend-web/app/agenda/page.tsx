@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
 import { Agendamento, AgendamentoRequisicao } from '../../tipos/agendamento'
+import { TipoProcedimento } from '../../tipos/TipoProcedimento'
+import { LocalAtendimento } from '../../tipos/LocalAtendimento'
 import Layout from '@/components/Layout/Layout'
 import './agenda.css'
 import ListaAgendamentos from '@/components/ListaAgendamentos'
@@ -51,8 +53,19 @@ const formatarPeriodo = (tipo: TipoVisualizacao, date: Date): string => {
   return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 }
 
+interface PrefillModal {
+  pacienteUuid?: string
+  profissionalUuid?: string
+  avaliacaoId?: number
+  tipo?: 'AVALIACAO' | 'TRATAMENTO'
+  tipoProcedimento?: TipoProcedimento
+  localAtendimento?: LocalAtendimento
+  pacienteAcamado?: boolean
+}
+
 export default function AgendaPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { usuario, temPerfil } = useAuth()
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
   const [loading, setLoading] = useState(true)
@@ -60,6 +73,27 @@ export default function AgendaPage() {
   const [selectedDate, setSelectedDate] = useState(formatarDataISO(new Date()))
   const [viewType, setViewType] = useState<TipoVisualizacao>('day')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [prefillModal, setPrefillModal] = useState<PrefillModal | undefined>()
+
+  useEffect(() => {
+    if (!searchParams.get('novoTratamento')) return
+
+    const prefill: PrefillModal = {
+      tipo: 'TRATAMENTO',
+      pacienteUuid: searchParams.get('pacienteUuid') ?? undefined,
+      profissionalUuid: searchParams.get('profissionalUuid') ?? undefined,
+      avaliacaoId: searchParams.get('avaliacaoId') ? Number(searchParams.get('avaliacaoId')) : undefined,
+      tipoProcedimento: (searchParams.get('tipoProcedimento') as TipoProcedimento) ?? undefined,
+      localAtendimento: (searchParams.get('localAtendimento') as LocalAtendimento) ?? undefined,
+      pacienteAcamado: searchParams.get('pacienteAcamado') != null
+        ? searchParams.get('pacienteAcamado') === 'true'
+        : undefined,
+    }
+
+    setPrefillModal(prefill)
+    setIsModalOpen(true)
+    router.replace('/agenda')
+  }, [searchParams, router])
 
   const abrirProcedimento = (agendamento: Agendamento) =>
     router.push(`/agenda/procedimento/${agendamento.id}`)
@@ -105,6 +139,7 @@ export default function AgendaPage() {
     try {
       await agendamentoAPI.criarAgendamento(dados)
       setIsModalOpen(false)
+      setPrefillModal(undefined)
       fetchAgendamentos()
     } catch (err: any) {
       setError(err.message || 'Erro ao criar agendamento')
@@ -222,10 +257,11 @@ export default function AgendaPage() {
 
         {isModalOpen && (
           <ModalNovoAgendamento
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => { setIsModalOpen(false); setPrefillModal(undefined) }}
             onSalvar={handleCriarAgendamento}
             profissionalUuidAtual={usuario?.uuid ?? ''}
             isAdmin={isAdmin}
+            prefill={prefillModal}
           />
         )}
       </RotaProtegida>
