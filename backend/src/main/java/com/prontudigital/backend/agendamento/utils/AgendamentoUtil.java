@@ -37,7 +37,28 @@ public class AgendamentoUtil {
                 agendamento.getObservacoes(),
                 agendamento.getCriadoEm(),
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
-                agendamento.getConcluidoEm()
+                agendamento.getConcluidoEm(),
+                agendamento.getLocalizacaoAnatomica(),
+                agendamento.getTipoLesao(),
+                agendamento.getMedidaComprimento(),
+                agendamento.getMedidaLargura(),
+                agendamento.getMedidaProfundidade(),
+                agendamento.getAspectoLeitoFerida(),
+                agendamento.getExsudatoVolume(),
+                agendamento.getExsudatoCaracteristica(),
+                agendamento.getCondicaoBordas(),
+                agendamento.getAspectoPerilesional(),
+                agendamento.getSinaisFlogisticos(),
+                agendamento.getPresencaOdor(),
+                agendamento.getLimpezaRealizada(),
+                agendamento.getCoberturasAplicadas(),
+                agendamento.getProdutosUtilizados(),
+                agendamento.getAceitacaoProcedimento(),
+                agendamento.getEscalaDor(),
+                agendamento.getIntercorrencias(),
+                agendamento.getCuidadosCurativo(),
+                agendamento.getSinaisAlerta(),
+                agendamento.getOrientacaoRetorno()
         );
     }
 
@@ -105,7 +126,28 @@ public class AgendamentoUtil {
                 agendamento.getObservacoes(),
                 agendamento.getCriadoEm(),
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
-                agendamento.getConcluidoEm()
+                agendamento.getConcluidoEm(),
+                agendamento.getLocalizacaoAnatomica(),
+                agendamento.getTipoLesao(),
+                agendamento.getMedidaComprimento(),
+                agendamento.getMedidaLargura(),
+                agendamento.getMedidaProfundidade(),
+                agendamento.getAspectoLeitoFerida(),
+                agendamento.getExsudatoVolume(),
+                agendamento.getExsudatoCaracteristica(),
+                agendamento.getCondicaoBordas(),
+                agendamento.getAspectoPerilesional(),
+                agendamento.getSinaisFlogisticos(),
+                agendamento.getPresencaOdor(),
+                agendamento.getLimpezaRealizada(),
+                agendamento.getCoberturasAplicadas(),
+                agendamento.getProdutosUtilizados(),
+                agendamento.getAceitacaoProcedimento(),
+                agendamento.getEscalaDor(),
+                agendamento.getIntercorrencias(),
+                agendamento.getCuidadosCurativo(),
+                agendamento.getSinaisAlerta(),
+                agendamento.getOrientacaoRetorno()
         );
     }
 }

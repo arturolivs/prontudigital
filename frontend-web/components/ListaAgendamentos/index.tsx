@@ -28,7 +28,10 @@ const rotuloDeStatus: Record<string, string> = {
   NAO_COMPARECEU: 'Não compareceu',
 }
 
-const ExibicaoDuracao: React.FC<{ inicio: string; fim: string }> = ({ inicio, fim }) => {
+const ExibicaoDuracao: React.FC<{ inicio: string; fim: string }> = ({
+  inicio,
+  fim,
+}) => {
   const duracao = useMemo(() => {
     const diffMin = Math.floor(
       (new Date(fim).getTime() - new Date(inicio).getTime()) / 60000,
@@ -123,7 +126,8 @@ const ListaAgendamentos: React.FC<PropsListaAgendamentos> = ({
     const resultado: AgendamentosAgrupados = {}
     datasOrdenadas.forEach(data => {
       resultado[data] = agrupados[data].sort(
-        (a, b) => new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime(),
+        (a, b) =>
+          new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime(),
       )
     })
     return resultado
@@ -183,63 +187,90 @@ const ListaAgendamentos: React.FC<PropsListaAgendamentos> = ({
         <h1>Agendas</h1>
         {temAgendamentos && (
           <div className="total-appointments">
-            Total: {totalAgendamentos} agendamento{totalAgendamentos !== 1 ? 's' : ''}
+            Total: {totalAgendamentos} agendamento
+            {totalAgendamentos !== 1 ? 's' : ''}
           </div>
         )}
       </div>
 
       <div className="dates-container">
-        {Object.entries(agendamentosAgrupados).map(([chaveData, agendamentosDoDia]) => (
-          <div className="day-container" key={chaveData}>
-            <CabecalhoData chaveData={chaveData} total={agendamentosDoDia.length} />
-            <div className="appointments-list">
-              {agendamentosDoDia.map(agendamento => (
-                <div
-                  key={agendamento.id}
-                  className={`appointment-card ${obterClasseBorda(agendamento.tipo)}`}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Abrir consulta de ${agendamento.nomePaciente}`}
-                  onClick={() => onAgendamentoClick?.(agendamento)}
-                  onKeyDown={e => e.key === 'Enter' && onAgendamentoClick?.(agendamento)}
-                  style={onAgendamentoClick ? { cursor: 'pointer' } : undefined}
-                >
-                  <div className="time-info">
-                    <span className="time-text">
-                      {formatarHora(agendamento.inicioEm)} – {formatarHora(agendamento.fimEm)}
-                    </span>
-                    <div className="time-display">
-                      <Clock size={12} strokeWidth={2} />
-                      <ExibicaoDuracao inicio={agendamento.inicioEm} fim={agendamento.fimEm} />
+        {Object.entries(agendamentosAgrupados).map(
+          ([chaveData, agendamentosDoDia]) => (
+            <div className="day-container" key={chaveData}>
+              <CabecalhoData
+                chaveData={chaveData}
+                total={agendamentosDoDia.length}
+              />
+              <div className="appointments-list">
+                {agendamentosDoDia.map(agendamento => (
+                  <div
+                    key={agendamento.id}
+                    className={`appointment-card ${obterClasseBorda(agendamento.tipo)}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Abrir consulta de ${agendamento.nomePaciente}`}
+                    onClick={() => onAgendamentoClick?.(agendamento)}
+                    onKeyDown={e =>
+                      e.key === 'Enter' && onAgendamentoClick?.(agendamento)
+                    }
+                    style={
+                      onAgendamentoClick ? { cursor: 'pointer' } : undefined
+                    }
+                  >
+                    <div className="time-info">
+                      <span className="time-text">
+                        {formatarHora(agendamento.inicioEm)} –{' '}
+                        {formatarHora(agendamento.fimEm)}
+                      </span>
+                      <div className="time-display">
+                        <Clock size={12} strokeWidth={2} />
+                        <ExibicaoDuracao
+                          inicio={agendamento.inicioEm}
+                          fim={agendamento.fimEm}
+                        />
+                      </div>
+                    </div>
+                    <div className="details-info">
+                      <span className="detail-text">
+                        {agendamento.nomePaciente}
+                      </span>
+                      <span className="detail-sub-text">
+                        {rotuloDeStatus[agendamento.status] ??
+                          agendamento.status}
+                      </span>
+                    </div>
+                    <div className="badges-wrapper">
+                      <BadgeTipo tipo={agendamento.tipo} />
+                      {agendamento.tipoProcedimento && (
+                        <div className="status-badge status-procedimento">
+                          {
+                            ROTULO_TIPO_PROCEDIMENTO[
+                              agendamento.tipoProcedimento
+                            ]
+                          }
+                        </div>
+                      )}
+                      {agendamento.localAtendimento && (
+                        <div className="status-badge status-procedimento">
+                          {
+                            ROTULO_LOCAL_ATENDIMENTO[
+                              agendamento.localAtendimento
+                            ]
+                          }
+                        </div>
+                      )}
+                      {agendamento.pacienteAcamado && (
+                        <div className="status-badge status-acamado">
+                          Acamado
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="details-info">
-                    <span className="detail-text">{agendamento.nomePaciente}</span>
-                    <span className="detail-sub-text">
-                      {rotuloDeStatus[agendamento.status] ?? agendamento.status}
-                    </span>
-                  </div>
-                  <div className="badges-wrapper">
-                    <BadgeTipo tipo={agendamento.tipo} />
-                    {agendamento.tipoProcedimento && (
-                      <div className="status-badge status-procedimento">
-                        {ROTULO_TIPO_PROCEDIMENTO[agendamento.tipoProcedimento]}
-                      </div>
-                    )}
-                    {agendamento.localAtendimento && (
-                      <div className="status-badge status-procedimento">
-                        {ROTULO_LOCAL_ATENDIMENTO[agendamento.localAtendimento]}
-                      </div>
-                    )}
-                    {agendamento.pacienteAcamado && (
-                      <div className="status-badge status-acamado">Acamado</div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ),
+        )}
       </div>
     </div>
   )

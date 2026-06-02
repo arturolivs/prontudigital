@@ -12,6 +12,7 @@ import './agenda.css'
 import ListaAgendamentos from '@/components/ListaAgendamentos'
 import AgendaSemanal from '@/components/AgendaSemanal'
 import AgendaMensal from '@/components/AgendaMensal'
+import ModalNovoAgendamento from '@/components/ModalNovoAgendamento'
 
 type TipoVisualizacao = 'day' | 'week' | 'month'
 
@@ -100,7 +101,7 @@ export default function AgendaPage() {
     setViewType('day')
   }
 
-  const handleCreateAppointment = async (dados: AgendamentoRequisicao) => {
+  const handleCriarAgendamento = async (dados: AgendamentoRequisicao) => {
     try {
       await agendamentoAPI.criarAgendamento(dados)
       setIsModalOpen(false)
@@ -218,6 +219,15 @@ export default function AgendaPage() {
           )}
 
         </div>
+
+        {isModalOpen && (
+          <ModalNovoAgendamento
+            onClose={() => setIsModalOpen(false)}
+            onSalvar={handleCriarAgendamento}
+            profissionalUuidAtual={usuario?.uuid ?? ''}
+            isAdmin={isAdmin}
+          />
+        )}
       </RotaProtegida>
     </Layout>
   )
