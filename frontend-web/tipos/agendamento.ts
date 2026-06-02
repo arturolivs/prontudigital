@@ -19,25 +19,7 @@ export interface AgendamentoRequisicao {
   avaliacaoId?: number
 }
 
-export interface Agendamento {
-  id: number
-  inicioEm: string
-  fimEm: string
-  profissionalUuid: string
-  pacienteUuid: string
-  tipo: TipoAgendamento
-  tipoProcedimento?: TipoProcedimento
-  localAtendimento?: LocalAtendimento
-  pacienteAcamado?: boolean
-  status: StatusAgendamento
-  nomePaciente?: string
-  nomeProfissional?: string
-  observacoes?: string
-  criadoEm: string
-  avaliacaoId?: number
-  concluidoEm?: string
-
-  // Evolução clínica pós-curativo
+export interface EvolucaoClinica {
   localizacaoAnatomica?: string
   tipoLesao?: string
   medidaComprimento?: number
@@ -59,6 +41,26 @@ export interface Agendamento {
   cuidadosCurativo?: string
   sinaisAlerta?: string
   orientacaoRetorno?: string
+}
+
+export interface Agendamento {
+  id: number
+  inicioEm: string
+  fimEm: string
+  profissionalUuid: string
+  pacienteUuid: string
+  tipo: TipoAgendamento
+  tipoProcedimento?: TipoProcedimento
+  localAtendimento?: LocalAtendimento
+  pacienteAcamado?: boolean
+  status: StatusAgendamento
+  nomePaciente?: string
+  nomeProfissional?: string
+  observacoes?: string
+  criadoEm: string
+  avaliacaoId?: number
+  concluidoEm?: string
+  evolucaoClinica?: EvolucaoClinica
 }
 
 export interface EvolucaoTratamentoRequisicao {

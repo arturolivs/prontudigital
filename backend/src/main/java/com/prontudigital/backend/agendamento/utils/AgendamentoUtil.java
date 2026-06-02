@@ -1,10 +1,11 @@
 package com.prontudigital.backend.agendamento.utils;
 
-
 import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoClinicaDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,6 @@ public class AgendamentoUtil {
 
     private final UsuarioService usuarioService;
 
-    /*
-     * Método não-estático — a classe tem dependência injetada (UsuarioService),
-     * portanto nenhum método deve ser estático. Consistência garantida.
-     */
     public AgendamentoResponseDTO convertToResponseDTO(Agendamento agendamento) {
         return new AgendamentoResponseDTO(
                 agendamento.getId(),
@@ -37,28 +34,7 @@ public class AgendamentoUtil {
                 agendamento.getObservacoes(),
                 agendamento.getCriadoEm(),
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
-                agendamento.getConcluidoEm(),
-                agendamento.getLocalizacaoAnatomica(),
-                agendamento.getTipoLesao(),
-                agendamento.getMedidaComprimento(),
-                agendamento.getMedidaLargura(),
-                agendamento.getMedidaProfundidade(),
-                agendamento.getAspectoLeitoFerida(),
-                agendamento.getExsudatoVolume(),
-                agendamento.getExsudatoCaracteristica(),
-                agendamento.getCondicaoBordas(),
-                agendamento.getAspectoPerilesional(),
-                agendamento.getSinaisFlogisticos(),
-                agendamento.getPresencaOdor(),
-                agendamento.getLimpezaRealizada(),
-                agendamento.getCoberturasAplicadas(),
-                agendamento.getProdutosUtilizados(),
-                agendamento.getAceitacaoProcedimento(),
-                agendamento.getEscalaDor(),
-                agendamento.getIntercorrencias(),
-                agendamento.getCuidadosCurativo(),
-                agendamento.getSinaisAlerta(),
-                agendamento.getOrientacaoRetorno()
+                agendamento.getConcluidoEm()
         );
     }
 
@@ -127,27 +103,34 @@ public class AgendamentoUtil {
                 agendamento.getCriadoEm(),
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
                 agendamento.getConcluidoEm(),
-                agendamento.getLocalizacaoAnatomica(),
-                agendamento.getTipoLesao(),
-                agendamento.getMedidaComprimento(),
-                agendamento.getMedidaLargura(),
-                agendamento.getMedidaProfundidade(),
-                agendamento.getAspectoLeitoFerida(),
-                agendamento.getExsudatoVolume(),
-                agendamento.getExsudatoCaracteristica(),
-                agendamento.getCondicaoBordas(),
-                agendamento.getAspectoPerilesional(),
-                agendamento.getSinaisFlogisticos(),
-                agendamento.getPresencaOdor(),
-                agendamento.getLimpezaRealizada(),
-                agendamento.getCoberturasAplicadas(),
-                agendamento.getProdutosUtilizados(),
-                agendamento.getAceitacaoProcedimento(),
-                agendamento.getEscalaDor(),
-                agendamento.getIntercorrencias(),
-                agendamento.getCuidadosCurativo(),
-                agendamento.getSinaisAlerta(),
-                agendamento.getOrientacaoRetorno()
+                toEvolucaoDTO(agendamento.getEvolucaoClinica())
+        );
+    }
+
+    private EvolucaoClinicaDTO toEvolucaoDTO(EvolucaoClinica ec) {
+        if (ec == null) return null;
+        return new EvolucaoClinicaDTO(
+                ec.getLocalizacaoAnatomica(),
+                ec.getTipoLesao(),
+                ec.getMedidaComprimento(),
+                ec.getMedidaLargura(),
+                ec.getMedidaProfundidade(),
+                ec.getAspectoLeitoFerida(),
+                ec.getExsudatoVolume(),
+                ec.getExsudatoCaracteristica(),
+                ec.getCondicaoBordas(),
+                ec.getAspectoPerilesional(),
+                ec.getSinaisFlogisticos(),
+                ec.getPresencaOdor(),
+                ec.getLimpezaRealizada(),
+                ec.getCoberturasAplicadas(),
+                ec.getProdutosUtilizados(),
+                ec.getAceitacaoProcedimento(),
+                ec.getEscalaDor(),
+                ec.getIntercorrencias(),
+                ec.getCuidadosCurativo(),
+                ec.getSinaisAlerta(),
+                ec.getOrientacaoRetorno()
         );
     }
 }

@@ -8,6 +8,7 @@ import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
@@ -18,6 +19,7 @@ import com.prontudigital.backend.agendamento.eventos.AgendamentoReagendadoEvento
 import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
+import com.prontudigital.backend.agendamento.repositorios.EvolucaoClinicaRepository;
 import com.prontudigital.backend.agendamento.repositorios.HistoricoAgendamentoRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
@@ -48,6 +50,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private static final long DURACAO_MAX_MINUTOS = 480;
 
     private final AgendamentoRepository agendamentoRepository;
+    private final EvolucaoClinicaRepository evolucaoClinicaRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
     private final HistoricoAgendamentoRepository historicoRepository;
     private final UsuarioService usuarioService;
@@ -117,32 +120,39 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                     "Nao e possivel registrar evolucao em agendamento cancelado");
         }
 
-        agendamento.setLocalizacaoAnatomica(request.localizacaoAnatomica());
-        agendamento.setTipoLesao(request.tipoLesao());
-        agendamento.setMedidaComprimento(request.medidaComprimento());
-        agendamento.setMedidaLargura(request.medidaLargura());
-        agendamento.setMedidaProfundidade(request.medidaProfundidade());
-        agendamento.setAspectoLeitoFerida(request.aspectoLeitoFerida());
-        agendamento.setExsudatoVolume(request.exsudatoVolume());
-        agendamento.setExsudatoCaracteristica(request.exsudatoCaracteristica());
-        agendamento.setCondicaoBordas(request.condicaoBordas());
-        agendamento.setAspectoPerilesional(request.aspectoPerilesional());
-        agendamento.setSinaisFlogisticos(request.sinaisFlogisticos());
-        agendamento.setPresencaOdor(request.presencaOdor());
-        agendamento.setLimpezaRealizada(request.limpezaRealizada());
-        agendamento.setCoberturasAplicadas(request.coberturasAplicadas());
-        agendamento.setProdutosUtilizados(request.produtosUtilizados());
-        agendamento.setAceitacaoProcedimento(request.aceitacaoProcedimento());
-        agendamento.setEscalaDor(request.escalaDor());
-        agendamento.setIntercorrencias(request.intercorrencias());
-        agendamento.setCuidadosCurativo(request.cuidadosCurativo());
-        agendamento.setSinaisAlerta(request.sinaisAlerta());
-        agendamento.setOrientacaoRetorno(request.orientacaoRetorno());
+        EvolucaoClinica evolucao = evolucaoClinicaRepository
+                .findByAgendamento(agendamento)
+                .orElseGet(() -> EvolucaoClinica.builder().agendamento(agendamento).build());
 
-        Agendamento salvo = agendamentoRepository.save(agendamento);
-        log.info("Evolucao de tratamento registrada para agendamento id={}", salvo.getId());
+        evolucao.setLocalizacaoAnatomica(request.localizacaoAnatomica());
+        evolucao.setTipoLesao(request.tipoLesao());
+        evolucao.setMedidaComprimento(request.medidaComprimento());
+        evolucao.setMedidaLargura(request.medidaLargura());
+        evolucao.setMedidaProfundidade(request.medidaProfundidade());
+        evolucao.setAspectoLeitoFerida(request.aspectoLeitoFerida());
+        evolucao.setExsudatoVolume(request.exsudatoVolume());
+        evolucao.setExsudatoCaracteristica(request.exsudatoCaracteristica());
+        evolucao.setCondicaoBordas(request.condicaoBordas());
+        evolucao.setAspectoPerilesional(request.aspectoPerilesional());
+        evolucao.setSinaisFlogisticos(request.sinaisFlogisticos());
+        evolucao.setPresencaOdor(request.presencaOdor());
+        evolucao.setLimpezaRealizada(request.limpezaRealizada());
+        evolucao.setCoberturasAplicadas(request.coberturasAplicadas());
+        evolucao.setProdutosUtilizados(request.produtosUtilizados());
+        evolucao.setAceitacaoProcedimento(request.aceitacaoProcedimento());
+        evolucao.setEscalaDor(request.escalaDor());
+        evolucao.setIntercorrencias(request.intercorrencias());
+        evolucao.setCuidadosCurativo(request.cuidadosCurativo());
+        evolucao.setSinaisAlerta(request.sinaisAlerta());
+        evolucao.setOrientacaoRetorno(request.orientacaoRetorno());
 
-        return agendamentoUtil.convertToDetalhadoDTO(salvo);
+        evolucaoClinicaRepository.save(evolucao);
+        log.info("Evolucao clinica registrada para agendamento id={}", agendamento.getId());
+
+        Agendamento atualizado = agendamentoRepository.findById(agendamento.getId())
+                .orElseThrow(() -> new AgendamentoNaoEncontradoException(
+                        "Agendamento nao encontrado: " + agendamento.getId()));
+        return agendamentoUtil.convertToDetalhadoDTO(atualizado);
     }
 
     @Override
