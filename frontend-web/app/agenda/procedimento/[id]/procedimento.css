@@ -608,6 +608,91 @@
   animation: proc-spin 0.8s linear infinite;
 }
 
+/* ── Formulário de evolução clínica ────────── */
+.proc-form {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.proc-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.proc-form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.proc-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.proc-campo-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.proc-campo-input,
+.proc-campo-select,
+.proc-campo-textarea {
+  width: 100%;
+  padding: 0.6rem 0.875rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-heading);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.proc-campo-input:focus,
+.proc-campo-select:focus,
+.proc-campo-textarea:focus {
+  outline: none;
+  border-color: var(--color-brand-light);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+.proc-campo-input:disabled,
+.proc-campo-select:disabled,
+.proc-campo-textarea:disabled {
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  border-color: var(--color-border);
+}
+
+.proc-campo-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+}
+
+.proc-campo-select:disabled {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+.proc-campo-textarea {
+  resize: vertical;
+  line-height: 1.5;
+  min-height: 3.5rem;
+}
+
 /* ── Responsivo ─────────────────────────────── */
 @media (max-width: 768px) {
   .proc-content {
@@ -619,6 +704,11 @@
   .proc-col-dir,
   .proc-full {
     grid-column: 1;
+  }
+
+  .proc-form-grid,
+  .proc-form-grid-3 {
+    grid-template-columns: 1fr;
   }
 
   .proc-hero-nome {

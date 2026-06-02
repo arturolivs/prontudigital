@@ -3,6 +3,7 @@ import { setupRefreshInterceptor } from './auth.service'
 import {
   AgendamentoRequisicao,
   Agendamento,
+  EvolucaoTratamentoRequisicao,
   ReagendarRequisicao,
 } from '../tipos/agendamento'
 
@@ -87,6 +88,17 @@ export const agendamentoAPI = {
     const response = await api.patch<Agendamento>(
       `${API_BASE_URL}/${id}/observacoes`,
       { observacoes },
+    )
+    return response.data
+  },
+
+  registrarEvolucao: async (
+    id: number,
+    dados: EvolucaoTratamentoRequisicao,
+  ): Promise<Agendamento> => {
+    const response = await api.patch<Agendamento>(
+      `${API_BASE_URL}/${id}/evolucao`,
+      dados,
     )
     return response.data
   },

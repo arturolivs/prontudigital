@@ -281,6 +281,42 @@ public class AgendamentoSwagger {
     public @interface TratamentosPorAvaliacaoSwagger {}
 
     // =========================================================
+    // PATCH /api/agendamentos/{id}/evolucao
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Registrar evolução clínica pós-curativo",
+            description = """
+            Registra ou atualiza a evolução de enfermagem de um agendamento do tipo TRATAMENTO.\n
+            Campos cobertos pelo modelo de evolução (tratamento.md):
+            - Avaliação da lesão (localização, tipo, medidas, aspecto, exsudato, bordas, pele perilesional)
+            - Procedimento realizado (limpeza, coberturas, produtos)
+            - Resposta do paciente (aceitação, escala de dor EVA, intercorrências)
+            - Orientações fornecidas (cuidados, sinais de alerta, retorno)\n
+            Regras:
+            - Exclusivo para ADMIN e PROFISSIONAL
+            - PROFISSIONAL só pode registrar em agendamentos da própria agenda
+            - Agendamento deve ser do tipo TRATAMENTO
+            - Agendamento não pode estar CANCELADO
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Evolução registrada com sucesso",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseConflict
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface RegistrarEvolucaoSwagger {}
+
+    // =========================================================
     // GET /api/agendamentos/meus
     // =========================================================
     @Target(ElementType.METHOD)

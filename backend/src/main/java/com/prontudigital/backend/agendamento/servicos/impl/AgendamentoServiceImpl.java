@@ -4,6 +4,7 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
@@ -88,6 +89,58 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         agendamento.setObservacoes(observacoes);
         Agendamento salvo = agendamentoRepository.save(agendamento);
         log.info("Observacoes atualizadas para agendamento id={}", salvo.getId());
+
+        return agendamentoUtil.convertToDetalhadoDTO(salvo);
+    }
+
+    @Override
+    @Transactional
+    public AgendamentoDetalhadoDTO registrarEvolucao(Long id, EvolucaoTratamentoRequestDTO request) {
+        Agendamento agendamento = buscarOuFalhar(id);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+        if ("PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Paciente nao pode registrar evolucao de tratamento");
+        }
+        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Usuario nao autorizado a registrar evolucao neste agendamento");
+        }
+        if (agendamento.getTipo() != TipoAgendamento.TRATAMENTO) {
+            throw new AgendamentoStatusInvalidoException(
+                    "Evolucao clinica so pode ser registrada em agendamentos do tipo TRATAMENTO");
+        }
+        if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
+            throw new AgendamentoStatusInvalidoException(
+                    "Nao e possivel registrar evolucao em agendamento cancelado");
+        }
+
+        agendamento.setLocalizacaoAnatomica(request.localizacaoAnatomica());
+        agendamento.setTipoLesao(request.tipoLesao());
+        agendamento.setMedidaComprimento(request.medidaComprimento());
+        agendamento.setMedidaLargura(request.medidaLargura());
+        agendamento.setMedidaProfundidade(request.medidaProfundidade());
+        agendamento.setAspectoLeitoFerida(request.aspectoLeitoFerida());
+        agendamento.setExsudatoVolume(request.exsudatoVolume());
+        agendamento.setExsudatoCaracteristica(request.exsudatoCaracteristica());
+        agendamento.setCondicaoBordas(request.condicaoBordas());
+        agendamento.setAspectoPerilesional(request.aspectoPerilesional());
+        agendamento.setSinaisFlogisticos(request.sinaisFlogisticos());
+        agendamento.setPresencaOdor(request.presencaOdor());
+        agendamento.setLimpezaRealizada(request.limpezaRealizada());
+        agendamento.setCoberturasAplicadas(request.coberturasAplicadas());
+        agendamento.setProdutosUtilizados(request.produtosUtilizados());
+        agendamento.setAceitacaoProcedimento(request.aceitacaoProcedimento());
+        agendamento.setEscalaDor(request.escalaDor());
+        agendamento.setIntercorrencias(request.intercorrencias());
+        agendamento.setCuidadosCurativo(request.cuidadosCurativo());
+        agendamento.setSinaisAlerta(request.sinaisAlerta());
+        agendamento.setOrientacaoRetorno(request.orientacaoRetorno());
+
+        Agendamento salvo = agendamentoRepository.save(agendamento);
+        log.info("Evolucao de tratamento registrada para agendamento id={}", salvo.getId());
 
         return agendamentoUtil.convertToDetalhadoDTO(salvo);
     }
