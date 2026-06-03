@@ -111,10 +111,10 @@ public class AgendamentoServiceImpl implements AgendamentoService {
             throw new UsuarioSemAutorizacaoException(
                     "Usuario nao autorizado a registrar evolucao neste agendamento");
         }
-        if (agendamento.getTipo() != TipoAgendamento.TRATAMENTO) {
+        /*if (agendamento.getTipo() != TipoAgendamento.TRATAMENTO) {
             throw new AgendamentoStatusInvalidoException(
                     "Evolucao clinica so pode ser registrada em agendamentos do tipo TRATAMENTO");
-        }
+        }*/
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
             throw new AgendamentoStatusInvalidoException(
                     "Nao e possivel registrar evolucao em agendamento cancelado");

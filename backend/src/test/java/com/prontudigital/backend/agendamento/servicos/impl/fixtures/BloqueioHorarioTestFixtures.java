@@ -20,13 +20,13 @@ public final class BloqueioHorarioTestFixtures {
     public static BloqueioHorarioDTO requestValido() {
         return new BloqueioHorarioDTO(
                 null, null, PROFISSIONAL_UUID,
-                INICIO, FIM, "Ferias", TipoBloqueio.INDISPONIVEL);
+                INICIO, FIM, "Ferias", TipoBloqueio.INDISPONIVEL, null);
     }
 
     public static BloqueioHorarioDTO requestComProfissional(UUID profissionalUuid) {
         return new BloqueioHorarioDTO(
                 null, null, profissionalUuid,
-                INICIO, FIM, "Ferias", TipoBloqueio.INDISPONIVEL);
+                INICIO, FIM, "Ferias", TipoBloqueio.INDISPONIVEL, null);
     }
 
     public static BloqueioHorario bloqueioSalvo() {

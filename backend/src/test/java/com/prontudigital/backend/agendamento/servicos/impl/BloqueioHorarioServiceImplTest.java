@@ -6,6 +6,7 @@ import com.prontudigital.backend.agendamento.excecoes.AgendamentoInvalidoExcepti
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoNaoEncontradoException;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
+import com.prontudigital.backend.agendamento.repositorios.BloqueioRecorrenteRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.impl.fixtures.BloqueioHorarioTestFixtures;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.*;
 class BloqueioHorarioServiceImplTest {
 
     @Mock private BloqueioHorarioRepository repository;
+    @Mock private BloqueioRecorrenteRepository recorrenteRepository;
     @Mock private AgendamentoRepository agendamentoRepository;
     @Mock private UsuarioContexto usuarioContexto;
 
@@ -42,7 +44,7 @@ class BloqueioHorarioServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new BloqueioHorarioServiceImpl(
-                repository, agendamentoRepository, usuarioContexto, permissaoPolicy);
+                repository, recorrenteRepository, agendamentoRepository, usuarioContexto, permissaoPolicy);
     }
 
     // =========================================================
@@ -107,7 +109,7 @@ class BloqueioHorarioServiceImplTest {
             BloqueioHorarioDTO request = new BloqueioHorarioDTO(
                     null, null, PROFISSIONAL_UUID,
                     FIM, INICIO,
-                    "Ferias", null);
+                    "Ferias", null, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
 
