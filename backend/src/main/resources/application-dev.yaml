@@ -47,6 +47,12 @@ logging:
     org.hibernate.type.descriptor.sql:            TRACE
     org.springframework.security:                 DEBUG
     org.springframework.web:                      DEBUG
+    org:
+      hibernate:
+        orm:
+          jdbc:
+            bind: TRACE
+
 
 springdoc:
   api-docs:

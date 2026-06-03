@@ -36,7 +36,11 @@
 }
 
 /* ===== DATAS CONTAINER ===== */
-.dates-container { display: flex; flex-direction: column; gap: 2rem; }
+.dates-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
 
 .day-container {
   background: white;
@@ -46,7 +50,9 @@
   transition: box-shadow 0.2s;
 }
 
-.day-container:hover { box-shadow: 0 4px 12px rgba(43, 108, 176, 0.08); }
+.day-container:hover {
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.08);
+}
 
 /* ===== CABEÇALHO DA DATA ===== */
 .date-header {
@@ -66,9 +72,18 @@
   color: var(--color-brand);
 }
 
-.date-title svg { width: 1.25rem; height: 1.25rem; color: var(--color-brand); }
+.date-title svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-brand);
+}
 
-.appointment-count { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+.appointment-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
 
 .count-badge {
   background-color: var(--color-bg-alt);
@@ -78,10 +93,17 @@
   border-radius: 2rem;
 }
 
-.count-label { color: var(--color-text-mid); }
+.count-label {
+  color: var(--color-text-mid);
+}
 
 /* ===== LISTA DE AGENDAMENTOS ===== */
-.appointments-list { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.25rem; }
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+}
 
 /* ===== CARD DE AGENDAMENTO ===== */
 .appointment-card {
@@ -91,7 +113,7 @@
   border-radius: 0.75rem;
   padding: 1rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* alterado de center para evitar desalinhamento com wraps */
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
@@ -105,18 +127,41 @@
 }
 
 /* Bordas laterais por status */
-.border-status-avaliacao        { border-left-color: var(--color-brand); }
-.border-status-avaliacao:hover  { border-left-color: var(--color-brand-light); border-left-width: 6px; }
+.border-status-avaliacao {
+  border-left-color: var(--color-brand);
+}
 
-.border-status-tratamento       { border-left-color: var(--color-brand-light); }
-.border-status-tratamento:hover { border-left-color: var(--color-brand); border-left-width: 6px; }
+.border-status-avaliacao:hover {
+  border-left-color: var(--color-brand-light);
+  border-left-width: 6px;
+}
 
-.border-status-default { border-left-color: var(--color-neutral-300); }
+.border-status-tratamento {
+  border-left-color: var(--color-brand-light);
+}
+
+.border-status-tratamento:hover {
+  border-left-color: var(--color-brand);
+  border-left-width: 6px;
+}
+
+.border-status-default {
+  border-left-color: var(--color-neutral-300);
+}
 
 /* Informações de tempo */
-.time-info { display: flex; flex-direction: column; gap: 0.25rem; min-width: 140px; }
+.time-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 140px;
+}
 
-.time-text { font-weight: 600; color: var(--color-text-heading); font-size: 0.9rem; }
+.time-text {
+  font-weight: 600;
+  color: var(--color-text-heading);
+  font-size: 0.9rem;
+}
 
 .time-display {
   display: flex;
@@ -130,17 +175,48 @@
   width: fit-content;
 }
 
-.time-display svg { width: 0.8rem; height: 0.8rem; color: var(--color-brand-light); }
+.time-display svg {
+  width: 0.8rem;
+  height: 0.8rem;
+  color: var(--color-brand-light);
+}
 
-.duration-display { display: flex; align-items: center; gap: 0.3rem; }
+.duration-display {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
 
 /* Detalhes do paciente */
-.details-info { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; min-width: 150px; }
+.details-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 150px;
+}
 
-.detail-text     { font-weight: 600; color: var(--color-text-heading); font-size: 1rem; }
-.detail-sub-text { font-size: 0.75rem; color: var(--color-text-mid); }
+.detail-text {
+  font-weight: 600;
+  color: var(--color-text-heading);
+  font-size: 1rem;
+}
 
-/* Badge de status */
+.detail-sub-text {
+  font-size: 0.75rem;
+  color: var(--color-text-mid);
+}
+
+/* ===== BADGES CORRIGIDOS: sem overflow, responsivos ===== */
+.badges-wrapper {
+  display: flex;
+  flex-direction: row;        /* alinhamento horizontal por padrão */
+  flex-wrap: wrap;            /* permite quebra de linha */
+  justify-content: flex-end;  /* alinha à direita no desktop */
+  gap: 0.5rem;               /* espaçamento entre badges */
+  max-width: 100%;           /* garante que não ultrapasse o container */
+}
+
 .status-badge {
   padding: 0.3rem 0.9rem;
   border-radius: 2rem;
@@ -148,16 +224,43 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  white-space: nowrap;
+  white-space: normal;       /* permite quebra de texto */
+  word-break: break-word;    /* quebra palavras longas se necessário */
+  text-align: center;
+  flex-shrink: 0;            /* evita que encolha demais */
 }
 
-.status-avaliacao { background-color: var(--color-bg-alt); color: var(--color-brand); border: 1px solid var(--color-border-brand); }
-.status-tratamento { background-color: var(--color-bg-page); color: var(--color-brand); border: 1px solid var(--color-border-light); }
-.status-default   { background-color: var(--color-bg-surface); color: var(--color-neutral-600); }
-.status-procedimento { background-color: var(--color-bg-tint); color: var(--color-brand); border: 1px solid var(--color-border-brand); font-size: 0.68rem; }
-.status-acamado { background-color: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; font-size: 0.68rem; }
+/* Cores dos badges */
+.status-avaliacao {
+  background-color: var(--color-bg-alt);
+  color: var(--color-brand);
+  border: 1px solid var(--color-border-brand);
+}
 
-.badges-wrapper { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.status-tratamento {
+  background-color: var(--color-bg-page);
+  color: var(--color-brand);
+  border: 1px solid var(--color-border-light);
+}
+
+.status-default {
+  background-color: var(--color-bg-surface);
+  color: var(--color-neutral-600);
+}
+
+.status-procedimento {
+  background-color: var(--color-bg-tint);
+  color: var(--color-brand);
+  border: 1px solid var(--color-border-brand);
+  font-size: 0.68rem;
+}
+
+.status-acamado {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  font-size: 0.68rem;
+}
 
 /* ===== ESTADOS DE CARREGAMENTO E ERRO ===== */
 .loading-state {
@@ -180,7 +283,11 @@
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .error-message {
   display: flex;
@@ -192,10 +299,22 @@
   border-radius: 1rem;
 }
 
-.error-message svg { color: var(--color-error); font-size: 1.5rem; flex-shrink: 0; }
+.error-message svg {
+  color: var(--color-error);
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
 
-.error-content h3 { margin: 0 0 0.25rem; color: var(--color-error-dark); font-size: 1.1rem; }
-.error-content p  { margin: 0 0 0.75rem; color: var(--color-error-deeper); }
+.error-content h3 {
+  margin: 0 0 0.25rem;
+  color: var(--color-error-dark);
+  font-size: 1.1rem;
+}
+
+.error-content p {
+  margin: 0 0 0.75rem;
+  color: var(--color-error-deeper);
+}
 
 .retry-btn {
   background: var(--color-brand);
@@ -208,7 +327,9 @@
   transition: background 0.2s;
 }
 
-.retry-btn:hover { background: var(--color-brand-dark); }
+.retry-btn:hover {
+  background: var(--color-brand-dark);
+}
 
 /* ===== ESTADO SEM AGENDAMENTOS ===== */
 .no-appointments {
@@ -219,23 +340,85 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.no-appointments svg { font-size: 3rem; color: var(--color-brand-light); margin-bottom: 1rem; }
-.no-appointments h3  { color: var(--color-brand); margin-bottom: 0.5rem; }
-.no-appointments p   { color: var(--color-text-mid); }
+.no-appointments svg {
+  font-size: 3rem;
+  color: var(--color-brand-light);
+  margin-bottom: 1rem;
+}
 
-/* ===== RESPONSIVIDADE ===== */
+.no-appointments h3 {
+  color: var(--color-brand);
+  margin-bottom: 0.5rem;
+}
+
+.no-appointments p {
+  color: var(--color-text-mid);
+}
+
+/* ===== RESPONSIVIDADE CORRIGIDA PARA MOBILE ===== */
 @media (max-width: 768px) {
-  .appointment-list-container { padding: 1rem; }
-  .header { flex-direction: column; align-items: flex-start; }
-  .appointment-card { flex-direction: column; align-items: flex-start; }
-  .time-info, .details-info, .status-badge { width: 100%; }
-  .status-badge { text-align: center; align-self: flex-start; }
-  .date-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-  .appointments-list { padding: 1rem; }
+  .appointment-list-container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .appointment-card {
+    flex-direction: column;      /* empilha os elementos verticalmente */
+    align-items: stretch;       /* cada elemento ocupa toda largura */
+  }
+
+  .time-info,
+  .details-info,
+  .badges-wrapper {
+    width: 100%;                /* ocupam toda largura disponível */
+  }
+
+  .badges-wrapper {
+    flex-direction: row;        /* badges em linha no mobile */
+    justify-content: flex-start; /* alinhados à esquerda */
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .status-badge {
+    white-space: normal;        /* quebra texto se necessário */
+    text-align: left;
+  }
+
+  .date-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .appointments-list {
+    padding: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .time-text   { font-size: 0.8rem; }
-  .detail-text { font-size: 0.9rem; }
-  .header h1   { font-size: 1.5rem; }
+  .time-text {
+    font-size: 0.8rem;
+  }
+
+  .detail-text {
+    font-size: 0.9rem;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .badges-wrapper {
+    gap: 0.4rem;
+  }
+
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.7rem;
+  }
 }

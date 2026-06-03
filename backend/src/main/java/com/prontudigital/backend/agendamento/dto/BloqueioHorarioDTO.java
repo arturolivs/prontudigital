@@ -12,5 +12,6 @@ public record BloqueioHorarioDTO(
         @NotNull LocalDateTime inicioEm,
         @NotNull LocalDateTime fimEm,
         String motivo,
-        @NotNull TipoBloqueio tipo
+        @NotNull TipoBloqueio tipo,
+        UUID recorrenteUuid
 ) {}

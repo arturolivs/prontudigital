@@ -95,7 +95,8 @@ function evolucaoFromAgendamento(ag: Agendamento): EvolucaoForm {
     exsudatoCaracteristica: ec?.exsudatoCaracteristica ?? '',
     condicaoBordas: ec?.condicaoBordas ?? '',
     aspectoPerilesional: ec?.aspectoPerilesional ?? '',
-    sinaisFlogisticos: ec?.sinaisFlogisticos == null ? '' : String(ec.sinaisFlogisticos),
+    sinaisFlogisticos:
+      ec?.sinaisFlogisticos == null ? '' : String(ec.sinaisFlogisticos),
     presencaOdor: ec?.presencaOdor == null ? '' : String(ec.presencaOdor),
     limpezaRealizada: ec?.limpezaRealizada ?? '',
     coberturasAplicadas: ec?.coberturasAplicadas ?? '',
@@ -113,16 +114,30 @@ function evolucaoParaApi(form: EvolucaoForm): EvolucaoTratamentoRequisicao {
   return {
     localizacaoAnatomica: form.localizacaoAnatomica || undefined,
     tipoLesao: form.tipoLesao || undefined,
-    medidaComprimento: form.medidaComprimento ? parseFloat(form.medidaComprimento) : undefined,
-    medidaLargura: form.medidaLargura ? parseFloat(form.medidaLargura) : undefined,
-    medidaProfundidade: form.medidaProfundidade ? parseFloat(form.medidaProfundidade) : undefined,
+    medidaComprimento: form.medidaComprimento
+      ? parseFloat(form.medidaComprimento)
+      : undefined,
+    medidaLargura: form.medidaLargura
+      ? parseFloat(form.medidaLargura)
+      : undefined,
+    medidaProfundidade: form.medidaProfundidade
+      ? parseFloat(form.medidaProfundidade)
+      : undefined,
     aspectoLeitoFerida: form.aspectoLeitoFerida || undefined,
-    exsudatoVolume: (form.exsudatoVolume as EvolucaoTratamentoRequisicao['exsudatoVolume']) || undefined,
-    exsudatoCaracteristica: (form.exsudatoCaracteristica as EvolucaoTratamentoRequisicao['exsudatoCaracteristica']) || undefined,
+    exsudatoVolume:
+      (form.exsudatoVolume as EvolucaoTratamentoRequisicao['exsudatoVolume']) ||
+      undefined,
+    exsudatoCaracteristica:
+      (form.exsudatoCaracteristica as EvolucaoTratamentoRequisicao['exsudatoCaracteristica']) ||
+      undefined,
     condicaoBordas: form.condicaoBordas || undefined,
     aspectoPerilesional: form.aspectoPerilesional || undefined,
-    sinaisFlogisticos: form.sinaisFlogisticos === '' ? undefined : form.sinaisFlogisticos === 'true',
-    presencaOdor: form.presencaOdor === '' ? undefined : form.presencaOdor === 'true',
+    sinaisFlogisticos:
+      form.sinaisFlogisticos === ''
+        ? undefined
+        : form.sinaisFlogisticos === 'true',
+    presencaOdor:
+      form.presencaOdor === '' ? undefined : form.presencaOdor === 'true',
     limpezaRealizada: form.limpezaRealizada || undefined,
     coberturasAplicadas: form.coberturasAplicadas || undefined,
     produtosUtilizados: form.produtosUtilizados || undefined,
@@ -139,7 +154,10 @@ function evolucaoParaApi(form: EvolucaoForm): EvolucaoTratamentoRequisicao {
 
 const fmt = {
   hora: (iso: string) =>
-    new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    new Date(iso).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
 
   data: (iso: string) =>
     new Date(iso).toLocaleDateString('pt-BR', {
@@ -150,7 +168,10 @@ const fmt = {
     }),
 
   dataCurta: (iso: string) =>
-    new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+    new Date(iso).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+    }),
 
   duracao: (inicio: string, fim: string): string => {
     const min = Math.floor(
@@ -188,7 +209,8 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function TipoBadge({ tipo }: { tipo: string }) {
-  const classe = tipo === 'AVALIACAO' ? 'proc-tipo-avaliacao' : 'proc-tipo-tratamento'
+  const classe =
+    tipo === 'AVALIACAO' ? 'proc-tipo-avaliacao' : 'proc-tipo-tratamento'
   const Icon = tipo === 'AVALIACAO' ? Activity : Pill
   return (
     <span className={`proc-tipo-badge ${classe}`}>
@@ -240,7 +262,11 @@ function HistoricoItem({
 }
 
 function BloqueadoTag() {
-  return <span className="proc-obs-bloqueado-tag">Bloqueado — clique em Iniciar</span>
+  return (
+    <span className="proc-obs-bloqueado-tag">
+      Bloqueado — clique em Iniciar
+    </span>
+  )
 }
 
 function Campo({
@@ -308,7 +334,8 @@ export default function ProcedimentoPage({
       .then(dados =>
         setHistorico(
           [...dados].sort(
-            (a, b) => new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime(),
+            (a, b) =>
+              new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime(),
           ),
         ),
       )
@@ -318,7 +345,11 @@ export default function ProcedimentoPage({
 
   const setEv =
     (campo: keyof EvolucaoForm) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) =>
       setEvolucao(prev => ({ ...prev, [campo]: e.target.value }))
 
   const finalizarConsulta = async () => {
@@ -326,7 +357,10 @@ export default function ProcedimentoPage({
     setFinalizando(true)
     try {
       await agendamentoAPI.atualizarObservacoes(agendamento.id, observacoes)
-      await agendamentoAPI.registrarEvolucao(agendamento.id, evolucaoParaApi(evolucao))
+      await agendamentoAPI.registrarEvolucao(
+        agendamento.id,
+        evolucaoParaApi(evolucao),
+      )
       await agendamentoAPI.concluirAgendamento(agendamento.id)
       setAgendamento(prev =>
         prev ? { ...prev, status: 'REALIZADO', observacoes } : prev,
@@ -357,7 +391,9 @@ export default function ProcedimentoPage({
             {agendamento && (
               <div className="proc-topbar-info">
                 <TipoBadge tipo={agendamento.tipo} />
-                <span className="proc-topbar-nome">{agendamento.nomePaciente}</span>
+                <span className="proc-topbar-nome">
+                  {agendamento.nomePaciente}
+                </span>
               </div>
             )}
             {agendamento && (
@@ -377,7 +413,10 @@ export default function ProcedimentoPage({
           {erro && (
             <div className="proc-estado">
               <p style={{ color: 'var(--color-error)' }}>{erro}</p>
-              <button className="proc-btn-finalizar" onClick={() => router.back()}>
+              <button
+                className="proc-btn-finalizar"
+                onClick={() => router.back()}
+              >
                 Voltar para a agenda
               </button>
             </div>
@@ -421,7 +460,8 @@ export default function ProcedimentoPage({
                     </span>
                     <span className="proc-hero-meta-item">
                       <Clock size={14} />
-                      {fmt.hora(agendamento.inicioEm)} – {fmt.hora(agendamento.fimEm)}
+                      {fmt.hora(agendamento.inicioEm)} –{' '}
+                      {fmt.hora(agendamento.fimEm)}
                       <span className="proc-hero-duracao">
                         ({fmt.duracao(agendamento.inicioEm, agendamento.fimEm)})
                       </span>
@@ -438,7 +478,6 @@ export default function ProcedimentoPage({
 
               {/* Grade de conteúdo */}
               <div className="proc-content">
-
                 {/* Informações */}
                 <div className="proc-card proc-col-esq">
                   <div className="proc-card-header">
@@ -450,7 +489,10 @@ export default function ProcedimentoPage({
                       <Calendar size={18} className="proc-info-icone" />
                       <div className="proc-info-texto">
                         <span className="proc-info-rotulo">Data</span>
-                        <span className="proc-info-valor" style={{ textTransform: 'capitalize' }}>
+                        <span
+                          className="proc-info-valor"
+                          style={{ textTransform: 'capitalize' }}
+                        >
                           {fmt.data(agendamento.inicioEm)}
                         </span>
                       </div>
@@ -460,9 +502,15 @@ export default function ProcedimentoPage({
                       <div className="proc-info-texto">
                         <span className="proc-info-rotulo">Horário</span>
                         <span className="proc-info-valor">
-                          {fmt.hora(agendamento.inicioEm)} – {fmt.hora(agendamento.fimEm)}
+                          {fmt.hora(agendamento.inicioEm)} –{' '}
+                          {fmt.hora(agendamento.fimEm)}
                           <span className="proc-info-duracao">
-                            ({fmt.duracao(agendamento.inicioEm, agendamento.fimEm)})
+                            (
+                            {fmt.duracao(
+                              agendamento.inicioEm,
+                              agendamento.fimEm,
+                            )}
+                            )
                           </span>
                         </span>
                       </div>
@@ -472,7 +520,9 @@ export default function ProcedimentoPage({
                         <User size={18} className="proc-info-icone" />
                         <div className="proc-info-texto">
                           <span className="proc-info-rotulo">Profissional</span>
-                          <span className="proc-info-valor">{agendamento.nomeProfissional}</span>
+                          <span className="proc-info-valor">
+                            {agendamento.nomeProfissional}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -511,7 +561,10 @@ export default function ProcedimentoPage({
                     Histórico
                   </div>
                   {!ehTratamento ? (
-                    <div className="proc-hist-loading" style={{ color: 'var(--color-text-muted)' }}>
+                    <div
+                      className="proc-hist-loading"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       Disponível apenas para consultas do tipo Tratamento.
                     </div>
                   ) : carregandoHist ? (
@@ -520,7 +573,10 @@ export default function ProcedimentoPage({
                       Carregando histórico…
                     </div>
                   ) : historico.length === 0 ? (
-                    <div className="proc-hist-loading" style={{ color: 'var(--color-text-muted)' }}>
+                    <div
+                      className="proc-hist-loading"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       Nenhum registro anterior encontrado.
                     </div>
                   ) : (
@@ -654,7 +710,9 @@ export default function ProcedimentoPage({
                         >
                           <option value="">Não informado</option>
                           <option value="SEROSO">Seroso</option>
-                          <option value="SEROSSANGUINOLENTO">Serossanguinolento</option>
+                          <option value="SEROSSANGUINOLENTO">
+                            Serossanguinolento
+                          </option>
                           <option value="PURULENTO">Purulento</option>
                         </select>
                       </Campo>
@@ -849,7 +907,6 @@ export default function ProcedimentoPage({
                     </Campo>
                   </div>
                 </div>
-
               </div>
 
               {/* Barra de ações */}
@@ -905,13 +962,29 @@ export default function ProcedimentoPage({
                       agendamento.tipo === 'AVALIACAO'
                         ? agendamento.id
                         : agendamento.avaliacaoId
-                    const params = new URLSearchParams({ novoTratamento: '1', tipo: 'TRATAMENTO' })
+                    const params = new URLSearchParams({
+                      novoTratamento: '1',
+                      tipo: 'TRATAMENTO',
+                    })
                     params.set('pacienteUuid', agendamento.pacienteUuid)
                     params.set('profissionalUuid', agendamento.profissionalUuid)
-                    if (avaliacaoId) params.set('avaliacaoId', String(avaliacaoId))
-                    if (agendamento.tipoProcedimento) params.set('tipoProcedimento', agendamento.tipoProcedimento)
-                    if (agendamento.localAtendimento) params.set('localAtendimento', agendamento.localAtendimento)
-                    if (agendamento.pacienteAcamado != null) params.set('pacienteAcamado', String(agendamento.pacienteAcamado))
+                    if (avaliacaoId)
+                      params.set('avaliacaoId', String(avaliacaoId))
+                    if (agendamento.tipoProcedimento)
+                      params.set(
+                        'tipoProcedimento',
+                        agendamento.tipoProcedimento,
+                      )
+                    if (agendamento.localAtendimento)
+                      params.set(
+                        'localAtendimento',
+                        agendamento.localAtendimento,
+                      )
+                    if (agendamento.pacienteAcamado != null)
+                      params.set(
+                        'pacienteAcamado',
+                        String(agendamento.pacienteAcamado),
+                      )
                     router.push(`/agenda?${params.toString()}`)
                   }}
                 >
