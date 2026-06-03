@@ -274,10 +274,22 @@ export default function BloqueiosPage() {
       return
     }
 
+    const diasJaRegistrados = new Set(recorrentes.map(r => r.diaSemana))
+    const diasNovos = formRecorrente.diasSemana.filter(
+      d => !diasJaRegistrados.has(d),
+    )
+
+    if (diasNovos.length === 0) {
+      setErroForm(
+        'Todos os dias selecionados já possuem regras recorrentes. Selecione um novo dia para adicionar.',
+      )
+      return
+    }
+
     setSalvando(true)
     try {
       const novasRegras: BloqueioRecorrente[] = []
-      for (const dia of formRecorrente.diasSemana) {
+      for (const dia of diasNovos) {
         const requisicao: BloqueioRecorrenteRequisicao = {
           profissionalUuid,
           diaSemana: dia,
@@ -358,7 +370,7 @@ export default function BloqueiosPage() {
       motivo: '',
     })
     setFormRecorrente({
-      diasSemana: [],
+      diasSemana: [...new Set(recorrentes.map(r => r.diaSemana))],
       horaInicio: '08:00',
       horaFim: '18:00',
       tipo: 'INDISPONIVEL',
