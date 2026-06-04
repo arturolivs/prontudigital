@@ -1,26 +1,3 @@
-.mna-loading {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 2rem;
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
-}
-
-.mna-spinner {
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid var(--color-border-brand);
-  border-top-color: var(--color-brand);
-  border-radius: 50%;
-  animation: mna-spin 0.7s linear infinite;
-  flex-shrink: 0;
-}
-
-@keyframes mna-spin {
-  to { transform: rotate(360deg); }
-}
-
 .mna-form {
   display: flex;
   flex-direction: column;
@@ -58,7 +35,6 @@
 }
 
 .mna-input,
-.mna-select,
 .mna-textarea {
   width: 100%;
   padding: 0.55rem 0.875rem;
@@ -72,7 +48,6 @@
 }
 
 .mna-input:focus,
-.mna-select:focus,
 .mna-textarea:focus {
   outline: none;
   border-color: var(--color-brand-light);
