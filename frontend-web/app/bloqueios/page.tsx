@@ -31,6 +31,7 @@ import {
   DIAS_SEMANA,
 } from '@/tipos/bloqueio'
 import './bloqueios.css'
+import Modal from '@/components/Modal'
 
 /* ── helpers de data ── */
 
@@ -639,23 +640,11 @@ export default function BloqueiosPage() {
 
         {/* ── Modal ── */}
         {modalAberto && (
-          <div
-            className="modal-overlay"
-            onClick={e => e.target === e.currentTarget && fecharModal()}
+          <Modal
+            titulo={<><Ban size={18} strokeWidth={2} /> Registrar Bloqueio</>}
+            onClose={fecharModal}
+            semPaddingCorpo
           >
-            <div className="modal-conteudo">
-              <div className="modal-cabecalho">
-                <h2>
-                  <Ban size={18} strokeWidth={2} /> Registrar Bloqueio
-                </h2>
-                <button
-                  className="modal-fechar"
-                  onClick={fecharModal}
-                  aria-label="Fechar"
-                >
-                  ✕
-                </button>
-              </div>
 
               {/* ── Toggle único / recorrente ── */}
               <div className="modo-toggle">
@@ -916,8 +905,7 @@ export default function BloqueiosPage() {
                   </div>
                 </form>
               )}
-            </div>
-          </div>
+          </Modal>
         )}
       </RotaProtegida>
     </Layout>

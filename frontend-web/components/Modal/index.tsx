@@ -4,17 +4,12 @@ import { useEffect, ReactNode } from 'react'
 import './Modal.css'
 
 interface ModalProps {
-  /** Texto exibido no cabeçalho */
-  titulo: string
-  /** Chamado ao fechar (X, ESC ou clique no overlay) */
+  titulo: ReactNode
   onClose: () => void
-  /** Conteúdo do corpo do modal */
   children: ReactNode
-  /** Botões ou conteúdo fixo no rodapé (opcional) */
   rodape?: ReactNode
-  /** Largura máxima: sm = 400px | md = 520px (padrão) | lg = 720px */
   tamanho?: 'sm' | 'md' | 'lg'
-  /** ID do elemento que descreve o modal para acessibilidade */
+  semPaddingCorpo?: boolean
   ariaDescribedby?: string
 }
 
@@ -24,6 +19,7 @@ export default function Modal({
   children,
   rodape,
   tamanho = 'md',
+  semPaddingCorpo = false,
   ariaDescribedby,
 }: ModalProps) {
   useEffect(() => {
@@ -68,7 +64,11 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="modal-gen-body">{children}</div>
+        <div
+          className={`modal-gen-body${semPaddingCorpo ? ' modal-gen-body--sem-padding' : ''}`}
+        >
+          {children}
+        </div>
 
         {rodape && <div className="modal-gen-footer">{rodape}</div>}
       </div>
