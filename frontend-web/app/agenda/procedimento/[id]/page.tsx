@@ -378,6 +378,25 @@ export default function ProcedimentoPage({
   const ehTratamento = agendamento?.tipo === 'TRATAMENTO'
   const podeEditar = iniciado && !jaRealizado
 
+  const agendarProximo = () => {
+    if (!agendamento) return
+    const avaliacaoId =
+      agendamento.tipo === 'AVALIACAO'
+        ? agendamento.id
+        : agendamento.avaliacaoId
+    const params = new URLSearchParams({ novoTratamento: '1', tipo: 'TRATAMENTO' })
+    params.set('pacienteUuid', agendamento.pacienteUuid)
+    params.set('profissionalUuid', agendamento.profissionalUuid)
+    if (avaliacaoId) params.set('avaliacaoId', String(avaliacaoId))
+    if (agendamento.tipoProcedimento)
+      params.set('tipoProcedimento', agendamento.tipoProcedimento)
+    if (agendamento.localAtendimento)
+      params.set('localAtendimento', agendamento.localAtendimento)
+    if (agendamento.pacienteAcamado != null)
+      params.set('pacienteAcamado', String(agendamento.pacienteAcamado))
+    router.push(`/agenda?${params.toString()}`)
+  }
+
   return (
     <Layout perfil={perfilLayout}>
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
@@ -914,10 +933,16 @@ export default function ProcedimentoPage({
                 <div className="proc-actions-spacer" />
 
                 {jaRealizado ? (
-                  <div className="proc-btn-realizado">
-                    <CheckCircle size={16} />
-                    Consulta realizada
-                  </div>
+                  <>
+                    <div className="proc-btn-realizado">
+                      <CheckCircle size={16} />
+                      Consulta realizada
+                    </div>
+                    <button className="proc-btn-proximo" onClick={agendarProximo}>
+                      <CalendarPlus size={16} />
+                      Agendar próximo
+                    </button>
+                  </>
                 ) : !iniciado ? (
                   <button
                     className="proc-btn-iniciar"
@@ -956,37 +981,7 @@ export default function ProcedimentoPage({
                 </button>
                 <button
                   className="proc-modal-btn-primario"
-                  onClick={() => {
-                    if (!agendamento) return
-                    const avaliacaoId =
-                      agendamento.tipo === 'AVALIACAO'
-                        ? agendamento.id
-                        : agendamento.avaliacaoId
-                    const params = new URLSearchParams({
-                      novoTratamento: '1',
-                      tipo: 'TRATAMENTO',
-                    })
-                    params.set('pacienteUuid', agendamento.pacienteUuid)
-                    params.set('profissionalUuid', agendamento.profissionalUuid)
-                    if (avaliacaoId)
-                      params.set('avaliacaoId', String(avaliacaoId))
-                    if (agendamento.tipoProcedimento)
-                      params.set(
-                        'tipoProcedimento',
-                        agendamento.tipoProcedimento,
-                      )
-                    if (agendamento.localAtendimento)
-                      params.set(
-                        'localAtendimento',
-                        agendamento.localAtendimento,
-                      )
-                    if (agendamento.pacienteAcamado != null)
-                      params.set(
-                        'pacienteAcamado',
-                        String(agendamento.pacienteAcamado),
-                      )
-                    router.push(`/agenda?${params.toString()}`)
-                  }}
+                  onClick={agendarProximo}
                 >
                   <CalendarPlus size={15} />
                   Agendar próximo tratamento
