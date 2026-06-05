@@ -701,24 +701,103 @@
 
 /* ===== RESPONSIVIDADE ===== */
 
-@media (max-width: 900px) { .bloqueios-resumo { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) {
+  .bloqueios-resumo { grid-template-columns: repeat(2, 1fr); }
+}
 
-@media (max-width: 640px) {
-  .bloqueios-page { padding: 1.25rem 1rem; }
-  .bloqueios-resumo { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-  .bloqueios-header-texto h1 { font-size: 1.4rem; }
-  .bloqueio-card { flex-wrap: wrap; gap: 0.75rem; }
-  .campo-linha { grid-template-columns: 1fr; }
-  .tipo-opcoes { grid-template-columns: 1fr 1fr; }
-  .bloqueios-filtros { flex-direction: column; align-items: stretch; }
-  .filtros-rapidos { flex-direction: row; }
+@media (max-width: 768px) {
+  /* Espaço para o botão hambúrguer fixo */
+  .bloqueios-page {
+    padding: 4.5rem 1rem 5rem;
+  }
+
+  /* Header: só o texto, botão sai do fluxo */
+  .bloqueios-header {
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .bloqueios-header-texto h1 {
+    font-size: 1.4rem;
+  }
+
+  /* Botão vira FAB circular fixo */
+  .btn-novo-bloqueio {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 999;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    padding: 0;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(43, 108, 176, 0.4);
+  }
+
+  .btn-novo-bloqueio-label { display: none; }
+
+  .btn-novo-bloqueio-icon { width: 24px; height: 24px; }
+
+  /* Resumo */
+  .bloqueios-resumo {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .resumo-card {
+    padding: 0.875rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .resumo-numero { font-size: 1.25rem; }
+
+  /* Cards de bloqueio */
+  .bloqueio-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .bloqueio-info { width: 100%; }
+
+  .bloqueio-motivo { white-space: normal; }
+
+  /* Itens recorrentes */
+  .recorrente-item { flex-wrap: wrap; gap: 0.5rem; }
+  .recorrente-dia { min-width: unset; width: 100%; }
+
+  /* Filtros */
+  .bloqueios-filtros {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .filtros-rapidos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+
+  .btn-filtro-rapido {
+    text-align: center;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.78rem;
+  }
+
+  /* Modal */
   .modo-toggle { margin: 0 1rem 0.25rem; }
+  .campo-linha { grid-template-columns: 1fr; }
   .dias-semana-selector { gap: 0.3rem; }
   .dia-btn { width: 2.25rem; height: 2.25rem; font-size: 0.7rem; }
-  .recorrente-dia { min-width: 90px; }
 }
 
 @media (max-width: 400px) {
   .bloqueios-resumo { grid-template-columns: 1fr 1fr; }
   .tipo-opcoes { grid-template-columns: 1fr; }
+  .filtros-rapidos { grid-template-columns: 1fr; }
 }

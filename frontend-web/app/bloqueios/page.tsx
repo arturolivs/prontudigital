@@ -417,9 +417,9 @@ export default function BloqueiosPage() {
               <h1>Horários Indisponíveis</h1>
               <p>Registre e gerencie seus períodos de indisponibilidade</p>
             </div>
-            <button className="btn-novo-bloqueio" onClick={abrirModal}>
-              <Plus size={16} strokeWidth={2.5} />
-              Registrar Bloqueio
+            <button className="btn-novo-bloqueio" onClick={abrirModal} title="Registrar Bloqueio">
+              <Plus size={20} strokeWidth={2.5} className="btn-novo-bloqueio-icon" />
+              <span className="btn-novo-bloqueio-label">Registrar Bloqueio</span>
             </button>
           </div>
 
