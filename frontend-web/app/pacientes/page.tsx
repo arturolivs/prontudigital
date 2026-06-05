@@ -76,12 +76,19 @@ const CardAgendamento = ({ agendamento }: { agendamento: Agendamento }) => (
   <div
     className={`pac-appt-card ${agendamento.tipo === 'AVALIACAO' ? 'pac-appt-avaliacao' : 'pac-appt-tratamento'}`}
   >
-    <div className="pac-appt-time">
-      <span className="pac-appt-hora">
-        {formatarHora(agendamento.inicioEm)}
-      </span>
-      <span className="pac-appt-data">
-        {formatarDataCurta(agendamento.inicioEm)}
+    <div className="pac-appt-topo">
+      <div className="pac-appt-time">
+        <span className="pac-appt-hora">
+          {formatarHora(agendamento.inicioEm)}
+        </span>
+        <span className="pac-appt-data">
+          {formatarDataCurta(agendamento.inicioEm)}
+        </span>
+      </div>
+      <span
+        className={`pac-appt-status ${CLASSE_STATUS[agendamento.status] || ''}`}
+      >
+        {ROTULO_STATUS[agendamento.status] ?? agendamento.status}
       </span>
     </div>
     <div className="pac-appt-info">
@@ -89,11 +96,6 @@ const CardAgendamento = ({ agendamento }: { agendamento: Agendamento }) => (
         {agendamento.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'}
       </span>
     </div>
-    <span
-      className={`pac-appt-status ${CLASSE_STATUS[agendamento.status] || ''}`}
-    >
-      {ROTULO_STATUS[agendamento.status] ?? agendamento.status}
-    </span>
   </div>
 )
 
