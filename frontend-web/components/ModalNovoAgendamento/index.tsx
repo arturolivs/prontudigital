@@ -23,6 +23,7 @@ interface PrefillNovoAgendamento {
   tipoProcedimento?: TipoProcedimento
   localAtendimento?: LocalAtendimento
   pacienteAcamado?: boolean
+  data?: string
 }
 
 interface Props {
@@ -49,7 +50,7 @@ export default function ModalNovoAgendamento({
   const [profissionalUuid, setProfissionalUuid] = useState(
     prefill?.profissionalUuid ?? (isAdmin ? '' : profissionalUuidAtual),
   )
-  const [data, setData] = useState(hojeISO())
+  const [data, setData] = useState(prefill?.data ?? hojeISO())
   const [horaInicio, setHoraInicio] = useState('08:00')
   const [horaFim, setHoraFim] = useState('09:00')
   const [tipo, setTipo] = useState<'AVALIACAO' | 'TRATAMENTO'>(

@@ -61,6 +61,7 @@ interface PrefillModal {
   tipoProcedimento?: TipoProcedimento
   localAtendimento?: LocalAtendimento
   pacienteAcamado?: boolean
+  data?: string
 }
 
 export default function AgendaPage() {
@@ -163,7 +164,10 @@ export default function AgendaPage() {
         <div className="appointments-page">
           <div className="agenda-toolbar">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                if (viewType === 'day') setPrefillModal({ data: selectedDate })
+                setIsModalOpen(true)
+              }}
               className="agenda-btn-novo"
               title="Novo agendamento"
             >
