@@ -171,8 +171,8 @@ export default function AgendaPage() {
               className="agenda-btn-novo"
               title="Novo agendamento"
             >
-              <Plus size={16} strokeWidth={2.5} />
-              Novo
+              <Plus size={20} strokeWidth={2.5} className="agenda-btn-novo-icon" />
+              <span className="agenda-btn-novo-label">Novo</span>
             </button>
 
             <div className="agenda-view-switcher">
