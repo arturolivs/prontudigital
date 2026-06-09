@@ -1,14 +1,21 @@
 package com.prontudigital.backend.agendamento.servicos.impl.fixtures;
 
 import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.enums.ExsudatoCaracteristica;
+import com.prontudigital.backend.agendamento.enums.ExsudatoVolume;
+import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
+import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -53,14 +60,16 @@ public final class AgendamentoTestFixtures {
         return new AgendamentoRequestDTO(
                 PACIENTE_UUID, PROFISSIONAL_UUID,
                 "Consulta inicial", INICIO, FIM,
-                TipoAgendamento.AVALIACAO, null);
+                TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                LocalAtendimento.CLINICA, false, null);
     }
 
     public static AgendamentoRequestDTO requestTratamento(Long avaliacaoId) {
         return new AgendamentoRequestDTO(
                 PACIENTE_UUID, PROFISSIONAL_UUID,
                 "Tratamento", INICIO, FIM,
-                TipoAgendamento.TRATAMENTO, avaliacaoId);
+                TipoAgendamento.TRATAMENTO, TipoProcedimento.PODIATRIA,
+                LocalAtendimento.CLINICA, false, avaliacaoId);
     }
 
     public static Agendamento agendamentoAgendado() {
@@ -87,6 +96,53 @@ public final class AgendamentoTestFixtures {
         a.setStatus(StatusAgendamento.REALIZADO);
         a.setTipo(TipoAgendamento.AVALIACAO);
         return a;
+    }
+
+    public static Agendamento agendamentoTratamento() {
+        return Agendamento.builder()
+                .id(2L)
+                .pacienteUuid(PACIENTE_UUID)
+                .profissionalUuid(PROFISSIONAL_UUID)
+                .inicioEm(INICIO)
+                .fimEm(FIM)
+                .status(StatusAgendamento.CONFIRMADO)
+                .tipo(TipoAgendamento.TRATAMENTO)
+                .avaliacao(avaliacaoConcluida())
+                .build();
+    }
+
+    public static EvolucaoClinica evolucaoClinicaExistente(Agendamento agendamento) {
+        return EvolucaoClinica.builder()
+                .id(10L)
+                .agendamento(agendamento)
+                .tipoLesao("Úlcera venosa")
+                .escalaDor(2)
+                .build();
+    }
+
+    public static EvolucaoTratamentoRequestDTO evolucaoRequest() {
+        return new EvolucaoTratamentoRequestDTO(
+                "Membro inferior direito",
+                "Úlcera venosa",
+                new BigDecimal("3.5"),
+                new BigDecimal("2.0"),
+                new BigDecimal("0.5"),
+                "Granulação",
+                ExsudatoVolume.MODERADO,
+                ExsudatoCaracteristica.SEROSO,
+                "Regulares",
+                "Hiperemiada",
+                false,
+                false,
+                "SF 0,9%",
+                "Alginato de cálcio",
+                "AGE",
+                "Boa",
+                3,
+                null,
+                "Trocar curativo a cada 3 dias",
+                "Febre acima de 38°C",
+                "Retornar em 7 dias");
     }
 
     public static BloqueioHorario bloqueio() {

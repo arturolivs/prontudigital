@@ -1,5 +1,7 @@
 package com.prontudigital.backend.autenticacao.controladores;
 
+import com.prontudigital.backend.autenticacao.dto.AlterarSenhaRequestDTO;
+import com.prontudigital.backend.autenticacao.dto.AtualizarPerfilRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
@@ -75,6 +77,33 @@ public class UsuarioController {
             @PathVariable Long id,
             @Valid @RequestBody UsuarioDTO dto) {
         return ResponseEntity.ok(usuarioService.atualizar(id, dto));
+    }
+
+    @Operation(summary = "Atualizar perfil do usuario (nome, e-mail, telefone)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Perfil atualizado"),
+            @ApiResponse(responseCode = "404", description = "Usuario nao encontrado"),
+            @ApiResponse(responseCode = "409", description = "E-mail ja em uso")
+    })
+    @PatchMapping("/{id}/perfil")
+    public ResponseEntity<UsuarioDTO> atualizarPerfil(
+            @PathVariable Long id,
+            @Valid @RequestBody AtualizarPerfilRequestDTO dto) {
+        return ResponseEntity.ok(usuarioService.atualizarPerfil(id, dto));
+    }
+
+    @Operation(summary = "Alterar senha do usuario")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Senha alterada"),
+            @ApiResponse(responseCode = "404", description = "Usuario nao encontrado"),
+            @ApiResponse(responseCode = "422", description = "Senha atual incorreta")
+    })
+    @PatchMapping("/{id}/senha")
+    public ResponseEntity<Void> alterarSenha(
+            @PathVariable Long id,
+            @Valid @RequestBody AlterarSenhaRequestDTO dto) {
+        usuarioService.alterarSenha(id, dto);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Deletar usuario")

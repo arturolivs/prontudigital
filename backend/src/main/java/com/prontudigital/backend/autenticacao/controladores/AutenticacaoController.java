@@ -67,4 +67,31 @@ public class AutenticacaoController {
         autenticacaoService.encerrarSessao(request.refreshToken());
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Cadastrar paciente com nome e telefone (sem credenciais de acesso)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Paciente cadastrado e sessão iniciada"),
+            @ApiResponse(responseCode = "409", description = "Telefone já cadastrado"),
+            @ApiResponse(responseCode = "422", description = "Dados inválidos")
+    })
+    @PostMapping("/cadastrar-paciente")
+    public ResponseEntity<JwtResponseDTO> cadastrarPaciente(
+            @Valid @RequestBody CadastrarPacienteDTO request) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(autenticacaoService.cadastrarPaciente(request));
+    }
+
+    @Operation(summary = "Ativar acesso ao sistema para paciente já cadastrado")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Acesso ativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Paciente não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Username ou e-mail já em uso"),
+            @ApiResponse(responseCode = "422", description = "Dados inválidos")
+    })
+    @PostMapping("/ativar-acesso")
+    public ResponseEntity<UsuarioDTO> ativarAcesso(
+            @Valid @RequestBody AtivarAcessoRequestDTO request) {
+        return ResponseEntity.ok(autenticacaoService.ativarAcesso(request));
+    }
 }

@@ -3,15 +3,15 @@
 
 import { useState, FormEvent } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useToast } from '../../contexts/ToastContext'
+import { useNotificacao } from '../../contexts/ToastContext'
 import { LoginRequisicao } from '@/tipos/autenticacao'
 
 export default function Login() {
   const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+  const [senha, setSenha] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { login, usuario, isLoading: authLoading } = useAuth()
-  const { showToast } = useToast()
+  const { exibirNotificacao } = useNotificacao()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -20,11 +20,11 @@ export default function Login() {
     try {
       const credenciais: LoginRequisicao = {
         username: username.trim(),
-        password: password,
+        senha: senha,
       }
       await login(credenciais)
     } catch (err: any) {
-      showToast(err.message || 'Erro ao fazer login', 'error', 6000)
+      exibirNotificacao(err.message || 'Erro ao fazer login', 'error', 6000)
     } finally {
       setIsLoading(false)
     }
@@ -59,8 +59,7 @@ export default function Login() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#f4f9ff] to-[#e6f4f1] p-4 md:p-8">
       <div className="flex flex-col md:flex-row w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
-        {/* Left Side - Logo e Informações */}
-        <div className="w-full md:w-1/2 bg-gradient-to-br from-[#2b6cb0] to-[#7991bc] p-8 md:p-12 flex flex-col justify-center items-center text-center md:text-left">
+        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#2b6cb0] to-[#7991bc] p-8 md:p-12 flex-col justify-center items-center text-center md:text-left">
           <div className="max-w-md mx-auto">
             {/* Logo / Ícone Principal */}
             <div className="mb-6 flex justify-center md:justify-start">
@@ -147,7 +146,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Right Side - Formulário de Login */}
+        {/* Right Side - Formulário de Login (sempre visível, ocupa toda largura no mobile) */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex items-center justify-center bg-white">
           <div className="w-full max-w-md">
             <div className="text-center mb-8">
@@ -181,19 +180,19 @@ export default function Login() {
 
               <div>
                 <label
-                  htmlFor="password"
+                  htmlFor="senha"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   Senha
                 </label>
                 <input
-                  id="password"
+                  id="senha"
                   type="password"
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7991bc] focus:border-[#7991bc] transition-all outline-none"
                   placeholder="Digite sua senha"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  value={senha}
+                  onChange={e => setSenha(e.target.value)}
                   autoComplete="current-password"
                 />
               </div>

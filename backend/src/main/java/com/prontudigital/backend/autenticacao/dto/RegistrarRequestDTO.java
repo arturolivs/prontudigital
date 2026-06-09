@@ -25,7 +25,10 @@ public record RegistrarRequestDTO(
         @Schema(description = "Senha (mínimo 8 caracteres)", example = "senha123")
         @NotBlank
         @Size(min = 8, max = 30)
-        String password,
+        String senha,
+
+        @Schema(description = "Telefone", example = "(11) 99999-9999")
+        String telefone,
 
         @Schema(description = "Perfis do usuário (padrão: USER)", example = "[\"ADMIN\"]")
         Set<String> perfis

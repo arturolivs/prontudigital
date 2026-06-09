@@ -1,7 +1,9 @@
 package com.prontudigital.backend.agendamento.entidades;
 
+import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
+import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -48,16 +50,26 @@ public class Agendamento {
     @Column(name = "tipo")
     private TipoAgendamento tipo;
 
-    /*
-     * Auto-relacionamento: tratamentos referenciam sua avaliação de origem.
-     * Apenas agendamentos do tipo TRATAMENTO terão este campo preenchido.
-     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_procedimento")
+    private TipoProcedimento tipoProcedimento;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "local_atendimento")
+    private LocalAtendimento localAtendimento;
+
+    @Column(name = "paciente_acamado")
+    private Boolean pacienteAcamado;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "avaliacao_id")
     private Agendamento avaliacao;
 
     @Column(name = "concluido_em")
     private LocalDateTime concluidoEm;
+
+    @OneToOne(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private EvolucaoClinica evolucaoClinica;
 
     @CreationTimestamp
     @Column(name = "criado_em", updatable = false)

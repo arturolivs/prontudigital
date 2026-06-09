@@ -1,5 +1,6 @@
 package com.prontudigital.backend.agendamento.swagger;
 
+import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
 import com.prontudigital.backend.compartilhado.swagger.CommonsSwagger;
@@ -17,6 +18,65 @@ import java.lang.annotation.Target;
 public class AgendamentoSwagger {
 
     private AgendamentoSwagger() {}
+
+    // =========================================================
+    // GET /api/agendamentos/{id}
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Buscar agendamento por ID",
+            description = """
+            Retorna os dados completos de um agendamento incluindo nomes resolvidos,
+            observações clínicas, data de conclusão e vínculo com avaliação.\n
+            Permissões:
+            - ADMIN: pode visualizar qualquer agendamento
+            - PROFISSIONAL: apenas os da sua agenda
+            - PACIENTE: apenas os seus próprios
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Dados do agendamento",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface BuscarPorIdSwagger {}
+
+    // =========================================================
+    // PATCH /api/agendamentos/{id}/observacoes
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Atualizar observações do agendamento",
+            description = """
+            Atualiza o campo de observações clínicas de um agendamento.\n
+            Regras:
+            - Exclusivo para ADMIN e PROFISSIONAL
+            - PROFISSIONAL só pode editar agendamentos da própria agenda
+            - Retorna o agendamento atualizado com todos os campos resolvidos
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Agendamento com observações atualizadas",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface AtualizarObservacoesSwagger {}
 
     // =========================================================
     // POST /api/agendamentos — RF07
@@ -51,6 +111,29 @@ public class AgendamentoSwagger {
     @CommonsSwagger.ApiResponseUnprocessable
     @CommonsSwagger.ApiResponseInternalServerError
     public @interface AgendarSwagger {}
+
+    // =========================================================
+    // PATCH /api/agendamentos/{id}/confirmar
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Confirmar agendamento",
+            description = """
+            Confirma a presença do paciente, alterando o status de AGENDADO para CONFIRMADO.\n
+            Regras:
+            - Apenas agendamentos com status AGENDADO podem ser confirmados
+            - Paciente só pode confirmar o próprio agendamento
+            - Profissional e Admin também podem confirmar
+            """
+    )
+    @ApiResponse(responseCode = "204", description = "Agendamento confirmado com sucesso")
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseConflict
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface ConfirmarSwagger {}
 
     // =========================================================
     // PATCH /api/agendamentos/{id}/cancelar — RF10
@@ -196,4 +279,68 @@ public class AgendamentoSwagger {
     @CommonsSwagger.ApiResponseNotFound
     @CommonsSwagger.ApiResponseInternalServerError
     public @interface TratamentosPorAvaliacaoSwagger {}
+
+    // =========================================================
+    // PATCH /api/agendamentos/{id}/evolucao
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Registrar evolução clínica pós-curativo",
+            description = """
+            Registra ou atualiza a evolução de enfermagem de um agendamento do tipo TRATAMENTO.\n
+            Campos cobertos pelo modelo de evolução (tratamento.md):
+            - Avaliação da lesão (localização, tipo, medidas, aspecto, exsudato, bordas, pele perilesional)
+            - Procedimento realizado (limpeza, coberturas, produtos)
+            - Resposta do paciente (aceitação, escala de dor EVA, intercorrências)
+            - Orientações fornecidas (cuidados, sinais de alerta, retorno)\n
+            Regras:
+            - Exclusivo para ADMIN e PROFISSIONAL
+            - PROFISSIONAL só pode registrar em agendamentos da própria agenda
+            - Agendamento deve ser do tipo TRATAMENTO
+            - Agendamento não pode estar CANCELADO
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Evolução registrada com sucesso",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseConflict
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface RegistrarEvolucaoSwagger {}
+
+    // =========================================================
+    // GET /api/agendamentos/meus
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Listar meus agendamentos (paciente)",
+            description = """
+            Retorna todos os agendamentos do paciente autenticado, ordenados do mais recente para o mais antigo. \n
+            Regras:
+            - Exclusivo para usuarios com perfil PACIENTE
+            - Filtra automaticamente pelo UUID do paciente extraido do JWT
+            - Nao requer parametros
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Lista de agendamentos do paciente autenticado",
+            content = @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = AgendamentoViewDTO.class))
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface MeusAgendamentosSwagger {}
 }

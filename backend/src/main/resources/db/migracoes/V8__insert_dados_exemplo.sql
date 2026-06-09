@@ -8,7 +8,7 @@ INSERT INTO perfis (nome, descricao) VALUES
 ('PACIENTE', 'Paciente com acesso ao próprio perfil e agendamentos');
 
 -- Inserir usuário ADMIN
-INSERT INTO usuarios (username, email, password_hash, nome_completo) VALUES
+INSERT INTO usuarios (username, email, senha_hash, nome_completo) VALUES
 ('admin', 'admin@prontudigital.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.KbJY7KxZYd6k6P2fTp.jusySWE.1mW', 'Administrador do Sistema');
 
 -- Associar perfil ADMIN ao usuário admin
@@ -16,7 +16,7 @@ INSERT INTO usuario_perfis (usuario_id, perfil_id) VALUES
 (1, 1); -- admin (id 1) tem perfil ADMIN (id 1)
 
 -- Inserir usuários NURSE (enfermeiros)
-INSERT INTO usuarios (username, email, password_hash, nome_completo) VALUES
+INSERT INTO usuarios (username, email, senha_hash, nome_completo) VALUES
 ('enfermeiro.silva', 'enfermeiro.silva@prontudigital.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.KbJY7KxZYd6k6P2fTp.jusySWE.1mW', 'Maria da Silva'),
 ('enfermeiro.santos', 'enfermeiro.santos@prontudigital.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.KbJY7KxZYd6k6P2fTp.jusySWE.1mW', 'João Santos');
 
@@ -26,7 +26,7 @@ INSERT INTO usuario_perfis (usuario_id, perfil_id) VALUES
 (3, 2); -- enfermeiro.santos (id 3)
 
 -- Inserir usuários PATIENT (pacientes)
-INSERT INTO usuarios (username, email, password_hash, nome_completo) VALUES
+INSERT INTO usuarios (username, email, senha_hash, nome_completo) VALUES
 ('paciente.oliveira', 'carlos.oliveira@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.KbJY7KxZYd6k6P2fTp.jusySWE.1mW', 'Carlos Oliveira'),
 ('paciente.souza', 'ana.souza@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.KbJY7KxZYd6k6P2fTp.jusySWE.1mW', 'Ana Souza'),
 ('paciente.rodrigues', 'paula.rodrigues@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.KbJY7KxZYd6k6P2fTp.jusySWE.1mW', 'Paula Rodrigues'),

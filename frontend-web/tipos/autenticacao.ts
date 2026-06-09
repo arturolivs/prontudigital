@@ -3,24 +3,39 @@ export interface Usuario {
   uuid: string
   nomeCompleto: string
   username: string
-  email: string
+  email?: string
+  telefone?: string
   ativo: boolean
+  acessoAtivado: boolean
   perfis: string[]
-  createdAt: string
-  updatedAt: string
+  criadoEm: string
+  atualizadoEm: string
 }
 
 export interface LoginRequisicao {
   username: string
-  password: string
+  senha: string
 }
 
 export interface RegistrarRequisicao {
   nomeCompleto: string
   email: string
   username: string
-  password: string
+  senha: string
+  telefone?: string
   perfis?: string[]
+}
+
+export interface CadastrarPacienteRequisicao {
+  nomeCompleto: string
+  telefone: string
+}
+
+export interface AtivarAcessoRequisicao {
+  telefone: string
+  email: string
+  username: string
+  senha: string
 }
 
 export interface JwtResposta {
@@ -47,12 +62,14 @@ export interface UsuarioAutenticado {
   username: string
   perfis: string[]
   token: string
+  uuid?: string
+  nomeCompleto?: string
 }
 
 export const PERFIS = {
   ADMIN: 'ROLE_ADMIN',
-  ENFERMEIRO: 'ENFERMEIRO',
-  MEDICO: 'MEDICO',
+  PROFISSIONAL: 'ROLE_PROFISSIONAL',
+  PACIENTE: 'ROLE_PACIENTE',
   USUARIO: 'USUARIO',
 } as const
 

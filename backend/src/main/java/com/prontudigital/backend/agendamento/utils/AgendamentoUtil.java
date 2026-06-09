@@ -1,9 +1,11 @@
 package com.prontudigital.backend.agendamento.utils;
 
-
+import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoClinicaDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +19,6 @@ public class AgendamentoUtil {
 
     private final UsuarioService usuarioService;
 
-    /*
-     * Método não-estático — a classe tem dependência injetada (UsuarioService),
-     * portanto nenhum método deve ser estático. Consistência garantida.
-     */
     public AgendamentoResponseDTO convertToResponseDTO(Agendamento agendamento) {
         return new AgendamentoResponseDTO(
                 agendamento.getId(),
@@ -29,6 +27,9 @@ public class AgendamentoUtil {
                 agendamento.getProfissionalUuid(),
                 agendamento.getPacienteUuid(),
                 agendamento.getTipo(),
+                agendamento.getTipoProcedimento(),
+                agendamento.getLocalAtendimento(),
+                agendamento.getPacienteAcamado(),
                 agendamento.getStatus(),
                 agendamento.getObservacoes(),
                 agendamento.getCriadoEm(),
@@ -60,10 +61,76 @@ public class AgendamentoUtil {
                 agendamento.getProfissionalUuid(),
                 agendamento.getPacienteUuid(),
                 agendamento.getTipo(),
+                agendamento.getTipoProcedimento(),
+                agendamento.getLocalAtendimento(),
+                agendamento.getPacienteAcamado(),
                 agendamento.getStatus(),
                 nomePaciente,
                 nomeProfissional,
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null
+        );
+    }
+
+    public AgendamentoDetalhadoDTO convertToDetalhadoDTO(Agendamento agendamento) {
+        String nomePaciente;
+        String nomeProfissional;
+
+        try {
+            UsuarioDTO paciente = usuarioService.buscarPorUuid(agendamento.getPacienteUuid());
+            UsuarioDTO profissional = usuarioService.buscarPorUuid(agendamento.getProfissionalUuid());
+            nomePaciente = paciente.nomeCompleto();
+            nomeProfissional = profissional.nomeCompleto();
+        } catch (Exception e) {
+            log.error("Erro ao resolver nomes para agendamento id={}", agendamento.getId(), e);
+            nomePaciente = "Indisponivel";
+            nomeProfissional = "Indisponivel";
+        }
+
+        return new AgendamentoDetalhadoDTO(
+                agendamento.getId(),
+                agendamento.getInicioEm(),
+                agendamento.getFimEm(),
+                agendamento.getProfissionalUuid(),
+                agendamento.getPacienteUuid(),
+                agendamento.getTipo(),
+                agendamento.getTipoProcedimento(),
+                agendamento.getLocalAtendimento(),
+                agendamento.getPacienteAcamado(),
+                agendamento.getStatus(),
+                nomePaciente,
+                nomeProfissional,
+                agendamento.getObservacoes(),
+                agendamento.getCriadoEm(),
+                agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
+                agendamento.getConcluidoEm(),
+                toEvolucaoDTO(agendamento.getEvolucaoClinica())
+        );
+    }
+
+    private EvolucaoClinicaDTO toEvolucaoDTO(EvolucaoClinica ec) {
+        if (ec == null) return null;
+        return new EvolucaoClinicaDTO(
+                ec.getLocalizacaoAnatomica(),
+                ec.getTipoLesao(),
+                ec.getMedidaComprimento(),
+                ec.getMedidaLargura(),
+                ec.getMedidaProfundidade(),
+                ec.getAspectoLeitoFerida(),
+                ec.getExsudatoVolume(),
+                ec.getExsudatoCaracteristica(),
+                ec.getCondicaoBordas(),
+                ec.getAspectoPerilesional(),
+                ec.getSinaisFlogisticos(),
+                ec.getPresencaOdor(),
+                ec.getLimpezaRealizada(),
+                ec.getCoberturasAplicadas(),
+                ec.getProdutosUtilizados(),
+                ec.getAceitacaoProcedimento(),
+                ec.getEscalaDor(),
+                ec.getIntercorrencias(),
+                ec.getCuidadosCurativo(),
+                ec.getSinaisAlerta(),
+                ec.getOrientacaoRetorno()
         );
     }
 }

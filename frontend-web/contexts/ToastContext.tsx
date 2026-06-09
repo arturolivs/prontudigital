@@ -8,37 +8,37 @@ import React, {
   ReactNode,
 } from 'react'
 
-type ToastType = 'error' | 'success' | 'info' | 'warning'
+type TipoNotificacao = 'error' | 'success' | 'info' | 'warning'
 
-interface Toast {
+interface Notificacao {
   id: string
-  message: string
-  type: ToastType
-  duration?: number
+  mensagem: string
+  tipo: TipoNotificacao
+  duracao?: number
 }
 
-interface ToastContextType {
-  toasts: Toast[]
-  showToast: (message: string, type?: ToastType, duration?: number) => string
-  removeToast: (id: string) => void
-  clearToasts: () => void
+interface TipoContextoNotificacao {
+  notificacoes: Notificacao[]
+  exibirNotificacao: (mensagem: string, tipo?: TipoNotificacao, duracao?: number) => string
+  removerNotificacao: (id: string) => void
+  limparNotificacoes: () => void
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined)
+const ContextoNotificacao = createContext<TipoContextoNotificacao | undefined>(undefined)
 
-export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([])
+export function ProvedorNotificacao({ children }: { children: ReactNode }) {
+  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([])
 
-  const showToast = useCallback(
-    (message: string, type: ToastType = 'error', duration: number = 5000) => {
+  const exibirNotificacao = useCallback(
+    (mensagem: string, tipo: TipoNotificacao = 'error', duracao: number = 5000) => {
       const id = Math.random().toString(36).substring(2, 9)
 
-      setToasts(prev => [...prev, { id, message, type, duration }])
+      setNotificacoes(prev => [...prev, { id, mensagem, tipo, duracao }])
 
-      if (duration > 0) {
+      if (duracao > 0) {
         setTimeout(() => {
-          removeToast(id)
-        }, duration)
+          removerNotificacao(id)
+        }, duracao)
       }
 
       return id
@@ -46,27 +46,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [],
   )
 
-  const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id))
+  const removerNotificacao = useCallback((id: string) => {
+    setNotificacoes(prev => prev.filter(n => n.id !== id))
   }, [])
 
-  const clearToasts = useCallback(() => {
-    setToasts([])
+  const limparNotificacoes = useCallback(() => {
+    setNotificacoes([])
   }, [])
 
   return (
-    <ToastContext.Provider
-      value={{ toasts, showToast, removeToast, clearToasts }}
+    <ContextoNotificacao.Provider
+      value={{ notificacoes, exibirNotificacao, removerNotificacao, limparNotificacoes }}
     >
       {children}
-    </ToastContext.Provider>
+    </ContextoNotificacao.Provider>
   )
 }
 
-export function useToast() {
-  const context = useContext(ToastContext)
-  if (context === undefined) {
-    throw new Error('useToast must be used within a ToastProvider')
+export function useNotificacao() {
+  const contexto = useContext(ContextoNotificacao)
+  if (contexto === undefined) {
+    throw new Error('useNotificacao deve ser usado dentro de ProvedorNotificacao')
   }
-  return context
+  return contexto
 }

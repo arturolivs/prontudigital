@@ -1,30 +1,36 @@
 'use client'
 
-import { ReactNode, useState } from 'react'
-import Sidebar from './Sidebar'
+import { ReactNode, useEffect, useState } from 'react'
+import BarraLateral from './BarraLateral'
 import './Layout.css'
 
-interface LayoutProps {
+interface PropsLayout {
   children: ReactNode
-  userRole: 'ROLE_ADMIN' | 'NURSE'
+  perfil: 'ROLE_ADMIN' | 'ROLE_PROFISSIONAL'
 }
 
-const Layout = ({ children, userRole }: LayoutProps) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+const Layout = ({ children, perfil }: PropsLayout) => {
+  const [barraLateralAberta, setBarraLateralAberta] = useState(true)
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
+  useEffect(() => {
+    if (window.innerWidth <= 768) {
+      setBarraLateralAberta(false)
+    }
+  }, [])
+
+  const alternarBarraLateral = () => setBarraLateralAberta(prev => !prev)
+  const fecharBarraLateral = () => setBarraLateralAberta(false)
 
   return (
     <div className="layout">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
-        userRole={userRole}
+      <BarraLateral
+        aberta={barraLateralAberta}
+        alternar={alternarBarraLateral}
+        fechar={fecharBarraLateral}
+        perfil={perfil}
       />
       <main
-        className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
+        className={`main-content ${barraLateralAberta ? 'sidebar-open' : 'sidebar-closed'}`}
       >
         {children}
       </main>

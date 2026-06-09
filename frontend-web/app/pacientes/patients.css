@@ -1,0 +1,424 @@
+/* ===== PÁGINA PACIENTES ===== */
+
+.pac-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ===== HEADER ===== */
+
+.pac-page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--color-bg-alt);
+}
+
+.pac-page-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pac-page-titulo h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.pac-total-geral {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-brand-light);
+  background: var(--color-bg-page);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.pac-periodo-label {
+  font-size: 0.8rem;
+  color: var(--color-brand-light);
+  background: var(--color-bg-page);
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+/* ===== FILTROS ===== */
+
+.pac-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pac-busca-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pac-busca-icon { position: absolute; left: 12px; color: var(--color-brand-light); pointer-events: none; }
+
+.pac-busca {
+  width: 100%;
+  max-width: 380px;
+  padding: 9px 36px 9px 38px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text-body);
+  background: white;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pac-busca::placeholder { color: var(--color-neutral-400); }
+
+.pac-busca:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+.pac-busca-limpar {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 2px;
+  line-height: 1;
+}
+
+.pac-busca-limpar:hover { color: var(--color-text-body); }
+
+.pac-filtro-status { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.pac-filtro-btn {
+  padding: 5px 14px;
+  border: 1px solid var(--color-border-brand);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-brand-light);
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.pac-filtro-btn:hover:not(.pac-filtro-ativo) {
+  background: var(--color-bg-page);
+  border-color: var(--color-brand-light);
+  color: var(--color-brand);
+}
+
+.pac-filtro-ativo {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: white;
+}
+
+/* ===== LISTA DE PACIENTES ===== */
+
+.pac-lista { display: flex; flex-direction: column; gap: 12px; }
+
+/* ===== CARTÃO DE PACIENTE ===== */
+
+.pac-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-brand);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(43, 108, 176, 0.06);
+  transition: box-shadow 0.2s;
+}
+
+.pac-card:hover { box-shadow: 0 4px 12px rgba(43, 108, 176, 0.1); }
+
+.pac-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pac-card-header:hover { background: var(--color-bg-subtle); }
+
+/* ===== AVATAR ===== */
+
+.pac-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+/* ===== INFO DO HEADER ===== */
+
+.pac-header-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pac-nome {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pac-header-meta { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.pac-meta-chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.pac-chip-avaliacao  { background: var(--color-type-avaliacao-bg-alt);  color: var(--color-success-text); }
+.pac-chip-tratamento { background: var(--color-type-tratamento-bg);      color: var(--color-info-deeper); }
+.pac-chip-realizado  { background: var(--color-success-bg);              color: var(--color-success-deeper); }
+.pac-chip-pendente   { background: var(--color-warning-bg);              color: var(--color-warning-deeper); }
+
+/* ===== LADO DIREITO DO HEADER ===== */
+
+.pac-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.pac-ultimo { font-size: 0.75rem; color: var(--color-neutral-400); white-space: nowrap; }
+
+.pac-total-badge {
+  min-width: 24px;
+  height: 24px;
+  background: var(--color-bg-page);
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+
+.pac-chevron { color: var(--color-neutral-400); transition: transform 0.2s; flex-shrink: 0; }
+.pac-chevron-aberto { transform: rotate(180deg); }
+
+/* ===== BODY DO CARTÃO ===== */
+
+.pac-card-body {
+  border-top: 1px solid var(--color-bg-tint);
+  padding: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--color-bg-subtle);
+}
+
+/* ===== CARD DE AGENDAMENTO ===== */
+
+.pac-appt-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-neutral-200);
+  border-left-width: 4px;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.pac-appt-card:hover { transform: translateX(2px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+
+.pac-appt-avaliacao  { border-left-color: var(--color-type-avaliacao); }
+.pac-appt-tratamento { border-left-color: var(--color-type-tratamento); }
+
+.pac-appt-topo { display: contents; }
+
+.pac-appt-time { display: flex; flex-direction: column; gap: 2px; min-width: 90px; }
+
+.pac-appt-hora { font-size: 0.9rem; font-weight: 700; color: var(--color-text-dark); }
+.pac-appt-data { font-size: 0.72rem; color: var(--color-neutral-500); }
+
+.pac-appt-info { flex: 1; }
+
+.pac-appt-tipo { font-size: 0.85rem; font-weight: 500; color: var(--color-text-body); }
+
+/* ===== STATUS BADGES NOS CARDS ===== */
+
+.pac-appt-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status-agendado        { background: var(--color-warning-bg);      color: var(--color-warning-deeper); border: 1px solid var(--color-warning-border); }
+.status-confirmado      { background: var(--color-info-bg);         color: var(--color-info-deeper);    border: 1px solid var(--color-info-border); }
+.status-cancelado       { background: var(--color-error-bg-alt);    color: var(--color-error-deeper);   border: 1px solid var(--color-error-border); }
+.status-remarcado       { background: var(--color-type-retorno-bg); color: var(--color-type-retorno-text); border: 1px solid var(--color-type-retorno-border); }
+.status-realizado       { background: var(--color-success-bg);      color: var(--color-success-deeper); border: 1px solid var(--color-success-border); }
+.status-nao-compareceu  { background: var(--color-neutral-100);     color: var(--color-neutral-600);    border: 1px solid var(--color-neutral-300); }
+
+/* ===== ESTADOS ===== */
+
+.pac-estado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: var(--color-neutral-500);
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-brand);
+  text-align: center;
+}
+
+.pac-estado p { font-size: 0.95rem; max-width: 360px; }
+
+.pac-estado-erro {
+  color: var(--color-error-deeper);
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+}
+
+.pac-retry-btn {
+  padding: 8px 18px;
+  background: var(--color-error);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pac-retry-btn:hover { background: var(--color-error-dark); }
+
+.pac-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--color-border-brand);
+  border-top-color: var(--color-brand);
+  border-radius: 50%;
+  animation: pac-spin 0.8s linear infinite;
+}
+
+@keyframes pac-spin { to { transform: rotate(360deg); } }
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  /* Espaço para hambúrguer fixo */
+  .pac-page {
+    padding: 4.5rem 1rem 2rem;
+  }
+
+  /* Header */
+  .pac-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .pac-page-titulo h1 { font-size: 1.4rem; }
+
+  /* Busca ocupa largura total */
+  .pac-busca-wrapper { width: 100%; }
+  .pac-busca { max-width: 100%; }
+
+  /* Filtros de status: scroll horizontal, sem quebra de linha */
+  .pac-filtro-status {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .pac-filtro-status::-webkit-scrollbar { display: none; }
+
+  .pac-filtro-btn { flex-shrink: 0; }
+
+  /* Card de paciente */
+  .pac-card-header { gap: 10px; padding: 12px 14px; }
+
+  .pac-avatar { width: 40px; height: 40px; font-size: 0.85rem; }
+
+  .pac-nome { font-size: 0.95rem; }
+
+  .pac-header-right { gap: 6px; }
+
+  .pac-ultimo { display: none; }
+
+  /* Card de agendamento: coluna no mobile */
+  .pac-appt-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .pac-appt-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .pac-appt-time {
+    min-width: unset;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pac-appt-hora { font-size: 0.875rem; }
+
+  .pac-appt-data::before { content: '·'; margin-right: 4px; }
+
+  .pac-appt-info { width: 100%; }
+
+  .pac-appt-status { align-self: flex-start; }
+}

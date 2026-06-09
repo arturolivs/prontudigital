@@ -19,8 +19,13 @@ server:
 
 app:
   jwt:
+    # ATENÇÃO: substitua por variável de ambiente em produção (JWT_SECRET)
+    secret: "prontudigital-jwt-secret-key-for-hs512-authentication-2026-change-in-prod"
     access-expiration-ms: 600000000
     refresh-expiration-ms: 600000000
+  notificacoes:
+    habilitadas: true
+    url-base-confirmacao: "http://localhost:8080/api/confirmacao"
 
 logging:
   level:

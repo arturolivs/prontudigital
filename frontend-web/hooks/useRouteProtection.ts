@@ -20,33 +20,42 @@ export const useRouteProtection = () => {
     })
 
     const configRotas = {
-      publicas: ['/login'],
+      publicasComRedirect: ['/login'],
+
+      publicasLivres: ['/agendar'],
 
       protegidas: {
         '/dashboard': [PERFIS.ADMIN],
-        '/agenda': [PERFIS.ENFERMEIRO, PERFIS.MEDICO, PERFIS.ADMIN],
+        '/agenda': [PERFIS.PROFISSIONAL, PERFIS.ADMIN],
       } as Record<string, string[]>,
 
       redirecionamentosPadrao: {
         [PERFIS.ADMIN]: '/dashboard',
-        [PERFIS.ENFERMEIRO]: '/agenda',
+        [PERFIS.PROFISSIONAL]: '/agenda',
       } as Record<string, string>,
     }
 
-    const rotaPublica = configRotas.publicas.includes(pathname)
-    const rotaProtegida = Object.keys(configRotas.protegidas).some(rota =>
-      pathname.startsWith(rota),
-    )
+    const match = (lista: string[]) =>
+      lista.some(rota => pathname === rota || pathname.startsWith(rota + '/'))
 
-    // Não autenticado tentando acessar rota protegida → login
+    const rotaPublicaLivre = match(configRotas.publicasLivres)
+    const rotaPublicaComRedirect = match(configRotas.publicasComRedirect)
+    const rotaProtegida =
+      !rotaPublicaLivre &&
+      !rotaPublicaComRedirect &&
+      Object.keys(configRotas.protegidas).some(
+        rota => pathname === rota || pathname.startsWith(rota + '/'),
+      )
+
+    if (rotaPublicaLivre) return
+
     if (rotaProtegida && !usuario) {
       console.log('🚫 Usuário não autenticado, redirecionando para login')
       router.push('/login')
       return
     }
 
-    // Autenticado em rota pública → redireciona pra home do perfil
-    if (rotaPublica && usuario) {
+    if (rotaPublicaComRedirect && usuario) {
       console.log('✅ Usuário autenticado em rota pública, redirecionando')
       const rotaPadrao =
         configRotas.redirecionamentosPadrao[usuario.perfis[0]] || '/agenda'
@@ -54,10 +63,9 @@ export const useRouteProtection = () => {
       return
     }
 
-    // Autenticado em rota protegida → verifica permissão
     if (rotaProtegida && usuario) {
-      const chaveRota = Object.keys(configRotas.protegidas).find(rota =>
-        pathname.startsWith(rota),
+      const chaveRota = Object.keys(configRotas.protegidas).find(
+        rota => pathname === rota || pathname.startsWith(rota + '/'),
       )
 
       if (chaveRota) {
@@ -70,7 +78,7 @@ export const useRouteProtection = () => {
           console.log(
             `🚫 Usuário sem permissão para ${chaveRota}, redirecionando para unauthorized`,
           )
-          router.push('/unauthorized')
+          router.push('/acesso-negado')
           return
         }
       }

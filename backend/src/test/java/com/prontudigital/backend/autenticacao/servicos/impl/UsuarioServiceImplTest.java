@@ -152,7 +152,7 @@ class UsuarioServiceImplTest {
 
             ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
             verify(usuarioRepository).save(captor.capture());
-            assertEquals(SENHA_HASH, captor.getValue().getPasswordHash());
+            assertEquals(SENHA_HASH, captor.getValue().getSenhaHash());
         }
 
         @Test

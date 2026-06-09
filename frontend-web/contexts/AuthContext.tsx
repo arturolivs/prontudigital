@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { autenticacaoAPI, tokenService } from '../lib/auth.service'
+import { usuariosAPI } from '../lib/usuario.service'
 import {
   UsuarioAutenticado,
   LoginRequisicao,
@@ -41,25 +42,37 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
 
   const verificarAutenticacao = async () => {
     try {
-      const token = tokenService.getToken()
-      console.log('🔐 verificarAutenticacao - Token encontrado:', !!token)
+      let token = tokenService.getToken()
 
       if (!token) {
-        console.log('❌ Nenhum token encontrado')
-        setUsuario(null)
-        return
+        try {
+          token = await tokenService.refresh()
+        } catch {
+          tokenService.clearTokens()
+          setUsuario(null)
+          return
+        }
       }
 
       const dadosArmazenados = tokenService.getDadosUsuario()
       if (dadosArmazenados) {
-        console.log('✅ Usuário recuperado do localStorage:', dadosArmazenados)
-        setUsuario(dadosArmazenados)
+        const dadosAtualizados = { ...dadosArmazenados, token }
+        tokenService.setDadosUsuario(dadosAtualizados)
+        setUsuario(dadosAtualizados)
         return
       }
 
+      // sessionStorage vazio: decodifica JWT para obter perfis (o JWT agora os contém)
       try {
         const dadosUsuario = decodificarJWT(token)
-        console.log('✅ Usuário do JWT:', dadosUsuario)
+        if (dadosUsuario.perfis.length === 0) {
+          // JWT sem perfis: busca dados completos do usuário
+          try {
+            const usuarioCompleto = await usuariosAPI.buscarUsuarioAtual()
+            dadosUsuario.uuid = usuarioCompleto.uuid
+            dadosUsuario.nomeCompleto = usuarioCompleto.nomeCompleto
+          } catch {}
+        }
         tokenService.setDadosUsuario(dadosUsuario)
         setUsuario(dadosUsuario)
       } catch (error) {
@@ -76,39 +89,16 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
     }
   }
 
-  /**
-   * Decodifica o payload do JWT. NÃO valida assinatura — isso é só pra ler
-   * os claims no client. A validação real acontece no backend.
-   *
-   * JWT usa base64url (não base64 padrão), então é preciso converter antes
-   * de chamar atob().
-   */
   const decodificarJWT = (token: string): UsuarioAutenticado => {
-    try {
-      const payloadBase64Url = token.split('.')[1]
-      if (!payloadBase64Url) throw new Error('JWT sem payload')
+    const payloadBase64Url = token.split('.')[1]
+    if (!payloadBase64Url) throw new Error('JWT inválido')
 
-      // Converte base64url → base64 padrão e adiciona padding
-      const base64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/')
-      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
-      const decoded = atob(padded)
-      const claims = JSON.parse(decoded)
+    const base64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+    const claims = JSON.parse(atob(padded))
+    const perfis: string[] = claims.perfis ?? claims.roles ?? []
 
-      console.log('📄 Payload do JWT:', claims)
-
-      // O backend coloca os perfis no claim "perfis" (ou "roles" dependendo da
-      // configuração do JwtService). Tenta os dois pra dar resiliência.
-      const perfis: string[] = claims.perfis ?? claims.roles ?? []
-
-      return {
-        username: claims.sub,
-        perfis,
-        token,
-      }
-    } catch (error) {
-      console.error('❌ Erro ao decodificar JWT:', error)
-      throw new Error('Token inválido')
-    }
+    return { username: claims.sub, perfis, token }
   }
 
   const temPerfil = (perfil: string): boolean => {
@@ -117,11 +107,9 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
 
   const login = async (credenciais: LoginRequisicao) => {
     try {
-      console.log('🔐 Iniciando login...')
       const resposta: JwtResposta = await autenticacaoAPI.login(credenciais)
-      console.log('✅ Resposta do login:', resposta)
 
-      tokenService.setTokens(resposta.accessToken, resposta.refreshToken)
+      tokenService.setTokens(resposta.accessToken)
 
       const dadosUsuario: UsuarioAutenticado = {
         username: resposta.username,
@@ -129,51 +117,34 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
         token: resposta.accessToken,
       }
 
-      console.log('💾 Salvando dadosUsuario no localStorage:', dadosUsuario)
+      try {
+        const usuarioCompleto = await usuariosAPI.buscarUsuarioAtual()
+        dadosUsuario.uuid = usuarioCompleto.uuid
+        dadosUsuario.nomeCompleto = usuarioCompleto.nomeCompleto
+      } catch {}
+
       tokenService.setDadosUsuario(dadosUsuario)
       setUsuario(dadosUsuario)
 
-      // TODO design: usar o primeiro perfil do array é frágil. Se o usuário
-      // tiver múltiplos perfis, a ordem decide o redirect. Considerar prioridade
-      // explícita ou deixar o usuário escolher.
       const perfilPrincipal = resposta.perfis[0]
       const mapaRedirecionamento: { [key: string]: string } = {
         [PERFIS.ADMIN]: '/dashboard',
-        [PERFIS.ENFERMEIRO]: '/appointments',
-        [PERFIS.MEDICO]: '/appointments',
-        [PERFIS.USUARIO]: '/appointments',
+        [PERFIS.PROFISSIONAL]: '/agenda',
+        [PERFIS.PACIENTE]: '/minha-agenda',
+        [PERFIS.USUARIO]: '/agenda',
       }
 
-      const destino = mapaRedirecionamento[perfilPrincipal] || '/appointments'
-      console.log(
-        `🔄 Redirecionando para ${destino} (perfil: ${perfilPrincipal})`,
-      )
-      router.push(destino)
+      router.push(mapaRedirecionamento[perfilPrincipal] || '/agenda')
     } catch (error: any) {
-      console.error('❌ Erro no login:', error)
       throw new Error(error.response?.data?.message || 'Erro ao fazer login')
     }
   }
 
   const logout = async () => {
-    try {
-      console.log('🚪 Fazendo logout...')
-
-      setUsuario(null)
-      tokenService.clearTokens()
-
-      // Fire-and-forget no backend — se falhar, o usuário já foi deslogado localmente
-      autenticacaoAPI.logout().catch(error => {
-        console.error('Erro no logout do backend:', error)
-      })
-
-      router.push('/login')
-    } catch (error) {
-      console.error('❌ Erro no logout:', error)
-      tokenService.clearTokens()
-      setUsuario(null)
-      router.push('/login')
-    }
+    setUsuario(null)
+    tokenService.clearTokens()
+    autenticacaoAPI.logout().catch(() => {})
+    router.push('/login')
   }
 
   const value: AuthContextType = {

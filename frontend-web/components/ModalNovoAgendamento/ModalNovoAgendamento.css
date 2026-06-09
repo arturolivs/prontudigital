@@ -1,0 +1,156 @@
+.mna-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.mna-erro {
+  padding: 0.75rem 1rem;
+  background: var(--color-error-bg);
+  color: var(--color-error-deeper);
+  border: 1px solid var(--color-error-border);
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+}
+
+.mna-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mna-rotulo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.mna-opcional {
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+}
+
+.mna-input,
+.mna-textarea {
+  width: 100%;
+  padding: 0.55rem 0.875rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-heading);
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.mna-input:focus,
+.mna-textarea:focus {
+  outline: none;
+  border-color: var(--color-brand-light);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+.mna-textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.mna-linha-datas {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mna-input-data { flex: 1.5; min-width: 130px; }
+.mna-input-hora { flex: 1; min-width: 90px; }
+
+.mna-separador {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* Botões de opção (tipo de agendamento, procedimento, local, acamado) */
+.mna-opcoes {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mna-opcao-btn {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-slate);
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.mna-opcao-btn:hover {
+  border-color: var(--color-brand-light);
+  color: var(--color-brand);
+  background: var(--color-bg-hover);
+}
+
+.mna-opcao-btn.ativo {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: white;
+  font-weight: 600;
+}
+
+/* Botões do rodapé */
+.mna-btn-cancelar {
+  padding: 0.6rem 1.1rem;
+  background: white;
+  color: var(--color-text-secondary);
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mna-btn-cancelar:hover:not(:disabled) {
+  border-color: var(--color-brand-light);
+  color: var(--color-brand);
+}
+
+.mna-btn-cancelar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.mna-btn-salvar {
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.25);
+}
+
+.mna-btn-salvar:hover:not(:disabled) {
+  box-shadow: 0 4px 10px rgba(43, 108, 176, 0.35);
+  transform: translateY(-1px);
+}
+
+.mna-btn-salvar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

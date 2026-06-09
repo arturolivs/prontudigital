@@ -2,9 +2,12 @@ package com.prontudigital.backend.agendamento.servicos.impl;
 
 import com.prontudigital.backend.agendamento.dto.*;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
+import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
+import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
 import com.prontudigital.backend.agendamento.eventos.*;
 import com.prontudigital.backend.agendamento.excecoes.*;
@@ -36,6 +39,7 @@ import static org.mockito.Mockito.*;
 class AgendamentoServiceImplTest {
 
     @Mock private AgendamentoRepository agendamentoRepository;
+    @Mock private EvolucaoClinicaRepository evolucaoClinicaRepository;
     @Mock private BloqueioHorarioRepository bloqueioHorarioRepository;
     @Mock private HistoricoAgendamentoRepository historicoRepository;
     @Mock private UsuarioService usuarioService;
@@ -55,8 +59,8 @@ class AgendamentoServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new AgendamentoServiceImpl(
-                agendamentoRepository, bloqueioHorarioRepository, historicoRepository,
-                usuarioService, usuarioContexto, permissaoPolicy,
+                agendamentoRepository, evolucaoClinicaRepository, bloqueioHorarioRepository,
+                historicoRepository, usuarioService, usuarioContexto, permissaoPolicy,
                 agendamentoUtil, eventPublisher, clock);
     }
 
@@ -69,6 +73,9 @@ class AgendamentoServiceImplTest {
                 .thenReturn(List.of());
     }
 
+    // =========================================================
+    // agendar()
+    // =========================================================
     @Nested
     @DisplayName("agendar()")
     class Agendar {
@@ -97,7 +104,8 @@ class AgendamentoServiceImplTest {
         void deveRejeitarPacienteAgendandoParaOutro() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     OUTRO_UUID, PROFISSIONAL_UUID, null, INICIO, FIM,
-                    TipoAgendamento.AVALIACAO, null);
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
 
@@ -115,7 +123,8 @@ class AgendamentoServiceImplTest {
                     PACIENTE_UUID, PROFISSIONAL_UUID, null,
                     LocalDateTime.of(2020, 1, 1, 10, 0),
                     LocalDateTime.of(2020, 1, 1, 11, 0),
-                    TipoAgendamento.AVALIACAO, null);
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
 
@@ -129,14 +138,15 @@ class AgendamentoServiceImplTest {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     PACIENTE_UUID, PROFISSIONAL_UUID, null,
                     INICIO, INICIO.plusMinutes(10),
-                    TipoAgendamento.AVALIACAO, null);
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
 
             AgendamentoInvalidoException ex = assertThrows(
                     AgendamentoInvalidoException.class,
                     () -> service.agendar(request));
-            assertTrue(ex.getMessage().contains("Duracão minima"));
+            assertTrue(ex.getMessage().contains("Duracao minima"));
         }
 
         @Test
@@ -202,6 +212,104 @@ class AgendamentoServiceImplTest {
         }
     }
 
+    // =========================================================
+    // buscarPorId()
+    // =========================================================
+    @Nested
+    @DisplayName("buscarPorId()")
+    class BuscarPorId {
+
+        @Test
+        @DisplayName("profissional visualiza proprio agendamento")
+        void deveBuscarComSucesso() {
+            Agendamento agendamento = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(agendamentoUtil.convertToDetalhadoDTO(agendamento))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            AgendamentoDetalhadoDTO resultado = service.buscarPorId(1L);
+
+            assertNotNull(resultado);
+            verify(agendamentoUtil).convertToDetalhadoDTO(agendamento);
+        }
+
+        @Test
+        @DisplayName("usuario sem vinculo com o agendamento eh rejeitado")
+        void deveRejeitarAcessoNaoAutorizado() {
+            Agendamento agendamento = agendamentoAgendado();
+            agendamento.setPacienteUuid(OUTRO_UUID);
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.buscarPorId(1L));
+        }
+
+        @Test
+        @DisplayName("agendamento inexistente lanca excecao")
+        void deveLancarSeNaoEncontrado() {
+            when(agendamentoRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThrows(AgendamentoNaoEncontradoException.class,
+                    () -> service.buscarPorId(999L));
+        }
+    }
+
+    // =========================================================
+    // confirmar()
+    // =========================================================
+    @Nested
+    @DisplayName("confirmar()")
+    class Confirmar {
+
+        @Test
+        @DisplayName("paciente confirma proprio agendamento com sucesso")
+        void deveConfirmarComSucesso() {
+            Agendamento agendamento = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            service.confirmar(1L);
+
+            assertEquals(StatusAgendamento.CONFIRMADO, agendamento.getStatus());
+            verify(agendamentoRepository).save(agendamento);
+        }
+
+        @Test
+        @DisplayName("rejeita confirmacao de agendamento que nao esta AGENDADO")
+        void deveRejeitarSeNaoAgendado() {
+            Agendamento agendamento = agendamentoComStatus(StatusAgendamento.CONFIRMADO);
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.confirmar(1L));
+
+            verify(agendamentoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita confirmacao por usuario sem permissao")
+        void deveRejeitarSemPermissao() {
+            Agendamento agendamento = agendamentoAgendado();
+            agendamento.setPacienteUuid(OUTRO_UUID);
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.confirmar(1L));
+        }
+    }
+
+    // =========================================================
+    // cancelar()
+    // =========================================================
     @Nested
     @DisplayName("cancelar()")
     class Cancelar {
@@ -249,6 +357,18 @@ class AgendamentoServiceImplTest {
         }
 
         @Test
+        @DisplayName("rejeita cancelamento de agendamento concluido")
+        void deveRejeitarSeConcluido() {
+            Agendamento agendamento = agendamentoComStatus(StatusAgendamento.REALIZADO);
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.cancelar(1L));
+        }
+
+        @Test
         @DisplayName("agendamento inexistente lanca excecao")
         void deveLancarSeNaoEncontrado() {
             when(agendamentoRepository.findById(999L)).thenReturn(Optional.empty());
@@ -258,6 +378,9 @@ class AgendamentoServiceImplTest {
         }
     }
 
+    // =========================================================
+    // reagendar()
+    // =========================================================
     @Nested
     @DisplayName("reagendar()")
     class Reagendar {
@@ -293,7 +416,6 @@ class AgendamentoServiceImplTest {
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
             when(bloqueioHorarioRepository.findConflitos(any(), any(), any()))
                     .thenReturn(List.of());
-            // O proprio agendamento aparece nos resultados — deve ser filtrado
             when(agendamentoRepository.findConflitosParaProfissionalComLock(any(), any(), any()))
                     .thenReturn(List.of(agendamento));
             when(agendamentoRepository.findConflitosParaPacienteComLock(any(), any(), any()))
@@ -352,10 +474,274 @@ class AgendamentoServiceImplTest {
             assertThrows(AgendamentoStatusInvalidoException.class,
                     () -> service.concluir(1L));
         }
+
+        @Test
+        @DisplayName("rejeita conclusao de agendamento ja concluido")
+        void deveRejeitarSeJaConcluido() {
+            Agendamento agendamento = agendamentoComStatus(StatusAgendamento.REALIZADO);
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoJaConcluidoException.class,
+                    () -> service.concluir(1L));
+        }
     }
 
     // =========================================================
-    // RF08 — visualizarAgenda()
+    // atualizarObservacoes()
+    // =========================================================
+    @Nested
+    @DisplayName("atualizarObservacoes()")
+    class AtualizarObservacoes {
+
+        @Test
+        @DisplayName("profissional atualiza observacoes com sucesso")
+        void deveAtualizarComSucesso() {
+            Agendamento agendamento = agendamentoAgendado();
+            String novasObs = "Paciente relatou dor leve";
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(agendamentoRepository.save(agendamento)).thenReturn(agendamento);
+            when(agendamentoUtil.convertToDetalhadoDTO(agendamento))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.atualizarObservacoes(1L, novasObs);
+
+            assertEquals(novasObs, agendamento.getObservacoes());
+            verify(agendamentoRepository).save(agendamento);
+        }
+
+        @Test
+        @DisplayName("paciente nao pode editar observacoes")
+        void deveRejeitarPaciente() {
+            Agendamento agendamento = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.atualizarObservacoes(1L, "obs"));
+
+            verify(agendamentoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("profissional sem vinculo com o agendamento eh rejeitado")
+        void deveRejeitarProfissionalSemVinculo() {
+            Agendamento agendamento = agendamentoAgendado();
+            agendamento.setProfissionalUuid(OUTRO_UUID);
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.atualizarObservacoes(1L, "obs"));
+        }
+    }
+
+    // =========================================================
+    // registrarEvolucao()
+    // =========================================================
+    @Nested
+    @DisplayName("registrarEvolucao()")
+    class RegistrarEvolucao {
+
+        @Test
+        @DisplayName("cria nova EvolucaoClinica quando nao existe registro anterior")
+        void deveCriarNovaEvolucao() {
+            Agendamento tratamento = agendamentoTratamento();
+            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
+                    .thenReturn(Optional.empty());
+            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucao(2L, request);
+
+            ArgumentCaptor<EvolucaoClinica> captor = ArgumentCaptor.forClass(EvolucaoClinica.class);
+            verify(evolucaoClinicaRepository).save(captor.capture());
+
+            EvolucaoClinica salva = captor.getValue();
+            assertEquals(tratamento, salva.getAgendamento());
+            assertEquals("Úlcera venosa", salva.getTipoLesao());
+            assertEquals(3, salva.getEscalaDor());
+        }
+
+        @Test
+        @DisplayName("atualiza EvolucaoClinica existente sem criar novo registro")
+        void deveAtualizarEvolucaoExistente() {
+            Agendamento tratamento = agendamentoTratamento();
+            EvolucaoClinica existente = evolucaoClinicaExistente(tratamento);
+            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
+                    .thenReturn(Optional.of(existente));
+            when(evolucaoClinicaRepository.save(existente)).thenReturn(existente);
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucao(2L, request);
+
+            // Deve salvar o mesmo objeto (atualização), não criar outro
+            verify(evolucaoClinicaRepository).save(existente);
+            assertEquals("Úlcera venosa", existente.getTipoLesao());
+            assertEquals(3, existente.getEscalaDor());
+        }
+
+        @Test
+        @DisplayName("paciente nao pode registrar evolucao")
+        void deveRejeitarPaciente() {
+            Agendamento tratamento = agendamentoTratamento();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.registrarEvolucao(2L, evolucaoRequest()));
+
+            verify(evolucaoClinicaRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita evolucao em agendamento do tipo AVALIACAO")
+        void deveRejeitarTipoAvaliacao() {
+            Agendamento avaliacao = agendamentoAgendado(); // tipo = AVALIACAO
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucao(1L, evolucaoRequest()));
+
+            verify(evolucaoClinicaRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita evolucao em agendamento cancelado")
+        void deveRejeitarAgendamentoCancelado() {
+            Agendamento cancelado = agendamentoTratamento();
+            cancelado.setStatus(StatusAgendamento.CANCELADO);
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(cancelado));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucao(2L, evolucaoRequest()));
+
+            verify(evolucaoClinicaRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("recarrega o agendamento apos salvar para retornar DTO atualizado")
+        void deveRecarregarAgendamentoAposSalvar() {
+            Agendamento tratamento = agendamentoTratamento();
+            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
+                    .thenReturn(Optional.empty());
+            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucao(2L, request);
+
+            // findById é chamado duas vezes: buscarOuFalhar + reload pós-save
+            verify(agendamentoRepository, times(2)).findById(2L);
+        }
+    }
+
+    // =========================================================
+    // obterMeusAgendamentos()
+    // =========================================================
+    @Nested
+    @DisplayName("obterMeusAgendamentos()")
+    class ObterMeusAgendamentos {
+
+        @Test
+        @DisplayName("paciente obtem lista dos proprios agendamentos")
+        void deveRetornarAgendamentosDoPackiente() {
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            when(agendamentoRepository.findByPacienteUuidOrderByInicioEmDesc(PACIENTE_UUID))
+                    .thenReturn(List.of(agendamentoAgendado()));
+            when(agendamentoUtil.convertToViewDTO(any()))
+                    .thenReturn(mock(AgendamentoViewDTO.class));
+
+            List<AgendamentoViewDTO> resultado = service.obterMeusAgendamentos();
+
+            assertEquals(1, resultado.size());
+        }
+
+        @Test
+        @DisplayName("profissional nao pode acessar endpoint de paciente")
+        void deveRejeitarNaoPaciente() {
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.obterMeusAgendamentos());
+        }
+    }
+
+    // =========================================================
+    // getTratamentosPorAvaliacao()
+    // =========================================================
+    @Nested
+    @DisplayName("getTratamentosPorAvaliacao()")
+    class GetTratamentosPorAvaliacao {
+
+        @Test
+        @DisplayName("retorna avaliacao seguida dos tratamentos vinculados")
+        void deveRetornarAvaliacaoETratamentos() {
+            Agendamento avaliacao = avaliacaoConcluida();
+            Agendamento tratamento = agendamentoTratamento();
+
+            when(agendamentoRepository.findById(99L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(agendamentoRepository.findByAvaliacaoId(99L)).thenReturn(List.of(tratamento));
+            when(agendamentoUtil.convertToViewDTO(any())).thenReturn(mock(AgendamentoViewDTO.class));
+
+            List<AgendamentoViewDTO> resultado = service.getTratamentosPorAvaliacao(99L);
+
+            // avaliacao + 1 tratamento = 2 itens
+            assertEquals(2, resultado.size());
+            verify(agendamentoUtil, times(2)).convertToViewDTO(any());
+        }
+
+        @Test
+        @DisplayName("lanca excecao se avaliacao nao encontrada")
+        void deveRejeitarAvaliacaoNaoEncontrada() {
+            when(agendamentoRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThrows(AvaliacaoNaoEncontradaException.class,
+                    () -> service.getTratamentosPorAvaliacao(99L));
+        }
+
+        @Test
+        @DisplayName("rejeita acesso de usuario sem vinculo com a avaliacao")
+        void deveRejeitarAcessoNaoAutorizado() {
+            Agendamento avaliacao = avaliacaoConcluida();
+            avaliacao.setPacienteUuid(OUTRO_UUID);
+            avaliacao.setProfissionalUuid(OUTRO_UUID);
+
+            when(agendamentoRepository.findById(99L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.getTratamentosPorAvaliacao(99L));
+        }
+    }
+
+    // =========================================================
+    // visualizarAgenda()
     // =========================================================
     @Nested
     @DisplayName("visualizarAgenda()")

@@ -1,7 +1,9 @@
-/* usersPage.css - com paleta #2b6cb0, #7991bc, #f4f9ff, #e6f4f1 */
+/* usuariosPage.css – layout moderno com ícones lucide-react */
 
-.users-container {
-  padding: 1rem;
+.users-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .users-header {
@@ -15,63 +17,107 @@
 
 .users-title {
   font-size: 1.5rem;
-  font-weight: bold;
-  color: #2b6cb0;
+  font-weight: 700;
+  color: var(--color-brand);
   margin: 0;
 }
 
 .btn-primary {
-  background-color: #2b6cb0;
+  background-color: var(--color-brand);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   border: none;
   cursor: pointer;
   font-size: 0.875rem;
-  transition: background-color 0.2s;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s, transform 0.1s;
 }
 
 .btn-primary:hover {
-  background-color: #1f4e7a;
+  background-color: var(--color-brand-dark);
+  transform: translateY(-1px);
 }
 
-/* Tabela */
+/* Tabela responsiva */
 .users-table-container {
   background-color: white;
   border-radius: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-bg-alt);
   overflow-x: auto;
-  border: 1px solid #e6f4f1;
 }
 
 .users-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 800px;
 }
 
 .users-table thead {
-  background-color: #f4f9ff;
-  border-bottom: 1px solid #e2edf7;
+  background-color: var(--color-bg-page);
+  border-bottom: 1px solid var(--color-border-brand);
 }
 
 .users-table th {
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   text-align: left;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #2b6cb0;
+  color: var(--color-brand);
 }
 
 .users-table td {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e9edf2;
-  color: #1e293b;
+  padding: 1rem 1rem;
+  border-bottom: 1px solid var(--color-border-brand);
+  color: var(--color-text-heading);
   font-size: 0.875rem;
+  vertical-align: middle;
 }
 
-/* Status toggle button */
+/* Badges de perfis */
+.roles-cell {
+  max-width: 200px;
+}
+
+.perfis-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.perfil-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  background-color: var(--color-bg-alt);
+  color: var(--color-brand);
+}
+
+.perfil-role_admin {
+  background-color: #e6f0ff;
+  color: #004e9e;
+}
+
+.perfil-role_profissional {
+  background-color: #e6f7e6;
+  color: #2e6b2e;
+}
+
+.perfil-role_paciente {
+  background-color: #fff0e0;
+  color: #b45f06;
+}
+
+/* Status toggle */
 .status-badge {
   display: inline-flex;
   padding: 0.25rem 0.75rem;
@@ -84,64 +130,64 @@
 }
 
 .status-badge-active {
-  background-color: #e6f4f1;
-  color: #2b6cb0;
+  background-color: var(--color-bg-alt);
+  color: var(--color-brand);
 }
 
 .status-badge-active:hover {
-  background-color: #cde3e0;
+  background-color: var(--color-border-light);
 }
 
 .status-badge-inactive {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: var(--color-error-bg-alt);
+  color: var(--color-error-deeper);
 }
 
 .status-badge-inactive:hover {
-  background-color: #fecaca;
+  background-color: var(--color-error-border);
 }
 
-/* Roles column */
-.roles-text {
-  white-space: normal;
-  word-break: break-word;
-  max-width: 200px;
-}
-
-/* Action buttons */
+/* Botões de ação com ícones */
 .action-buttons {
-  text-align: right;
-  font-size: 0.875rem;
-  font-weight: 500;
   white-space: nowrap;
+  text-align: right;
 }
 
-.btn-edit {
-  color: #2b6cb0;
+.action-buttons-header {
+  text-align: right;
+}
+
+.btn-edit,
+.btn-delete {
   background: none;
   border: none;
   cursor: pointer;
-  margin-right: 0.75rem;
-  padding: 0;
-  font-size: inherit;
+  padding: 0.25rem 0.5rem;
+  margin: 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-edit {
+  color: var(--color-brand);
 }
 
 .btn-edit:hover {
-  color: #1f4e7a;
+  background-color: var(--color-bg-hover);
   text-decoration: underline;
 }
 
 .btn-delete {
-  color: #dc2626;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-size: inherit;
+  color: var(--color-error);
 }
 
 .btn-delete:hover {
-  color: #b91c1c;
+  background-color: var(--color-error-bg);
   text-decoration: underline;
 }
 
@@ -157,11 +203,50 @@
   border-radius: 50%;
   width: 2.5rem;
   height: 2.5rem;
-  border: 3px solid #e2e8f0;
-  border-top-color: #2b6cb0;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-brand);
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .users-page {
+    padding: 12px;
+  }
+
+  .users-title {
+    font-size: 1.25rem;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .perfil-badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .btn-edit,
+  .btn-delete {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .btn-edit span,
+  .btn-delete span {
+    display: none; /* esconde o texto em telas muito pequenas, fica só ícone */
+  }
+
+  .btn-edit,
+  .btn-delete {
+    gap: 0;
+  }
 }

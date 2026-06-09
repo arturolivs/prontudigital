@@ -29,7 +29,7 @@ public class UserDetailsImpl implements UserDetails {
         return new UserDetailsImpl(
                 usuario.getId(),
                 usuario.getUsername(),
-                usuario.getPasswordHash(),
+                usuario.getSenhaHash(),
                 authorities);
     }
 }

@@ -1,116 +1,93 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faExclamationTriangle,
-  faCircleCheck,
-  faCircleInfo,
-  faXmark,
-} from '@fortawesome/free-solid-svg-icons'
+import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react'
 import './ToastNotification.css'
 
-export type ToastType = 'error' | 'success' | 'info' | 'warning'
+export type TipoNotificacao = 'error' | 'success' | 'info' | 'warning'
 
-interface ToastNotificationProps {
-  message: string
-  type?: ToastType
-  duration?: number
-  onClose?: () => void
-  isOpen?: boolean
+interface PropsNotificacao {
+  mensagem: string
+  tipo?: TipoNotificacao
+  duracao?: number
+  aoFechar?: () => void
+  aberto?: boolean
 }
 
-export default function ToastNotification({
-  message,
-  type = 'error',
-  duration = 5000,
-  onClose,
-  isOpen: externalIsOpen,
-}: ToastNotificationProps) {
-  const [isOpen, setIsOpen] = useState(true)
-  const [isExiting, setIsExiting] = useState(false)
-  const progressBarRef = useRef<HTMLDivElement>(null)
-  const animationFrameRef = useRef<number>(0)
+const ICONES: Record<TipoNotificacao, React.ElementType> = {
+  error:   AlertTriangle,
+  success: CheckCircle2,
+  warning: AlertTriangle,
+  info:    Info,
+}
+
+export default function Notificacao({
+  mensagem,
+  tipo = 'error',
+  duracao = 5000,
+  aoFechar,
+  aberto: abertoExterno,
+}: PropsNotificacao) {
+  const [visivel, setVisivel] = useState(true)
+  const [saindo, setSaindo] = useState(false)
+  const refBarraProgresso = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (externalIsOpen !== undefined) {
-      setIsOpen(externalIsOpen)
-    }
-  }, [externalIsOpen])
+    if (abertoExterno !== undefined) setVisivel(abertoExterno)
+  }, [abertoExterno])
 
   useEffect(() => {
-    if (isOpen && duration > 0 && progressBarRef.current) {
-      const progressBar = progressBarRef.current
-      progressBar.style.transition = 'none'
-      progressBar.style.transform = 'scaleX(0)'
-
-      progressBar.getBoundingClientRect()
-
-      progressBar.style.transition = `transform ${duration}ms linear`
-      progressBar.style.transform = 'scaleX(1)'
+    if (visivel && duracao > 0 && refBarraProgresso.current) {
+      const barra = refBarraProgresso.current
+      barra.style.transition = 'none'
+      barra.style.transform = 'scaleX(0)'
+      barra.getBoundingClientRect()
+      barra.style.transition = `transform ${duracao}ms linear`
+      barra.style.transform = 'scaleX(1)'
     }
-  }, [isOpen, duration])
+  }, [visivel, duracao])
 
   useEffect(() => {
-    if (isOpen && duration > 0) {
-      const timer = setTimeout(() => {
-        handleClose()
-      }, duration)
-
-      return () => clearTimeout(timer)
+    if (visivel && duracao > 0) {
+      const t = setTimeout(fechar, duracao)
+      return () => clearTimeout(t)
     }
-  }, [isOpen, duration])
+  }, [visivel, duracao])
 
-  const handleClose = () => {
-    setIsExiting(true)
+  const fechar = () => {
+    setSaindo(true)
     setTimeout(() => {
-      setIsOpen(false)
-      onClose?.()
+      setVisivel(false)
+      aoFechar?.()
     }, 300)
   }
 
-  if (!isOpen) return null
+  if (!visivel) return null
 
-  const getIcon = () => {
-    switch (type) {
-      case 'error':
-        return faExclamationTriangle
-      case 'success':
-        return faCircleCheck
-      case 'warning':
-        return faExclamationTriangle
-      case 'info':
-        return faCircleInfo
-      default:
-        return faExclamationTriangle
-    }
-  }
-
-  const toastClasses = `toast-notification ${isExiting ? 'exiting' : ''}`
-  const contentClasses = `toast-content toast-${type}`
+  const Icone = ICONES[tipo]
 
   return (
-    <div className={toastClasses}>
-      <div className={contentClasses}>
+    <div className={`toast-notification${saindo ? ' exiting' : ''}`}>
+      <div className={`toast-content toast-${tipo}`}>
         <div className="toast-icon">
-          <FontAwesomeIcon icon={getIcon()} />
+          <Icone size={18} strokeWidth={2} />
         </div>
 
-        <p className="toast-message">{message}</p>
+        <p className="toast-message">{mensagem}</p>
 
         <button
           type="button"
-          onClick={handleClose}
+          onClick={fechar}
           className="toast-close-btn"
           aria-label="Fechar notificação"
         >
-          <FontAwesomeIcon icon={faXmark} className="toast-close-icon" />
+          <X size={16} className="toast-close-icon" />
         </button>
       </div>
 
-      {duration > 0 && (
+      {duracao > 0 && (
         <div className="toast-progress">
-          <div ref={progressBarRef} className="toast-progress-bar" />
+          <div ref={refBarraProgresso} className="toast-progress-bar" />
         </div>
       )}
     </div>

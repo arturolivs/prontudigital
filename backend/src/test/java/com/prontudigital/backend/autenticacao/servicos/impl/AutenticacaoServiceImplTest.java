@@ -1,7 +1,9 @@
 package com.prontudigital.backend.autenticacao.servicos.impl;
 
 import com.prontudigital.backend.autenticacao.dto.*;
+import com.prontudigital.backend.autenticacao.entidades.Usuario;
 import com.prontudigital.backend.autenticacao.excecoes.TokenInvalidoException;
+import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.seguranca.JwtTokenProvider;
 import com.prontudigital.backend.autenticacao.seguranca.UserDetailsImpl;
 import com.prontudigital.backend.autenticacao.servicos.RefreshTokenService;
@@ -31,6 +33,7 @@ import static org.mockito.Mockito.*;
 class AutenticacaoServiceImplTest {
 
     @Mock private UsuarioService usuarioService;
+    @Mock private UsuarioRepository usuarioRepository;
     @Mock private JwtTokenProvider tokenProvider;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private RefreshTokenService refreshTokenService;
@@ -101,6 +104,8 @@ class AutenticacaoServiceImplTest {
             when(authentication.getPrincipal()).thenReturn(userDetails);
 
             when(authenticationManager.authenticate(any())).thenReturn(authentication);
+            when(usuarioRepository.findByUsername(USERNAME)).thenReturn(
+                    java.util.Optional.of(Usuario.builder().username(USERNAME).acessoAtivado(true).build()));
             when(tokenProvider.generateAccessToken(authentication)).thenReturn("access-token");
             when(refreshTokenService.gerarRefreshToken(USERNAME)).thenReturn("refresh-token");
 
@@ -135,6 +140,8 @@ class AutenticacaoServiceImplTest {
             doReturn(List.of()).when(userDetails).getAuthorities();
             when(authentication.getPrincipal()).thenReturn(userDetails);
             when(authenticationManager.authenticate(any())).thenReturn(authentication);
+            when(usuarioRepository.findByUsername(USERNAME)).thenReturn(
+                    java.util.Optional.of(Usuario.builder().username(USERNAME).acessoAtivado(true).build()));
             when(tokenProvider.generateAccessToken(any())).thenReturn("x");
             when(refreshTokenService.gerarRefreshToken(any())).thenReturn("y");
 

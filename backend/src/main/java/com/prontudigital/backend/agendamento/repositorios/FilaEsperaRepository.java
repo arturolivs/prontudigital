@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface FilaEsperaRepository extends JpaRepository<FilaEspera, Long> {
 
-    List<FilaEspera> findByProfissionalUuidAndStatusOrderByPrioridadeAscCreatedAtAsc(
+    List<FilaEspera> findByProfissionalUuidAndStatusOrderByPrioridadeAscCriadoEmAsc(
             UUID profissionalUuid, StatusFilaEspera status);
 
     List<FilaEspera> findByPacienteUuid(UUID pacienteUuid);

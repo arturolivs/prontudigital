@@ -4,16 +4,16 @@ import com.prontudigital.backend.agendamento.dto.BloqueioHorarioDTO;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoInvalidoException;
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoNaoEncontradoException;
+import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
+import com.prontudigital.backend.agendamento.repositorios.BloqueioRecorrenteRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.impl.fixtures.BloqueioHorarioTestFixtures;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -33,14 +33,19 @@ import static org.mockito.Mockito.*;
 class BloqueioHorarioServiceImplTest {
 
     @Mock private BloqueioHorarioRepository repository;
+    @Mock private BloqueioRecorrenteRepository recorrenteRepository;
+    @Mock private AgendamentoRepository agendamentoRepository;
     @Mock private UsuarioContexto usuarioContexto;
 
-    // Policy real — queremos testar a logica de autorizacao de fato
-    @Spy
-    private AgendamentoPermissaoPolicy permissaoPolicy = new AgendamentoPermissaoPolicy();
+    private final AgendamentoPermissaoPolicy permissaoPolicy = new AgendamentoPermissaoPolicy();
 
-    @InjectMocks
     private BloqueioHorarioServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        service = new BloqueioHorarioServiceImpl(
+                repository, recorrenteRepository, agendamentoRepository, usuarioContexto, permissaoPolicy);
+    }
 
     // =========================================================
     // criar()
@@ -104,7 +109,7 @@ class BloqueioHorarioServiceImplTest {
             BloqueioHorarioDTO request = new BloqueioHorarioDTO(
                     null, null, PROFISSIONAL_UUID,
                     FIM, INICIO,
-                    "Ferias", null);
+                    "Ferias", null, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
 
@@ -180,6 +185,8 @@ class BloqueioHorarioServiceImplTest {
         void deveListar() {
             when(repository.findConflitos(eq(PROFISSIONAL_UUID), any(), any()))
                     .thenReturn(List.of(bloqueioSalvo(), bloqueioSalvo()));
+            when(agendamentoRepository.findOcupadosPorProfissional(eq(PROFISSIONAL_UUID), any(), any()))
+                    .thenReturn(List.of());
 
             List<BloqueioHorarioDTO> resultado = service.listarPorProfissional(
                     PROFISSIONAL_UUID,
@@ -193,6 +200,8 @@ class BloqueioHorarioServiceImplTest {
         @DisplayName("retorna lista vazia quando nao ha bloqueios")
         void deveRetornarVaziaQuandoSemBloqueios() {
             when(repository.findConflitos(any(), any(), any())).thenReturn(List.of());
+            when(agendamentoRepository.findOcupadosPorProfissional(any(), any(), any()))
+                    .thenReturn(List.of());
 
             List<BloqueioHorarioDTO> resultado = service.listarPorProfissional(
                     PROFISSIONAL_UUID,

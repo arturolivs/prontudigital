@@ -1,0 +1,113 @@
+/* ===== CONTAINER ===== */
+
+.sac-container {
+  position: relative;
+  width: 100%;
+}
+
+/* ===== INPUT ===== */
+
+.sac-input-wrapper {
+  position: relative;
+}
+
+.sac-input {
+  width: 100%;
+  padding: 0.55rem 2.25rem 0.55rem 0.875rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-heading);
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: text;
+  box-sizing: border-box;
+}
+
+.sac-input:focus {
+  outline: none;
+  border-color: var(--color-brand-light);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+.sac-input:disabled {
+  background: var(--color-bg-surface, #f8fafc);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* ===== SETA ===== */
+
+.sac-seta {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 1.5px solid var(--color-text-muted, #94a3b8);
+  border-bottom: 1.5px solid var(--color-text-muted, #94a3b8);
+  transform: translateY(-65%) rotate(45deg);
+  transition: transform 0.18s ease;
+  pointer-events: none;
+}
+
+.sac-seta--aberta {
+  transform: translateY(-35%) rotate(225deg);
+}
+
+/* ===== LISTA (renderizada via portal) ===== */
+
+.sac-lista {
+  background: white;
+  border: 1.5px solid var(--color-border, #e2e8f0);
+  border-radius: 0.55rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0.25rem 0;
+  margin: 0;
+  animation: sac-fadeIn 0.12s ease;
+}
+
+@keyframes sac-fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== ITENS ===== */
+
+.sac-item {
+  padding: 0.55rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--color-text-heading);
+  cursor: pointer;
+  transition: background 0.1s;
+  user-select: none;
+}
+
+.sac-item:hover,
+.sac-item--ativo {
+  background: var(--color-bg-surface, #f8fafc);
+}
+
+.sac-item--selecionado {
+  color: var(--color-brand);
+  font-weight: 600;
+}
+
+.sac-item--selecionado:hover,
+.sac-item--selecionado.sac-item--ativo {
+  background: var(--color-brand-bg, #ebf4ff);
+}
+
+.sac-item--estado {
+  color: var(--color-text-muted, #94a3b8);
+  font-style: italic;
+  cursor: default;
+}
+
+.sac-item--estado:hover {
+  background: transparent;
+}

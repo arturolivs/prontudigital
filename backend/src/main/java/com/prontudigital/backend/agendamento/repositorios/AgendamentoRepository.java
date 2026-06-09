@@ -1,6 +1,7 @@
 package com.prontudigital.backend.agendamento.repositorios;
 
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
+import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -41,5 +42,22 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
 
+    @Query("SELECT a FROM Agendamento a WHERE " +
+            "a.profissionalUuid = :profissionalUuid AND " +
+            "a.status NOT IN ('CANCELADO', 'REALIZADO', 'NAO_COMPARECEU') AND " +
+            "a.inicioEm < :fim AND a.fimEm > :inicio")
+    List<Agendamento> findOcupadosPorProfissional(
+            @Param("profissionalUuid") UUID profissionalUuid,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim);
+
     List<Agendamento> findByAvaliacaoId(Long avaliacaoId);
+
+    List<Agendamento> findByPacienteUuidOrderByInicioEmDesc(UUID pacienteUuid);
+
+    @Query("SELECT a FROM Agendamento a WHERE a.status IN :statuses AND a.inicioEm BETWEEN :inicio AND :fim")
+    List<Agendamento> findByStatusInAndInicioEmBetween(
+            @Param("statuses") List<StatusAgendamento> statuses,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim);
 }

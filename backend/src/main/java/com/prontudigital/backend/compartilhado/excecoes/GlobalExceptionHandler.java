@@ -1,7 +1,10 @@
 package com.prontudigital.backend.compartilhado.excecoes;
 
 import com.prontudigital.backend.agendamento.excecoes.*;
+import com.prontudigital.backend.agendamento.excecoes.TokenConfirmacaoInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.*;
+import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
+import com.prontudigital.backend.autenticacao.excecoes.TelefoneExistenteException;
 import com.prontudigital.backend.compartilhado.dto.ErroRespostaDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +102,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
             NaoAutenticadoException.class,
-            AuthenticationException.class
+            AuthenticationException.class,
+            AcessoNaoAtivadoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleNaoAutenticado(
             RuntimeException ex, HttpServletRequest  request) {
@@ -135,6 +139,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({
             UserNameExistenteException.class,
             EmailExistenteException.class,
+            TelefoneExistenteException.class,
             AgendamentoJaCanceladoException.class,
             AgendamentoJaConcluidoException.class,
             HorarioIndisponivelException.class,
@@ -150,12 +155,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AgendamentoInvalidoException.class,
             AgendamentoDataHoraInvalidaException.class,
             AgendamentoStatusInvalidoException.class,
-            TipoVisualizacaoInvalidoException.class
+            TipoVisualizacaoInvalidoException.class,
+            com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleRegraDeNegocio(
             ExcecaoBase ex, HttpServletRequest request) {
         return build(HttpStatus.UNPROCESSABLE_ENTITY, "Operação inválida",
                 ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TokenConfirmacaoInvalidoException.class)
+    public ResponseEntity<ErroRespostaDTO> handleTokenConfirmacaoInvalido(
+            TokenConfirmacaoInvalidoException ex, HttpServletRequest request) {
+        return build(HttpStatus.GONE, "Link inválido ou expirado", ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)

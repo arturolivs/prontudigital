@@ -1,6 +1,12 @@
 package com.prontudigital.backend.agendamento.controladores;
 
-import com.prontudigital.backend.agendamento.dto.*;
+import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.AtualizarObservacoesRequestDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
 import com.prontudigital.backend.agendamento.swagger.AgendamentoSwagger.*;
@@ -27,12 +33,33 @@ public class AgendamentoController {
 
     private final AgendamentoService agendamentoService;
 
+    @GetMapping("/{id}")
+    @BuscarPorIdSwagger
+    public ResponseEntity<AgendamentoDetalhadoDTO> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(agendamentoService.buscarPorId(id));
+    }
+
+    @PatchMapping("/{id}/observacoes")
+    @AtualizarObservacoesSwagger
+    public ResponseEntity<AgendamentoDetalhadoDTO> atualizarObservacoes(
+            @PathVariable Long id,
+            @RequestBody AtualizarObservacoesRequestDTO request) {
+        return ResponseEntity.ok(agendamentoService.atualizarObservacoes(id, request.observacoes()));
+    }
+
     @PostMapping
     @AgendarSwagger
     public ResponseEntity<AgendamentoResponseDTO> agendar(
             @Valid @RequestBody AgendamentoRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(agendamentoService.agendar(request));
+    }
+
+    @PatchMapping("/{id}/confirmar")
+    @ConfirmarSwagger
+    public ResponseEntity<Void> confirmar(@PathVariable Long id) {
+        agendamentoService.confirmar(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/cancelar")
@@ -57,6 +84,14 @@ public class AgendamentoController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}/evolucao")
+    @RegistrarEvolucaoSwagger
+    public ResponseEntity<AgendamentoDetalhadoDTO> registrarEvolucao(
+            @PathVariable Long id,
+            @Valid @RequestBody EvolucaoTratamentoRequestDTO request) {
+        return ResponseEntity.ok(agendamentoService.registrarEvolucao(id, request));
+    }
+
     @GetMapping("/agenda")
     @VisualizarAgendaSwagger
     public ResponseEntity<List<AgendamentoViewDTO>> visualizarAgenda(
@@ -70,6 +105,12 @@ public class AgendamentoController {
             @RequestParam(required = false) UUID profissionalUuid) {
         return ResponseEntity.ok(
                 agendamentoService.visualizarAgenda(data, tipo, profissionalUuid));
+    }
+
+    @GetMapping("/meus")
+    @MeusAgendamentosSwagger
+    public ResponseEntity<List<AgendamentoViewDTO>> obterMeus() {
+        return ResponseEntity.ok(agendamentoService.obterMeusAgendamentos());
     }
 
     @GetMapping("/avaliacoes/{avaliacaoId}/tratamentos")

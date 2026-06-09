@@ -1,0 +1,2 @@
+ALTER TABLE agendamentos
+    ADD COLUMN tipo_procedimento VARCHAR(30) NOT NULL DEFAULT 'PODIATRIA';

@@ -1,8 +1,14 @@
 package com.prontudigital.backend.agendamento.servicos.impl;
 
-import com.prontudigital.backend.agendamento.dto.*;
+import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
+import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
@@ -13,6 +19,7 @@ import com.prontudigital.backend.agendamento.eventos.AgendamentoReagendadoEvento
 import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
+import com.prontudigital.backend.agendamento.repositorios.EvolucaoClinicaRepository;
 import com.prontudigital.backend.agendamento.repositorios.HistoricoAgendamentoRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
@@ -30,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +50,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private static final long DURACAO_MAX_MINUTOS = 480;
 
     private final AgendamentoRepository agendamentoRepository;
+    private final EvolucaoClinicaRepository evolucaoClinicaRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
     private final HistoricoAgendamentoRepository historicoRepository;
     private final UsuarioService usuarioService;
@@ -50,6 +59,101 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final AgendamentoUtil agendamentoUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
+
+    @Override
+    public AgendamentoDetalhadoDTO buscarPorId(Long id) {
+        Agendamento agendamento = buscarOuFalhar(id);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        if (!permissaoPolicy.podeVisualizar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Usuario nao autorizado a visualizar este agendamento");
+        }
+
+        return agendamentoUtil.convertToDetalhadoDTO(agendamento);
+    }
+
+    @Override
+    @Transactional
+    public AgendamentoDetalhadoDTO atualizarObservacoes(Long id, String observacoes) {
+        Agendamento agendamento = buscarOuFalhar(id);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+        if ("PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Paciente nao pode editar observacoes de agendamento");
+        }
+        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Usuario nao autorizado a editar este agendamento");
+        }
+
+        agendamento.setObservacoes(observacoes);
+        Agendamento salvo = agendamentoRepository.save(agendamento);
+        log.info("Observacoes atualizadas para agendamento id={}", salvo.getId());
+
+        return agendamentoUtil.convertToDetalhadoDTO(salvo);
+    }
+
+    @Override
+    @Transactional
+    public AgendamentoDetalhadoDTO registrarEvolucao(Long id, EvolucaoTratamentoRequestDTO request) {
+        Agendamento agendamento = buscarOuFalhar(id);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+        if ("PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Paciente nao pode registrar evolucao de tratamento");
+        }
+        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Usuario nao autorizado a registrar evolucao neste agendamento");
+        }
+        /*if (agendamento.getTipo() != TipoAgendamento.TRATAMENTO) {
+            throw new AgendamentoStatusInvalidoException(
+                    "Evolucao clinica so pode ser registrada em agendamentos do tipo TRATAMENTO");
+        }*/
+        if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
+            throw new AgendamentoStatusInvalidoException(
+                    "Nao e possivel registrar evolucao em agendamento cancelado");
+        }
+
+        EvolucaoClinica evolucao = evolucaoClinicaRepository
+                .findByAgendamento(agendamento)
+                .orElseGet(() -> EvolucaoClinica.builder().agendamento(agendamento).build());
+
+        evolucao.setLocalizacaoAnatomica(request.localizacaoAnatomica());
+        evolucao.setTipoLesao(request.tipoLesao());
+        evolucao.setMedidaComprimento(request.medidaComprimento());
+        evolucao.setMedidaLargura(request.medidaLargura());
+        evolucao.setMedidaProfundidade(request.medidaProfundidade());
+        evolucao.setAspectoLeitoFerida(request.aspectoLeitoFerida());
+        evolucao.setExsudatoVolume(request.exsudatoVolume());
+        evolucao.setExsudatoCaracteristica(request.exsudatoCaracteristica());
+        evolucao.setCondicaoBordas(request.condicaoBordas());
+        evolucao.setAspectoPerilesional(request.aspectoPerilesional());
+        evolucao.setSinaisFlogisticos(request.sinaisFlogisticos());
+        evolucao.setPresencaOdor(request.presencaOdor());
+        evolucao.setLimpezaRealizada(request.limpezaRealizada());
+        evolucao.setCoberturasAplicadas(request.coberturasAplicadas());
+        evolucao.setProdutosUtilizados(request.produtosUtilizados());
+        evolucao.setAceitacaoProcedimento(request.aceitacaoProcedimento());
+        evolucao.setEscalaDor(request.escalaDor());
+        evolucao.setIntercorrencias(request.intercorrencias());
+        evolucao.setCuidadosCurativo(request.cuidadosCurativo());
+        evolucao.setSinaisAlerta(request.sinaisAlerta());
+        evolucao.setOrientacaoRetorno(request.orientacaoRetorno());
+
+        evolucaoClinicaRepository.save(evolucao);
+        log.info("Evolucao clinica registrada para agendamento id={}", agendamento.getId());
+
+        Agendamento atualizado = agendamentoRepository.findById(agendamento.getId())
+                .orElseThrow(() -> new AgendamentoNaoEncontradoException(
+                        "Agendamento nao encontrado: " + agendamento.getId()));
+        return agendamentoUtil.convertToDetalhadoDTO(atualizado);
+    }
 
     @Override
     @Transactional
@@ -80,6 +184,9 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .fimEm(request.fimEm())
                 .status(StatusAgendamento.AGENDADO)
                 .tipo(request.tipo())
+                .tipoProcedimento(request.tipoProcedimento())
+                .localAtendimento(request.localAtendimento())
+                .pacienteAcamado(request.pacienteAcamado())
                 .build();
 
         if (request.tipo() == TipoAgendamento.TRATAMENTO) {
@@ -92,6 +199,26 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         eventPublisher.publishEvent(new AgendamentoCriadoEvento(salvo));
         return agendamentoUtil.convertToResponseDTO(salvo);
+    }
+
+    @Override
+    @Transactional
+    public void confirmar(Long agendamentoId) {
+        Agendamento agendamento = buscarOuFalhar(agendamentoId);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Usuario nao autorizado a confirmar este agendamento");
+        }
+        if (agendamento.getStatus() != StatusAgendamento.AGENDADO) {
+            throw new AgendamentoStatusInvalidoException(
+                    "Apenas agendamentos com status AGENDADO podem ser confirmados");
+        }
+
+        agendamento.setStatus(StatusAgendamento.CONFIRMADO);
+        agendamentoRepository.save(agendamento);
+        log.info("Agendamento {} confirmado pelo usuario {}", agendamentoId, usuario.uuid());
     }
 
     @Override
@@ -219,6 +346,23 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     }
 
     @Override
+    public List<AgendamentoViewDTO> obterMeusAgendamentos() {
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+
+        if (!"PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Apenas pacientes podem acessar este endpoint");
+        }
+
+        return agendamentoRepository
+                .findByPacienteUuidOrderByInicioEmDesc(usuario.uuid())
+                .stream()
+                .map(agendamentoUtil::convertToViewDTO)
+                .toList();
+    }
+
+    @Override
     public List<AgendamentoViewDTO> getTratamentosPorAvaliacao(Long avaliacaoId) {
         Agendamento avaliacao = agendamentoRepository.findById(avaliacaoId)
                 .orElseThrow(() -> new AvaliacaoNaoEncontradaException(
@@ -231,10 +375,12 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                     "Usuario nao autorizado a ver tratamentos desta avaliacao");
         }
 
-        return agendamentoRepository.findByAvaliacaoId(avaliacaoId)
-                .stream()
+        List<AgendamentoViewDTO> historico = new ArrayList<>();
+        historico.add(agendamentoUtil.convertToViewDTO(avaliacao));
+        agendamentoRepository.findByAvaliacaoId(avaliacaoId).stream()
                 .map(agendamentoUtil::convertToViewDTO)
-                .toList();
+                .forEach(historico::add);
+        return historico;
     }
 
     private void validarPeriodo(LocalDateTime inicio, LocalDateTime fim) {

@@ -1,0 +1,756 @@
+/* ============================================
+   Página de Procedimento – versão moderna
+   ============================================ */
+
+.proc-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 0px);
+  background: var(--color-bg-page);
+}
+
+/* ── Barra superior sticky ─────────────────── */
+.proc-topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.5rem;
+  background: white;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+}
+
+.proc-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.proc-back-btn:hover {
+  border-color: var(--color-brand-light);
+  color: var(--color-brand);
+  background: var(--color-bg-page);
+}
+
+.proc-topbar-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.proc-topbar-nome {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proc-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Hero (cabeçalho com gradiente) ────────── */
+.proc-hero {
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
+  padding: 2rem 1.5rem;
+  color: white;
+}
+
+.proc-hero-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.proc-hero-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.75rem;
+}
+
+.proc-hero-procedimento {
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.proc-hero-acamado {
+  background: rgba(194, 65, 12, 0.25);
+  border-color: rgba(194, 65, 12, 0.4);
+}
+
+.proc-hero-nome {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.proc-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.proc-hero-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.proc-hero-duracao {
+  margin-left: 0.25rem;
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+/* ── Grade de conteúdo ─────────────────────── */
+.proc-content {
+  flex: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.proc-col-esq { grid-column: 1; }
+.proc-col-dir { grid-column: 2; }
+.proc-full    { grid-column: 1 / -1; }
+
+/* ── Cards modernos ────────────────────────── */
+.proc-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  height: fit-content;
+}
+
+.proc-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-brand);
+}
+
+/* ── Lista de informações ──────────────────── */
+.proc-info-lista {
+  padding: 0.25rem 0;
+}
+
+.proc-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.proc-info-row:last-child {
+  border-bottom: none;
+}
+
+.proc-info-icone {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  margin-top: 0.1rem;
+}
+
+.proc-info-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.proc-info-rotulo {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.proc-info-valor {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-heading);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.proc-info-duracao {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+/* ── Badges de status e tipo ───────────────── */
+.proc-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+}
+
+.proc-status--AGENDADO {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-deeper);
+  border: 1px solid var(--color-warning-border);
+}
+.proc-status--CONFIRMADO {
+  background: var(--color-info-bg);
+  color: var(--color-info-deeper);
+  border: 1px solid var(--color-info-border);
+}
+.proc-status--REALIZADO {
+  background: var(--color-success-bg);
+  color: var(--color-success-deeper);
+  border: 1px solid var(--color-success-border);
+}
+.proc-status--CANCELADO {
+  background: var(--color-error-bg-alt);
+  color: var(--color-error-deeper);
+  border: 1px solid var(--color-error-border);
+}
+.proc-status--REMARCADO {
+  background: var(--color-type-retorno-bg);
+  color: var(--color-type-retorno-text);
+  border: 1px solid var(--color-type-retorno-border);
+}
+.proc-status--NAO_COMPARECEU {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-600);
+  border: 1px solid var(--color-neutral-300);
+}
+
+.proc-tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.8rem;
+  border-radius: 2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.proc-tipo-avaliacao {
+  background: var(--color-type-avaliacao-bg-alt);
+  color: var(--color-type-avaliacao-text);
+  border: 1px solid var(--color-type-avaliacao-border);
+}
+
+.proc-tipo-tratamento {
+  background: var(--color-type-tratamento-bg);
+  color: var(--color-type-tratamento-text);
+  border: 1px solid var(--color-type-tratamento-border);
+}
+
+/* ── Histórico (lista vertical) ────────────── */
+.proc-historico-lista {
+  padding: 0.25rem 0;
+}
+
+.proc-hist-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.proc-hist-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 2rem;
+  bottom: -0.25rem;
+  width: 2px;
+  height: 0.75rem;
+  background: var(--color-border);
+}
+
+.proc-hist-item:hover:not(.proc-hist-item--atual) {
+  background: var(--color-bg-hover);
+}
+
+.proc-hist-item--atual {
+  background: var(--color-bg-tint);
+}
+
+.proc-hist-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  z-index: 1;
+  position: relative;
+  background: white;
+}
+
+.proc-hist-dot--avaliacao {
+  background: var(--color-type-avaliacao-bg-alt);
+  color: var(--color-type-avaliacao-text);
+  border: 2px solid var(--color-type-avaliacao-border);
+}
+
+.proc-hist-dot--tratamento {
+  background: var(--color-type-tratamento-bg);
+  color: var(--color-type-tratamento-text);
+  border: 2px solid var(--color-type-tratamento-border);
+}
+
+.proc-hist-dot--atual {
+  background: var(--color-brand);
+  color: white;
+  border: 2px solid var(--color-brand);
+}
+
+.proc-hist-dot--realizado {
+  background: var(--color-success-bg);
+  color: var(--color-success-deeper);
+  border: 2px solid var(--color-success-border-alt);
+}
+
+.proc-hist-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.proc-hist-esq {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.proc-hist-data {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-body);
+}
+
+.proc-hist-tipo {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+
+.proc-hist-atual-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-brand);
+  background: white;
+  border: 1px solid var(--color-brand);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ── Loading e estados vazios ───────────────── */
+.proc-hist-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.proc-hist-spinner {
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2px solid var(--color-border-brand);
+  border-top-color: var(--color-brand);
+  border-radius: 50%;
+  animation: proc-spin 0.7s linear infinite;
+}
+
+@keyframes proc-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Observações (textarea) ─────────────────── */
+.proc-obs-area {
+  padding: 1rem 1.25rem;
+}
+
+.proc-obs-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-heading);
+  background: white;
+  resize: vertical;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.proc-obs-textarea:focus {
+  outline: none;
+  border-color: var(--color-brand-light);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+.proc-obs-textarea:disabled {
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+/* ── Barra de ações sticky no rodapé ────────── */
+.proc-actions-bar {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid var(--color-border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  z-index: 100;
+  margin-top: auto;
+}
+
+.proc-actions-spacer {
+  flex: 1;
+}
+
+.proc-btn-iniciar,
+.proc-btn-finalizar,
+.proc-btn-realizado,
+.proc-btn-proximo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+}
+
+.proc-btn-iniciar {
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.3);
+}
+
+.proc-btn-iniciar:hover {
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.4);
+  transform: translateY(-1px);
+}
+
+.proc-btn-finalizar {
+  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+
+.proc-btn-finalizar:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-success-dark) 0%, var(--color-success-deeper) 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  transform: translateY(-1px);
+}
+
+.proc-btn-finalizar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.proc-btn-realizado {
+  background: var(--color-success-bg);
+  color: var(--color-success-deeper);
+  border: 1px solid var(--color-success-border);
+  cursor: default;
+  box-shadow: none;
+}
+
+.proc-btn-proximo {
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.3);
+}
+
+.proc-btn-proximo:hover {
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.4);
+  transform: translateY(-1px);
+}
+
+/* ── Tag "Bloqueado" no header de observações ── */
+.proc-obs-bloqueado-tag {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-neutral-400);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Botões do rodapé do modal ─────────────────── */
+.proc-modal-descricao {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.proc-modal-btn-primario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.1rem;
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.25);
+}
+
+.proc-modal-btn-primario:hover {
+  box-shadow: 0 4px 10px rgba(43, 108, 176, 0.35);
+  transform: translateY(-1px);
+}
+
+.proc-modal-btn-secundario {
+  padding: 0.6rem 1rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.proc-modal-btn-secundario:hover {
+  border-color: var(--color-brand-light);
+  color: var(--color-brand);
+}
+
+/* ── Estados de erro / loading da página ────── */
+.proc-estado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.proc-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--color-border-brand);
+  border-top-color: var(--color-brand);
+  border-radius: 50%;
+  animation: proc-spin 0.8s linear infinite;
+}
+
+/* ── Formulário de evolução clínica ────────── */
+.proc-form {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.proc-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.proc-form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.proc-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.proc-campo-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.proc-campo-input,
+.proc-campo-select,
+.proc-campo-textarea {
+  width: 100%;
+  padding: 0.6rem 0.875rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-heading);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.proc-campo-input:focus,
+.proc-campo-select:focus,
+.proc-campo-textarea:focus {
+  outline: none;
+  border-color: var(--color-brand-light);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+.proc-campo-input:disabled,
+.proc-campo-select:disabled,
+.proc-campo-textarea:disabled {
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  border-color: var(--color-border);
+}
+
+.proc-campo-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+}
+
+.proc-campo-select:disabled {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+.proc-campo-textarea {
+  resize: vertical;
+  line-height: 1.5;
+  min-height: 3.5rem;
+}
+
+/* ── Responsivo ─────────────────────────────── */
+@media (max-width: 768px) {
+  .proc-content {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .proc-col-esq,
+  .proc-col-dir,
+  .proc-full {
+    grid-column: 1;
+  }
+
+  .proc-form-grid,
+  .proc-form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .proc-hero-nome {
+    font-size: 1.4rem;
+  }
+
+  .proc-topbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .proc-actions-bar {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .proc-btn-iniciar,
+  .proc-btn-finalizar,
+  .proc-btn-realizado,
+  .proc-btn-proximo {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .proc-hero-meta {
+    gap: 0.75rem;
+  }
+
+  .proc-hero {
+    padding: 1.25rem 1rem;
+  }
+}

@@ -1,181 +1,274 @@
-/* Layout.css - atualizado com a nova paleta */
+/* Layout.css - Versão moderna e clean */
 
-/* Layout principal */
 .layout {
   display: flex;
   height: 100vh;
-  background-color: #f4f9ff;
+  background-color: var(--color-bg-page);
 }
 
-/* Conteúdo principal */
 .main-content {
   flex: 1;
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
   overflow-y: auto;
-  background-color: #f4f9ff;
+  background-color: var(--color-bg-page);
 }
 
 .main-content.sidebar-open {
-  margin-left: 250px;
+  margin-left: 260px;
 }
 
 .main-content.sidebar-closed {
-  margin-left: 70px;
+  margin-left: 80px;
 }
 
-/* Sidebar */
+/* ───────────────────────────────────────────────────────────────── */
+/* SIDEBAR MODERNA – fundo branco, sombra, cantos arredondados        */
+/* ───────────────────────────────────────────────────────────────── */
 .sidebar {
   position: fixed;
   left: 0;
   top: 0;
   height: 100vh;
-  background: linear-gradient(180deg, #2b6cb0 0%, #7991bc 100%);
-  color: white;
-  transition: width 0.3s ease;
+  background-color: #ffffff;
+  color: var(--color-text-body);
+  transition: width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05), 1px 0 0 0 var(--color-border);
+  border-radius: 0 20px 20px 0;
+  overflow-y: auto;
 }
 
 .sidebar.open {
-  width: 250px;
+  width: 260px;
 }
 
 .sidebar.closed {
-  width: 70px;
+  width: 80px;
 }
 
-/* Header do Sidebar */
+/* Cabeçalho da sidebar */
 .sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
   min-height: 80px;
 }
 
 .logo h2 {
   margin: 0;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.35rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  letter-spacing: -0.3px;
 }
 
 .toggle-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.2rem;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  padding: 5px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 0.5rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .toggle-btn:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-brand-light);
+  color: var(--color-brand);
+  transform: scale(0.96);
 }
 
-/* Navegação */
+/* Navegação principal */
 .sidebar-nav {
   flex: 1;
-  padding: 20px 0;
+  padding: 1.5rem 0.75rem;
 }
 
 .sidebar-nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.sidebar-nav li {
-  margin-bottom: 5px;
-}
-
+/* Itens do menu */
 .nav-item {
   width: 100%;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.85);
-  padding: 12px 20px;
-  text-align: left;
+  padding: 0.7rem 0.875rem;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 12px;
-  text-decoration: none;
+  gap: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-  color: white;
+  background-color: var(--color-bg-hover);
+  color: var(--color-brand);
 }
 
 .nav-item.active {
-  background-color: #e6f4f1;
-  color: #2b6cb0;
-  border-right: 3px solid #2b6cb0;
+  background-color: var(--color-bg-tint);
+  color: var(--color-brand);
+  font-weight: 600;
+  border-left: 3px solid var(--color-brand);
 }
 
 .nav-icon {
-  font-size: 1.2rem;
   min-width: 24px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.nav-item:hover .nav-icon {
+  transform: translateX(2px);
 }
 
 .nav-label {
-  font-size: 0.9rem;
-  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
+  transition: opacity 0.2s ease;
 }
 
-/* Footer do Sidebar */
+/* Sidebar colapsada: ícones centralizados, sem texto */
+.sidebar.closed .nav-item {
+  justify-content: center;
+  padding: 0.7rem;
+}
+
+.sidebar.closed .nav-label {
+  display: none;
+}
+
+.sidebar.closed .sidebar-header {
+  justify-content: center;
+  padding: 1.5rem 0;
+}
+
+.sidebar.closed .toggle-btn {
+  margin: 0 auto;
+}
+
+/* Rodapé da sidebar (botão sair) */
 .sidebar-footer {
-  padding: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 1.25rem 0.75rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: auto;
 }
 
 .logout-btn {
   width: 100%;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.85);
-  padding: 12px 20px;
-  text-align: left;
+  padding: 0.7rem 0.875rem;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-radius: 4px;
+  gap: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .logout-btn:hover {
-  background-color: rgba(231, 76, 60, 0.25);
-  color: #ffb3b3;
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
 }
 
-/* Responsividade */
+.logout-btn:hover .nav-icon {
+  transform: translateX(2px);
+}
+
+.sidebar.closed .logout-btn {
+  justify-content: center;
+  padding: 0.7rem;
+}
+
+.sidebar.closed .logout-btn .nav-label {
+  display: none;
+}
+
+/* Scroll customizado (opcional, para um toque ainda mais moderno) */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: var(--color-neutral-100);
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 4px;
+}
+
+/* Botão flutuante para abrir sidebar no mobile (oculto no desktop) */
+.sidebar-mobile-toggle {
+  display: none;
+}
+
+/* Responsividade para telas pequenas */
 @media (max-width: 768px) {
-  .main-content.sidebar-open {
-    margin-left: 0;
-  }
-  
-  .sidebar.open {
-    width: 250px;
-    transform: translateX(0);
-  }
-  
-  .sidebar.closed {
-    width: 70px;
-    transform: translateX(-100%);
-  }
-  
+  .main-content.sidebar-open,
   .main-content.sidebar-closed {
     margin-left: 0;
+  }
+
+  .sidebar.open {
+    width: 260px;
+    transform: translateX(0);
+  }
+
+  .sidebar.closed {
+    width: 0;
+    transform: translateX(-100%);
+  }
+
+  .sidebar-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1001;
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    border-radius: 12px;
+    padding: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .sidebar-mobile-toggle:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-brand-light);
+    color: var(--color-brand);
   }
 }

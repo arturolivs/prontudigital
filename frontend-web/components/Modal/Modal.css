@@ -1,0 +1,115 @@
+/* ===== OVERLAY ===== */
+
+.modal-gen-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 1rem;
+  animation: modal-gen-fadeIn 0.15s ease;
+}
+
+@keyframes modal-gen-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ===== CARD ===== */
+
+.modal-gen {
+  background: white;
+  border-radius: 1rem;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: modal-gen-slideUp 0.2s ease;
+}
+
+.modal-gen--sm { max-width: 400px; }
+.modal-gen--md { max-width: 520px; }
+.modal-gen--lg { max-width: 720px; }
+
+@keyframes modal-gen-slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== CABEÇALHO ===== */
+
+.modal-gen-header {
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.modal-gen-titulo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-gen-fechar {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 0.4rem;
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.modal-gen-fechar:hover { background: rgba(255, 255, 255, 0.28); }
+
+/* ===== CORPO (scrollável) ===== */
+
+.modal-gen-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-gen-body--sem-padding {
+  padding: 0;
+}
+
+/* ===== RODAPÉ ===== */
+
+.modal-gen-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid var(--color-bg-surface);
+  flex-shrink: 0;
+}
+
+/* ===== RESPONSIVO ===== */
+
+@media (max-width: 540px) {
+  .modal-gen { max-width: 100%; max-height: 95vh; }
+  .modal-gen-header { padding: 1rem 1.25rem; }
+  .modal-gen-body   { padding: 1.25rem; }
+  .modal-gen-footer { padding: 0.875rem 1.25rem 1.25rem; }
+}

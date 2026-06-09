@@ -1,9 +1,11 @@
 package com.prontudigital.backend.agendamento.controladores;
 
 import com.prontudigital.backend.agendamento.dto.BloqueioHorarioDTO;
+import com.prontudigital.backend.agendamento.dto.BloqueioRecorrenteDTO;
 import com.prontudigital.backend.agendamento.servicos.BloqueioHorarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,38 @@ public class BloqueioHorarioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remover(@PathVariable Long id) {
         service.remover(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Listar bloqueios de um profissional (público, sem autenticação)")
+    @SecurityRequirements
+    @GetMapping("/public")
+    public ResponseEntity<List<BloqueioHorarioDTO>> listarPublico(
+            @RequestParam UUID profissionalUuid,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+        return ResponseEntity.ok(service.listarPorProfissional(profissionalUuid, inicio, fim));
+    }
+
+    @Operation(summary = "Criar bloqueio recorrente por dia da semana")
+    @PostMapping("/recorrentes")
+    public ResponseEntity<BloqueioRecorrenteDTO> criarRecorrente(
+            @Valid @RequestBody BloqueioRecorrenteDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.criarRecorrente(request));
+    }
+
+    @Operation(summary = "Listar regras de bloqueio recorrente de um profissional")
+    @GetMapping("/recorrentes")
+    public ResponseEntity<List<BloqueioRecorrenteDTO>> listarRecorrentes(
+            @RequestParam UUID profissionalUuid) {
+        return ResponseEntity.ok(service.listarRecorrentesPorProfissional(profissionalUuid));
+    }
+
+    @Operation(summary = "Remover regra de bloqueio recorrente")
+    @DeleteMapping("/recorrentes/{id}")
+    public ResponseEntity<Void> removerRecorrente(@PathVariable Long id) {
+        service.removerRecorrente(id);
         return ResponseEntity.noContent().build();
     }
 }
