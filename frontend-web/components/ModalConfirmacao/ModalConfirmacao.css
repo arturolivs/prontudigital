@@ -1,0 +1,56 @@
+.confirmacao-mensagem {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-slate);
+  line-height: 1.6;
+}
+
+.confirmacao-btn-cancelar {
+  padding: 0.6rem 1.25rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: white;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmacao-btn-cancelar:hover {
+  border-color: var(--color-text-muted);
+  color: var(--color-text-slate);
+  background: var(--color-bg-surface);
+}
+
+.confirmacao-btn-confirmar {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmacao-btn-confirmar--perigo {
+  background: #dc2626;
+  color: white;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.confirmacao-btn-confirmar--perigo:hover {
+  background: #b91c1c;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.confirmacao-btn-confirmar--aviso {
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.3);
+}
+
+.confirmacao-btn-confirmar--aviso:hover {
+  background: linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand-muted) 100%);
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.4);
+}
