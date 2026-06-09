@@ -2,6 +2,7 @@ package com.prontudigital.backend.autenticacao.servicos.impl;
 
 import com.prontudigital.backend.autenticacao.dto.AlterarSenhaRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.AtivarAcessoRequestDTO;
+import com.prontudigital.backend.autenticacao.dto.AtualizarPerfilRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.CadastrarPacienteDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
@@ -83,6 +84,16 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         atualizarPerfis(usuario, dto.perfis());
 
+        return converterUsuarioParaDTO(usuarioRepository.save(usuario));
+    }
+
+    @Override
+    @Transactional
+    public UsuarioDTO atualizarPerfil(Long id, AtualizarPerfilRequestDTO dto) {
+        Usuario usuario = getUsuarioPorId(id);
+        usuario.setNomeCompleto(dto.nomeCompleto());
+        usuario.setEmail(dto.email());
+        usuario.setTelefone(dto.telefone());
         return converterUsuarioParaDTO(usuarioRepository.save(usuario));
     }
 
