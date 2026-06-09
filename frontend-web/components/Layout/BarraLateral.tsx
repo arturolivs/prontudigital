@@ -67,6 +67,12 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
       perfis: ['ROLE_PROFISSIONAL'],
     },
     {
+      rotulo: 'Usuários',
+      caminho: '/dashboard/usuarios',
+      icone: Users,
+      perfis: ['ROLE_ADMIN'],
+    },
+    {
       rotulo: 'Relatórios',
       caminho: '/reports',
       icone: BarChart3,
