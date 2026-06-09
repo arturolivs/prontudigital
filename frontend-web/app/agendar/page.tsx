@@ -12,6 +12,7 @@ import { BloqueioHorario } from '../../tipos/bloqueio'
 import { Agendamento } from '../../tipos/agendamento'
 import { TipoProcedimento, ROTULO_TIPO_PROCEDIMENTO } from '../../tipos/TipoProcedimento'
 import { LocalAtendimento, ROTULO_LOCAL_ATENDIMENTO } from '../../tipos/LocalAtendimento'
+import { mascaraTelefone } from '../../lib/mascaras'
 import './agendar.css'
 
 /* ── helpers ── */
@@ -639,14 +640,14 @@ export default function AgendarPage() {
                     <input
                       type="tel"
                       className="campo-input"
-                      placeholder="(11) 99999-9999"
+                      placeholder="(99) 9 9999-9999"
                       value={cadastroForm.telefone}
                       required
                       autoComplete="tel"
                       onChange={e =>
                         setCadastroForm(f => ({
                           ...f,
-                          telefone: e.target.value,
+                          telefone: mascaraTelefone(e.target.value),
                         }))
                       }
                     />

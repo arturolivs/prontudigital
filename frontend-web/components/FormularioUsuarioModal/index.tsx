@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Usuario } from '@/tipos/autenticacao'
 import Modal from '@/components/Modal'
+import { mascaraTelefone } from '@/lib/mascaras'
 import './FormularioUsuarioModal.style.css'
 
 const OPCOES_PERFIL = [
@@ -143,7 +144,7 @@ export default function FormularioUsuarioModal({
     nomeCompleto: user?.nomeCompleto ?? '',
     username: user?.username ?? '',
     email: user?.email ?? '',
-    telefone: user?.telefone ?? '',
+    telefone: mascaraTelefone(user?.telefone ?? ''),
     senha: '',
     ativo: user?.ativo !== undefined ? user.ativo : true,
     perfis: user?.perfis ?? ['USUARIO'],
@@ -261,9 +262,9 @@ export default function FormularioUsuarioModal({
             <input
               type="tel"
               value={formData.telefone}
-              onChange={set('telefone')}
+              onChange={e => setFormData(prev => ({ ...prev, telefone: mascaraTelefone(e.target.value) }))}
               className="uf-input"
-              placeholder="(00) 00000-0000"
+              placeholder="(99) 9 9999-9999"
             />
           </div>
           <div className="uf-grupo">

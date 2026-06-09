@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { usuariosAPI } from '@/lib/usuario.service'
 import { tokenService } from '@/lib/auth.service'
+import { mascaraTelefone } from '@/lib/mascaras'
 import { Usuario } from '@/tipos/autenticacao'
 import './perfil.css'
 
@@ -58,7 +59,7 @@ export default function PerfilPage() {
       setDadosUsuario(dados)
       setNomeCompleto(dados.nomeCompleto || '')
       setEmail(dados.email || '')
-      setTelefone(dados.telefone || '')
+      setTelefone(mascaraTelefone(dados.telefone || ''))
     } catch {
       exibirNotificacao('Erro ao carregar dados do perfil', 'error')
     } finally {
@@ -259,8 +260,8 @@ export default function PerfilPage() {
                       type="tel"
                       className="campo-input com-icone"
                       value={telefone}
-                      onChange={e => setTelefone(e.target.value)}
-                      placeholder="(00) 00000-0000"
+                      onChange={e => setTelefone(mascaraTelefone(e.target.value))}
+                      placeholder="(99) 9 9999-9999"
                     />
                   </div>
                 </div>
