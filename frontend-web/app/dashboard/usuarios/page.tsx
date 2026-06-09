@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { usuariosAPI } from '@/lib/usuario.service'
 import { Usuario, RegistrarRequisicao } from '@/tipos/autenticacao'
@@ -138,10 +139,11 @@ export default function UsuariosPage() {
   }
 
   return (
-    <div className="users-container">
+    <div className="users-page">
       <div className="users-header">
         <h1 className="users-title">Usuários</h1>
         <button onClick={openCreateModal} className="btn-primary">
+          <Plus size={16} strokeWidth={2} />
           Novo Usuário
         </button>
       </div>
@@ -156,7 +158,7 @@ export default function UsuariosPage() {
               <th>Telefone</th>
               <th>Status</th>
               <th>Perfis</th>
-              <th className="action-buttons">Ações</th>
+              <th className="action-buttons-header">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -176,16 +178,40 @@ export default function UsuariosPage() {
                     {u.ativo ? 'Ativo' : 'Inativo'}
                   </button>
                 </td>
-                <td className="roles-text">{u.perfis.join(', ')}</td>
+                <td className="roles-cell">
+                  <div className="perfis-badges">
+                    {u.perfis.map(perfil => (
+                      <span
+                        key={perfil}
+                        className={`perfil-badge perfil-${perfil.toLowerCase()}`}
+                      >
+                        {perfil === 'ROLE_ADMIN'
+                          ? 'Admin'
+                          : perfil === 'ROLE_PROFISSIONAL'
+                            ? 'Profissional'
+                            : perfil === 'ROLE_PACIENTE'
+                              ? 'Paciente'
+                              : perfil}
+                      </span>
+                    ))}
+                  </div>
+                </td>
                 <td className="action-buttons">
-                  <button onClick={() => openEditModal(u)} className="btn-edit">
-                    Editar
+                  <button
+                    onClick={() => openEditModal(u)}
+                    className="btn-edit"
+                    title="Editar"
+                  >
+                    <Pencil size={14} />
+                    <span>Editar</span>
                   </button>
                   <button
                     onClick={() => handleDelete(u.id)}
                     className="btn-delete"
+                    title="Excluir"
                   >
-                    Excluir
+                    <Trash2 size={14} />
+                    <span>Excluir</span>
                   </button>
                 </td>
               </tr>
