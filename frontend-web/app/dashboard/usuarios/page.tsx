@@ -8,12 +8,14 @@ import { Usuario, RegistrarRequisicao } from '@/tipos/autenticacao'
 import './usuariosPage.css'
 import { useNotificacao } from '@/contexts/ToastContext'
 import FormularioUsuarioModal from '@/components/FormularioUsuarioModal'
+import ModalConfirmacao from '@/components/ModalConfirmacao'
 
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null)
+  const [confirmacao, setConfirmacao] = useState<{ mensagem: string; acao: () => void } | null>(null)
   const { usuario } = useAuth()
   const { exibirNotificacao } = useNotificacao()
 
@@ -33,21 +35,25 @@ export default function UsuariosPage() {
     fetchUsuarios()
   }, [])
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este usuário?')) return
-
-    try {
-      await usuariosAPI.excluirUsuario(id)
-      setUsuarios(usuarios.filter(u => u.id !== id))
-      exibirNotificacao('Usuário excluído com sucesso!', 'success', 6000)
-    } catch (error: any) {
-      console.error('Erro ao excluir usuário', error)
-      exibirNotificacao(
-        error.message || 'Erro ao excluir usuário',
-        'error',
-        6000,
-      )
-    }
+  const handleDelete = (id: number) => {
+    setConfirmacao({
+      mensagem: 'Tem certeza que deseja excluir este usuário?',
+      acao: async () => {
+        setConfirmacao(null)
+        try {
+          await usuariosAPI.excluirUsuario(id)
+          setUsuarios(usuarios.filter(u => u.id !== id))
+          exibirNotificacao('Usuário excluído com sucesso!', 'success', 6000)
+        } catch (error: any) {
+          console.error('Erro ao excluir usuário', error)
+          exibirNotificacao(
+            error.message || 'Erro ao excluir usuário',
+            'error',
+            6000,
+          )
+        }
+      },
+    })
   }
 
   const handleToggleStatus = async (id: number, ativoAtual: boolean) => {
@@ -225,6 +231,16 @@ export default function UsuariosPage() {
           user={usuarioEditando}
           onClose={closeModal}
           onSave={handleSave}
+        />
+      )}
+
+      {confirmacao && (
+        <ModalConfirmacao
+          mensagem={confirmacao.mensagem}
+          titulo="Excluir usuário"
+          textoBotaoConfirmar="Excluir"
+          onConfirmar={confirmacao.acao}
+          onCancelar={() => setConfirmacao(null)}
         />
       )}
     </div>

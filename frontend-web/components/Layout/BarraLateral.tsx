@@ -37,6 +37,12 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
 
   const itensMenu: ItemMenu[] = [
     {
+      rotulo: 'Meu Perfil',
+      caminho: '/perfil',
+      icone: UserCircle,
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
+    },
+    {
       rotulo: 'Dashboard',
       caminho: '/dashboard',
       icone: LayoutDashboard,
@@ -83,12 +89,6 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
       caminho: '/settings',
       icone: Settings,
       perfis: ['ROLE_ADMIN'],
-    },
-    {
-      rotulo: 'Meu Perfil',
-      caminho: '/perfil',
-      icone: UserCircle,
-      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
   ]
 

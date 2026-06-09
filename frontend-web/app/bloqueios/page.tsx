@@ -32,6 +32,7 @@ import {
 } from '@/tipos/bloqueio'
 import './bloqueios.css'
 import Modal from '@/components/Modal'
+import ModalConfirmacao from '@/components/ModalConfirmacao'
 
 /* ── helpers de data ── */
 
@@ -128,6 +129,7 @@ export default function BloqueiosPage() {
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [modalAberto, setModalAberto] = useState(false)
+  const [confirmacao, setConfirmacao] = useState<{ mensagem: string; titulo: string; textoBotao: string; acao: () => void } | null>(null)
   const [modoModal, setModoModal] = useState<ModoModal>('UNICO')
   const [filtroRapido, setFiltroRapido] = useState<FiltroRapido>('MES')
   const [filtroTipo, setFiltroTipo] = useState<TipoBloqueio | ''>('')
@@ -321,40 +323,51 @@ export default function BloqueiosPage() {
   }
 
   /* ── excluir bloqueio único ── */
-  const handleExcluir = async (bloqueio: BloqueioHorario) => {
+  const handleExcluir = (bloqueio: BloqueioHorario) => {
     if (bloqueio.profissionalUuid !== profissionalUuid) return
 
-    if (!confirm('Tem certeza que deseja remover este bloqueio?')) return
-    try {
-      await bloqueioAPI.remover(bloqueio.id)
-      setBloqueios(prev => prev.filter(b => b.uuid !== bloqueio.uuid))
-      exibirNotificacao('Bloqueio removido com sucesso!', 'success', 4000)
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        'Erro ao remover o bloqueio.'
-      exibirNotificacao(String(msg), 'error', 6000)
-    }
+    setConfirmacao({
+      mensagem: 'Tem certeza que deseja remover este bloqueio?',
+      titulo: 'Remover bloqueio',
+      textoBotao: 'Remover',
+      acao: async () => {
+        setConfirmacao(null)
+        try {
+          await bloqueioAPI.remover(bloqueio.id)
+          setBloqueios(prev => prev.filter(b => b.uuid !== bloqueio.uuid))
+          exibirNotificacao('Bloqueio removido com sucesso!', 'success', 4000)
+        } catch (err: any) {
+          const msg =
+            err?.response?.data?.message ||
+            err?.response?.data ||
+            'Erro ao remover o bloqueio.'
+          exibirNotificacao(String(msg), 'error', 6000)
+        }
+      },
+    })
   }
 
   /* ── excluir regra recorrente ── */
-  const handleExcluirRecorrente = async (regra: BloqueioRecorrente) => {
-    if (
-      !confirm(
-        `Remover regra recorrente de ${DIAS_SEMANA.find(d => d.valor === regra.diaSemana)?.label}? Todos os bloqueios futuros desse dia serão cancelados.`,
-      )
-    )
-      return
-    try {
-      await bloqueioAPI.removerRecorrente(regra.id)
-      setRecorrentes(prev => prev.filter(r => r.uuid !== regra.uuid))
-      exibirNotificacao('Regra recorrente removida!', 'success', 4000)
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message || 'Erro ao remover a regra.'
-      exibirNotificacao(String(msg), 'error', 6000)
-    }
+  const handleExcluirRecorrente = (regra: BloqueioRecorrente) => {
+    const diaLabel = DIAS_SEMANA.find(d => d.valor === regra.diaSemana)?.label
+
+    setConfirmacao({
+      mensagem: `Remover regra recorrente de ${diaLabel}? Todos os bloqueios futuros desse dia serão cancelados.`,
+      titulo: 'Remover regra recorrente',
+      textoBotao: 'Remover Regra',
+      acao: async () => {
+        setConfirmacao(null)
+        try {
+          await bloqueioAPI.removerRecorrente(regra.id)
+          setRecorrentes(prev => prev.filter(r => r.uuid !== regra.uuid))
+          exibirNotificacao('Regra recorrente removida!', 'success', 4000)
+        } catch (err: any) {
+          const msg =
+            err?.response?.data?.message || 'Erro ao remover a regra.'
+          exibirNotificacao(String(msg), 'error', 6000)
+        }
+      },
+    })
   }
 
   const abrirModal = () => {
@@ -637,6 +650,17 @@ export default function BloqueiosPage() {
             </div>
           )}
         </div>
+
+        {/* ── Modal de confirmação ── */}
+        {confirmacao && (
+          <ModalConfirmacao
+            mensagem={confirmacao.mensagem}
+            titulo={confirmacao.titulo}
+            textoBotaoConfirmar={confirmacao.textoBotao}
+            onConfirmar={confirmacao.acao}
+            onCancelar={() => setConfirmacao(null)}
+          />
+        )}
 
         {/* ── Modal ── */}
         {modalAberto && (
