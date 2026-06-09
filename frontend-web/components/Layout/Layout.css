@@ -226,6 +226,11 @@
   border-radius: 4px;
 }
 
+/* Botão flutuante para abrir sidebar no mobile (oculto no desktop) */
+.sidebar-mobile-toggle {
+  display: none;
+}
+
 /* Responsividade para telas pequenas */
 @media (max-width: 768px) {
   .main-content.sidebar-open,
@@ -241,5 +246,29 @@
   .sidebar.closed {
     width: 0;
     transform: translateX(-100%);
+  }
+
+  .sidebar-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1001;
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    border-radius: 12px;
+    padding: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .sidebar-mobile-toggle:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-brand-light);
+    color: var(--color-brand);
   }
 }

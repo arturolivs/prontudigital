@@ -59,8 +59,7 @@ export default function Login() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#f4f9ff] to-[#e6f4f1] p-4 md:p-8">
       <div className="flex flex-col md:flex-row w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
-        {/* Left Side - Logo e Informações */}
-        <div className="w-full md:w-1/2 bg-gradient-to-br from-[#2b6cb0] to-[#7991bc] p-8 md:p-12 flex flex-col justify-center items-center text-center md:text-left">
+        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#2b6cb0] to-[#7991bc] p-8 md:p-12 flex-col justify-center items-center text-center md:text-left">
           <div className="max-w-md mx-auto">
             {/* Logo / Ícone Principal */}
             <div className="mb-6 flex justify-center md:justify-start">
@@ -147,7 +146,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Right Side - Formulário de Login */}
+        {/* Right Side - Formulário de Login (sempre visível, ocupa toda largura no mobile) */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex items-center justify-center bg-white">
           <div className="w-full max-w-md">
             <div className="text-center mb-8">

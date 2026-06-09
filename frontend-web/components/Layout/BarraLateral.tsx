@@ -13,7 +13,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  UserCircle,
 } from 'lucide-react'
 import './Layout.css'
 
@@ -36,12 +35,6 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
   const { logout } = useAuth()
 
   const itensMenu: ItemMenu[] = [
-    {
-      rotulo: 'Meu Perfil',
-      caminho: '/perfil',
-      icone: UserCircle,
-      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
-    },
     {
       rotulo: 'Dashboard',
       caminho: '/dashboard',
@@ -96,6 +89,9 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
 
   const navegarPara = (caminho: string) => {
     router.push(caminho)
+    if (window.innerWidth <= 768) {
+      fechar()
+    }
   }
 
   const sair = () => {
@@ -103,54 +99,65 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
   }
 
   return (
-    <div className={`sidebar ${aberta ? 'open' : 'closed'}`}>
-      <div className="sidebar-header">
-        {aberta && (
-          <div className="logo">
-            <h2>ProntoDigital</h2>
-          </div>
-        )}
+    <>
+      {!aberta && (
         <button
-          className="toggle-btn"
+          className="sidebar-mobile-toggle"
           onClick={alternar}
-          aria-label={aberta ? 'Recolher menu' : 'Expandir menu'}
+          aria-label="Expandir menu"
         >
-          {aberta ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+          <Menu size={22} />
         </button>
-      </div>
+      )}
+      <div className={`sidebar ${aberta ? 'open' : 'closed'}`}>
+        <div className="sidebar-header">
+          {aberta && (
+            <div className="logo">
+              <h2>ProntoDigital</h2>
+            </div>
+          )}
+          <button
+            className="toggle-btn"
+            onClick={alternar}
+            aria-label={aberta ? 'Recolher menu' : 'Expandir menu'}
+          >
+            {aberta ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+          </button>
+        </div>
 
-      <nav className="sidebar-nav">
-        <ul>
-          {itensFiltrados.map(item => {
-            const Icon = item.icone
-            const isActive = pathname === item.caminho
-            return (
-              <li key={item.caminho}>
-                <button
-                  className={`nav-item ${isActive ? 'active' : ''}`}
-                  onClick={() => navegarPara(item.caminho)}
-                  title={!aberta ? item.rotulo : undefined}
-                >
-                  <Icon size={20} className="nav-icon" />
-                  {aberta && <span className="nav-label">{item.rotulo}</span>}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
+        <nav className="sidebar-nav">
+          <ul>
+            {itensFiltrados.map(item => {
+              const Icon = item.icone
+              const isActive = pathname === item.caminho
+              return (
+                <li key={item.caminho}>
+                  <button
+                    className={`nav-item ${isActive ? 'active' : ''}`}
+                    onClick={() => navegarPara(item.caminho)}
+                    title={!aberta ? item.rotulo : undefined}
+                  >
+                    <Icon size={20} className="nav-icon" />
+                    {aberta && <span className="nav-label">{item.rotulo}</span>}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
 
-      <div className="sidebar-footer">
-        <button
-          className="logout-btn"
-          onClick={sair}
-          title={!aberta ? 'Sair' : undefined}
-        >
-          <LogOut size={20} className="nav-icon" />
-          {aberta && <span className="nav-label">Sair</span>}
-        </button>
+        <div className="sidebar-footer">
+          <button
+            className="logout-btn"
+            onClick={sair}
+            title={!aberta ? 'Sair' : undefined}
+          >
+            <LogOut size={20} className="nav-icon" />
+            {aberta && <span className="nav-label">Sair</span>}
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

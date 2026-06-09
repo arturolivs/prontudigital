@@ -129,7 +129,6 @@ export default function BloqueiosPage() {
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [modalAberto, setModalAberto] = useState(false)
-  const [confirmacao, setConfirmacao] = useState<{ mensagem: string; titulo: string; textoBotao: string; acao: () => void } | null>(null)
   const [modoModal, setModoModal] = useState<ModoModal>('UNICO')
   const [filtroRapido, setFiltroRapido] = useState<FiltroRapido>('MES')
   const [filtroTipo, setFiltroTipo] = useState<TipoBloqueio | ''>('')
@@ -323,28 +322,21 @@ export default function BloqueiosPage() {
   }
 
   /* ── excluir bloqueio único ── */
-  const handleExcluir = (bloqueio: BloqueioHorario) => {
+  const handleExcluir = async (bloqueio: BloqueioHorario) => {
     if (bloqueio.profissionalUuid !== profissionalUuid) return
 
-    setConfirmacao({
-      mensagem: 'Tem certeza que deseja remover este bloqueio?',
-      titulo: 'Remover bloqueio',
-      textoBotao: 'Remover',
-      acao: async () => {
-        setConfirmacao(null)
-        try {
-          await bloqueioAPI.remover(bloqueio.id)
-          setBloqueios(prev => prev.filter(b => b.uuid !== bloqueio.uuid))
-          exibirNotificacao('Bloqueio removido com sucesso!', 'success', 4000)
-        } catch (err: any) {
-          const msg =
-            err?.response?.data?.message ||
-            err?.response?.data ||
-            'Erro ao remover o bloqueio.'
-          exibirNotificacao(String(msg), 'error', 6000)
-        }
-      },
-    })
+    if (!confirm('Tem certeza que deseja remover este bloqueio?')) return
+    try {
+      await bloqueioAPI.remover(bloqueio.id)
+      setBloqueios(prev => prev.filter(b => b.uuid !== bloqueio.uuid))
+      exibirNotificacao('Bloqueio removido com sucesso!', 'success', 4000)
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        'Erro ao remover o bloqueio.'
+      exibirNotificacao(String(msg), 'error', 6000)
+    }
   }
 
   /* ── excluir regra recorrente ── */
@@ -411,9 +403,7 @@ export default function BloqueiosPage() {
 
   /* ── lista filtrada ── */
   const bloqueiosFiltrados = (
-    filtroTipo
-      ? bloqueios.filter(b => b.tipo === filtroTipo)
-      : bloqueios
+    filtroTipo ? bloqueios.filter(b => b.tipo === filtroTipo) : bloqueios
   ).filter(b => !b.recorrenteUuid)
 
   /* ── contagens por tipo ── */
@@ -430,9 +420,19 @@ export default function BloqueiosPage() {
               <h1>Horários Indisponíveis</h1>
               <p>Registre e gerencie seus períodos de indisponibilidade</p>
             </div>
-            <button className="btn-novo-bloqueio" onClick={abrirModal}>
-              <Plus size={16} strokeWidth={2.5} />
-              Registrar Bloqueio
+            <button
+              className="btn-novo-bloqueio"
+              onClick={abrirModal}
+              title="Registrar Bloqueio"
+            >
+              <Plus
+                size={20}
+                strokeWidth={2.5}
+                className="btn-novo-bloqueio-icon"
+              />
+              <span className="btn-novo-bloqueio-label">
+                Registrar Bloqueio
+              </span>
             </button>
           </div>
 
@@ -469,26 +469,33 @@ export default function BloqueiosPage() {
                 Regras recorrentes
               </div>
               <div className="recorrentes-lista">
-                {recorrentes.map(regra => {
-                  const diaInfo = DIAS_SEMANA.find(d => d.valor === regra.diaSemana)
+                {recorrentes.map((regra, i) => {
+                  const diaInfo = DIAS_SEMANA.find(
+                    d => d.valor === regra.diaSemana,
+                  )
                   const tipoInfo = TIPOS.find(t => t.valor === regra.tipo)
                   const TipoIcone = tipoInfo?.icone
                   return (
                     <div
-                      key={regra.uuid}
+                      key={regra.uuid ?? regra.id ?? i}
                       className={`recorrente-item recorrente-item--${regra.tipo}`}
                     >
-                      <span className={`bloqueio-tipo-badge badge--${regra.tipo}`}>
+                      <span
+                        className={`bloqueio-tipo-badge badge--${regra.tipo}`}
+                      >
                         {TipoIcone && <TipoIcone size={12} strokeWidth={2} />}
                         {TIPO_BLOQUEIO_LABELS[regra.tipo]}
                       </span>
                       <span className="recorrente-dia">{diaInfo?.label}</span>
                       <span className="recorrente-horario">
                         <Clock size={11} strokeWidth={2} />
-                        {formatarHora(regra.horaInicio)} → {formatarHora(regra.horaFim)}
+                        {formatarHora(regra.horaInicio)} →{' '}
+                        {formatarHora(regra.horaFim)}
                       </span>
                       {regra.motivo && (
-                        <span className="recorrente-motivo">"{regra.motivo}"</span>
+                        <span className="recorrente-motivo">
+                          "{regra.motivo}"
+                        </span>
                       )}
                       <button
                         className="btn-excluir-bloqueio"
@@ -586,7 +593,7 @@ export default function BloqueiosPage() {
             </div>
           ) : (
             <div className="bloqueios-lista">
-              {bloqueiosFiltrados.map(bloqueio => {
+              {bloqueiosFiltrados.map((bloqueio, i) => {
                 const ini = formatarDataHora(bloqueio.inicioEm)
                 const fim = formatarDataHora(bloqueio.fimEm)
                 const duracao = calcularDuracao(
@@ -598,7 +605,7 @@ export default function BloqueiosPage() {
                 const TipoIcone = tipoInfo?.icone
                 return (
                   <div
-                    key={bloqueio.id}
+                    key={bloqueio.uuid ?? bloqueio.id ?? i}
                     className={`bloqueio-card bloqueio-card--${bloqueio.tipo}`}
                   >
                     <span
@@ -665,270 +672,279 @@ export default function BloqueiosPage() {
         {/* ── Modal ── */}
         {modalAberto && (
           <Modal
-            titulo={<><Ban size={18} strokeWidth={2} /> Registrar Bloqueio</>}
+            titulo={
+              <>
+                <Ban size={18} strokeWidth={2} /> Registrar Bloqueio
+              </>
+            }
             onClose={fecharModal}
             semPaddingCorpo
           >
+            {/* ── Toggle único / recorrente ── */}
+            <div className="modo-toggle">
+              <button
+                type="button"
+                className={`modo-btn${modoModal === 'UNICO' ? ' ativo' : ''}`}
+                onClick={() => {
+                  setModoModal('UNICO')
+                  setErroForm('')
+                }}
+              >
+                <Calendar size={14} strokeWidth={2} />
+                Data específica
+              </button>
+              <button
+                type="button"
+                className={`modo-btn${modoModal === 'RECORRENTE' ? ' ativo' : ''}`}
+                onClick={() => {
+                  setModoModal('RECORRENTE')
+                  setErroForm('')
+                }}
+              >
+                <RefreshCw size={14} strokeWidth={2} />
+                Dia da semana
+              </button>
+            </div>
 
-              {/* ── Toggle único / recorrente ── */}
-              <div className="modo-toggle">
-                <button
-                  type="button"
-                  className={`modo-btn${modoModal === 'UNICO' ? ' ativo' : ''}`}
-                  onClick={() => { setModoModal('UNICO'); setErroForm('') }}
-                >
-                  <Calendar size={14} strokeWidth={2} />
-                  Data específica
-                </button>
-                <button
-                  type="button"
-                  className={`modo-btn${modoModal === 'RECORRENTE' ? ' ativo' : ''}`}
-                  onClick={() => { setModoModal('RECORRENTE'); setErroForm('') }}
-                >
-                  <RefreshCw size={14} strokeWidth={2} />
-                  Dia da semana
-                </button>
-              </div>
-
-              {/* ── Formulário único ── */}
-              {modoModal === 'UNICO' && (
-                <form onSubmit={handleSubmitUnico}>
-                  <div className="modal-corpo">
-                    <div className="campo-linha">
-                      <div className="campo">
-                        <label>Início</label>
-                        <input
-                          type="datetime-local"
-                          className="campo-input"
-                          value={form.inicioEm}
-                          onChange={e =>
-                            setForm(f => ({ ...f, inicioEm: e.target.value }))
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="campo">
-                        <label>Término</label>
-                        <input
-                          type="datetime-local"
-                          className="campo-input"
-                          value={form.fimEm}
-                          min={form.inicioEm}
-                          onChange={e =>
-                            setForm(f => ({ ...f, fimEm: e.target.value }))
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-
+            {/* ── Formulário único ── */}
+            {modoModal === 'UNICO' && (
+              <form onSubmit={handleSubmitUnico}>
+                <div className="modal-corpo">
+                  <div className="campo-linha">
                     <div className="campo">
-                      <label>Tipo de bloqueio</label>
-                      <div className="tipo-opcoes">
-                        {TIPOS.map(({ valor, icone: Icone }) => (
-                          <div
-                            key={valor}
-                            className={`tipo-opcao tipo-opcao--${valor}`}
-                          >
-                            <input
-                              type="radio"
-                              id={`tipo-${valor}`}
-                              name="tipo"
-                              value={valor}
-                              checked={form.tipo === valor}
-                              onChange={() =>
-                                setForm(f => ({ ...f, tipo: valor }))
-                              }
-                            />
-                            <label
-                              htmlFor={`tipo-${valor}`}
-                              className="tipo-opcao-label"
-                            >
-                              <span className={`tipo-dot tipo-dot--${valor}`} />
-                              <Icone size={14} strokeWidth={2} />
-                              {TIPO_BLOQUEIO_LABELS[valor]}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="campo">
-                      <label>
-                        Motivo <span>(opcional)</span>
-                      </label>
-                      <textarea
-                        className="campo-textarea"
-                        placeholder="Descreva o motivo da indisponibilidade…"
-                        value={form.motivo}
+                      <label>Início</label>
+                      <input
+                        type="datetime-local"
+                        className="campo-input"
+                        value={form.inicioEm}
                         onChange={e =>
-                          setForm(f => ({ ...f, motivo: e.target.value }))
+                          setForm(f => ({ ...f, inicioEm: e.target.value }))
                         }
-                        maxLength={255}
+                        required
                       />
                     </div>
-
-                    {erroForm && (
-                      <p className="campo-erro">
-                        <AlertTriangle size={13} strokeWidth={2} />
-                        {erroForm}
-                      </p>
-                    )}
+                    <div className="campo">
+                      <label>Término</label>
+                      <input
+                        type="datetime-local"
+                        className="campo-input"
+                        value={form.fimEm}
+                        min={form.inicioEm}
+                        onChange={e =>
+                          setForm(f => ({ ...f, fimEm: e.target.value }))
+                        }
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div className="modal-rodape">
-                    <button
-                      type="button"
-                      className="btn-cancelar"
-                      onClick={fecharModal}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn-salvar"
-                      disabled={salvando}
-                    >
-                      {salvando ? 'Salvando…' : 'Registrar Bloqueio'}
-                    </button>
+                  <div className="campo">
+                    <label>Tipo de bloqueio</label>
+                    <div className="tipo-opcoes">
+                      {TIPOS.map(({ valor, icone: Icone }) => (
+                        <div
+                          key={valor}
+                          className={`tipo-opcao tipo-opcao--${valor}`}
+                        >
+                          <input
+                            type="radio"
+                            id={`tipo-${valor}`}
+                            name="tipo"
+                            value={valor}
+                            checked={form.tipo === valor}
+                            onChange={() =>
+                              setForm(f => ({ ...f, tipo: valor }))
+                            }
+                          />
+                          <label
+                            htmlFor={`tipo-${valor}`}
+                            className="tipo-opcao-label"
+                          >
+                            <span className={`tipo-dot tipo-dot--${valor}`} />
+                            <Icone size={14} strokeWidth={2} />
+                            {TIPO_BLOQUEIO_LABELS[valor]}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </form>
-              )}
 
-              {/* ── Formulário recorrente ── */}
-              {modoModal === 'RECORRENTE' && (
-                <form onSubmit={handleSubmitRecorrente}>
-                  <div className="modal-corpo">
-                    <div className="campo">
-                      <label>Dias da semana</label>
-                      <div className="dias-semana-selector">
-                        {DIAS_SEMANA.map(({ valor, abrev, label }) => (
-                          <button
-                            key={valor}
-                            type="button"
-                            className={`dia-btn${formRecorrente.diasSemana.includes(valor) ? ' selecionado' : ''}`}
-                            onClick={() => toggleDia(valor)}
-                            title={label}
-                          >
-                            {abrev}
-                          </button>
-                        ))}
-                      </div>
+                  <div className="campo">
+                    <label>
+                      Motivo <span>(opcional)</span>
+                    </label>
+                    <textarea
+                      className="campo-textarea"
+                      placeholder="Descreva o motivo da indisponibilidade…"
+                      value={form.motivo}
+                      onChange={e =>
+                        setForm(f => ({ ...f, motivo: e.target.value }))
+                      }
+                      maxLength={255}
+                    />
+                  </div>
+
+                  {erroForm && (
+                    <p className="campo-erro">
+                      <AlertTriangle size={13} strokeWidth={2} />
+                      {erroForm}
+                    </p>
+                  )}
+                </div>
+
+                <div className="modal-rodape">
+                  <button
+                    type="button"
+                    className="btn-cancelar"
+                    onClick={fecharModal}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-salvar"
+                    disabled={salvando}
+                  >
+                    {salvando ? 'Salvando…' : 'Registrar Bloqueio'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* ── Formulário recorrente ── */}
+            {modoModal === 'RECORRENTE' && (
+              <form onSubmit={handleSubmitRecorrente}>
+                <div className="modal-corpo">
+                  <div className="campo">
+                    <label>Dias da semana</label>
+                    <div className="dias-semana-selector">
+                      {DIAS_SEMANA.map(({ valor, abrev, label }) => (
+                        <button
+                          key={valor}
+                          type="button"
+                          className={`dia-btn${formRecorrente.diasSemana.includes(valor) ? ' selecionado' : ''}`}
+                          onClick={() => toggleDia(valor)}
+                          title={label}
+                        >
+                          {abrev}
+                        </button>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="campo-linha">
-                      <div className="campo">
-                        <label>Horário início</label>
-                        <input
-                          type="time"
-                          className="campo-input"
-                          value={formRecorrente.horaInicio}
-                          onChange={e =>
-                            setFormRecorrente(f => ({
-                              ...f,
-                              horaInicio: e.target.value,
-                            }))
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="campo">
-                        <label>Horário fim</label>
-                        <input
-                          type="time"
-                          className="campo-input"
-                          value={formRecorrente.horaFim}
-                          min={formRecorrente.horaInicio}
-                          onChange={e =>
-                            setFormRecorrente(f => ({
-                              ...f,
-                              horaFim: e.target.value,
-                            }))
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-
+                  <div className="campo-linha">
                     <div className="campo">
-                      <label>Tipo de bloqueio</label>
-                      <div className="tipo-opcoes">
-                        {TIPOS.map(({ valor, icone: Icone }) => (
-                          <div
-                            key={valor}
-                            className={`tipo-opcao tipo-opcao--${valor}`}
-                          >
-                            <input
-                              type="radio"
-                              id={`rec-tipo-${valor}`}
-                              name="rec-tipo"
-                              value={valor}
-                              checked={formRecorrente.tipo === valor}
-                              onChange={() =>
-                                setFormRecorrente(f => ({ ...f, tipo: valor }))
-                              }
-                            />
-                            <label
-                              htmlFor={`rec-tipo-${valor}`}
-                              className="tipo-opcao-label"
-                            >
-                              <span className={`tipo-dot tipo-dot--${valor}`} />
-                              <Icone size={14} strokeWidth={2} />
-                              {TIPO_BLOQUEIO_LABELS[valor]}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="campo">
-                      <label>
-                        Motivo <span>(opcional)</span>
-                      </label>
-                      <textarea
-                        className="campo-textarea"
-                        placeholder="Ex.: Fechado aos sábados…"
-                        value={formRecorrente.motivo}
+                      <label>Horário início</label>
+                      <input
+                        type="time"
+                        className="campo-input"
+                        value={formRecorrente.horaInicio}
                         onChange={e =>
                           setFormRecorrente(f => ({
                             ...f,
-                            motivo: e.target.value,
+                            horaInicio: e.target.value,
                           }))
                         }
-                        maxLength={255}
+                        required
                       />
                     </div>
-
-                    {erroForm && (
-                      <p className="campo-erro">
-                        <AlertTriangle size={13} strokeWidth={2} />
-                        {erroForm}
-                      </p>
-                    )}
+                    <div className="campo">
+                      <label>Horário fim</label>
+                      <input
+                        type="time"
+                        className="campo-input"
+                        value={formRecorrente.horaFim}
+                        min={formRecorrente.horaInicio}
+                        onChange={e =>
+                          setFormRecorrente(f => ({
+                            ...f,
+                            horaFim: e.target.value,
+                          }))
+                        }
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div className="modal-rodape">
-                    <button
-                      type="button"
-                      className="btn-cancelar"
-                      onClick={fecharModal}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn-salvar"
-                      disabled={salvando}
-                    >
-                      {salvando
-                        ? 'Salvando…'
-                        : formRecorrente.diasSemana.length > 1
-                          ? `Criar ${formRecorrente.diasSemana.length} regras`
-                          : 'Criar Regra Recorrente'}
-                    </button>
+                  <div className="campo">
+                    <label>Tipo de bloqueio</label>
+                    <div className="tipo-opcoes">
+                      {TIPOS.map(({ valor, icone: Icone }) => (
+                        <div
+                          key={valor}
+                          className={`tipo-opcao tipo-opcao--${valor}`}
+                        >
+                          <input
+                            type="radio"
+                            id={`rec-tipo-${valor}`}
+                            name="rec-tipo"
+                            value={valor}
+                            checked={formRecorrente.tipo === valor}
+                            onChange={() =>
+                              setFormRecorrente(f => ({ ...f, tipo: valor }))
+                            }
+                          />
+                          <label
+                            htmlFor={`rec-tipo-${valor}`}
+                            className="tipo-opcao-label"
+                          >
+                            <span className={`tipo-dot tipo-dot--${valor}`} />
+                            <Icone size={14} strokeWidth={2} />
+                            {TIPO_BLOQUEIO_LABELS[valor]}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </form>
-              )}
+
+                  <div className="campo">
+                    <label>
+                      Motivo <span>(opcional)</span>
+                    </label>
+                    <textarea
+                      className="campo-textarea"
+                      placeholder="Ex.: Fechado aos sábados…"
+                      value={formRecorrente.motivo}
+                      onChange={e =>
+                        setFormRecorrente(f => ({
+                          ...f,
+                          motivo: e.target.value,
+                        }))
+                      }
+                      maxLength={255}
+                    />
+                  </div>
+
+                  {erroForm && (
+                    <p className="campo-erro">
+                      <AlertTriangle size={13} strokeWidth={2} />
+                      {erroForm}
+                    </p>
+                  )}
+                </div>
+
+                <div className="modal-rodape">
+                  <button
+                    type="button"
+                    className="btn-cancelar"
+                    onClick={fecharModal}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-salvar"
+                    disabled={salvando}
+                  >
+                    {salvando
+                      ? 'Salvando…'
+                      : formRecorrente.diasSemana.length > 1
+                        ? `Criar ${formRecorrente.diasSemana.length} regras`
+                        : 'Criar Regra Recorrente'}
+                  </button>
+                </div>
+              </form>
+            )}
           </Modal>
         )}
       </RotaProtegida>
