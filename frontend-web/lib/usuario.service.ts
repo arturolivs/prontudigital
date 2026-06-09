@@ -65,6 +65,14 @@ export const usuariosAPI = {
     return response.data
   },
 
+  atualizarPerfil: async (
+    id: number,
+    dados: { nomeCompleto: string; email?: string; telefone?: string },
+  ): Promise<Usuario> => {
+    const response = await api.patch<Usuario>(`/${id}/perfil`, dados)
+    return response.data
+  },
+
   alterarSenha: async (
     id: number,
     senhaAtual: string,
