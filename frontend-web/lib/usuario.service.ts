@@ -65,6 +65,14 @@ export const usuariosAPI = {
     return response.data
   },
 
+  alterarSenha: async (
+    id: number,
+    senhaAtual: string,
+    novaSenha: string,
+  ): Promise<void> => {
+    await api.patch(`/${id}/senha`, { senhaAtual, novaSenha })
+  },
+
   excluirUsuario: async (id: number): Promise<void> => {
     await api.delete(`/${id}`)
   },

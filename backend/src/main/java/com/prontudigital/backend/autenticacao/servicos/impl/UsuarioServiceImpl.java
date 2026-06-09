@@ -1,11 +1,13 @@
 package com.prontudigital.backend.autenticacao.servicos.impl;
 
+import com.prontudigital.backend.autenticacao.dto.AlterarSenhaRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.AtivarAcessoRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.CadastrarPacienteDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
 import com.prontudigital.backend.autenticacao.excecoes.EmailExistenteException;
+import com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException;
 import com.prontudigital.backend.autenticacao.excecoes.PerfilNaoEncontradoException;
 import com.prontudigital.backend.autenticacao.excecoes.TelefoneExistenteException;
 import com.prontudigital.backend.autenticacao.excecoes.UserNameExistenteException;
@@ -82,6 +84,17 @@ public class UsuarioServiceImpl implements UsuarioService {
         atualizarPerfis(usuario, dto.perfis());
 
         return converterUsuarioParaDTO(usuarioRepository.save(usuario));
+    }
+
+    @Override
+    @Transactional
+    public void alterarSenha(Long id, AlterarSenhaRequestDTO dto) {
+        Usuario usuario = getUsuarioPorId(id);
+        if (!passwordEncoder.matches(dto.senhaAtual(), usuario.getSenhaHash())) {
+            throw new SenhaAtualInvalidaException();
+        }
+        usuario.setSenhaHash(passwordEncoder.encode(dto.novaSenha()));
+        usuarioRepository.save(usuario);
     }
 
     @Override

@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  UserCircle,
 } from 'lucide-react'
 import './Layout.css'
 
@@ -76,6 +77,12 @@ const BarraLateral = ({ aberta, alternar, perfil }: PropsBarraLateral) => {
       caminho: '/settings',
       icone: Settings,
       perfis: ['ROLE_ADMIN'],
+    },
+    {
+      rotulo: 'Meu Perfil',
+      caminho: '/perfil',
+      icone: UserCircle,
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
   ]
 

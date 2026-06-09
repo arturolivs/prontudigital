@@ -1,5 +1,6 @@
 package com.prontudigital.backend.autenticacao.servicos;
 
+import com.prontudigital.backend.autenticacao.dto.AlterarSenhaRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.AtivarAcessoRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.CadastrarPacienteDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
@@ -14,6 +15,7 @@ public interface UsuarioService {
     UsuarioDTO buscarPorUuid(UUID uuid);
     UsuarioDTO criar(UsuarioDTO dto, String senhaRaw);
     UsuarioDTO atualizar(Long id, UsuarioDTO dto);
+    void alterarSenha(Long id, AlterarSenhaRequestDTO dto);
     void deletar(Long id);
     void validarUsuarioExiste(UUID uuid);
     UsuarioDTO getInfoUsuario(String username);
