@@ -93,7 +93,7 @@ export default function PerfilPage() {
     if (!validarPerfil() || !dadosUsuario) return
     try {
       setSalvando(true)
-      const atualizado = await usuariosAPI.atualizarUsuario(dadosUsuario.id, {
+      const atualizado = await usuariosAPI.atualizarPerfil(dadosUsuario.id, {
         nomeCompleto: nomeCompleto.trim(),
         email: email.trim() || undefined,
         telefone: telefone.trim() || undefined,
