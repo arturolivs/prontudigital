@@ -1,4 +1,4 @@
-package com.prontudigital.backend.agendamento.servicos;
+package com.prontudigital.backend.notificacao.servicos;
 
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 

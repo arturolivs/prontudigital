@@ -1,7 +1,7 @@
 package com.prontudigital.backend.compartilhado.excecoes;
 
 import com.prontudigital.backend.agendamento.excecoes.*;
-import com.prontudigital.backend.agendamento.excecoes.TokenConfirmacaoInvalidoException;
+import com.prontudigital.backend.notificacao.excecoes.TokenConfirmacaoInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.*;
 import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
 import com.prontudigital.backend.autenticacao.excecoes.TelefoneExistenteException;

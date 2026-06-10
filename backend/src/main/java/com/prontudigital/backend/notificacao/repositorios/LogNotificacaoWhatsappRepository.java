@@ -1,8 +1,8 @@
-package com.prontudigital.backend.agendamento.repositorios;
+package com.prontudigital.backend.notificacao.repositorios;
 
-import com.prontudigital.backend.agendamento.entidades.LogNotificacaoWhatsapp;
-import com.prontudigital.backend.agendamento.enums.StatusNotificacao;
-import com.prontudigital.backend.agendamento.enums.TipoNotificacao;
+import com.prontudigital.backend.notificacao.entidades.LogNotificacaoWhatsapp;
+import com.prontudigital.backend.notificacao.enums.StatusNotificacao;
+import com.prontudigital.backend.notificacao.enums.TipoNotificacao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

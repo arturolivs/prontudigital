@@ -1,7 +1,7 @@
-package com.prontudigital.backend.agendamento.entidades;
+package com.prontudigital.backend.notificacao.entidades;
 
-import com.prontudigital.backend.agendamento.enums.StatusNotificacao;
-import com.prontudigital.backend.agendamento.enums.TipoNotificacao;
+import com.prontudigital.backend.notificacao.enums.StatusNotificacao;
+import com.prontudigital.backend.notificacao.enums.TipoNotificacao;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

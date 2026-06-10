@@ -1,17 +1,17 @@
-package com.prontudigital.backend.agendamento.servicos.impl;
+package com.prontudigital.backend.notificacao.servicos.impl;
 
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.FilaEspera;
-import com.prontudigital.backend.agendamento.entidades.LogNotificacaoWhatsapp;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.StatusFilaEspera;
-import com.prontudigital.backend.agendamento.enums.StatusNotificacao;
-import com.prontudigital.backend.agendamento.enums.TipoNotificacao;
-import com.prontudigital.backend.agendamento.excecoes.TokenConfirmacaoInvalidoException;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.FilaEsperaRepository;
-import com.prontudigital.backend.agendamento.repositorios.LogNotificacaoWhatsappRepository;
-import com.prontudigital.backend.agendamento.servicos.NotificacaoWhatsappService;
+import com.prontudigital.backend.notificacao.entidades.LogNotificacaoWhatsapp;
+import com.prontudigital.backend.notificacao.enums.StatusNotificacao;
+import com.prontudigital.backend.notificacao.enums.TipoNotificacao;
+import com.prontudigital.backend.notificacao.excecoes.TokenConfirmacaoInvalidoException;
+import com.prontudigital.backend.notificacao.repositorios.LogNotificacaoWhatsappRepository;
+import com.prontudigital.backend.notificacao.servicos.NotificacaoWhatsappService;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
