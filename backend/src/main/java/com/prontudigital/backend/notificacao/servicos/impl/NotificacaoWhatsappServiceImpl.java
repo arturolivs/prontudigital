@@ -6,6 +6,7 @@ import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.StatusFilaEspera;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.FilaEsperaRepository;
+import com.prontudigital.backend.notificacao.clientes.WhatsappCloudApiClient;
 import com.prontudigital.backend.notificacao.entidades.LogNotificacaoWhatsapp;
 import com.prontudigital.backend.notificacao.enums.StatusNotificacao;
 import com.prontudigital.backend.notificacao.enums.TipoNotificacao;
@@ -38,6 +39,7 @@ public class NotificacaoWhatsappServiceImpl implements NotificacaoWhatsappServic
     private final AgendamentoRepository agendamentoRepository;
     private final FilaEsperaRepository filaEsperaRepository;
     private final UsuarioService usuarioService;
+    private final WhatsappCloudApiClient whatsappCliente;
     private final Clock clock;
 
     @Value("${app.notificacoes.url-base-confirmacao}")
@@ -253,7 +255,7 @@ public class NotificacaoWhatsappServiceImpl implements NotificacaoWhatsappServic
     }
 
     private void enviarWhatsApp(String telefone, String mensagem) {
-        // TODO: integrar com WhatsApp Business API (ex: Meta Cloud API, Twilio, 360Dialog)
-        log.info("[WHATSAPP] Para: {} | Mensagem: {}", telefone, mensagem);
+        whatsappCliente.enviarMensagemTexto(telefone, mensagem);
+        log.info("[WHATSAPP] Mensagem enviada para {}", telefone);
     }
 }
