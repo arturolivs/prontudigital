@@ -5,6 +5,7 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
 import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.PacienteAgendamentosDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
@@ -21,6 +22,7 @@ import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
 import com.prontudigital.backend.agendamento.repositorios.EvolucaoClinicaRepository;
 import com.prontudigital.backend.agendamento.repositorios.HistoricoAgendamentoRepository;
+import com.prontudigital.backend.agendamento.repositorios.PacienteAgendamentoResumo;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
 import com.prontudigital.backend.agendamento.utils.AgendamentoUtil;
@@ -31,6 +33,9 @@ import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -381,6 +386,46 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .map(agendamentoUtil::convertToViewDTO)
                 .forEach(historico::add);
         return historico;
+    }
+
+    @Override
+    public Page<PacienteAgendamentosDTO> listarPacientesComAgendamentos(
+            String busca, StatusAgendamento status, Pageable pageable) {
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+
+        if ("PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    "Paciente nao pode visualizar lista de pacientes");
+        }
+
+        LocalDate hoje = LocalDate.now(clock);
+        LocalDateTime inicio = hoje.withDayOfMonth(1).minusMonths(2).atStartOfDay();
+        LocalDateTime fim = hoje.with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX);
+
+        String buscaNormalizada = (busca == null || busca.isBlank()) ? null : busca.trim();
+        Pageable paginacao = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<PacienteAgendamentoResumo> pagina = agendamentoRepository
+                .buscarPacientesComAgendamentos(inicio, fim, status, buscaNormalizada, paginacao);
+
+        return pagina.map(resumo -> {
+            UUID pacienteUuid = resumo.getPacienteUuid();
+            String nomePaciente;
+            try {
+                nomePaciente = usuarioService.buscarPorUuid(pacienteUuid).nomeCompleto();
+            } catch (Exception e) {
+                nomePaciente = "Paciente nao encontrado";
+            }
+
+            List<AgendamentoViewDTO> agendamentos = agendamentoRepository
+                    .findByPacienteEPeriodo(pacienteUuid, inicio, fim, status)
+                    .stream()
+                    .map(agendamentoUtil::convertToViewDTO)
+                    .toList();
+
+            return new PacienteAgendamentosDTO(pacienteUuid, nomePaciente, agendamentos);
+        });
     }
 
     private void validarPeriodo(LocalDateTime inicio, LocalDateTime fim) {

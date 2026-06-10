@@ -6,6 +6,7 @@ import {
   CadastrarPacienteRequisicao,
   JwtResposta,
 } from '../tipos/autenticacao'
+import { PageResponse } from '../tipos/paginacao'
 
 const USUARIOS_API_URL =
   process.env.NEXT_PUBLIC_USUARIOS_API_URL ||
@@ -24,8 +25,13 @@ export const usuariosAPI = {
     return response.data
   },
 
-  listarUsuarios: async (): Promise<Usuario[]> => {
-    const response = await api.get<Usuario[]>('')
+  listarUsuarios: async (
+    page = 0,
+    size = 10,
+  ): Promise<PageResponse<Usuario>> => {
+    const response = await api.get<PageResponse<Usuario>>('', {
+      params: { page, size },
+    })
     return response.data
   },
 

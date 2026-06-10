@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Menu,
 } from 'lucide-react'
 import './Layout.css'
 

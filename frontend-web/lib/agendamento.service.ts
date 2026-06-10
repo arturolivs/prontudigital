@@ -4,8 +4,10 @@ import {
   AgendamentoRequisicao,
   Agendamento,
   EvolucaoTratamentoRequisicao,
+  PacienteAgendamentosDTO,
   ReagendarRequisicao,
 } from '../tipos/agendamento'
+import { PageResponse } from '../tipos/paginacao'
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_AGENDAMENTOS_API_URL ||
@@ -99,6 +101,19 @@ export const agendamentoAPI = {
     const response = await api.patch<Agendamento>(
       `${API_BASE_URL}/${id}/evolucao`,
       dados,
+    )
+    return response.data
+  },
+
+  listarPacientesComAgendamentos: async (
+    busca: string,
+    status: string,
+    page = 0,
+    size = 10,
+  ): Promise<PageResponse<PacienteAgendamentosDTO>> => {
+    const response = await api.get<PageResponse<PacienteAgendamentosDTO>>(
+      `${API_BASE_URL}/pacientes`,
+      { params: { busca: busca || undefined, status, page, size } },
     )
     return response.data
   },

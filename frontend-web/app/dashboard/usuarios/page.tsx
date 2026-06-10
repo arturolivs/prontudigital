@@ -10,20 +10,35 @@ import { useNotificacao } from '@/contexts/ToastContext'
 import FormularioUsuarioModal from '@/components/FormularioUsuarioModal'
 import ModalConfirmacao from '@/components/ModalConfirmacao'
 
+const ITENS_POR_PAGINA = 10
+
+function gerarPaginas(total: number, atual: number): (number | string)[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const paginas: (number | string)[] = [1]
+  if (atual > 3) paginas.push('...')
+  for (let i = Math.max(2, atual - 1); i <= Math.min(total - 1, atual + 1); i++) paginas.push(i)
+  if (atual < total - 2) paginas.push('...')
+  paginas.push(total)
+  return paginas
+}
+
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const [totalPaginas, setTotalPaginas] = useState(1)
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null)
   const [confirmacao, setConfirmacao] = useState<{ mensagem: string; acao: () => void } | null>(null)
+  const [paginaAtual, setPaginaAtual] = useState(1)
   const { usuario } = useAuth()
   const { exibirNotificacao } = useNotificacao()
 
-  const fetchUsuarios = async () => {
+  const fetchUsuarios = async (pagina: number) => {
     try {
       setLoading(true)
-      const data = await usuariosAPI.listarUsuarios()
-      setUsuarios(data)
+      const data = await usuariosAPI.listarUsuarios(pagina - 1, ITENS_POR_PAGINA)
+      setUsuarios(data.content)
+      setTotalPaginas(Math.max(1, data.totalPages))
     } catch (error) {
       exibirNotificacao('Erro ao carregar lista de usuários', 'error', 6000)
     } finally {
@@ -32,8 +47,8 @@ export default function UsuariosPage() {
   }
 
   useEffect(() => {
-    fetchUsuarios()
-  }, [])
+    fetchUsuarios(paginaAtual)
+  }, [paginaAtual])
 
   const handleDelete = (id: number) => {
     setConfirmacao({
@@ -42,7 +57,12 @@ export default function UsuariosPage() {
         setConfirmacao(null)
         try {
           await usuariosAPI.excluirUsuario(id)
-          setUsuarios(usuarios.filter(u => u.id !== id))
+          const novaPagina = usuarios.length === 1 && paginaAtual > 1 ? paginaAtual - 1 : paginaAtual
+          if (novaPagina === paginaAtual) {
+            fetchUsuarios(paginaAtual)
+          } else {
+            setPaginaAtual(novaPagina)
+          }
           exibirNotificacao('Usuário excluído com sucesso!', 'success', 6000)
         } catch (error: any) {
           console.error('Erro ao excluir usuário', error)
@@ -120,8 +140,8 @@ export default function UsuariosPage() {
           perfis: dados.perfis,
         }
 
-        const criado = await usuariosAPI.criarUsuario(novoUsuario)
-        setUsuarios([...usuarios, criado])
+        await usuariosAPI.criarUsuario(novoUsuario)
+        await fetchUsuarios(paginaAtual)
         exibirNotificacao('Usuário criado com sucesso!', 'success', 6000)
       }
 
@@ -135,6 +155,8 @@ export default function UsuariosPage() {
       )
     }
   }
+
+  const paginaValida = Math.min(paginaAtual, totalPaginas)
 
   if (loading) {
     return (
@@ -225,6 +247,38 @@ export default function UsuariosPage() {
           </tbody>
         </table>
       </div>
+
+      {totalPaginas > 1 && (
+        <div className="paginacao">
+          <button
+            className="paginacao-btn"
+            onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+            disabled={paginaValida === 1}
+          >
+            ← Anterior
+          </button>
+          {gerarPaginas(totalPaginas, paginaValida).map((p, i) =>
+            typeof p === 'string' ? (
+              <span key={`ellipsis-${i}`} className="paginacao-ellipsis">…</span>
+            ) : (
+              <button
+                key={`page-${p}`}
+                className={`paginacao-btn paginacao-num${paginaValida === p ? ' paginacao-ativa' : ''}`}
+                onClick={() => setPaginaAtual(p)}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button
+            className="paginacao-btn"
+            onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+            disabled={paginaValida === totalPaginas}
+          >
+            Próximo →
+          </button>
+        </div>
+      )}
 
       {modalOpen && (
         <FormularioUsuarioModal

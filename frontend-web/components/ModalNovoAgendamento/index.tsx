@@ -71,15 +71,15 @@ export default function ModalNovoAgendamento({
   const [observacoes, setObservacoes] = useState('')
 
   const carregarPacientes = useCallback(async (): Promise<OpcaoSAC[]> => {
-    const todos = await usuariosAPI.listarUsuarios()
-    return todos
+    const todos = await usuariosAPI.listarUsuarios(0, 1000)
+    return todos.content
       .filter(u => u.perfis.includes('PACIENTE'))
       .map(u => ({ label: u.nomeCompleto, value: u.uuid }))
   }, [])
 
   const carregarProfissionais = useCallback(async (): Promise<OpcaoSAC[]> => {
-    const todos = await usuariosAPI.listarUsuarios()
-    return todos
+    const todos = await usuariosAPI.listarUsuarios(0, 1000)
+    return todos.content
       .filter(u => u.perfis.includes('PROFISSIONAL'))
       .map(u => ({ label: u.nomeCompleto, value: u.uuid }))
   }, [])

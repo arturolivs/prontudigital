@@ -3,6 +3,8 @@ package com.prontudigital.backend.agendamento.repositorios;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -60,4 +62,44 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             @Param("statuses") List<StatusAgendamento> statuses,
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
+
+    @Query(value = """
+            SELECT a.pacienteUuid AS pacienteUuid, MAX(a.inicioEm) AS ultimoAgendamento
+            FROM Agendamento a
+            WHERE a.inicioEm BETWEEN :inicio AND :fim
+            AND (:status IS NULL OR a.status = :status)
+            AND (:busca IS NULL OR a.pacienteUuid IN (
+                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', :busca, '%'))
+            ))
+            GROUP BY a.pacienteUuid
+            ORDER BY MAX(a.inicioEm) DESC
+            """,
+            countQuery = """
+            SELECT COUNT(DISTINCT a.pacienteUuid)
+            FROM Agendamento a
+            WHERE a.inicioEm BETWEEN :inicio AND :fim
+            AND (:status IS NULL OR a.status = :status)
+            AND (:busca IS NULL OR a.pacienteUuid IN (
+                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', :busca, '%'))
+            ))
+            """)
+    Page<PacienteAgendamentoResumo> buscarPacientesComAgendamentos(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim,
+            @Param("status") StatusAgendamento status,
+            @Param("busca") String busca,
+            Pageable pageable);
+
+    @Query("""
+            SELECT a FROM Agendamento a
+            WHERE a.pacienteUuid = :pacienteUuid
+            AND a.inicioEm BETWEEN :inicio AND :fim
+            AND (:status IS NULL OR a.status = :status)
+            ORDER BY a.inicioEm DESC
+            """)
+    List<Agendamento> findByPacienteEPeriodo(
+            @Param("pacienteUuid") UUID pacienteUuid,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim,
+            @Param("status") StatusAgendamento status);
 }

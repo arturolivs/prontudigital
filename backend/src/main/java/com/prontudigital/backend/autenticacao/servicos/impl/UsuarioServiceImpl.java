@@ -18,6 +18,8 @@ import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import com.prontudigital.backend.autenticacao.util.UsuarioUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,13 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findAll().stream()
                 .map(UsuarioUtil::converterUsuarioParaDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UsuarioDTO> listarTodos(Pageable pageable) {
+        return usuarioRepository.findAll(pageable)
+                .map(UsuarioUtil::converterUsuarioParaDTO);
     }
 
     @Override

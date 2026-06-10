@@ -92,3 +92,25 @@ export interface ReagendarRequisicao {
   novoFimEm: string
   motivo?: string
 }
+
+export interface AgendamentoView {
+  id: number
+  inicioEm: string
+  fimEm: string
+  profissionalUuid: string
+  pacienteUuid: string
+  tipo: TipoAgendamento
+  tipoProcedimento?: TipoProcedimento
+  localAtendimento?: LocalAtendimento
+  pacienteAcamado?: boolean
+  status: StatusAgendamento
+  nomePaciente?: string
+  nomeProfissional?: string
+  avaliacaoId?: number
+}
+
+export interface PacienteAgendamentosDTO {
+  pacienteUuid: string
+  nomePaciente: string
+  agendamentos: AgendamentoView[]
+}

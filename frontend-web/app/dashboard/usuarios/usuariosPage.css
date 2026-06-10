@@ -214,6 +214,59 @@
   }
 }
 
+/* ===== PAGINAÇÃO ===== */
+
+.paginacao {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 0;
+  margin-top: 8px;
+}
+
+.paginacao-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-brand);
+  border-radius: 8px;
+  background: white;
+  color: var(--color-brand);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.paginacao-btn:hover:not(:disabled):not(.paginacao-ativa) {
+  background: var(--color-bg-page);
+  border-color: var(--color-brand);
+}
+
+.paginacao-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.paginacao-ativa {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: white;
+}
+
+.paginacao-ellipsis {
+  padding: 0 4px;
+  color: var(--color-neutral-400);
+  font-size: 1rem;
+  user-select: none;
+  line-height: 36px;
+}
+
 /* Responsividade */
 @media (max-width: 480px) {
   .users-page {

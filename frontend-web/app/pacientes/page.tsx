@@ -6,9 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
 import Layout from '@/components/Layout/Layout'
 import './patients.css'
-import { Agendamento } from '@/tipos/agendamento'
-
-const formatarDataISO = (date: Date): string => date.toISOString().split('T')[0]
+import { AgendamentoView, PacienteAgendamentosDTO } from '@/tipos/agendamento'
 
 const formatarHora = (dataString: string): string =>
   new Date(dataString).toLocaleTimeString('pt-BR', {
@@ -66,13 +64,7 @@ const obterCorAvatar = (uuid: string): string => {
   return CORES_AVATAR[Math.abs(hash) % CORES_AVATAR.length]
 }
 
-interface PacienteAgrupado {
-  pacienteUuid: string
-  nomePaciente: string
-  agendamentos: Agendamento[]
-}
-
-const CardAgendamento = ({ agendamento }: { agendamento: Agendamento }) => (
+const CardAgendamento = ({ agendamento }: { agendamento: AgendamentoView }) => (
   <div
     className={`pac-appt-card ${agendamento.tipo === 'AVALIACAO' ? 'pac-appt-avaliacao' : 'pac-appt-tratamento'}`}
   >
@@ -99,7 +91,7 @@ const CardAgendamento = ({ agendamento }: { agendamento: Agendamento }) => (
   </div>
 )
 
-const CartaoPaciente = ({ paciente }: { paciente: PacienteAgrupado }) => {
+const CartaoPaciente = ({ paciente }: { paciente: PacienteAgendamentosDTO }) => {
   const [expandido, setExpandido] = useState(true)
 
   const stats = useMemo(() => {
@@ -194,88 +186,71 @@ const CartaoPaciente = ({ paciente }: { paciente: PacienteAgrupado }) => {
   )
 }
 
+const ITENS_POR_PAGINA = 10
+
+function gerarPaginas(total: number, atual: number): (number | string)[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const paginas: (number | string)[] = [1]
+  if (atual > 3) paginas.push('...')
+  for (let i = Math.max(2, atual - 1); i <= Math.min(total - 1, atual + 1); i++) paginas.push(i)
+  if (atual < total - 2) paginas.push('...')
+  paginas.push(total)
+  return paginas
+}
+
 export default function PacientesPage() {
   const { usuario, temPerfil } = useAuth()
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
+  const [pacientes, setPacientes] = useState<PacienteAgendamentosDTO[]>([])
+  const [totalPaginas, setTotalPaginas] = useState(1)
+  const [totalPacientes, setTotalPacientes] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState<string>('TODOS')
+  const [paginaAtual, setPaginaAtual] = useState(1)
+
+  useEffect(() => {
+    setPaginaAtual(1)
+  }, [busca, filtroStatus])
 
   const isEnfermeiro = temPerfil('ROLE_PROFISSIONAL')
   const isAdmin = temPerfil('ROLE_ADMIN')
   const hasRequiredRole = isEnfermeiro || isAdmin
 
-  const fetchAgendamentos = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const hoje = new Date()
-      const [r1, r2, r3] = await Promise.all([
-        agendamentoAPI.getAgendamentos('month', formatarDataISO(hoje)),
-        agendamentoAPI.getAgendamentos(
-          'month',
-          formatarDataISO(new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1)),
-        ),
-        agendamentoAPI.getAgendamentos(
-          'month',
-          formatarDataISO(new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1)),
-        ),
-      ])
-      const todos = [...r1, ...r2, ...r3]
-      const deduplicados = Array.from(
-        new Map(todos.map(a => [a.id, a])).values(),
-      )
-      setAgendamentos(deduplicados)
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar agendamentos')
-      console.error('Erro:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const fetchPacientes = useCallback(
+    async (pagina: number, buscaAtual: string, statusAtual: string) => {
+      try {
+        setLoading(true)
+        setError(null)
+        const data = await agendamentoAPI.listarPacientesComAgendamentos(
+          buscaAtual,
+          statusAtual,
+          pagina - 1,
+          ITENS_POR_PAGINA,
+        )
+        setPacientes(data.content)
+        setTotalPaginas(Math.max(1, data.totalPages))
+        setTotalPacientes(data.totalElements)
+      } catch (err: any) {
+        setError(err.message || 'Erro ao carregar pacientes')
+        console.error('Erro:', err)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
-    if (usuario && hasRequiredRole) {
-      fetchAgendamentos()
-    }
-  }, [usuario, hasRequiredRole, fetchAgendamentos])
+    if (!usuario || !hasRequiredRole) return
+    const timer = setTimeout(
+      () => fetchPacientes(paginaAtual, busca, filtroStatus),
+      busca ? 400 : 0,
+    )
+    return () => clearTimeout(timer)
+  }, [usuario, hasRequiredRole, paginaAtual, busca, filtroStatus, fetchPacientes])
 
-  const pacientesAgrupados = useMemo<PacienteAgrupado[]>(() => {
-    const mapa: Record<string, PacienteAgrupado> = {}
-
-    const filtrados = agendamentos.filter(a => {
-      const matchBusca =
-        a.nomePaciente || ''.toLowerCase().includes(busca.toLowerCase())
-      const matchStatus = filtroStatus === 'TODOS' || a.status === filtroStatus
-      return matchBusca && matchStatus
-    })
-
-    filtrados.forEach(a => {
-      if (!mapa[a.pacienteUuid]) {
-        mapa[a.pacienteUuid] = {
-          pacienteUuid: a.pacienteUuid,
-          nomePaciente: a.nomePaciente,
-          agendamentos: [],
-        }
-      }
-      mapa[a.pacienteUuid].agendamentos.push(a)
-    })
-
-    return Object.values(mapa)
-      .map(p => ({
-        ...p,
-        agendamentos: p.agendamentos.sort(
-          (a, b) =>
-            new Date(b.inicioEm).getTime() - new Date(a.inicioEm).getTime(),
-        ),
-      }))
-      .sort((a, b) => {
-        const ta = new Date(a.agendamentos[0]?.inicioEm ?? 0).getTime()
-        const tb = new Date(b.agendamentos[0]?.inicioEm ?? 0).getTime()
-        return tb - ta
-      })
-  }, [agendamentos, busca, filtroStatus])
+  const paginaValida = Math.min(paginaAtual, totalPaginas)
 
   if (!usuario || !hasRequiredRole) {
     return (
@@ -294,10 +269,7 @@ export default function PacientesPage() {
               <h1>Pacientes</h1>
               {!loading && (
                 <span className="pac-total-geral">
-                  {pacientesAgrupados.length} paciente
-                  {pacientesAgrupados.length !== 1 ? 's' : ''} ·{' '}
-                  {agendamentos.length} agendamento
-                  {agendamentos.length !== 1 ? 's' : ''}
+                  {totalPacientes} paciente{totalPacientes !== 1 ? 's' : ''}
                 </span>
               )}
             </div>
@@ -371,13 +343,16 @@ export default function PacientesPage() {
           {error && !loading && (
             <div className="pac-estado pac-estado-erro">
               <p>{error}</p>
-              <button className="pac-retry-btn" onClick={fetchAgendamentos}>
+              <button
+                className="pac-retry-btn"
+                onClick={() => fetchPacientes(paginaAtual, busca, filtroStatus)}
+              >
                 Tentar novamente
               </button>
             </div>
           )}
 
-          {!loading && !error && pacientesAgrupados.length === 0 && (
+          {!loading && !error && pacientes.length === 0 && (
             <div className="pac-estado">
               <svg
                 width="48"
@@ -399,12 +374,46 @@ export default function PacientesPage() {
             </div>
           )}
 
-          {!loading && !error && pacientesAgrupados.length > 0 && (
-            <div className="pac-lista">
-              {pacientesAgrupados.map(p => (
-                <CartaoPaciente key={p.pacienteUuid} paciente={p} />
-              ))}
-            </div>
+          {!loading && !error && pacientes.length > 0 && (
+            <>
+              <div className="pac-lista">
+                {pacientes.map(p => (
+                  <CartaoPaciente key={p.pacienteUuid} paciente={p} />
+                ))}
+              </div>
+
+              {totalPaginas > 1 && (
+                <div className="paginacao">
+                  <button
+                    className="paginacao-btn"
+                    onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                    disabled={paginaValida === 1}
+                  >
+                    ← Anterior
+                  </button>
+                  {gerarPaginas(totalPaginas, paginaValida).map((p, i) =>
+                    typeof p === 'string' ? (
+                      <span key={`ellipsis-${i}`} className="paginacao-ellipsis">…</span>
+                    ) : (
+                      <button
+                        key={`page-${p}`}
+                        className={`paginacao-btn paginacao-num${paginaValida === p ? ' paginacao-ativa' : ''}`}
+                        onClick={() => setPaginaAtual(p)}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                  <button
+                    className="paginacao-btn"
+                    onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                    disabled={paginaValida === totalPaginas}
+                  >
+                    Próximo →
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </RotaProtegida>

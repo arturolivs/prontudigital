@@ -12,11 +12,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -39,11 +41,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioContexto.getUsuarioAtual());
     }
 
-    @Operation(summary = "Listar todos os usuarios")
-    @ApiResponse(responseCode = "200", description = "Lista retornada")
+    @Operation(summary = "Listar todos os usuarios (paginado)")
+    @ApiResponse(responseCode = "200", description = "Pagina retornada")
     @GetMapping
-    public ResponseEntity<List<UsuarioDTO>> listarTodos() {
-        return ResponseEntity.ok(usuarioService.listarTodos());
+    public ResponseEntity<Page<UsuarioDTO>> listarTodos(
+            @PageableDefault(size = 10, sort = "nomeCompleto") Pageable pageable) {
+        return ResponseEntity.ok(usuarioService.listarTodos(pageable));
     }
 
     @Operation(summary = "Buscar usuario por ID")

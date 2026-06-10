@@ -6,12 +6,15 @@ import com.prontudigital.backend.autenticacao.dto.AtualizarPerfilRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.CadastrarPacienteDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface UsuarioService {
     List<UsuarioDTO> listarTodos();
+    Page<UsuarioDTO> listarTodos(Pageable pageable);
     UsuarioDTO buscarPorId(Long id);
     UsuarioDTO buscarPorUuid(UUID uuid);
     UsuarioDTO criar(UsuarioDTO dto, String senhaRaw);

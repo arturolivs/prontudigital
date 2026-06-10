@@ -6,15 +6,22 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
 import com.prontudigital.backend.agendamento.dto.AtualizarObservacoesRequestDTO;
 import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.PacienteAgendamentosDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
+import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
 import com.prontudigital.backend.agendamento.swagger.AgendamentoSwagger.*;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -118,5 +125,24 @@ public class AgendamentoController {
     public ResponseEntity<List<AgendamentoViewDTO>> getTratamentosPorAvaliacao(
             @PathVariable Long avaliacaoId) {
         return ResponseEntity.ok(agendamentoService.getTratamentosPorAvaliacao(avaliacaoId));
+    }
+
+    @Operation(summary = "Listar pacientes com agendamentos nos ultimos 3 meses (paginado)")
+    @ApiResponse(responseCode = "200", description = "Pagina retornada")
+    @GetMapping("/pacientes")
+    public ResponseEntity<Page<PacienteAgendamentosDTO>> listarPacientesComAgendamentos(
+            @Parameter(description = "Filtra pelo nome do paciente")
+            @RequestParam(required = false) String busca,
+
+            @Parameter(description = "Status do agendamento, ou TODOS/omitido para nao filtrar")
+            @RequestParam(required = false) String status,
+
+            @PageableDefault(size = 10) Pageable pageable) {
+        StatusAgendamento statusFiltro = (status == null || status.isBlank() || "TODOS".equalsIgnoreCase(status))
+                ? null
+                : StatusAgendamento.valueOf(status);
+
+        return ResponseEntity.ok(
+                agendamentoService.listarPacientesComAgendamentos(busca, statusFiltro, pageable));
     }
 }
