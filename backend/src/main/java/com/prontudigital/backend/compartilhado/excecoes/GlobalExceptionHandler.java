@@ -156,7 +156,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AgendamentoDataHoraInvalidaException.class,
             AgendamentoStatusInvalidoException.class,
             TipoVisualizacaoInvalidoException.class,
-            com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class
+            com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class,
+            com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleRegraDeNegocio(
             ExcecaoBase ex, HttpServletRequest request) {

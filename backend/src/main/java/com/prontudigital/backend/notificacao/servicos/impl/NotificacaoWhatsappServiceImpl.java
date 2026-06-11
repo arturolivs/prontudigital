@@ -6,7 +6,7 @@ import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.StatusFilaEspera;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.FilaEsperaRepository;
-import com.prontudigital.backend.notificacao.clientes.WhatsappCloudApiClient;
+import com.prontudigital.backend.compartilhado.clientes.WhatsappCloudApiClient;
 import com.prontudigital.backend.notificacao.entidades.LogNotificacaoWhatsapp;
 import com.prontudigital.backend.notificacao.enums.StatusNotificacao;
 import com.prontudigital.backend.notificacao.enums.TipoNotificacao;

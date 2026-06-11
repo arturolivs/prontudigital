@@ -1,4 +1,4 @@
-package com.prontudigital.backend.notificacao.clientes;
+package com.prontudigital.backend.compartilhado.clientes;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

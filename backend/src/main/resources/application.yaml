@@ -26,6 +26,8 @@ app:
   notificacoes:
     habilitadas: true
     url-base-confirmacao: "http://localhost:8080/api/confirmacao"
+  recuperacao-senha:
+    expiracao-minutos: 10
   whatsapp:
     cloud-api:
       base-url: "https://graph.facebook.com"

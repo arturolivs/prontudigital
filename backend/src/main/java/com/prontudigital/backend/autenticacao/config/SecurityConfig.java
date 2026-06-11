@@ -43,7 +43,9 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/renovar-token",
             "/api/auth/cadastrar-paciente",
-            "/api/auth/ativar-acesso"
+            "/api/auth/ativar-acesso",
+            "/api/auth/recuperar-senha/solicitar",
+            "/api/auth/recuperar-senha/confirmar"
     };
 
     private static final String[] GET_PUBLICOS = {

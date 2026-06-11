@@ -9,4 +9,6 @@ public interface AutenticacaoService {
     void encerrarSessao(String refreshToken);
     JwtResponseDTO cadastrarPaciente(CadastrarPacienteDTO dto);
     UsuarioDTO ativarAcesso(AtivarAcessoRequestDTO dto);
+    void solicitarRecuperacaoSenha(RecuperarSenhaSolicitarRequestDTO dto);
+    void confirmarRecuperacaoSenha(RecuperarSenhaConfirmarRequestDTO dto);
 }
