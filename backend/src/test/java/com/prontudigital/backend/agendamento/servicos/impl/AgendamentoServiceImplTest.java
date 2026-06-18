@@ -4,6 +4,8 @@ import com.prontudigital.backend.agendamento.dto.*;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
+import com.prontudigital.backend.agendamento.enums.CaracteristicaBorda;
+import com.prontudigital.backend.agendamento.enums.ClassificacaoDor;
 import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
@@ -569,8 +571,10 @@ class AgendamentoServiceImplTest {
 
             EvolucaoClinica salva = captor.getValue();
             assertEquals(tratamento, salva.getAgendamento());
-            assertEquals("Úlcera venosa", salva.getTipoLesao());
-            assertEquals(3, salva.getEscalaDor());
+            assertEquals("Úlcera venosa", salva.getEtiologia());
+            assertEquals(ClassificacaoDor.MODERADA, salva.getClassificacaoDor());
+            assertEquals(60, salva.getGranulacaoPercentual());
+            assertTrue(salva.getCaracteristicasBordas().contains(CaracteristicaBorda.INTEGRAS));
         }
 
         @Test
@@ -592,8 +596,8 @@ class AgendamentoServiceImplTest {
 
             // Deve salvar o mesmo objeto (atualização), não criar outro
             verify(evolucaoClinicaRepository).save(existente);
-            assertEquals("Úlcera venosa", existente.getTipoLesao());
-            assertEquals(3, existente.getEscalaDor());
+            assertEquals("Úlcera venosa", existente.getEtiologia());
+            assertEquals(ClassificacaoDor.MODERADA, existente.getClassificacaoDor());
         }
 
         @Test
@@ -611,17 +615,21 @@ class AgendamentoServiceImplTest {
         }
 
         @Test
-        @DisplayName("rejeita evolucao em agendamento do tipo AVALIACAO")
-        void deveRejeitarTipoAvaliacao() {
+        @DisplayName("permite evolucao em agendamento do tipo AVALIACAO")
+        void devePermitirTipoAvaliacao() {
             Agendamento avaliacao = agendamentoAgendado(); // tipo = AVALIACAO
 
             when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoClinicaRepository.findByAgendamento(avaliacao))
+                    .thenReturn(Optional.empty());
+            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
 
-            assertThrows(AgendamentoStatusInvalidoException.class,
-                    () -> service.registrarEvolucao(1L, evolucaoRequest()));
+            service.registrarEvolucao(1L, evolucaoRequest());
 
-            verify(evolucaoClinicaRepository, never()).save(any());
+            verify(evolucaoClinicaRepository).save(any());
         }
 
         @Test

@@ -6,9 +6,18 @@ import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.enums.AvaliacaoPulsos;
+import com.prontudigital.backend.agendamento.enums.CaracteristicaBorda;
+import com.prontudigital.backend.agendamento.enums.CaracteristicaPerilesional;
+import com.prontudigital.backend.agendamento.enums.ClassificacaoDor;
+import com.prontudigital.backend.agendamento.enums.EvolucaoFerida;
 import com.prontudigital.backend.agendamento.enums.ExsudatoCaracteristica;
 import com.prontudigital.backend.agendamento.enums.ExsudatoVolume;
+import com.prontudigital.backend.agendamento.enums.GrauEdema;
 import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
+import com.prontudigital.backend.agendamento.enums.OdorIntensidade;
+import com.prontudigital.backend.agendamento.enums.SinalEvolucao;
+import com.prontudigital.backend.agendamento.enums.SinalInfeccao;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
@@ -16,6 +25,7 @@ import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -115,34 +125,60 @@ public final class AgendamentoTestFixtures {
         return EvolucaoClinica.builder()
                 .id(10L)
                 .agendamento(agendamento)
-                .tipoLesao("Úlcera venosa")
-                .escalaDor(2)
+                .etiologia("Úlcera venosa")
+                .classificacaoDor(ClassificacaoDor.LEVE)
                 .build();
     }
 
     public static EvolucaoTratamentoRequestDTO evolucaoRequest() {
         return new EvolucaoTratamentoRequestDTO(
+                // Dados da ferida
+                LocalDate.of(2026, 6, 18),
                 "Membro inferior direito",
                 "Úlcera venosa",
+                "3 meses",
+                // Mensuração
                 new BigDecimal("3.5"),
                 new BigDecimal("2.0"),
                 new BigDecimal("0.5"),
-                "Granulação",
+                true,
+                false,
+                // Leito da ferida
+                20,
+                60,
+                15,
+                5,
+                false,
+                false,
+                false,
+                // Exsudato
                 ExsudatoVolume.MODERADO,
                 ExsudatoCaracteristica.SEROSO,
-                "Regulares",
-                "Hiperemiada",
+                OdorIntensidade.LEVE,
+                // Bordas
+                Set.of(CaracteristicaBorda.INTEGRAS),
+                // Pele perilesional
+                Set.of(CaracteristicaPerilesional.HIPEREMIADA),
+                // Sinais de infecção
+                Set.of(SinalInfeccao.AUSENTES),
+                // Dor
+                ClassificacaoDor.MODERADA,
+                // Avaliação vascular
+                GrauEdema.MAIS_1,
+                AvaliacaoPulsos.PALPAVEIS,
+                // Evolução da ferida
+                EvolucaoFerida.MELHORANDO,
+                Set.of(SinalEvolucao.AUMENTO_GRANULACAO),
+                // Conduta
+                true,
                 false,
-                false,
-                "SF 0,9%",
+                true,
                 "Alginato de cálcio",
-                "AGE",
-                "Boa",
-                3,
+                false,
                 null,
-                "Trocar curativo a cada 3 dias",
-                "Febre acima de 38°C",
-                "Retornar em 7 dias");
+                true,
+                // Observações
+                "Paciente colaborativo");
     }
 
     public static BloqueioHorario bloqueio() {

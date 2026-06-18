@@ -43,7 +43,9 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -129,27 +131,60 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .findByAgendamento(agendamento)
                 .orElseGet(() -> EvolucaoClinica.builder().agendamento(agendamento).build());
 
+        // Dados da ferida
+        evolucao.setDataAvaliacao(request.dataAvaliacao());
         evolucao.setLocalizacaoAnatomica(request.localizacaoAnatomica());
-        evolucao.setTipoLesao(request.tipoLesao());
+        evolucao.setEtiologia(request.etiologia());
+        evolucao.setTempoEvolucao(request.tempoEvolucao());
+
+        // Mensuração
         evolucao.setMedidaComprimento(request.medidaComprimento());
         evolucao.setMedidaLargura(request.medidaLargura());
         evolucao.setMedidaProfundidade(request.medidaProfundidade());
-        evolucao.setAspectoLeitoFerida(request.aspectoLeitoFerida());
+        evolucao.setTunelizacao(request.tunelizacao());
+        evolucao.setDescolamentoBordas(request.descolamentoBordas());
+
+        // Leito da ferida
+        evolucao.setEpitelizacaoPercentual(request.epitelizacaoPercentual());
+        evolucao.setGranulacaoPercentual(request.granulacaoPercentual());
+        evolucao.setEsfaceloPercentual(request.esfaceloPercentual());
+        evolucao.setNecrosePercentual(request.necrosePercentual());
+        evolucao.setTendaoExposto(request.tendaoExposto());
+        evolucao.setMusculoExposto(request.musculoExposto());
+        evolucao.setOssoExposto(request.ossoExposto());
+
+        // Exsudato
         evolucao.setExsudatoVolume(request.exsudatoVolume());
         evolucao.setExsudatoCaracteristica(request.exsudatoCaracteristica());
-        evolucao.setCondicaoBordas(request.condicaoBordas());
-        evolucao.setAspectoPerilesional(request.aspectoPerilesional());
-        evolucao.setSinaisFlogisticos(request.sinaisFlogisticos());
-        evolucao.setPresencaOdor(request.presencaOdor());
-        evolucao.setLimpezaRealizada(request.limpezaRealizada());
-        evolucao.setCoberturasAplicadas(request.coberturasAplicadas());
-        evolucao.setProdutosUtilizados(request.produtosUtilizados());
-        evolucao.setAceitacaoProcedimento(request.aceitacaoProcedimento());
-        evolucao.setEscalaDor(request.escalaDor());
-        evolucao.setIntercorrencias(request.intercorrencias());
-        evolucao.setCuidadosCurativo(request.cuidadosCurativo());
-        evolucao.setSinaisAlerta(request.sinaisAlerta());
-        evolucao.setOrientacaoRetorno(request.orientacaoRetorno());
+        evolucao.setOdorIntensidade(request.odorIntensidade());
+
+        // Bordas / pele perilesional / sinais de infecção (múltipla escolha)
+        evolucao.setCaracteristicasBordas(novoConjunto(request.caracteristicasBordas()));
+        evolucao.setCaracteristicasPerilesional(novoConjunto(request.caracteristicasPerilesional()));
+        evolucao.setSinaisInfeccao(novoConjunto(request.sinaisInfeccao()));
+
+        // Dor
+        evolucao.setClassificacaoDor(request.classificacaoDor());
+
+        // Avaliação vascular
+        evolucao.setGrauEdema(request.grauEdema());
+        evolucao.setAvaliacaoPulsos(request.avaliacaoPulsos());
+
+        // Evolução da ferida
+        evolucao.setEvolucaoFerida(request.evolucaoFerida());
+        evolucao.setSinaisEvolucao(novoConjunto(request.sinaisEvolucao()));
+
+        // Conduta
+        evolucao.setLimpezaLesao(request.limpezaLesao());
+        evolucao.setDesbridamento(request.desbridamento());
+        evolucao.setCoberturaAplicada(request.coberturaAplicada());
+        evolucao.setCoberturaDescricao(request.coberturaDescricao());
+        evolucao.setTerapiaAdjuvante(request.terapiaAdjuvante());
+        evolucao.setTerapiaAdjuvanteDescricao(request.terapiaAdjuvanteDescricao());
+        evolucao.setOrientacoesFornecidas(request.orientacoesFornecidas());
+
+        // Observações
+        evolucao.setObservacoes(request.observacoes());
 
         evolucaoClinicaRepository.save(evolucao);
         log.info("Evolucao clinica registrada para agendamento id={}", agendamento.getId());
@@ -158,6 +193,10 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
                         "Agendamento nao encontrado: " + agendamento.getId()));
         return agendamentoUtil.convertToDetalhadoDTO(atualizado);
+    }
+
+    private static <T> Set<T> novoConjunto(Set<T> origem) {
+        return origem == null ? new LinkedHashSet<>() : new LinkedHashSet<>(origem);
     }
 
     @Override
