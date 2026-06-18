@@ -705,6 +705,39 @@
   min-height: 3.5rem;
 }
 
+/* ── Grupos de checkbox (checklist) ─────────── */
+.proc-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem 1rem;
+}
+
+.proc-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-heading);
+  cursor: pointer;
+}
+
+.proc-check input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-brand-light);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.proc-check input[type='checkbox']:disabled {
+  cursor: not-allowed;
+}
+
+.proc-check:has(input:disabled) {
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
 /* ── Responsivo ─────────────────────────────── */
 @media (max-width: 768px) {
   .proc-content {

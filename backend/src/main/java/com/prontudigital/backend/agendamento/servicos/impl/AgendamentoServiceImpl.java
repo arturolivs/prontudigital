@@ -82,29 +82,6 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     @Override
     @Transactional
-    public AgendamentoDetalhadoDTO atualizarObservacoes(Long id, String observacoes) {
-        Agendamento agendamento = buscarOuFalhar(id);
-        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
-
-        String perfil = permissaoPolicy.perfilEfetivo(usuario);
-        if ("PACIENTE".equals(perfil)) {
-            throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode editar observacoes de agendamento");
-        }
-        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
-            throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a editar este agendamento");
-        }
-
-        agendamento.setObservacoes(observacoes);
-        Agendamento salvo = agendamentoRepository.save(agendamento);
-        log.info("Observacoes atualizadas para agendamento id={}", salvo.getId());
-
-        return agendamentoUtil.convertToDetalhadoDTO(salvo);
-    }
-
-    @Override
-    @Transactional
     public AgendamentoDetalhadoDTO registrarEvolucao(Long id, EvolucaoTratamentoRequestDTO request) {
         Agendamento agendamento = buscarOuFalhar(id);
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
@@ -222,7 +199,6 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         Agendamento agendamento = Agendamento.builder()
                 .pacienteUuid(request.pacienteUuid())
                 .profissionalUuid(request.profissionalUuid())
-                .observacoes(request.observacoes())
                 .inicioEm(request.inicioEm())
                 .fimEm(request.fimEm())
                 .status(StatusAgendamento.AGENDADO)

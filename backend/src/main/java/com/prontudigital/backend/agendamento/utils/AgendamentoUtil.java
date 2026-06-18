@@ -31,7 +31,6 @@ public class AgendamentoUtil {
                 agendamento.getLocalAtendimento(),
                 agendamento.getPacienteAcamado(),
                 agendamento.getStatus(),
-                agendamento.getObservacoes(),
                 agendamento.getCriadoEm(),
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
                 agendamento.getConcluidoEm()
@@ -99,7 +98,6 @@ public class AgendamentoUtil {
                 agendamento.getStatus(),
                 nomePaciente,
                 nomeProfissional,
-                agendamento.getObservacoes(),
                 agendamento.getCriadoEm(),
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
                 agendamento.getConcluidoEm(),

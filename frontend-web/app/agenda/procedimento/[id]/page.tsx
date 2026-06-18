@@ -5,7 +5,14 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
-import { Agendamento, EvolucaoTratamentoRequisicao } from '@/tipos/agendamento'
+import {
+  Agendamento,
+  EvolucaoTratamentoRequisicao,
+  CaracteristicaBorda,
+  CaracteristicaPerilesional,
+  SinalInfeccao,
+  SinalEvolucao,
+} from '@/tipos/agendamento'
 import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
 import { ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendimento'
 import { RotaProtegida } from '@/components/RotaProtegida'
@@ -35,118 +42,247 @@ import './procedimento.css'
 // ── Tipos do formulário de evolução ──────────────────────────────
 
 type EvolucaoForm = {
+  // Dados da ferida
   localizacaoAnatomica: string
-  tipoLesao: string
+  etiologia: string
+  tempoEvolucao: string
+  // Mensuração
   medidaComprimento: string
   medidaLargura: string
   medidaProfundidade: string
-  aspectoLeitoFerida: string
+  tunelizacao: boolean
+  descolamentoBordas: boolean
+  // Leito da ferida
+  epitelizacaoPercentual: string
+  granulacaoPercentual: string
+  esfaceloPercentual: string
+  necrosePercentual: string
+  tendaoExposto: boolean
+  musculoExposto: boolean
+  ossoExposto: boolean
+  // Exsudato
   exsudatoVolume: string
   exsudatoCaracteristica: string
-  condicaoBordas: string
-  aspectoPerilesional: string
-  sinaisFlogisticos: string
-  presencaOdor: string
-  limpezaRealizada: string
-  coberturasAplicadas: string
-  produtosUtilizados: string
-  aceitacaoProcedimento: string
-  escalaDor: string
-  intercorrencias: string
-  cuidadosCurativo: string
-  sinaisAlerta: string
-  orientacaoRetorno: string
+  odorIntensidade: string
+  // Bordas
+  caracteristicasBordas: CaracteristicaBorda[]
+  // Pele perilesional
+  caracteristicasPerilesional: CaracteristicaPerilesional[]
+  // Sinais de infecção
+  sinaisInfeccao: SinalInfeccao[]
+  // Dor
+  classificacaoDor: string
+  // Avaliação vascular
+  grauEdema: string
+  avaliacaoPulsos: string
+  // Evolução da ferida
+  evolucaoFerida: string
+  sinaisEvolucao: SinalEvolucao[]
+  // Conduta
+  limpezaLesao: boolean
+  desbridamento: boolean
+  coberturaAplicada: boolean
+  coberturaDescricao: string
+  terapiaAdjuvante: boolean
+  terapiaAdjuvanteDescricao: string
+  orientacoesFornecidas: boolean
+  // Observações
+  observacoesFerida: string
 }
 
 const EVOLUCAO_INICIAL: EvolucaoForm = {
   localizacaoAnatomica: '',
-  tipoLesao: '',
+  etiologia: '',
+  tempoEvolucao: '',
   medidaComprimento: '',
   medidaLargura: '',
   medidaProfundidade: '',
-  aspectoLeitoFerida: '',
+  tunelizacao: false,
+  descolamentoBordas: false,
+  epitelizacaoPercentual: '',
+  granulacaoPercentual: '',
+  esfaceloPercentual: '',
+  necrosePercentual: '',
+  tendaoExposto: false,
+  musculoExposto: false,
+  ossoExposto: false,
   exsudatoVolume: '',
   exsudatoCaracteristica: '',
-  condicaoBordas: '',
-  aspectoPerilesional: '',
-  sinaisFlogisticos: '',
-  presencaOdor: '',
-  limpezaRealizada: '',
-  coberturasAplicadas: '',
-  produtosUtilizados: '',
-  aceitacaoProcedimento: '',
-  escalaDor: '',
-  intercorrencias: '',
-  cuidadosCurativo: '',
-  sinaisAlerta: '',
-  orientacaoRetorno: '',
+  odorIntensidade: '',
+  caracteristicasBordas: [],
+  caracteristicasPerilesional: [],
+  sinaisInfeccao: [],
+  classificacaoDor: '',
+  grauEdema: '',
+  avaliacaoPulsos: '',
+  evolucaoFerida: '',
+  sinaisEvolucao: [],
+  limpezaLesao: false,
+  desbridamento: false,
+  coberturaAplicada: false,
+  coberturaDescricao: '',
+  terapiaAdjuvante: false,
+  terapiaAdjuvanteDescricao: '',
+  orientacoesFornecidas: false,
+  observacoesFerida: '',
+}
+
+// ── Rótulos das opções (checklist) ───────────────────────────────
+
+const OPCOES_BORDA: { value: CaracteristicaBorda; label: string }[] = [
+  { value: 'INTEGRAS', label: 'Íntegras' },
+  { value: 'MACERADAS', label: 'Maceradas' },
+  { value: 'ADERIDAS', label: 'Aderidas' },
+  { value: 'DESCOLADAS', label: 'Descoladas' },
+  { value: 'EPIBOLIA', label: 'Epibolia' },
+  { value: 'HIPERQUERATOSE', label: 'Hiperqueratose' },
+]
+
+const OPCOES_PERILESIONAL: {
+  value: CaracteristicaPerilesional
+  label: string
+}[] = [
+  { value: 'INTEGRA', label: 'Íntegra' },
+  { value: 'HIPEREMIADA', label: 'Hiperemiada' },
+  { value: 'MACERADA', label: 'Macerada' },
+  { value: 'RESSECADA', label: 'Ressecada' },
+  { value: 'EDEMACIADA', label: 'Edemaciada' },
+  { value: 'DERMATITE', label: 'Dermatite' },
+]
+
+const OPCOES_INFECCAO: { value: SinalInfeccao; label: string }[] = [
+  { value: 'AUSENTES', label: 'Ausentes' },
+  { value: 'ERITEMA', label: 'Eritema' },
+  { value: 'CALOR_LOCAL', label: 'Calor local' },
+  { value: 'EDEMA', label: 'Edema' },
+  { value: 'DOR_AUMENTADA', label: 'Dor aumentada' },
+  { value: 'EXSUDATO_PURULENTO', label: 'Exsudato purulento' },
+  { value: 'MAU_ODOR', label: 'Mau odor' },
+]
+
+const OPCOES_SINAL_EVOLUCAO: { value: SinalEvolucao; label: string }[] = [
+  { value: 'REDUCAO_DIMENSOES', label: 'Redução das dimensões' },
+  { value: 'AUMENTO_GRANULACAO', label: 'Aumento do tecido de granulação' },
+  { value: 'REDUCAO_EXSUDATO', label: 'Redução do exsudato' },
+  { value: 'EPITELIZACAO_PROGRESSIVA', label: 'Epitelização progressiva' },
+  {
+    value: 'NECESSITA_REAVALIACAO',
+    label: 'Necessita reavaliação terapêutica',
+  },
+]
+
+function alternar<T>(lista: T[], valor: T): T[] {
+  return lista.includes(valor)
+    ? lista.filter(v => v !== valor)
+    : [...lista, valor]
+}
+
+function numParaTexto(n?: number): string {
+  return n == null ? '' : n.toString()
 }
 
 function evolucaoFromAgendamento(ag: Agendamento): EvolucaoForm {
   const ec = ag.evolucaoClinica
   return {
     localizacaoAnatomica: ec?.localizacaoAnatomica ?? '',
-    tipoLesao: ec?.tipoLesao ?? '',
-    medidaComprimento: ec?.medidaComprimento?.toString() ?? '',
-    medidaLargura: ec?.medidaLargura?.toString() ?? '',
-    medidaProfundidade: ec?.medidaProfundidade?.toString() ?? '',
-    aspectoLeitoFerida: ec?.aspectoLeitoFerida ?? '',
+    etiologia: ec?.etiologia ?? '',
+    tempoEvolucao: ec?.tempoEvolucao ?? '',
+    medidaComprimento: numParaTexto(ec?.medidaComprimento),
+    medidaLargura: numParaTexto(ec?.medidaLargura),
+    medidaProfundidade: numParaTexto(ec?.medidaProfundidade),
+    tunelizacao: ec?.tunelizacao ?? false,
+    descolamentoBordas: ec?.descolamentoBordas ?? false,
+    epitelizacaoPercentual: numParaTexto(ec?.epitelizacaoPercentual),
+    granulacaoPercentual: numParaTexto(ec?.granulacaoPercentual),
+    esfaceloPercentual: numParaTexto(ec?.esfaceloPercentual),
+    necrosePercentual: numParaTexto(ec?.necrosePercentual),
+    tendaoExposto: ec?.tendaoExposto ?? false,
+    musculoExposto: ec?.musculoExposto ?? false,
+    ossoExposto: ec?.ossoExposto ?? false,
     exsudatoVolume: ec?.exsudatoVolume ?? '',
     exsudatoCaracteristica: ec?.exsudatoCaracteristica ?? '',
-    condicaoBordas: ec?.condicaoBordas ?? '',
-    aspectoPerilesional: ec?.aspectoPerilesional ?? '',
-    sinaisFlogisticos:
-      ec?.sinaisFlogisticos == null ? '' : String(ec.sinaisFlogisticos),
-    presencaOdor: ec?.presencaOdor == null ? '' : String(ec.presencaOdor),
-    limpezaRealizada: ec?.limpezaRealizada ?? '',
-    coberturasAplicadas: ec?.coberturasAplicadas ?? '',
-    produtosUtilizados: ec?.produtosUtilizados ?? '',
-    aceitacaoProcedimento: ec?.aceitacaoProcedimento ?? '',
-    escalaDor: ec?.escalaDor?.toString() ?? '',
-    intercorrencias: ec?.intercorrencias ?? '',
-    cuidadosCurativo: ec?.cuidadosCurativo ?? '',
-    sinaisAlerta: ec?.sinaisAlerta ?? '',
-    orientacaoRetorno: ec?.orientacaoRetorno ?? '',
+    odorIntensidade: ec?.odorIntensidade ?? '',
+    caracteristicasBordas: ec?.caracteristicasBordas ?? [],
+    caracteristicasPerilesional: ec?.caracteristicasPerilesional ?? [],
+    sinaisInfeccao: ec?.sinaisInfeccao ?? [],
+    classificacaoDor: ec?.classificacaoDor ?? '',
+    grauEdema: ec?.grauEdema ?? '',
+    avaliacaoPulsos: ec?.avaliacaoPulsos ?? '',
+    evolucaoFerida: ec?.evolucaoFerida ?? '',
+    sinaisEvolucao: ec?.sinaisEvolucao ?? [],
+    limpezaLesao: ec?.limpezaLesao ?? false,
+    desbridamento: ec?.desbridamento ?? false,
+    coberturaAplicada: ec?.coberturaAplicada ?? false,
+    coberturaDescricao: ec?.coberturaDescricao ?? '',
+    terapiaAdjuvante: ec?.terapiaAdjuvante ?? false,
+    terapiaAdjuvanteDescricao: ec?.terapiaAdjuvanteDescricao ?? '',
+    orientacoesFornecidas: ec?.orientacoesFornecidas ?? false,
+    observacoesFerida: ec?.observacoes ?? '',
   }
+}
+
+function txt(valor: string): string | undefined {
+  return valor.trim() ? valor : undefined
+}
+
+function num(valor: string): number | undefined {
+  return valor.trim() ? Number(valor) : undefined
+}
+
+function lista<T>(valores: T[]): T[] | undefined {
+  return valores.length ? valores : undefined
 }
 
 function evolucaoParaApi(form: EvolucaoForm): EvolucaoTratamentoRequisicao {
   return {
-    localizacaoAnatomica: form.localizacaoAnatomica || undefined,
-    tipoLesao: form.tipoLesao || undefined,
-    medidaComprimento: form.medidaComprimento
-      ? parseFloat(form.medidaComprimento)
-      : undefined,
-    medidaLargura: form.medidaLargura
-      ? parseFloat(form.medidaLargura)
-      : undefined,
-    medidaProfundidade: form.medidaProfundidade
-      ? parseFloat(form.medidaProfundidade)
-      : undefined,
-    aspectoLeitoFerida: form.aspectoLeitoFerida || undefined,
+    localizacaoAnatomica: txt(form.localizacaoAnatomica),
+    etiologia: txt(form.etiologia),
+    tempoEvolucao: txt(form.tempoEvolucao),
+    medidaComprimento: num(form.medidaComprimento),
+    medidaLargura: num(form.medidaLargura),
+    medidaProfundidade: num(form.medidaProfundidade),
+    tunelizacao: form.tunelizacao,
+    descolamentoBordas: form.descolamentoBordas,
+    epitelizacaoPercentual: num(form.epitelizacaoPercentual),
+    granulacaoPercentual: num(form.granulacaoPercentual),
+    esfaceloPercentual: num(form.esfaceloPercentual),
+    necrosePercentual: num(form.necrosePercentual),
+    tendaoExposto: form.tendaoExposto,
+    musculoExposto: form.musculoExposto,
+    ossoExposto: form.ossoExposto,
     exsudatoVolume:
       (form.exsudatoVolume as EvolucaoTratamentoRequisicao['exsudatoVolume']) ||
       undefined,
     exsudatoCaracteristica:
       (form.exsudatoCaracteristica as EvolucaoTratamentoRequisicao['exsudatoCaracteristica']) ||
       undefined,
-    condicaoBordas: form.condicaoBordas || undefined,
-    aspectoPerilesional: form.aspectoPerilesional || undefined,
-    sinaisFlogisticos:
-      form.sinaisFlogisticos === ''
-        ? undefined
-        : form.sinaisFlogisticos === 'true',
-    presencaOdor:
-      form.presencaOdor === '' ? undefined : form.presencaOdor === 'true',
-    limpezaRealizada: form.limpezaRealizada || undefined,
-    coberturasAplicadas: form.coberturasAplicadas || undefined,
-    produtosUtilizados: form.produtosUtilizados || undefined,
-    aceitacaoProcedimento: form.aceitacaoProcedimento || undefined,
-    escalaDor: form.escalaDor !== '' ? parseInt(form.escalaDor) : undefined,
-    intercorrencias: form.intercorrencias || undefined,
-    cuidadosCurativo: form.cuidadosCurativo || undefined,
-    sinaisAlerta: form.sinaisAlerta || undefined,
-    orientacaoRetorno: form.orientacaoRetorno || undefined,
+    odorIntensidade:
+      (form.odorIntensidade as EvolucaoTratamentoRequisicao['odorIntensidade']) ||
+      undefined,
+    caracteristicasBordas: lista(form.caracteristicasBordas),
+    caracteristicasPerilesional: lista(form.caracteristicasPerilesional),
+    sinaisInfeccao: lista(form.sinaisInfeccao),
+    classificacaoDor:
+      (form.classificacaoDor as EvolucaoTratamentoRequisicao['classificacaoDor']) ||
+      undefined,
+    grauEdema:
+      (form.grauEdema as EvolucaoTratamentoRequisicao['grauEdema']) ||
+      undefined,
+    avaliacaoPulsos:
+      (form.avaliacaoPulsos as EvolucaoTratamentoRequisicao['avaliacaoPulsos']) ||
+      undefined,
+    evolucaoFerida:
+      (form.evolucaoFerida as EvolucaoTratamentoRequisicao['evolucaoFerida']) ||
+      undefined,
+    sinaisEvolucao: lista(form.sinaisEvolucao),
+    limpezaLesao: form.limpezaLesao,
+    desbridamento: form.desbridamento,
+    coberturaAplicada: form.coberturaAplicada,
+    coberturaDescricao: txt(form.coberturaDescricao),
+    terapiaAdjuvante: form.terapiaAdjuvante,
+    terapiaAdjuvanteDescricao: txt(form.terapiaAdjuvanteDescricao),
+    orientacoesFornecidas: form.orientacoesFornecidas,
+    observacoes: txt(form.observacoesFerida),
   }
 }
 
@@ -286,6 +422,60 @@ function Campo({
   )
 }
 
+function CheckItem({
+  label,
+  checked,
+  onChange,
+  disabled,
+}: {
+  label: string
+  checked: boolean
+  onChange: (valor: boolean) => void
+  disabled?: boolean
+}) {
+  return (
+    <label className="proc-check">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        disabled={disabled}
+      />
+      <span>{label}</span>
+    </label>
+  )
+}
+
+function GrupoCheck<T extends string>({
+  label,
+  opcoes,
+  valores,
+  onToggle,
+  disabled,
+}: {
+  label: string
+  opcoes: { value: T; label: string }[]
+  valores: T[]
+  onToggle: (valor: T) => void
+  disabled?: boolean
+}) {
+  return (
+    <Campo label={label}>
+      <div className="proc-check-grid">
+        {opcoes.map(op => (
+          <CheckItem
+            key={op.value}
+            label={op.label}
+            checked={valores.includes(op.value)}
+            onChange={() => onToggle(op.value)}
+            disabled={disabled}
+          />
+        ))}
+      </div>
+    </Campo>
+  )
+}
+
 // ── Página principal ─────────────────────────────────────────────
 
 export default function ProcedimentoPage({
@@ -305,7 +495,6 @@ export default function ProcedimentoPage({
   const [historico, setHistorico] = useState<Agendamento[]>([])
   const [carregandoHist, setCarregandoHist] = useState(false)
 
-  const [observacoes, setObservacoes] = useState('')
   const [evolucao, setEvolucao] = useState<EvolucaoForm>(EVOLUCAO_INICIAL)
   const [iniciado, setIniciado] = useState(false)
   const [finalizando, setFinalizando] = useState(false)
@@ -319,7 +508,6 @@ export default function ProcedimentoPage({
       .buscarPorId(Number(id))
       .then(data => {
         setAgendamento(data)
-        setObservacoes(data.observacoes ?? '')
         setEvolucao(evolucaoFromAgendamento(data))
       })
       .catch(() => setErro('Não foi possível carregar o agendamento.'))
@@ -352,19 +540,27 @@ export default function ProcedimentoPage({
     ) =>
       setEvolucao(prev => ({ ...prev, [campo]: e.target.value }))
 
+  const setBool = (campo: keyof EvolucaoForm) => (valor: boolean) =>
+    setEvolucao(prev => ({ ...prev, [campo]: valor }))
+
+  const toggleMulti =
+    <T,>(campo: keyof EvolucaoForm) =>
+    (valor: T) =>
+      setEvolucao(prev => ({
+        ...prev,
+        [campo]: alternar(prev[campo] as T[], valor),
+      }))
+
   const finalizarConsulta = async () => {
     if (!agendamento) return
     setFinalizando(true)
     try {
-      await agendamentoAPI.atualizarObservacoes(agendamento.id, observacoes)
       await agendamentoAPI.registrarEvolucao(
         agendamento.id,
         evolucaoParaApi(evolucao),
       )
       await agendamentoAPI.concluirAgendamento(agendamento.id)
-      setAgendamento(prev =>
-        prev ? { ...prev, status: 'REALIZADO', observacoes } : prev,
-      )
+      setAgendamento(prev => (prev ? { ...prev, status: 'REALIZADO' } : prev))
       setIniciado(false)
       setModalAberto(true)
     } catch {
@@ -612,41 +808,16 @@ export default function ProcedimentoPage({
                   )}
                 </div>
 
-                {/* Observações */}
-                <div className="proc-card proc-full">
-                  <div className="proc-card-header">
-                    <FileText size={16} />
-                    Observações
-                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
-                  </div>
-                  <div className="proc-obs-area">
-                    <textarea
-                      className="proc-obs-textarea"
-                      value={observacoes}
-                      onChange={e => setObservacoes(e.target.value)}
-                      placeholder={
-                        jaRealizado
-                          ? 'Observações registradas nesta consulta.'
-                          : podeEditar
-                            ? 'Registre observações, evoluções e anotações desta consulta…'
-                            : 'Inicie a consulta para registrar observações.'
-                      }
-                      disabled={!podeEditar}
-                      rows={6}
-                    />
-                  </div>
-                </div>
-
-                {/* Seção 2 – Avaliação da lesão */}
+                {/* Dados da ferida */}
                 <div className="proc-card proc-full">
                   <div className="proc-card-header">
                     <Eye size={16} />
-                    Avaliação da lesão
+                    Dados da ferida
                     {!podeEditar && !jaRealizado && <BloqueadoTag />}
                   </div>
                   <div className="proc-form">
-                    <div className="proc-form-grid">
-                      <Campo label="Localização anatômica">
+                    <div className="proc-form-grid-3">
+                      <Campo label="Localização">
                         <input
                           className="proc-campo-input"
                           value={evolucao.localizacaoAnatomica}
@@ -655,17 +826,36 @@ export default function ProcedimentoPage({
                           placeholder="Ex: membro inferior direito, região sacral…"
                         />
                       </Campo>
-                      <Campo label="Tipo de lesão">
+                      <Campo label="Etiologia">
                         <input
                           className="proc-campo-input"
-                          value={evolucao.tipoLesao}
-                          onChange={setEv('tipoLesao')}
+                          value={evolucao.etiologia}
+                          onChange={setEv('etiologia')}
                           disabled={!podeEditar}
-                          placeholder="Ex: LPP, úlcera venosa, pé diabético, ferida cirúrgica…"
+                          placeholder="Ex: LPP, úlcera venosa, pé diabético…"
+                        />
+                      </Campo>
+                      <Campo label="Tempo de evolução">
+                        <input
+                          className="proc-campo-input"
+                          value={evolucao.tempoEvolucao}
+                          onChange={setEv('tempoEvolucao')}
+                          disabled={!podeEditar}
+                          placeholder="Ex: 3 meses"
                         />
                       </Campo>
                     </div>
+                  </div>
+                </div>
 
+                {/* Mensuração */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Activity size={16} />
+                    Mensuração
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <div className="proc-form">
                     <div className="proc-form-grid-3">
                       <Campo label="Comprimento (cm)">
                         <input
@@ -704,9 +894,114 @@ export default function ProcedimentoPage({
                         />
                       </Campo>
                     </div>
+                    <div className="proc-check-grid">
+                      <CheckItem
+                        label="Tunelização"
+                        checked={evolucao.tunelizacao}
+                        onChange={setBool('tunelizacao')}
+                        disabled={!podeEditar}
+                      />
+                      <CheckItem
+                        label="Descolamento de bordas (undermining)"
+                        checked={evolucao.descolamentoBordas}
+                        onChange={setBool('descolamentoBordas')}
+                        disabled={!podeEditar}
+                      />
+                    </div>
+                  </div>
+                </div>
 
+                {/* Leito da ferida */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Activity size={16} />
+                    Leito da ferida
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <div className="proc-form">
                     <div className="proc-form-grid">
-                      <Campo label="Volume do exsudato">
+                      <Campo label="Epitelização (%)">
+                        <input
+                          className="proc-campo-input"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={evolucao.epitelizacaoPercentual}
+                          onChange={setEv('epitelizacaoPercentual')}
+                          disabled={!podeEditar}
+                          placeholder="0"
+                        />
+                      </Campo>
+                      <Campo label="Granulação (%)">
+                        <input
+                          className="proc-campo-input"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={evolucao.granulacaoPercentual}
+                          onChange={setEv('granulacaoPercentual')}
+                          disabled={!podeEditar}
+                          placeholder="0"
+                        />
+                      </Campo>
+                      <Campo label="Esfacelo/Fibrina (%)">
+                        <input
+                          className="proc-campo-input"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={evolucao.esfaceloPercentual}
+                          onChange={setEv('esfaceloPercentual')}
+                          disabled={!podeEditar}
+                          placeholder="0"
+                        />
+                      </Campo>
+                      <Campo label="Necrose (%)">
+                        <input
+                          className="proc-campo-input"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={evolucao.necrosePercentual}
+                          onChange={setEv('necrosePercentual')}
+                          disabled={!podeEditar}
+                          placeholder="0"
+                        />
+                      </Campo>
+                    </div>
+                    <div className="proc-check-grid">
+                      <CheckItem
+                        label="Tendão exposto"
+                        checked={evolucao.tendaoExposto}
+                        onChange={setBool('tendaoExposto')}
+                        disabled={!podeEditar}
+                      />
+                      <CheckItem
+                        label="Músculo exposto"
+                        checked={evolucao.musculoExposto}
+                        onChange={setBool('musculoExposto')}
+                        disabled={!podeEditar}
+                      />
+                      <CheckItem
+                        label="Osso exposto"
+                        checked={evolucao.ossoExposto}
+                        onChange={setBool('ossoExposto')}
+                        disabled={!podeEditar}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Exsudato */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Pill size={16} />
+                    Exsudato
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <div className="proc-form">
+                    <div className="proc-form-grid-3">
+                      <Campo label="Quantidade">
                         <select
                           className="proc-campo-select"
                           value={evolucao.exsudatoVolume}
@@ -715,12 +1010,12 @@ export default function ProcedimentoPage({
                         >
                           <option value="">Não informado</option>
                           <option value="AUSENTE">Ausente</option>
-                          <option value="PEQUENO">Pequeno</option>
-                          <option value="MODERADO">Moderado</option>
+                          <option value="PEQUENO">Pequena</option>
+                          <option value="MODERADO">Moderada</option>
                           <option value="GRANDE">Grande</option>
                         </select>
                       </Campo>
-                      <Campo label="Característica do exsudato">
+                      <Campo label="Aspecto">
                         <select
                           className="proc-campo-select"
                           value={evolucao.exsudatoCaracteristica}
@@ -732,196 +1027,229 @@ export default function ProcedimentoPage({
                           <option value="SEROSSANGUINOLENTO">
                             Serossanguinolento
                           </option>
+                          <option value="SANGUINOLENTO">Sanguinolento</option>
                           <option value="PURULENTO">Purulento</option>
                         </select>
                       </Campo>
-                      <Campo label="Sinais flogísticos">
+                      <Campo label="Odor">
                         <select
                           className="proc-campo-select"
-                          value={evolucao.sinaisFlogisticos}
-                          onChange={setEv('sinaisFlogisticos')}
+                          value={evolucao.odorIntensidade}
+                          onChange={setEv('odorIntensidade')}
                           disabled={!podeEditar}
                         >
                           <option value="">Não informado</option>
-                          <option value="true">Sim</option>
-                          <option value="false">Não</option>
+                          <option value="AUSENTE">Ausente</option>
+                          <option value="LEVE">Leve</option>
+                          <option value="MODERADO">Moderado</option>
+                          <option value="INTENSO">Intenso</option>
                         </select>
                       </Campo>
-                      <Campo label="Presença de odor">
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bordas e pele perilesional */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Eye size={16} />
+                    Bordas e pele perilesional
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <div className="proc-form">
+                    <GrupoCheck<CaracteristicaBorda>
+                      label="Bordas"
+                      opcoes={OPCOES_BORDA}
+                      valores={evolucao.caracteristicasBordas}
+                      onToggle={toggleMulti<CaracteristicaBorda>(
+                        'caracteristicasBordas',
+                      )}
+                      disabled={!podeEditar}
+                    />
+                    <GrupoCheck<CaracteristicaPerilesional>
+                      label="Pele perilesional"
+                      opcoes={OPCOES_PERILESIONAL}
+                      valores={evolucao.caracteristicasPerilesional}
+                      onToggle={toggleMulti<CaracteristicaPerilesional>(
+                        'caracteristicasPerilesional',
+                      )}
+                      disabled={!podeEditar}
+                    />
+                  </div>
+                </div>
+
+                {/* Sinais de infecção, dor e avaliação vascular */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Activity size={16} />
+                    Sinais de infecção, dor e avaliação vascular
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <div className="proc-form">
+                    <GrupoCheck<SinalInfeccao>
+                      label="Sinais de infecção"
+                      opcoes={OPCOES_INFECCAO}
+                      valores={evolucao.sinaisInfeccao}
+                      onToggle={toggleMulti<SinalInfeccao>('sinaisInfeccao')}
+                      disabled={!podeEditar}
+                    />
+                    <div className="proc-form-grid-3">
+                      <Campo label="Dor">
                         <select
                           className="proc-campo-select"
-                          value={evolucao.presencaOdor}
-                          onChange={setEv('presencaOdor')}
+                          value={evolucao.classificacaoDor}
+                          onChange={setEv('classificacaoDor')}
                           disabled={!podeEditar}
                         >
                           <option value="">Não informado</option>
-                          <option value="true">Sim</option>
-                          <option value="false">Não</option>
+                          <option value="AUSENTE">Ausente</option>
+                          <option value="LEVE">EVA 1–3 (leve)</option>
+                          <option value="MODERADA">EVA 4–6 (moderada)</option>
+                          <option value="INTENSA">EVA 7–10 (intensa)</option>
+                        </select>
+                      </Campo>
+                      <Campo label="Edema">
+                        <select
+                          className="proc-campo-select"
+                          value={evolucao.grauEdema}
+                          onChange={setEv('grauEdema')}
+                          disabled={!podeEditar}
+                        >
+                          <option value="">Não informado</option>
+                          <option value="SEM_EDEMA">Sem edema</option>
+                          <option value="MAIS_1">Edema +1</option>
+                          <option value="MAIS_2">Edema +2</option>
+                          <option value="MAIS_3">Edema +3</option>
+                          <option value="MAIS_4">Edema +4</option>
+                        </select>
+                      </Campo>
+                      <Campo label="Pulsos">
+                        <select
+                          className="proc-campo-select"
+                          value={evolucao.avaliacaoPulsos}
+                          onChange={setEv('avaliacaoPulsos')}
+                          disabled={!podeEditar}
+                        >
+                          <option value="">Não informado</option>
+                          <option value="PALPAVEIS">Palpáveis</option>
+                          <option value="DIMINUIDOS">Diminuídos</option>
+                          <option value="AUSENTES">Ausentes</option>
                         </select>
                       </Campo>
                     </div>
-
-                    <Campo label="Aspecto do leito da ferida">
-                      <textarea
-                        className="proc-campo-textarea"
-                        value={evolucao.aspectoLeitoFerida}
-                        onChange={setEv('aspectoLeitoFerida')}
-                        disabled={!podeEditar}
-                        placeholder="Granulação, epitelização, esfacelo, necrose…"
-                        rows={2}
-                      />
-                    </Campo>
-
-                    <div className="proc-form-grid">
-                      <Campo label="Condição das bordas">
-                        <textarea
-                          className="proc-campo-textarea"
-                          value={evolucao.condicaoBordas}
-                          onChange={setEv('condicaoBordas')}
-                          disabled={!podeEditar}
-                          placeholder="Descreva a condição das bordas da lesão…"
-                          rows={2}
-                        />
-                      </Campo>
-                      <Campo label="Aspecto da pele perilesional">
-                        <textarea
-                          className="proc-campo-textarea"
-                          value={evolucao.aspectoPerilesional}
-                          onChange={setEv('aspectoPerilesional')}
-                          disabled={!podeEditar}
-                          placeholder="Descreva o aspecto da pele ao redor da lesão…"
-                          rows={2}
-                        />
-                      </Campo>
-                    </div>
                   </div>
                 </div>
 
-                {/* Seção 3 – Procedimento realizado */}
-                <div className="proc-card proc-full">
-                  <div className="proc-card-header">
-                    <Scissors size={16} />
-                    Procedimento realizado
-                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
-                  </div>
-                  <div className="proc-form">
-                    <div className="proc-form-grid">
-                      <Campo label="Limpeza realizada e solução utilizada">
-                        <textarea
-                          className="proc-campo-textarea"
-                          value={evolucao.limpezaRealizada}
-                          onChange={setEv('limpezaRealizada')}
-                          disabled={!podeEditar}
-                          placeholder="Descreva a técnica de limpeza e solução utilizada…"
-                          rows={3}
-                        />
-                      </Campo>
-                      <Campo label="Coberturas aplicadas">
-                        <textarea
-                          className="proc-campo-textarea"
-                          value={evolucao.coberturasAplicadas}
-                          onChange={setEv('coberturasAplicadas')}
-                          disabled={!podeEditar}
-                          placeholder="Liste as coberturas aplicadas…"
-                          rows={3}
-                        />
-                      </Campo>
-                    </div>
-                    <Campo label="Produtos utilizados">
-                      <textarea
-                        className="proc-campo-textarea"
-                        value={evolucao.produtosUtilizados}
-                        onChange={setEv('produtosUtilizados')}
-                        disabled={!podeEditar}
-                        placeholder="Liste os produtos e materiais utilizados no procedimento…"
-                        rows={2}
-                      />
-                    </Campo>
-                  </div>
-                </div>
-
-                {/* Seção 4 – Resposta do paciente */}
-                <div className="proc-card proc-full">
-                  <div className="proc-card-header">
-                    <MessageSquare size={16} />
-                    Resposta do paciente
-                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
-                  </div>
-                  <div className="proc-form">
-                    <div className="proc-form-grid">
-                      <Campo label="Aceitação do procedimento">
-                        <input
-                          className="proc-campo-input"
-                          value={evolucao.aceitacaoProcedimento}
-                          onChange={setEv('aceitacaoProcedimento')}
-                          disabled={!podeEditar}
-                          placeholder="Boa, parcial, não aceitou…"
-                        />
-                      </Campo>
-                      <Campo label="Escala de dor EVA (0–10)">
-                        <input
-                          className="proc-campo-input"
-                          type="number"
-                          min="0"
-                          max="10"
-                          value={evolucao.escalaDor}
-                          onChange={setEv('escalaDor')}
-                          disabled={!podeEditar}
-                          placeholder="0"
-                        />
-                      </Campo>
-                    </div>
-                    <Campo label="Intercorrências durante o procedimento">
-                      <textarea
-                        className="proc-campo-textarea"
-                        value={evolucao.intercorrencias}
-                        onChange={setEv('intercorrencias')}
-                        disabled={!podeEditar}
-                        placeholder="Registre qualquer intercorrência ocorrida durante o procedimento…"
-                        rows={2}
-                      />
-                    </Campo>
-                  </div>
-                </div>
-
-                {/* Seção 5 – Orientações fornecidas */}
+                {/* Evolução da ferida */}
                 <div className="proc-card proc-full">
                   <div className="proc-card-header">
                     <BookOpen size={16} />
-                    Orientações fornecidas
+                    Evolução da ferida
                     {!podeEditar && !jaRealizado && <BloqueadoTag />}
                   </div>
                   <div className="proc-form">
+                    <Campo label="Evolução geral">
+                      <select
+                        className="proc-campo-select"
+                        value={evolucao.evolucaoFerida}
+                        onChange={setEv('evolucaoFerida')}
+                        disabled={!podeEditar}
+                      >
+                        <option value="">Não informado</option>
+                        <option value="MELHORANDO">Melhorando</option>
+                        <option value="ESTAVEL">Estável</option>
+                        <option value="PIORANDO">Piorando</option>
+                      </select>
+                    </Campo>
+                    <GrupoCheck<SinalEvolucao>
+                      label="Sinais de evolução"
+                      opcoes={OPCOES_SINAL_EVOLUCAO}
+                      valores={evolucao.sinaisEvolucao}
+                      onToggle={toggleMulti<SinalEvolucao>('sinaisEvolucao')}
+                      disabled={!podeEditar}
+                    />
+                  </div>
+                </div>
+
+                {/* Conduta */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Scissors size={16} />
+                    Conduta
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <div className="proc-form">
+                    <div className="proc-check-grid">
+                      <CheckItem
+                        label="Limpeza da lesão"
+                        checked={evolucao.limpezaLesao}
+                        onChange={setBool('limpezaLesao')}
+                        disabled={!podeEditar}
+                      />
+                      <CheckItem
+                        label="Desbridamento (quando indicado)"
+                        checked={evolucao.desbridamento}
+                        onChange={setBool('desbridamento')}
+                        disabled={!podeEditar}
+                      />
+                      <CheckItem
+                        label="Orientações fornecidas ao paciente/cuidador"
+                        checked={evolucao.orientacoesFornecidas}
+                        onChange={setBool('orientacoesFornecidas')}
+                        disabled={!podeEditar}
+                      />
+                    </div>
                     <div className="proc-form-grid">
-                      <Campo label="Cuidados com o curativo">
-                        <textarea
-                          className="proc-campo-textarea"
-                          value={evolucao.cuidadosCurativo}
-                          onChange={setEv('cuidadosCurativo')}
+                      <Campo label="Cobertura aplicada">
+                        <CheckItem
+                          label="Aplicou cobertura"
+                          checked={evolucao.coberturaAplicada}
+                          onChange={setBool('coberturaAplicada')}
                           disabled={!podeEditar}
-                          placeholder="Oriente os cuidados domiciliares com o curativo…"
-                          rows={3}
+                        />
+                        <input
+                          className="proc-campo-input"
+                          value={evolucao.coberturaDescricao}
+                          onChange={setEv('coberturaDescricao')}
+                          disabled={!podeEditar || !evolucao.coberturaAplicada}
+                          placeholder="Qual cobertura?"
                         />
                       </Campo>
-                      <Campo label="Sinais de alerta">
-                        <textarea
-                          className="proc-campo-textarea"
-                          value={evolucao.sinaisAlerta}
-                          onChange={setEv('sinaisAlerta')}
+                      <Campo label="Terapia adjuvante">
+                        <CheckItem
+                          label="Aplicou terapia adjuvante"
+                          checked={evolucao.terapiaAdjuvante}
+                          onChange={setBool('terapiaAdjuvante')}
                           disabled={!podeEditar}
-                          placeholder="Sinais que devem motivar busca imediata por atendimento…"
-                          rows={3}
+                        />
+                        <input
+                          className="proc-campo-input"
+                          value={evolucao.terapiaAdjuvanteDescricao}
+                          onChange={setEv('terapiaAdjuvanteDescricao')}
+                          disabled={!podeEditar || !evolucao.terapiaAdjuvante}
+                          placeholder="Qual terapia?"
                         />
                       </Campo>
                     </div>
-                    <Campo label="Retorno e acompanhamento">
+                  </div>
+                </div>
+
+                {/* Observações */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <MessageSquare size={16} />
+                    Observações
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <div className="proc-form">
+                    <Campo label="Observações sobre a ferida">
                       <textarea
                         className="proc-campo-textarea"
-                        value={evolucao.orientacaoRetorno}
-                        onChange={setEv('orientacaoRetorno')}
+                        value={evolucao.observacoesFerida}
+                        onChange={setEv('observacoesFerida')}
                         disabled={!podeEditar}
-                        placeholder="Oriente sobre o próximo retorno e acompanhamento…"
-                        rows={2}
+                        placeholder="Observações gerais sobre a avaliação da ferida…"
+                        rows={3}
                       />
                     </Campo>
                   </div>

@@ -122,7 +122,7 @@ const AgendaMensal: React.FC<PropsAgendaMensal> = ({
                     >
                       <span className="mensal-apto-hora">{formatarHora(a.inicioEm)}</span>
                       <span className="mensal-apto-nome">
-                        {a.nomePaciente.split(' ')[0]}
+                        {(a.nomePaciente ?? '').split(' ')[0]}
                       </span>
                     </div>
                   ))}

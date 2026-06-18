@@ -68,7 +68,6 @@ export default function ModalNovoAgendamento({
   const [avaliacaoId, setAvaliacaoId] = useState(
     prefill?.avaliacaoId?.toString() ?? '',
   )
-  const [observacoes, setObservacoes] = useState('')
 
   const carregarPacientes = useCallback(async (): Promise<OpcaoSAC[]> => {
     const todos = await usuariosAPI.listarUsuarios(0, 1000)
@@ -109,7 +108,6 @@ export default function ModalNovoAgendamento({
         tipoProcedimento: tipoProcedimento as TipoProcedimento,
         localAtendimento: localAtendimento as LocalAtendimento,
         pacienteAcamado: pacienteAcamado!,
-        observacoes: observacoes.trim() || undefined,
         avaliacaoId:
           tipo === 'TRATAMENTO' && avaliacaoId
             ? Number(avaliacaoId)
@@ -293,22 +291,6 @@ export default function ModalNovoAgendamento({
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Observações */}
-        <div className="mna-grupo">
-          <label className="mna-rotulo" htmlFor="mna-obs">
-            Observações <span className="mna-opcional">(opcional)</span>
-          </label>
-          <textarea
-            id="mna-obs"
-            className="mna-textarea"
-            rows={3}
-            placeholder="Informações adicionais sobre o agendamento…"
-            value={observacoes}
-            onChange={e => setObservacoes(e.target.value)}
-            maxLength={500}
-          />
         </div>
       </div>
     </Modal>

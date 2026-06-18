@@ -4,7 +4,6 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
-import com.prontudigital.backend.agendamento.dto.AtualizarObservacoesRequestDTO;
 import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.PacienteAgendamentosDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
@@ -44,14 +43,6 @@ public class AgendamentoController {
     @BuscarPorIdSwagger
     public ResponseEntity<AgendamentoDetalhadoDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(agendamentoService.buscarPorId(id));
-    }
-
-    @PatchMapping("/{id}/observacoes")
-    @AtualizarObservacoesSwagger
-    public ResponseEntity<AgendamentoDetalhadoDTO> atualizarObservacoes(
-            @PathVariable Long id,
-            @RequestBody AtualizarObservacoesRequestDTO request) {
-        return ResponseEntity.ok(agendamentoService.atualizarObservacoes(id, request.observacoes()));
     }
 
     @PostMapping

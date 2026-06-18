@@ -86,14 +86,6 @@ export const agendamentoAPI = {
     return response.data
   },
 
-  atualizarObservacoes: async (id: number, observacoes: string): Promise<Agendamento> => {
-    const response = await api.patch<Agendamento>(
-      `${API_BASE_URL}/${id}/observacoes`,
-      { observacoes },
-    )
-    return response.data
-  },
-
   registrarEvolucao: async (
     id: number,
     dados: EvolucaoTratamentoRequisicao,

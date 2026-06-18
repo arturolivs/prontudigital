@@ -68,7 +68,7 @@ public final class AgendamentoTestFixtures {
     public static AgendamentoRequestDTO requestAvaliacao() {
         return new AgendamentoRequestDTO(
                 PACIENTE_UUID, PROFISSIONAL_UUID,
-                "Consulta inicial", INICIO, FIM,
+                INICIO, FIM,
                 TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
                 LocalAtendimento.CLINICA, false, null);
     }
@@ -76,7 +76,7 @@ public final class AgendamentoTestFixtures {
     public static AgendamentoRequestDTO requestTratamento(Long avaliacaoId) {
         return new AgendamentoRequestDTO(
                 PACIENTE_UUID, PROFISSIONAL_UUID,
-                "Tratamento", INICIO, FIM,
+                INICIO, FIM,
                 TipoAgendamento.TRATAMENTO, TipoProcedimento.PODIATRIA,
                 LocalAtendimento.CLINICA, false, avaliacaoId);
     }

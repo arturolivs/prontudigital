@@ -105,7 +105,7 @@ class AgendamentoServiceImplTest {
         @DisplayName("paciente não pode criar agendamento para outro paciente")
         void deveRejeitarPacienteAgendandoParaOutro() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
-                    OUTRO_UUID, PROFISSIONAL_UUID, null, INICIO, FIM,
+                    OUTRO_UUID, PROFISSIONAL_UUID, INICIO, FIM,
                     TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
                     LocalAtendimento.CLINICA, false, null);
 
@@ -122,7 +122,7 @@ class AgendamentoServiceImplTest {
         @DisplayName("rejeita data no passado")
         void deveRejeitarDataPassada() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
-                    PACIENTE_UUID, PROFISSIONAL_UUID, null,
+                    PACIENTE_UUID, PROFISSIONAL_UUID,
                     LocalDateTime.of(2020, 1, 1, 10, 0),
                     LocalDateTime.of(2020, 1, 1, 11, 0),
                     TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
@@ -138,7 +138,7 @@ class AgendamentoServiceImplTest {
         @DisplayName("rejeita duração menor que 15 minutos")
         void deveRejeitarDuracaoMuitoCurta() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
-                    PACIENTE_UUID, PROFISSIONAL_UUID, null,
+                    PACIENTE_UUID, PROFISSIONAL_UUID,
                     INICIO, INICIO.plusMinutes(10),
                     TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
                     LocalAtendimento.CLINICA, false, null);
@@ -487,59 +487,6 @@ class AgendamentoServiceImplTest {
 
             assertThrows(AgendamentoJaConcluidoException.class,
                     () -> service.concluir(1L));
-        }
-    }
-
-    // =========================================================
-    // atualizarObservacoes()
-    // =========================================================
-    @Nested
-    @DisplayName("atualizarObservacoes()")
-    class AtualizarObservacoes {
-
-        @Test
-        @DisplayName("profissional atualiza observacoes com sucesso")
-        void deveAtualizarComSucesso() {
-            Agendamento agendamento = agendamentoAgendado();
-            String novasObs = "Paciente relatou dor leve";
-
-            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(agendamentoRepository.save(agendamento)).thenReturn(agendamento);
-            when(agendamentoUtil.convertToDetalhadoDTO(agendamento))
-                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
-
-            service.atualizarObservacoes(1L, novasObs);
-
-            assertEquals(novasObs, agendamento.getObservacoes());
-            verify(agendamentoRepository).save(agendamento);
-        }
-
-        @Test
-        @DisplayName("paciente nao pode editar observacoes")
-        void deveRejeitarPaciente() {
-            Agendamento agendamento = agendamentoAgendado();
-
-            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
-
-            assertThrows(UsuarioSemAutorizacaoException.class,
-                    () -> service.atualizarObservacoes(1L, "obs"));
-
-            verify(agendamentoRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("profissional sem vinculo com o agendamento eh rejeitado")
-        void deveRejeitarProfissionalSemVinculo() {
-            Agendamento agendamento = agendamentoAgendado();
-            agendamento.setProfissionalUuid(OUTRO_UUID);
-
-            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-
-            assertThrows(UsuarioSemAutorizacaoException.class,
-                    () -> service.atualizarObservacoes(1L, "obs"));
         }
     }
 
