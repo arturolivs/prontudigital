@@ -14,16 +14,12 @@ import com.prontudigital.backend.agendamento.enums.SinalInfeccao;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Set;
 
 @Schema(description = "Checklist de avaliação de feridas registrado no atendimento")
 public record EvolucaoClinicaDTO(
 
         // Dados da ferida
-        @Schema(description = "Data da avaliação")
-        LocalDate dataAvaliacao,
-
         @Schema(description = "Localização anatômica da lesão")
         String localizacaoAnatomica,
 

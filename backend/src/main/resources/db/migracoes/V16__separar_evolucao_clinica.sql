@@ -6,7 +6,6 @@ CREATE TABLE evolucoes_clinicas (
     agendamento_id              BIGINT NOT NULL UNIQUE REFERENCES agendamentos(id),
 
     -- Dados da ferida
-    data_avaliacao              DATE,
     localizacao_anatomica       TEXT,
     etiologia                   TEXT,
     tempo_evolucao              VARCHAR(100),

@@ -16,16 +16,12 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Set;
 
 @Schema(description = "Checklist de avaliação de feridas registrado no atendimento")
 public record EvolucaoTratamentoRequestDTO(
 
         // Dados da ferida
-        @Schema(description = "Data da avaliação", example = "2026-06-18")
-        LocalDate dataAvaliacao,
-
         @Schema(description = "Localização anatômica da lesão")
         String localizacaoAnatomica,
 

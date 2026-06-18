@@ -15,7 +15,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -39,9 +38,6 @@ public class EvolucaoClinica {
     // ---------------------------------------------------------
     // Dados da ferida
     // ---------------------------------------------------------
-    @Column(name = "data_avaliacao")
-    private LocalDate dataAvaliacao;
-
     @Column(name = "localizacao_anatomica", columnDefinition = "TEXT")
     private String localizacaoAnatomica;
 

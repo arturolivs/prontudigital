@@ -132,7 +132,6 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .orElseGet(() -> EvolucaoClinica.builder().agendamento(agendamento).build());
 
         // Dados da ferida
-        evolucao.setDataAvaliacao(request.dataAvaliacao());
         evolucao.setLocalizacaoAnatomica(request.localizacaoAnatomica());
         evolucao.setEtiologia(request.etiologia());
         evolucao.setTempoEvolucao(request.tempoEvolucao());

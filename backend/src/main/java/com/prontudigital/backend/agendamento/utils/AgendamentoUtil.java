@@ -110,7 +110,6 @@ public class AgendamentoUtil {
     private EvolucaoClinicaDTO toEvolucaoDTO(EvolucaoClinica ec) {
         if (ec == null) return null;
         return new EvolucaoClinicaDTO(
-                ec.getDataAvaliacao(),
                 ec.getLocalizacaoAnatomica(),
                 ec.getEtiologia(),
                 ec.getTempoEvolucao(),

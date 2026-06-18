@@ -25,7 +25,6 @@ import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -133,7 +132,6 @@ public final class AgendamentoTestFixtures {
     public static EvolucaoTratamentoRequestDTO evolucaoRequest() {
         return new EvolucaoTratamentoRequestDTO(
                 // Dados da ferida
-                LocalDate.of(2026, 6, 18),
                 "Membro inferior direito",
                 "Úlcera venosa",
                 "3 meses",
