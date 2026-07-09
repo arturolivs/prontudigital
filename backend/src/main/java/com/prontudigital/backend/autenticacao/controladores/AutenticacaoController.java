@@ -94,4 +94,31 @@ public class AutenticacaoController {
             @Valid @RequestBody AtivarAcessoRequestDTO request) {
         return ResponseEntity.ok(autenticacaoService.ativarAcesso(request));
     }
+
+    @Operation(summary = "Solicitar código de recuperação de senha via WhatsApp")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Código enviado via WhatsApp"),
+            @ApiResponse(responseCode = "404", description = "Telefone não cadastrado"),
+            @ApiResponse(responseCode = "422", description = "Dados inválidos")
+    })
+    @PostMapping("/recuperar-senha/solicitar")
+    public ResponseEntity<RecuperarSenhaResponseDTO> solicitarRecuperacaoSenha(
+            @Valid @RequestBody RecuperarSenhaSolicitarRequestDTO request) {
+        autenticacaoService.solicitarRecuperacaoSenha(request);
+        return ResponseEntity.ok(new RecuperarSenhaResponseDTO(
+                "Um código de recuperação foi enviado via WhatsApp para o telefone informado."));
+    }
+
+    @Operation(summary = "Confirmar código de recuperação e definir nova senha")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Senha redefinida com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Telefone não cadastrado"),
+            @ApiResponse(responseCode = "422", description = "Código inválido, expirado ou dados inválidos")
+    })
+    @PostMapping("/recuperar-senha/confirmar")
+    public ResponseEntity<RecuperarSenhaResponseDTO> confirmarRecuperacaoSenha(
+            @Valid @RequestBody RecuperarSenhaConfirmarRequestDTO request) {
+        autenticacaoService.confirmarRecuperacaoSenha(request);
+        return ResponseEntity.ok(new RecuperarSenhaResponseDTO("Senha redefinida com sucesso."));
+    }
 }

@@ -18,9 +18,6 @@ public record AgendamentoRequestDTO(
         @Schema(description = "UUID do profissional")
         @NotNull UUID profissionalUuid,
 
-        @Schema(description = "Observacoes sobre o agendamento", example = "Paciente com sintomas de gripe")
-        String observacoes,
-
         @Schema(description = "Data e hora de inicio", example = "2026-02-26T14:00:00")
         @NotNull LocalDateTime inicioEm,
 

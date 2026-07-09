@@ -1,7 +1,7 @@
-package com.prontudigital.backend.agendamento.controladores;
+package com.prontudigital.backend.notificacao.controladores;
 
-import com.prontudigital.backend.agendamento.dto.ConfirmacaoResponseDTO;
-import com.prontudigital.backend.agendamento.servicos.NotificacaoWhatsappService;
+import com.prontudigital.backend.notificacao.dto.ConfirmacaoResponseDTO;
+import com.prontudigital.backend.notificacao.servicos.NotificacaoWhatsappService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;

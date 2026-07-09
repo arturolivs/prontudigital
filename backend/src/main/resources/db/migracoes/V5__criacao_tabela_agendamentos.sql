@@ -11,8 +11,6 @@ CREATE TABLE agendamentos (
     paciente_uuid     UUID         NOT NULL,
     profissional_uuid UUID         NOT NULL,
 
-    observacoes       TEXT,
-
     inicio_em         TIMESTAMP    NOT NULL,
     fim_em            TIMESTAMP    NOT NULL,
 

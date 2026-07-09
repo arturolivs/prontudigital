@@ -135,6 +135,12 @@ export default function BloqueiosPage() {
   const [dataInicio, setDataInicio] = useState(inicioDoMes)
   const [dataFim, setDataFim] = useState(fimDoMes)
   const [erroForm, setErroForm] = useState('')
+  const [confirmacao, setConfirmacao] = useState<{
+    mensagem: string
+    titulo: string
+    textoBotao: string
+    acao: () => void
+  } | null>(null)
 
   const [form, setForm] = useState<FormState>({
     inicioEm: '',
@@ -354,8 +360,7 @@ export default function BloqueiosPage() {
           setRecorrentes(prev => prev.filter(r => r.uuid !== regra.uuid))
           exibirNotificacao('Regra recorrente removida!', 'success', 4000)
         } catch (err: any) {
-          const msg =
-            err?.response?.data?.message || 'Erro ao remover a regra.'
+          const msg = err?.response?.data?.message || 'Erro ao remover a regra.'
           exibirNotificacao(String(msg), 'error', 6000)
         }
       },

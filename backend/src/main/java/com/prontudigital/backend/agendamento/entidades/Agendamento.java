@@ -33,9 +33,6 @@ public class Agendamento {
     @Column(name = "profissional_uuid")
     private UUID profissionalUuid;
 
-    @Column(name = "observacoes")
-    private String observacoes;
-
     @Column(name = "inicio_em")
     private LocalDateTime inicioEm;
 

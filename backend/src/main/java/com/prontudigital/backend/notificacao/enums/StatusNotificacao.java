@@ -1,4 +1,4 @@
-package com.prontudigital.backend.agendamento.enums;
+package com.prontudigital.backend.notificacao.enums;
 
 public enum StatusNotificacao {
     PENDENTE,

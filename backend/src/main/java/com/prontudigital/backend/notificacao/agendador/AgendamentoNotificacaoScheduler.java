@@ -1,9 +1,9 @@
-package com.prontudigital.backend.agendamento.agendador;
+package com.prontudigital.backend.notificacao.agendador;
 
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
-import com.prontudigital.backend.agendamento.servicos.NotificacaoWhatsappService;
+import com.prontudigital.backend.notificacao.servicos.NotificacaoWhatsappService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

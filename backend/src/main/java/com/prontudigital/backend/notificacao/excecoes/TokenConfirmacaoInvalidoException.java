@@ -1,4 +1,4 @@
-package com.prontudigital.backend.agendamento.excecoes;
+package com.prontudigital.backend.notificacao.excecoes;
 
 import com.prontudigital.backend.compartilhado.excecoes.ExcecaoBase;
 

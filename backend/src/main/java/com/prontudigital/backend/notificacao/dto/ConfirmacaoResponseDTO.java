@@ -1,4 +1,4 @@
-package com.prontudigital.backend.agendamento.dto;
+package com.prontudigital.backend.notificacao.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

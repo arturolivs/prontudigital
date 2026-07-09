@@ -22,7 +22,6 @@ public record AgendamentoResponseDTO(
         LocalAtendimento localAtendimento,
         Boolean pacienteAcamado,
         StatusAgendamento status,
-        String observacoes,
         LocalDateTime criadoEm,
         Long avaliacaoId,
         LocalDateTime concluidoEm

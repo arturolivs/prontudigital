@@ -1,7 +1,7 @@
 package com.prontudigital.backend.compartilhado.excecoes;
 
 import com.prontudigital.backend.agendamento.excecoes.*;
-import com.prontudigital.backend.agendamento.excecoes.TokenConfirmacaoInvalidoException;
+import com.prontudigital.backend.notificacao.excecoes.TokenConfirmacaoInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.*;
 import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
 import com.prontudigital.backend.autenticacao.excecoes.TelefoneExistenteException;
@@ -156,7 +156,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AgendamentoDataHoraInvalidaException.class,
             AgendamentoStatusInvalidoException.class,
             TipoVisualizacaoInvalidoException.class,
-            com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class
+            com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class,
+            com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleRegraDeNegocio(
             ExcecaoBase ex, HttpServletRequest request) {

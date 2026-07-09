@@ -48,9 +48,6 @@ public record AgendamentoDetalhadoDTO(
         @Schema(description = "Nome completo do profissional (resolvido)")
         String nomeProfissional,
 
-        @Schema(description = "Observações clínicas registradas")
-        String observacoes,
-
         @Schema(description = "Data de criação do registro")
         LocalDateTime criadoEm,
 

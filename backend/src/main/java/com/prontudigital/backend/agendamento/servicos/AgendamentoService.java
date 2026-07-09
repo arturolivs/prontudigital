@@ -23,7 +23,6 @@ public interface AgendamentoService {
     void confirmar(Long agendamentoId);
     void cancelar(Long agendamentoId);
     void concluir(Long agendamentoId);
-    AgendamentoDetalhadoDTO atualizarObservacoes(Long id, String observacoes);
     AgendamentoDetalhadoDTO registrarEvolucao(Long id, EvolucaoTratamentoRequestDTO request);
     List<AgendamentoViewDTO> visualizarAgenda(LocalDate data,
                                               TipoVisualizacaoAgenda tipo,

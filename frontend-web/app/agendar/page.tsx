@@ -99,7 +99,6 @@ export default function AgendarPage() {
   const [tipoProcedimento, setTipoProcedimento] = useState<TipoProcedimento | null>(null)
   const [localAtendimento, setLocalAtendimento] = useState<LocalAtendimento | null>(null)
   const [pacienteAcamado, setPacienteAcamado] = useState<boolean | null>(null)
-  const [observacoes, setObservacoes] = useState('')
   const [pacienteUuid, setPacienteUuid] = useState<string | null>(null)
   const [agendamento, setAgendamento] = useState<Agendamento | null>(
     null,
@@ -218,7 +217,6 @@ export default function AgendarPage() {
         tipoProcedimento,
         localAtendimento: localAtendimento!,
         pacienteAcamado: pacienteAcamado!,
-        observacoes: observacoes.trim() || undefined,
       })
       setAgendamento(criado)
       setEtapa('sucesso')
@@ -240,7 +238,6 @@ export default function AgendarPage() {
     setTipoProcedimento(null)
     setLocalAtendimento(null)
     setPacienteAcamado(null)
-    setObservacoes('')
     setPacienteUuid(null)
     setAgendamento(null)
     setBloqueios([])
@@ -837,18 +834,6 @@ export default function AgendarPage() {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div className="campo campo-obs">
-                <label>
-                  Observações <span className="opcional">(opcional)</span>
-                </label>
-                <textarea
-                  placeholder="Descreva brevemente o motivo da consulta ou informações relevantes…"
-                  value={observacoes}
-                  maxLength={500}
-                  onChange={e => setObservacoes(e.target.value)}
-                />
               </div>
             </div>
 

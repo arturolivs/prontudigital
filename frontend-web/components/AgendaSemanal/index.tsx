@@ -130,7 +130,7 @@ const AgendaSemanal: React.FC<PropsAgendaSemanal> = ({
                       }}
                     >
                       <span className="semana-card-hora">{formatarHora(a.inicioEm)}</span>
-                      <span className="semana-card-nome">{a.nomePaciente.split(' ')[0]}</span>
+                      <span className="semana-card-nome">{(a.nomePaciente ?? '').split(' ')[0]}</span>
                       <span className="semana-card-tipo">
                         {a.tipo === 'AVALIACAO' ? 'Aval.' : 'Trat.'}
                       </span>

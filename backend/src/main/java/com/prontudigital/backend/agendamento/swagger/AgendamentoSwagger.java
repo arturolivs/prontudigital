@@ -50,35 +50,6 @@ public class AgendamentoSwagger {
     public @interface BuscarPorIdSwagger {}
 
     // =========================================================
-    // PATCH /api/agendamentos/{id}/observacoes
-    // =========================================================
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @Operation(
-            summary = "Atualizar observações do agendamento",
-            description = """
-            Atualiza o campo de observações clínicas de um agendamento.\n
-            Regras:
-            - Exclusivo para ADMIN e PROFISSIONAL
-            - PROFISSIONAL só pode editar agendamentos da própria agenda
-            - Retorna o agendamento atualizado com todos os campos resolvidos
-            """
-    )
-    @ApiResponse(
-            responseCode = "200",
-            description = "Agendamento com observações atualizadas",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
-            )
-    )
-    @CommonsSwagger.ApiResponseUnauthorized
-    @CommonsSwagger.ApiResponseForbidden
-    @CommonsSwagger.ApiResponseNotFound
-    @CommonsSwagger.ApiResponseInternalServerError
-    public @interface AtualizarObservacoesSwagger {}
-
-    // =========================================================
     // POST /api/agendamentos — RF07
     // =========================================================
     @Target(ElementType.METHOD)

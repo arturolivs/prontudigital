@@ -4,6 +4,8 @@ import com.prontudigital.backend.agendamento.dto.*;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
+import com.prontudigital.backend.agendamento.enums.CaracteristicaBorda;
+import com.prontudigital.backend.agendamento.enums.ClassificacaoDor;
 import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
@@ -103,7 +105,7 @@ class AgendamentoServiceImplTest {
         @DisplayName("paciente não pode criar agendamento para outro paciente")
         void deveRejeitarPacienteAgendandoParaOutro() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
-                    OUTRO_UUID, PROFISSIONAL_UUID, null, INICIO, FIM,
+                    OUTRO_UUID, PROFISSIONAL_UUID, INICIO, FIM,
                     TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
                     LocalAtendimento.CLINICA, false, null);
 
@@ -120,7 +122,7 @@ class AgendamentoServiceImplTest {
         @DisplayName("rejeita data no passado")
         void deveRejeitarDataPassada() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
-                    PACIENTE_UUID, PROFISSIONAL_UUID, null,
+                    PACIENTE_UUID, PROFISSIONAL_UUID,
                     LocalDateTime.of(2020, 1, 1, 10, 0),
                     LocalDateTime.of(2020, 1, 1, 11, 0),
                     TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
@@ -136,7 +138,7 @@ class AgendamentoServiceImplTest {
         @DisplayName("rejeita duração menor que 15 minutos")
         void deveRejeitarDuracaoMuitoCurta() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
-                    PACIENTE_UUID, PROFISSIONAL_UUID, null,
+                    PACIENTE_UUID, PROFISSIONAL_UUID,
                     INICIO, INICIO.plusMinutes(10),
                     TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
                     LocalAtendimento.CLINICA, false, null);
@@ -489,59 +491,6 @@ class AgendamentoServiceImplTest {
     }
 
     // =========================================================
-    // atualizarObservacoes()
-    // =========================================================
-    @Nested
-    @DisplayName("atualizarObservacoes()")
-    class AtualizarObservacoes {
-
-        @Test
-        @DisplayName("profissional atualiza observacoes com sucesso")
-        void deveAtualizarComSucesso() {
-            Agendamento agendamento = agendamentoAgendado();
-            String novasObs = "Paciente relatou dor leve";
-
-            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(agendamentoRepository.save(agendamento)).thenReturn(agendamento);
-            when(agendamentoUtil.convertToDetalhadoDTO(agendamento))
-                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
-
-            service.atualizarObservacoes(1L, novasObs);
-
-            assertEquals(novasObs, agendamento.getObservacoes());
-            verify(agendamentoRepository).save(agendamento);
-        }
-
-        @Test
-        @DisplayName("paciente nao pode editar observacoes")
-        void deveRejeitarPaciente() {
-            Agendamento agendamento = agendamentoAgendado();
-
-            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
-
-            assertThrows(UsuarioSemAutorizacaoException.class,
-                    () -> service.atualizarObservacoes(1L, "obs"));
-
-            verify(agendamentoRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("profissional sem vinculo com o agendamento eh rejeitado")
-        void deveRejeitarProfissionalSemVinculo() {
-            Agendamento agendamento = agendamentoAgendado();
-            agendamento.setProfissionalUuid(OUTRO_UUID);
-
-            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-
-            assertThrows(UsuarioSemAutorizacaoException.class,
-                    () -> service.atualizarObservacoes(1L, "obs"));
-        }
-    }
-
-    // =========================================================
     // registrarEvolucao()
     // =========================================================
     @Nested
@@ -569,8 +518,10 @@ class AgendamentoServiceImplTest {
 
             EvolucaoClinica salva = captor.getValue();
             assertEquals(tratamento, salva.getAgendamento());
-            assertEquals("Úlcera venosa", salva.getTipoLesao());
-            assertEquals(3, salva.getEscalaDor());
+            assertEquals("Úlcera venosa", salva.getEtiologia());
+            assertEquals(ClassificacaoDor.MODERADA, salva.getClassificacaoDor());
+            assertEquals(60, salva.getGranulacaoPercentual());
+            assertTrue(salva.getCaracteristicasBordas().contains(CaracteristicaBorda.INTEGRAS));
         }
 
         @Test
@@ -592,8 +543,8 @@ class AgendamentoServiceImplTest {
 
             // Deve salvar o mesmo objeto (atualização), não criar outro
             verify(evolucaoClinicaRepository).save(existente);
-            assertEquals("Úlcera venosa", existente.getTipoLesao());
-            assertEquals(3, existente.getEscalaDor());
+            assertEquals("Úlcera venosa", existente.getEtiologia());
+            assertEquals(ClassificacaoDor.MODERADA, existente.getClassificacaoDor());
         }
 
         @Test
@@ -611,17 +562,21 @@ class AgendamentoServiceImplTest {
         }
 
         @Test
-        @DisplayName("rejeita evolucao em agendamento do tipo AVALIACAO")
-        void deveRejeitarTipoAvaliacao() {
+        @DisplayName("permite evolucao em agendamento do tipo AVALIACAO")
+        void devePermitirTipoAvaliacao() {
             Agendamento avaliacao = agendamentoAgendado(); // tipo = AVALIACAO
 
             when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoClinicaRepository.findByAgendamento(avaliacao))
+                    .thenReturn(Optional.empty());
+            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
 
-            assertThrows(AgendamentoStatusInvalidoException.class,
-                    () -> service.registrarEvolucao(1L, evolucaoRequest()));
+            service.registrarEvolucao(1L, evolucaoRequest());
 
-            verify(evolucaoClinicaRepository, never()).save(any());
+            verify(evolucaoClinicaRepository).save(any());
         }
 
         @Test

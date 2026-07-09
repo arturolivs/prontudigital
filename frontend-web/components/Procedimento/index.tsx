@@ -131,9 +131,6 @@ export default function ModalProcedimento({
 }: ModalProcedimentoProps) {
   const { exibirNotificacao } = useNotificacao()
 
-  const [observacoes, setObservacoes] = useState(agendamento.observacoes ?? '')
-  const [obsAlterada, setObsAlterada] = useState(false)
-  const [salvando, setSalvando] = useState(false)
   const [finalizando, setFinalizando] = useState(false)
 
   const [historico, setHistorico] = useState<Agendamento[]>([])
@@ -153,35 +150,12 @@ export default function ModalProcedimento({
       .finally(() => setCarregandoHist(false))
   }, [ehTratamento, agendamento.avaliacaoId])
 
-  const handleObsChange = (v: string) => {
-    setObservacoes(v)
-    setObsAlterada(v !== (agendamento.observacoes ?? ''))
-  }
-
-  const salvarObservacoes = async () => {
-    if (!obsAlterada) return
-    setSalvando(true)
-    try {
-      await agendamentoAPI.atualizarObservacoes(agendamento.id, observacoes)
-      setObsAlterada(false)
-      exibirNotificacao('Observações salvas.', 'success', 3000)
-    } catch {
-      exibirNotificacao('Erro ao salvar observações.', 'error', 5000)
-    } finally {
-      setSalvando(false)
-    }
-  }
-
   const finalizarConsulta = async () => {
     setFinalizando(true)
     try {
-      // Salva observações se houver alteração pendente
-      if (obsAlterada) {
-        await agendamentoAPI.atualizarObservacoes(agendamento.id, observacoes)
-      }
       await agendamentoAPI.concluirAgendamento(agendamento.id)
       exibirNotificacao('Consulta finalizada com sucesso!', 'success', 4000)
-      onConcluido({ ...agendamento, status: 'REALIZADO', observacoes })
+      onConcluido({ ...agendamento, status: 'REALIZADO' })
       onClose()
     } catch {
       exibirNotificacao('Erro ao finalizar consulta.', 'error', 5000)
@@ -199,14 +173,6 @@ export default function ModalProcedimento({
     <div className="proc-footer">
       <button className="proc-btn-cancelar" onClick={onClose}>
         Fechar
-      </button>
-
-      <button
-        className="proc-btn-salvar"
-        onClick={salvarObservacoes}
-        disabled={!obsAlterada || salvando || jaRealizado}
-      >
-        {salvando ? 'Salvando…' : 'Salvar obs.'}
       </button>
 
       {jaRealizado ? (
@@ -325,25 +291,6 @@ export default function ModalProcedimento({
             )}
           </div>
         )}
-
-        {/* Observações */}
-        <div className="proc-secao">
-          <div className="proc-secao-titulo">📝 Observações</div>
-          <div style={{ padding: '0.875rem 1rem' }}>
-            <textarea
-              className="proc-obs-textarea"
-              value={observacoes}
-              onChange={e => handleObsChange(e.target.value)}
-              placeholder={
-                jaRealizado
-                  ? 'Sem observações registradas.'
-                  : 'Registre observações sobre esta consulta…'
-              }
-              disabled={jaRealizado}
-              rows={4}
-            />
-          </div>
-        </div>
       </div>
     </Modal>
   )
