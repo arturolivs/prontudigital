@@ -155,6 +155,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AgendamentoInvalidoException.class,
             AgendamentoDataHoraInvalidaException.class,
             AgendamentoStatusInvalidoException.class,
+            CancelamentoForaDoPrazoException.class,
             TipoVisualizacaoInvalidoException.class,
             com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class,
             com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class

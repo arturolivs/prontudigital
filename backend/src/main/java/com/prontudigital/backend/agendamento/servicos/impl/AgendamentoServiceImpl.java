@@ -55,6 +55,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     private static final long DURACAO_MIN_MINUTOS = 15;
     private static final long DURACAO_MAX_MINUTOS = 480;
+    private static final long ANTECEDENCIA_MIN_CANCELAMENTO_HORAS = 24;
 
     private final AgendamentoRepository agendamentoRepository;
     private final EvolucaoClinicaRepository evolucaoClinicaRepository;
@@ -257,6 +258,18 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         if (agendamento.getStatus() == StatusAgendamento.REALIZADO) {
             throw new AgendamentoStatusInvalidoException(
                     "Agendamento concluido nao pode ser cancelado");
+        }
+
+        boolean isAdmin = "ADMIN".equals(permissaoPolicy.perfilEfetivo(usuario));
+        if (!isAdmin) {
+            LocalDateTime limiteCancelamento = agendamento.getInicioEm()
+                    .minusHours(ANTECEDENCIA_MIN_CANCELAMENTO_HORAS);
+            if (!LocalDateTime.now(clock).isBefore(limiteCancelamento)) {
+                throw new CancelamentoForaDoPrazoException(
+                        "Cancelamento permitido apenas com no minimo "
+                                + ANTECEDENCIA_MIN_CANCELAMENTO_HORAS
+                                + "h de antecedencia");
+            }
         }
 
         agendamento.setStatus(StatusAgendamento.CANCELADO);

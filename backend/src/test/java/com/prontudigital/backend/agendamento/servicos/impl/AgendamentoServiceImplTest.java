@@ -378,6 +378,40 @@ class AgendamentoServiceImplTest {
             assertThrows(AgendamentoNaoEncontradoException.class,
                     () -> service.cancelar(999L));
         }
+
+        @Test
+        @DisplayName("rejeita cancelamento com menos de 24h de antecedencia")
+        void deveRejeitarForaDoPrazo() {
+            Agendamento agendamento = agendamentoAgendado();
+            // clock fixo em 2026-05-01 10:00; inicio a 10h de distancia (< 24h)
+            agendamento.setInicioEm(LocalDateTime.of(2026, 5, 1, 20, 0));
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(CancelamentoForaDoPrazoException.class,
+                    () -> service.cancelar(1L));
+
+            assertEquals(StatusAgendamento.AGENDADO, agendamento.getStatus());
+            verify(agendamentoRepository, never()).save(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("admin cancela mesmo com menos de 24h de antecedencia")
+        void devemitirAdminForaDoPrazo() {
+            Agendamento agendamento = agendamentoAgendado();
+            agendamento.setInicioEm(LocalDateTime.of(2026, 5, 1, 20, 0));
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioAdmin());
+
+            service.cancelar(1L);
+
+            assertEquals(StatusAgendamento.CANCELADO, agendamento.getStatus());
+            verify(agendamentoRepository).save(agendamento);
+            verify(eventPublisher).publishEvent(any(AgendamentoCanceladoEvento.class));
+        }
     }
 
     // =========================================================
