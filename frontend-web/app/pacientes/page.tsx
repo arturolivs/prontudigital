@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import Layout from '@/components/Layout/Layout'
 import './patients.css'
 import { AgendamentoView, PacienteAgendamentosDTO } from '@/tipos/agendamento'
@@ -232,7 +233,7 @@ export default function PacientesPage() {
         setTotalPaginas(Math.max(1, data.totalPages))
         setTotalPacientes(data.totalElements)
       } catch (err: any) {
-        setError(err.message || 'Erro ao carregar pacientes')
+        setError(mensagemErro(err, MENSAGENS.erro.carregarPacientes))
         console.error('Erro:', err)
       } finally {
         setLoading(false)

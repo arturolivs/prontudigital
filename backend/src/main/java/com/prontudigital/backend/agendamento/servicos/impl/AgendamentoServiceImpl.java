@@ -28,6 +28,7 @@ import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
 import com.prontudigital.backend.agendamento.utils.AgendamentoUtil;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +76,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeVisualizar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a visualizar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.visualizar"));
         }
 
         return agendamentoUtil.convertToDetalhadoDTO(agendamento);
@@ -90,11 +91,11 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         String perfil = permissaoPolicy.perfilEfetivo(usuario);
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode registrar evolucao de tratamento");
+                    Mensagens.get("agendamento.paciente.nao-registra-evolucao"));
         }
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a registrar evolucao neste agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.registrar-evolucao"));
         }
         /*if (agendamento.getTipo() != TipoAgendamento.TRATAMENTO) {
             throw new AgendamentoStatusInvalidoException(
@@ -102,7 +103,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         }*/
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Nao e possivel registrar evolucao em agendamento cancelado");
+                    Mensagens.get("agendamento.evolucao.cancelado"));
         }
 
         EvolucaoClinica evolucao = evolucaoClinicaRepository
@@ -168,7 +169,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         Agendamento atualizado = agendamentoRepository.findById(agendamento.getId())
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
-                        "Agendamento nao encontrado: " + agendamento.getId()));
+                        Mensagens.get("agendamento.nao-encontrado", agendamento.getId())));
         return agendamentoUtil.convertToDetalhadoDTO(atualizado);
     }
 
@@ -186,7 +187,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeCriar(usuario, request)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a criar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.criar"));
         }
 
         usuarioService.validarUsuarioExiste(request.pacienteUuid());
@@ -229,11 +230,11 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a confirmar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.confirmar"));
         }
         if (agendamento.getStatus() != StatusAgendamento.AGENDADO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Apenas agendamentos com status AGENDADO podem ser confirmados");
+                    Mensagens.get("agendamento.status.apenas-agendado-confirma"));
         }
 
         agendamento.setStatus(StatusAgendamento.CONFIRMADO);
@@ -249,15 +250,15 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a cancelar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.cancelar"));
         }
 
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
-            throw new AgendamentoJaCanceladoException("Agendamento ja esta cancelado");
+            throw new AgendamentoJaCanceladoException(Mensagens.get("agendamento.ja-cancelado"));
         }
         if (agendamento.getStatus() == StatusAgendamento.REALIZADO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Agendamento concluido nao pode ser cancelado");
+                    Mensagens.get("agendamento.concluido-nao-cancela"));
         }
 
         boolean isAdmin = "ADMIN".equals(permissaoPolicy.perfilEfetivo(usuario));
@@ -265,10 +266,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
             LocalDateTime limiteCancelamento = agendamento.getInicioEm()
                     .minusHours(ANTECEDENCIA_MIN_CANCELAMENTO_HORAS);
             if (!LocalDateTime.now(clock).isBefore(limiteCancelamento)) {
-                throw new CancelamentoForaDoPrazoException(
-                        "Cancelamento permitido apenas com no minimo "
-                                + ANTECEDENCIA_MIN_CANCELAMENTO_HORAS
-                                + "h de antecedencia");
+                throw new CancelamentoForaDoPrazoException(Mensagens.get(
+                        "agendamento.cancelamento.fora-prazo", ANTECEDENCIA_MIN_CANCELAMENTO_HORAS));
             }
         }
 
@@ -286,14 +285,14 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a reagendar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.reagendar"));
         }
 
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO ||
                 agendamento.getStatus() == StatusAgendamento.REALIZADO) {
-            throw new AgendamentoStatusInvalidoException(
-                    "Agendamento " + agendamento.getStatus().name().toLowerCase() +
-                            " nao pode ser reagendado");
+            throw new AgendamentoStatusInvalidoException(Mensagens.get(
+                    "agendamento.status-invalido.reagendar",
+                    agendamento.getStatus().name().toLowerCase()));
         }
 
         validarPeriodo(request.novoInicioEm(), request.novoFimEm());
@@ -336,14 +335,14 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a concluir este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.concluir"));
         }
         if (agendamento.getStatus() == StatusAgendamento.REALIZADO) {
-            throw new AgendamentoJaConcluidoException("Agendamento ja esta concluido");
+            throw new AgendamentoJaConcluidoException(Mensagens.get("agendamento.ja-concluido"));
         }
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Agendamento cancelado nao pode ser concluido");
+                    Mensagens.get("agendamento.cancelado-nao-conclui"));
         }
 
         agendamento.setStatus(StatusAgendamento.REALIZADO);
@@ -360,7 +359,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode visualizar agenda de profissional");
+                    Mensagens.get("agendamento.paciente.nao-visualiza-agenda"));
         }
 
         UUID profissionalUuid = "ADMIN".equals(perfil)
@@ -384,7 +383,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!"PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Apenas pacientes podem acessar este endpoint");
+                    Mensagens.get("agendamento.apenas-pacientes-endpoint"));
         }
 
         return agendamentoRepository
@@ -398,13 +397,13 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     public List<AgendamentoViewDTO> getTratamentosPorAvaliacao(Long avaliacaoId) {
         Agendamento avaliacao = agendamentoRepository.findById(avaliacaoId)
                 .orElseThrow(() -> new AvaliacaoNaoEncontradaException(
-                        "Avaliacao nao encontrada"));
+                        Mensagens.get("avaliacao.nao-encontrada")));
 
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
 
         if (!permissaoPolicy.podeVisualizar(usuario, avaliacao)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a ver tratamentos desta avaliacao");
+                    Mensagens.get("agendamento.nao-autorizado.ver-tratamentos"));
         }
 
         List<AgendamentoViewDTO> historico = new ArrayList<>();
@@ -423,7 +422,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode visualizar lista de pacientes");
+                    Mensagens.get("agendamento.paciente.nao-visualiza-lista-pacientes"));
         }
 
         LocalDate hoje = LocalDate.now(clock);
@@ -442,7 +441,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
             try {
                 nomePaciente = usuarioService.buscarPorUuid(pacienteUuid).nomeCompleto();
             } catch (Exception e) {
-                nomePaciente = "Paciente nao encontrado";
+                nomePaciente = Mensagens.get("paciente.nao-encontrado");
             }
 
             List<AgendamentoViewDTO> agendamentos = agendamentoRepository
@@ -458,20 +457,20 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private void validarPeriodo(LocalDateTime inicio, LocalDateTime fim) {
         if (inicio.isBefore(LocalDateTime.now(clock))) {
             throw new AgendamentoDataHoraInvalidaException(
-                    "Nao e possivel agendar para datas/horarios passados");
+                    Mensagens.get("agendamento.data-passada"));
         }
         if (!fim.isAfter(inicio)) {
             throw new AgendamentoInvalidoException(
-                    "Fim deve ser posterior ao inicio");
+                    Mensagens.get("agendamento.fim-antes-inicio"));
         }
         long minutos = Duration.between(inicio, fim).toMinutes();
         if (minutos < DURACAO_MIN_MINUTOS) {
             throw new AgendamentoInvalidoException(
-                    "Duracao minima: " + DURACAO_MIN_MINUTOS + " minutos");
+                    Mensagens.get("agendamento.duracao-minima", DURACAO_MIN_MINUTOS));
         }
         if (minutos > DURACAO_MAX_MINUTOS) {
             throw new AgendamentoInvalidoException(
-                    "Duracao maxima: " + DURACAO_MAX_MINUTOS + " minutos");
+                    Mensagens.get("agendamento.duracao-maxima", DURACAO_MAX_MINUTOS));
         }
     }
 
@@ -482,12 +481,12 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         if (!agendamentoRepository
                 .findConflitosParaProfissionalComLock(profissionalUuid, inicio, fim).isEmpty()) {
             throw new ProfissionalIndisponivelException(
-                    "Profissional ja possui agendamento neste horario");
+                    Mensagens.get("agendamento.profissional-indisponivel"));
         }
         if (!agendamentoRepository
                 .findConflitosParaPacienteComLock(pacienteUuid, inicio, fim).isEmpty()) {
             throw new PacienteIndisponivelException(
-                    "Paciente ja possui agendamento neste horario");
+                    Mensagens.get("agendamento.paciente-indisponivel"));
         }
     }
 
@@ -504,7 +503,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .findFirst()
                 .ifPresent(a -> {
                     throw new ProfissionalIndisponivelException(
-                            "Profissional ja possui agendamento neste horario");
+                            Mensagens.get("agendamento.profissional-indisponivel"));
                 });
 
         agendamentoRepository
@@ -515,7 +514,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .findFirst()
                 .ifPresent(a -> {
                     throw new PacienteIndisponivelException(
-                            "Paciente ja possui agendamento neste horario");
+                            Mensagens.get("agendamento.paciente-indisponivel"));
                 });
     }
 
@@ -527,8 +526,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         if (!bloqueios.isEmpty()) {
             BloqueioHorario b = bloqueios.get(0);
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            throw new HorarioIndisponivelException(String.format(
-                    "Horario indisponivel. Bloqueio de %s ate %s. Motivo: %s",
+            throw new HorarioIndisponivelException(Mensagens.get(
+                    "agendamento.horario-indisponivel",
                     b.getInicioEm().format(fmt),
                     b.getFimEm().format(fmt),
                     b.getMotivo()));
@@ -538,29 +537,29 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private void validarRegraAvaliacaoTratamento(AgendamentoRequestDTO request) {
         if (request.tipo() == TipoAgendamento.AVALIACAO) {
             if (request.avaliacaoId() != null) {
-                throw new AgendamentoInvalidoException("Avaliacao nao pode ter avaliacaoId");
+                throw new AgendamentoInvalidoException(Mensagens.get("agendamento.avaliacao.sem-avaliacao-id"));
             }
             return;
         }
         if (request.tipo() == TipoAgendamento.TRATAMENTO) {
             if (request.avaliacaoId() == null) {
                 throw new AgendamentoInvalidoException(
-                        "Tratamento deve estar associado a uma avaliacao");
+                        Mensagens.get("agendamento.tratamento.exige-avaliacao"));
             }
             Agendamento avaliacao = agendamentoRepository.findById(request.avaliacaoId())
                     .orElseThrow(() -> new AvaliacaoNaoEncontradaException(
-                            "Avaliacao nao encontrada"));
+                            Mensagens.get("avaliacao.nao-encontrada")));
             if (avaliacao.getTipo() != TipoAgendamento.AVALIACAO) {
                 throw new AgendamentoInvalidoException(
-                        "O agendamento referenciado nao e uma avaliacao");
+                        Mensagens.get("agendamento.tratamento.ref-nao-avaliacao"));
             }
             if (!avaliacao.getPacienteUuid().equals(request.pacienteUuid())) {
                 throw new AgendamentoInvalidoException(
-                        "O paciente do tratamento deve ser o mesmo da avaliacao");
+                        Mensagens.get("agendamento.tratamento.paciente-diferente"));
             }
             if (avaliacao.getStatus() != StatusAgendamento.REALIZADO) {
                 throw new AgendamentoInvalidoException(
-                        "A avaliacao deve estar concluida para agendar tratamentos");
+                        Mensagens.get("agendamento.tratamento.avaliacao-nao-concluida"));
             }
         }
     }
@@ -568,13 +567,13 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private Agendamento buscarOuFalhar(Long id) {
         return agendamentoRepository.findById(id)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
-                        "Agendamento nao encontrado: " + id));
+                        Mensagens.get("agendamento.nao-encontrado", id)));
     }
 
     private UUID exigirProfissionalUuid(UUID uuid) {
         if (uuid == null) {
             throw new AgendamentoInvalidoException(
-                    "ADMIN deve informar profissionalUuid");
+                    Mensagens.get("agendamento.admin.informar-profissional"));
         }
         return uuid;
     }

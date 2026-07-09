@@ -16,6 +16,7 @@ import com.prontudigital.backend.autenticacao.servicos.AutenticacaoService;
 import com.prontudigital.backend.autenticacao.servicos.RefreshTokenService;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import com.prontudigital.backend.compartilhado.clientes.WhatsappCloudApiClient;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -118,10 +119,10 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     @Override
     public RefreshTokenResponseDTO renovarToken(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new TokenInvalidoException("Refresh token invalido");
+            throw new TokenInvalidoException(Mensagens.get("auth.refresh-token-invalido"));
         }
         if (refreshTokenService.estaRevogadoOuExpirado(refreshToken)) {
-            throw new TokenInvalidoException("Refresh token revogado ou expirado");
+            throw new TokenInvalidoException(Mensagens.get("auth.refresh-token-revogado"));
         }
 
         String novoRefreshToken = refreshTokenService.rotacionarRefreshToken(refreshToken);
@@ -182,19 +183,19 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
         if (LocalDateTime.now(clock).isAfter(entidade.getExpiraEm())) {
             entidade.setUtilizado(true);
             codigoRecuperacaoSenhaRepository.save(entidade);
-            throw new CodigoRecuperacaoInvalidoException("Código expirado. Solicite um novo código.");
+            throw new CodigoRecuperacaoInvalidoException(Mensagens.get("auth.codigo.expirado"));
         }
 
         if (entidade.getTentativas() >= MAX_TENTATIVAS_CODIGO) {
             entidade.setUtilizado(true);
             codigoRecuperacaoSenhaRepository.save(entidade);
-            throw new CodigoRecuperacaoInvalidoException("Número máximo de tentativas excedido. Solicite um novo código.");
+            throw new CodigoRecuperacaoInvalidoException(Mensagens.get("auth.codigo.tentativas-excedidas"));
         }
 
         if (!entidade.getCodigo().equals(dto.codigo().trim())) {
             entidade.setTentativas(entidade.getTentativas() + 1);
             codigoRecuperacaoSenhaRepository.save(entidade);
-            throw new CodigoRecuperacaoInvalidoException("Código inválido");
+            throw new CodigoRecuperacaoInvalidoException(Mensagens.get("auth.codigo.invalido"));
         }
 
         entidade.setUtilizado(true);

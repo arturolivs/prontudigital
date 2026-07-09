@@ -4,6 +4,7 @@ import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import com.prontudigital.backend.prontuario.dto.AnamneseRequestDTO;
 import com.prontudigital.backend.prontuario.dto.AnamneseResponseDTO;
 import com.prontudigital.backend.prontuario.entidades.Anamnese;
@@ -35,12 +36,12 @@ public class AnamneseServiceImpl implements AnamneseService {
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
         if (!permissaoPolicy.podeVisualizar(usuario, pacienteUuid)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a visualizar o prontuario deste paciente");
+                    Mensagens.get("anamnese.nao-autorizado.visualizar"));
         }
 
         Anamnese anamnese = anamneseRepository.findByPacienteUuid(pacienteUuid)
                 .orElseThrow(() -> new AnamneseNaoEncontradaException(
-                        "Anamnese nao encontrada para o paciente informado"));
+                        Mensagens.get("anamnese.nao-encontrada")));
 
         return toResponse(anamnese);
     }
@@ -53,12 +54,12 @@ public class AnamneseServiceImpl implements AnamneseService {
 
         if (!permissaoPolicy.podeEditar(usuario, pacienteUuid)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a registrar o prontuario deste paciente");
+                    Mensagens.get("anamnese.nao-autorizado.registrar"));
         }
 
         if (anamneseRepository.existsByPacienteUuid(pacienteUuid)) {
             throw new AnamneseJaExisteException(
-                    "Paciente ja possui anamnese registrada; utilize a atualizacao");
+                    Mensagens.get("anamnese.ja-existe"));
         }
 
         Anamnese anamnese = Anamnese.builder()
@@ -79,12 +80,12 @@ public class AnamneseServiceImpl implements AnamneseService {
 
         if (!permissaoPolicy.podeEditar(usuario, pacienteUuid)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a alterar o prontuario deste paciente");
+                    Mensagens.get("anamnese.nao-autorizado.alterar"));
         }
 
         Anamnese anamnese = anamneseRepository.findByPacienteUuid(pacienteUuid)
                 .orElseThrow(() -> new AnamneseNaoEncontradaException(
-                        "Anamnese nao encontrada para o paciente informado"));
+                        Mensagens.get("anamnese.nao-encontrada")));
 
         aplicar(anamnese, request);
         anamnese.setRegistradoPor(usuario.uuid());

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { usuariosAPI } from '@/lib/usuario.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { Usuario, RegistrarRequisicao } from '@/tipos/autenticacao'
 import './usuariosPage.css'
 import { useNotificacao } from '@/contexts/ToastContext'
@@ -40,7 +41,7 @@ export default function UsuariosPage() {
       setUsuarios(data.content)
       setTotalPaginas(Math.max(1, data.totalPages))
     } catch (error) {
-      exibirNotificacao('Erro ao carregar lista de usuários', 'error', 6000)
+      exibirNotificacao(MENSAGENS.erro.carregarUsuarios, 'error', 6000)
     } finally {
       setLoading(false)
     }
@@ -63,11 +64,11 @@ export default function UsuariosPage() {
           } else {
             setPaginaAtual(novaPagina)
           }
-          exibirNotificacao('Usuário excluído com sucesso!', 'success', 6000)
+          exibirNotificacao(MENSAGENS.sucesso.usuarioExcluido, 'success', 6000)
         } catch (error: any) {
           console.error('Erro ao excluir usuário', error)
           exibirNotificacao(
-            error.message || 'Erro ao excluir usuário',
+            mensagemErro(error, MENSAGENS.erro.excluirUsuario),
             'error',
             6000,
           )
@@ -89,7 +90,7 @@ export default function UsuariosPage() {
     } catch (error: any) {
       console.error('Erro ao alterar status', error)
       exibirNotificacao(
-        error.message || 'Erro ao alterar status do usuário',
+        mensagemErro(error, MENSAGENS.erro.alterarStatusUsuario),
         'error',
         6000,
       )
@@ -129,7 +130,7 @@ export default function UsuariosPage() {
         setUsuarios(
           usuarios.map(u => (u.id === usuarioEditando.id ? atualizado : u)),
         )
-        exibirNotificacao('Usuário atualizado com sucesso!', 'success', 6000)
+        exibirNotificacao(MENSAGENS.sucesso.usuarioAtualizado, 'success', 6000)
       } else {
         const novoUsuario: RegistrarRequisicao = {
           nomeCompleto: dados.nomeCompleto || '',
@@ -142,14 +143,14 @@ export default function UsuariosPage() {
 
         await usuariosAPI.criarUsuario(novoUsuario)
         await fetchUsuarios(paginaAtual)
-        exibirNotificacao('Usuário criado com sucesso!', 'success', 6000)
+        exibirNotificacao(MENSAGENS.sucesso.usuarioCriado, 'success', 6000)
       }
 
       closeModal()
     } catch (error: any) {
       console.error('Erro ao salvar usuário', error)
       exibirNotificacao(
-        error.message || 'Erro ao salvar usuário',
+        mensagemErro(error, MENSAGENS.erro.salvarUsuario),
         'error',
         6000,
       )

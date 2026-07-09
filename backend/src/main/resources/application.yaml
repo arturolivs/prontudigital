@@ -2,6 +2,11 @@ spring:
   application:
     name: prontudigital
 
+  messages:
+    basename: messages
+    encoding: UTF-8
+    use-code-as-default-message: true
+
   datasource:
     url: jdbc:postgresql://localhost:5432/prontudigital
     username: user_admin

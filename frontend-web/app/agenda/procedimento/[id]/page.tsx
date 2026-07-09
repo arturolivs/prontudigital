@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
+import { MENSAGENS } from '@/lib/mensagens'
 import {
   Agendamento,
   EvolucaoTratamentoRequisicao,
@@ -510,7 +511,7 @@ export default function ProcedimentoPage({
         setAgendamento(data)
         setEvolucao(evolucaoFromAgendamento(data))
       })
-      .catch(() => setErro('Não foi possível carregar o agendamento.'))
+      .catch(() => setErro(MENSAGENS.erro.carregarAgendamento))
       .finally(() => setCarregando(false))
   }, [id])
 
@@ -564,7 +565,7 @@ export default function ProcedimentoPage({
       setIniciado(false)
       setModalAberto(true)
     } catch {
-      exibirNotificacao('Erro ao finalizar consulta.', 'error', 5000)
+      exibirNotificacao(MENSAGENS.erro.finalizarConsulta, 'error', 5000)
     } finally {
       setFinalizando(false)
     }

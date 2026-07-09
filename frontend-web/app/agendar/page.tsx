@@ -13,6 +13,7 @@ import { Agendamento } from '../../tipos/agendamento'
 import { TipoProcedimento, ROTULO_TIPO_PROCEDIMENTO } from '../../tipos/TipoProcedimento'
 import { LocalAtendimento, ROTULO_LOCAL_ATENDIMENTO } from '../../tipos/LocalAtendimento'
 import { mascaraTelefone } from '../../lib/mascaras'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import './agendar.css'
 
 /* ── helpers ── */
@@ -128,7 +129,7 @@ export default function AgendarPage() {
     agendamentoPublicoAPI
       .listarProfissionais()
       .then(setProfissionais)
-      .catch(() => setErro('Não foi possível carregar os profissionais.'))
+      .catch(() => setErro(MENSAGENS.erro.carregarProfissionais))
       .finally(() => setCarregandoProf(false))
   }, [])
 
@@ -173,7 +174,7 @@ export default function AgendarPage() {
       setPacienteUuid(usuarioAtual.uuid)
       setEtapa(4)
     } catch (err: any) {
-      setErro(err?.response?.data?.message || 'Usuário ou senha inválidos.')
+      setErro(mensagemErro(err, MENSAGENS.erro.credenciaisInvalidas))
     } finally {
       setCarregandoAuth(false)
     }
@@ -193,10 +194,7 @@ export default function AgendarPage() {
       setPacienteUuid(usuarioAtual.uuid)
       setEtapa(4)
     } catch (err: any) {
-      setErro(
-        err?.response?.data?.message ||
-          'Erro ao criar cadastro. Verifique os dados.',
-      )
+      setErro(mensagemErro(err, MENSAGENS.erro.criarCadastro))
     } finally {
       setCarregandoAuth(false)
     }
@@ -221,10 +219,7 @@ export default function AgendarPage() {
       setAgendamento(criado)
       setEtapa('sucesso')
     } catch (err: any) {
-      setErro(
-        err?.response?.data?.message ||
-          'Não foi possível confirmar o agendamento.',
-      )
+      setErro(mensagemErro(err, MENSAGENS.erro.confirmarAgendamento))
     } finally {
       setCarregandoConfirmar(false)
     }

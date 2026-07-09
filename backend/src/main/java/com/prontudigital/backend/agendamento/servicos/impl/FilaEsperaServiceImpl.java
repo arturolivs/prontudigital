@@ -12,6 +12,7 @@ import com.prontudigital.backend.agendamento.servicos.FilaEsperaService;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ public class FilaEsperaServiceImpl implements FilaEsperaService {
         if ("PACIENTE".equals(perfil) &&
                 !request.pacienteUuid().equals(usuario.uuid())) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente so pode entrar na fila por si mesmo");
+                    Mensagens.get("fila.paciente-so-por-si"));
         }
 
         FilaEspera fila = FilaEspera.builder()
@@ -60,7 +61,7 @@ public class FilaEsperaServiceImpl implements FilaEsperaService {
     public void sair(Long id) {
         FilaEspera fila = repository.findById(id)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
-                        "Entrada na fila nao encontrada: " + id));
+                        Mensagens.get("fila.entrada-nao-encontrada", id)));
 
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
         String perfil = permissaoPolicy.perfilEfetivo(usuario);
@@ -70,7 +71,7 @@ public class FilaEsperaServiceImpl implements FilaEsperaService {
                 ("PROFISSIONAL".equals(perfil) && fila.getProfissionalUuid().equals(usuario.uuid()));
 
         if (!permitido) {
-            throw new UsuarioSemAutorizacaoException("Sem autorizacao para remover desta fila");
+            throw new UsuarioSemAutorizacaoException(Mensagens.get("fila.sem-autorizacao-remover"));
         }
 
         fila.setStatus(StatusFilaEspera.CANCELADO);
@@ -82,7 +83,7 @@ public class FilaEsperaServiceImpl implements FilaEsperaService {
     public void marcarComoNotificado(Long id) {
         FilaEspera fila = repository.findById(id)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
-                        "Entrada na fila nao encontrada: " + id));
+                        Mensagens.get("fila.entrada-nao-encontrada", id)));
         fila.setStatus(StatusFilaEspera.NOTIFICADO);
         repository.save(fila);
     }

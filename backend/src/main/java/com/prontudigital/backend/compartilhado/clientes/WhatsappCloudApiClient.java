@@ -1,5 +1,6 @@
 package com.prontudigital.backend.compartilhado.clientes;
 
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -37,9 +38,7 @@ public class WhatsappCloudApiClient {
      */
     public void enviarMensagemTexto(String telefone, String mensagem) {
         if (!configurado) {
-            throw new IllegalStateException(
-                    "Integração com WhatsApp Cloud API não configurada (defina "
-                            + "app.whatsapp.cloud-api.access-token e app.whatsapp.cloud-api.phone-number-id)");
+            throw new IllegalStateException(Mensagens.get("whatsapp.nao-configurado"));
         }
 
         Map<String, Object> corpo = Map.of(

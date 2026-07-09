@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { Agendamento, AgendamentoRequisicao } from '../../tipos/agendamento'
 import { TipoProcedimento } from '../../tipos/TipoProcedimento'
 import { LocalAtendimento } from '../../tipos/LocalAtendimento'
@@ -110,7 +111,7 @@ export default function AgendaPage() {
       const data = await agendamentoAPI.getAgendamentos(viewType, selectedDate)
       setAgendamentos(data)
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar agendamentos')
+      setError(mensagemErro(err, MENSAGENS.erro.carregarAgendamentos))
       console.error('Erro:', err)
     } finally {
       setLoading(false)
@@ -143,7 +144,7 @@ export default function AgendaPage() {
       setPrefillModal(undefined)
       fetchAgendamentos()
     } catch (err: any) {
-      setError(err.message || 'Erro ao criar agendamento')
+      setError(mensagemErro(err, MENSAGENS.erro.criarAgendamento))
       console.error('Erro:', err)
     }
   }

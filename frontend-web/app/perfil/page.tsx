@@ -9,6 +9,7 @@ import { useNotificacao } from '@/contexts/ToastContext'
 import { usuariosAPI } from '@/lib/usuario.service'
 import { tokenService } from '@/lib/auth.service'
 import { mascaraTelefone } from '@/lib/mascaras'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { Usuario } from '@/tipos/autenticacao'
 import './perfil.css'
 
@@ -61,7 +62,7 @@ export default function PerfilPage() {
       setEmail(dados.email || '')
       setTelefone(mascaraTelefone(dados.telefone || ''))
     } catch {
-      exibirNotificacao('Erro ao carregar dados do perfil', 'error')
+      exibirNotificacao(MENSAGENS.erro.carregarPerfil, 'error')
     } finally {
       setCarregando(false)
     }
@@ -69,22 +70,22 @@ export default function PerfilPage() {
 
   const validarPerfil = (): boolean => {
     const novosErros: Record<string, string> = {}
-    if (!nomeCompleto.trim()) novosErros.nomeCompleto = 'Nome é obrigatório'
+    if (!nomeCompleto.trim()) novosErros.nomeCompleto = MENSAGENS.validacao.nomeObrigatorio
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      novosErros.email = 'Email inválido'
+      novosErros.email = MENSAGENS.validacao.emailInvalido
     setErros(novosErros)
     return Object.keys(novosErros).length === 0
   }
 
   const validarSenha = (): boolean => {
     const novosErros: Record<string, string> = {}
-    if (!senhaAtual) novosErros.senhaAtual = 'Informe a senha atual'
-    if (!novaSenha) novosErros.novaSenha = 'Informe a nova senha'
+    if (!senhaAtual) novosErros.senhaAtual = MENSAGENS.validacao.senhaAtualObrigatoria
+    if (!novaSenha) novosErros.novaSenha = MENSAGENS.validacao.novaSenhaObrigatoria
     else if (novaSenha.length < 6)
-      novosErros.novaSenha = 'A senha deve ter pelo menos 6 caracteres'
-    if (!confirmarSenha) novosErros.confirmarSenha = 'Confirme a nova senha'
+      novosErros.novaSenha = MENSAGENS.validacao.senhaMinima
+    if (!confirmarSenha) novosErros.confirmarSenha = MENSAGENS.validacao.confirmarSenhaObrigatoria
     else if (novaSenha !== confirmarSenha)
-      novosErros.confirmarSenha = 'As senhas não coincidem'
+      novosErros.confirmarSenha = MENSAGENS.validacao.senhasNaoCoincidem
     setErrosSenha(novosErros)
     return Object.keys(novosErros).length === 0
   }
@@ -108,12 +109,9 @@ export default function PerfilPage() {
         })
       }
 
-      exibirNotificacao('Perfil atualizado com sucesso!', 'success')
+      exibirNotificacao(MENSAGENS.sucesso.perfilAtualizado, 'success')
     } catch (err: any) {
-      exibirNotificacao(
-        err.response?.data?.message || 'Erro ao salvar perfil',
-        'error',
-      )
+      exibirNotificacao(mensagemErro(err, MENSAGENS.erro.salvarPerfil), 'error')
     } finally {
       setSalvando(false)
     }
@@ -128,9 +126,9 @@ export default function PerfilPage() {
       setNovaSenha('')
       setConfirmarSenha('')
       setErrosSenha({})
-      exibirNotificacao('Senha alterada com sucesso!', 'success')
+      exibirNotificacao(MENSAGENS.sucesso.senhaAlterada, 'success')
     } catch (err: any) {
-      const mensagem = err.response?.data?.message || 'Erro ao alterar senha'
+      const mensagem = mensagemErro(err, MENSAGENS.erro.alterarSenha)
       if (err.response?.status === 422) {
         setErrosSenha(prev => ({ ...prev, senhaAtual: mensagem }))
       } else {

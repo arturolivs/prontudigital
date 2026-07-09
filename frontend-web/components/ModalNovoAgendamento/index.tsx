@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import Modal from '@/components/Modal'
 import SelectAutocomplete, { OpcaoSAC } from '@/components/SelectAutocomplete'
 import { usuariosAPI } from '@/lib/usuario.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { AgendamentoRequisicao } from '@/tipos/agendamento'
 import {
   TipoProcedimento,
@@ -115,7 +116,7 @@ export default function ModalNovoAgendamento({
       }
       await onSalvar(dados)
     } catch (err: any) {
-      setErro(err?.response?.data?.message || 'Erro ao criar agendamento.')
+      setErro(mensagemErro(err, MENSAGENS.erro.criarAgendamento))
     } finally {
       setSalvando(false)
     }

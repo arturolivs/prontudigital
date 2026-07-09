@@ -4,6 +4,7 @@ import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.NaoAutenticadoException;
 import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.util.UsuarioUtil;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,12 +23,12 @@ public class UsuarioContexto {
 
         if (auth == null || !auth.isAuthenticated()
                 || auth instanceof AnonymousAuthenticationToken) {
-            throw new NaoAutenticadoException("Nenhum usuário autenticado na sessão atual");
+            throw new NaoAutenticadoException(Mensagens.get("auth.nao-autenticado-sessao"));
         }
 
         return usuarioRepository.findByUsername(auth.getName())
                 .map(UsuarioUtil::converterUsuarioParaDTO)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Usuário não encontrado: " + auth.getName()));
+                        Mensagens.get("usuario.nao-encontrado.username", auth.getName())));
     }
 }

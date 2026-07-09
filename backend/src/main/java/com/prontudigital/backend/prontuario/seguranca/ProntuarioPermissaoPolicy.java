@@ -3,6 +3,7 @@ package com.prontudigital.backend.prontuario.seguranca;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.NaoAutenticadoException;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -24,12 +25,12 @@ public class ProntuarioPermissaoPolicy {
     public String perfilEfetivo(UsuarioDTO usuario) {
         Set<String> perfis = usuario.perfis();
         if (perfis == null || perfis.isEmpty()) {
-            throw new NaoAutenticadoException("Usuário sem perfil atribuído");
+            throw new NaoAutenticadoException(Mensagens.get("auth.sem-perfil-atribuido"));
         }
         if (perfis.contains("ADMIN"))        return "ADMIN";
         if (perfis.contains("PROFISSIONAL")) return "PROFISSIONAL";
         if (perfis.contains("PACIENTE"))     return "PACIENTE";
-        throw new NaoAutenticadoException("Usuário sem perfil reconhecido");
+        throw new NaoAutenticadoException(Mensagens.get("auth.sem-perfil-reconhecido"));
     }
 
     /** Pode visualizar o prontuario do paciente informado. */

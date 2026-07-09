@@ -4,6 +4,7 @@
 import { useState, FormEvent } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNotificacao } from '../../contexts/ToastContext'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { LoginRequisicao } from '@/tipos/autenticacao'
 
 export default function Login() {
@@ -24,7 +25,7 @@ export default function Login() {
       }
       await login(credenciais)
     } catch (err: any) {
-      exibirNotificacao(err.message || 'Erro ao fazer login', 'error', 6000)
+      exibirNotificacao(mensagemErro(err, MENSAGENS.erro.login), 'error', 6000)
     } finally {
       setIsLoading(false)
     }

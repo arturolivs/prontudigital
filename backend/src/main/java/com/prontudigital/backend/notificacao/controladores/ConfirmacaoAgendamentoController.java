@@ -1,5 +1,6 @@
 package com.prontudigital.backend.notificacao.controladores;
 
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import com.prontudigital.backend.notificacao.dto.ConfirmacaoResponseDTO;
 import com.prontudigital.backend.notificacao.servicos.NotificacaoWhatsappService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +30,7 @@ public class ConfirmacaoAgendamentoController {
     public ResponseEntity<ConfirmacaoResponseDTO> confirmar(@PathVariable UUID token) {
         notificacaoService.confirmarViaToken(token);
         return ResponseEntity.ok(new ConfirmacaoResponseDTO(
-                "Presença confirmada com sucesso! Até logo."));
+                Mensagens.get("confirmacao.presenca-confirmada")));
     }
 
     @Operation(summary = "Recusar consulta agendada",
@@ -39,6 +40,6 @@ public class ConfirmacaoAgendamentoController {
     public ResponseEntity<ConfirmacaoResponseDTO> recusar(@PathVariable UUID token) {
         notificacaoService.recusarViaToken(token);
         return ResponseEntity.ok(new ConfirmacaoResponseDTO(
-                "Consulta cancelada. Você foi adicionado à fila de espera com prioridade alta."));
+                Mensagens.get("confirmacao.consulta-cancelada")));
     }
 }

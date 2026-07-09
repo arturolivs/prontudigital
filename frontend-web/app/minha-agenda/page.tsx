@@ -8,6 +8,7 @@ import {
 import { RotaProtegida } from '@/components/RotaProtegida'
 import { useAuth } from '@/contexts/AuthContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import LayoutPaciente from '@/components/LayoutPaciente'
 import { Agendamento } from '@/tipos/agendamento'
 import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
@@ -211,7 +212,7 @@ export default function MinhaAgendaPage() {
       const data = await agendamentoAPI.getMeusAgendamentos()
       setAgendamentos(data)
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar agendamentos')
+      setError(mensagemErro(err, MENSAGENS.erro.carregarAgendamentos))
       console.error('Erro:', err)
     } finally {
       setLoading(false)

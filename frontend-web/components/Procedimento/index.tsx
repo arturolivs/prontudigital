@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Agendamento } from '@/tipos/agendamento'
 import { agendamentoAPI } from '@/lib/agendamento.service'
+import { MENSAGENS } from '@/lib/mensagens'
 import { useNotificacao } from '@/contexts/ToastContext'
 import Modal from '@/components/Modal'
 import './procedimento.css'
@@ -154,11 +155,11 @@ export default function ModalProcedimento({
     setFinalizando(true)
     try {
       await agendamentoAPI.concluirAgendamento(agendamento.id)
-      exibirNotificacao('Consulta finalizada com sucesso!', 'success', 4000)
+      exibirNotificacao(MENSAGENS.sucesso.consultaFinalizada, 'success', 4000)
       onConcluido({ ...agendamento, status: 'REALIZADO' })
       onClose()
     } catch {
-      exibirNotificacao('Erro ao finalizar consulta.', 'error', 5000)
+      exibirNotificacao(MENSAGENS.erro.finalizarConsulta, 'error', 5000)
     } finally {
       setFinalizando(false)
     }
