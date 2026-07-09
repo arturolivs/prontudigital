@@ -1,6 +1,8 @@
 package com.prontudigital.backend.compartilhado.excecoes;
 
 import com.prontudigital.backend.agendamento.excecoes.*;
+import com.prontudigital.backend.prontuario.excecoes.AnamneseJaExisteException;
+import com.prontudigital.backend.prontuario.excecoes.AnamneseNaoEncontradaException;
 import com.prontudigital.backend.notificacao.excecoes.TokenConfirmacaoInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.*;
 import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
@@ -129,6 +131,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             UsuarioNaoEncontradoException.class,
             AgendamentoNaoEncontradoException.class,
             AvaliacaoNaoEncontradaException.class,
+            AnamneseNaoEncontradaException.class,
             PerfilNaoEncontradoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleNaoEncontrado(
@@ -142,6 +145,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             TelefoneExistenteException.class,
             AgendamentoJaCanceladoException.class,
             AgendamentoJaConcluidoException.class,
+            AnamneseJaExisteException.class,
             HorarioIndisponivelException.class,
             ProfissionalIndisponivelException.class,
             PacienteIndisponivelException.class

@@ -21,6 +21,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     Optional<Agendamento> findByIdAndPacienteUuid(Long id, UUID pacienteUuid);
 
+    boolean existsByProfissionalUuidAndPacienteUuid(UUID profissionalUuid, UUID pacienteUuid);
+
     List<Agendamento> findByProfissionalUuidAndInicioEmBetween(
             UUID profissionalUuid, LocalDateTime inicio, LocalDateTime fim);
 
