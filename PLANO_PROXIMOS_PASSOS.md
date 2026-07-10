@@ -20,28 +20,36 @@ Isso mantém consistência e reaproveita a política de acesso existente
 
 ## Fase 2 — Concluir o PEP (prioridade máxima)
 
-### RF16 — Prescrição de medicamentos e cuidados de enfermagem
+> **Progresso:** RF16 e RF15 concluídos (backend + frontend). Próximo: **RF18**.
+
+### RF16 — Prescrição de medicamentos e cuidados de enfermagem — ✅ CONCLUÍDO
 Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do tempo).
 
-- **Backend:** entidade `Prescricao` (paciente_uuid, agendamento_uuid opcional, tipo
-  [`MEDICAMENTO` | `CUIDADO`], descrição, posologia/frequência, duração, `registradoPor`,
-  timestamps) + migration `V20`.
-- DTOs, `PrescricaoRepository` (findByPacienteUuid ordenado por data), `PrescricaoService`/impl.
-- `PrescricaoController` em `/api/prontuario/pacientes/{pacienteUuid}/prescricoes`
+- ✅ **Backend:** entidade `Prescricao` (paciente_uuid, agendamento_uuid opcional, tipo
+  [`MEDICAMENTO` | `CUIDADO`], descrição, posologia/frequência, duração, orientações,
+  `registradoPor`, timestamps) + migration `V20`.
+- ✅ DTOs, `PrescricaoRepository` (findByPacienteUuid ordenado por data), `PrescricaoService`/impl.
+- ✅ `PrescricaoController` em `/api/prontuario/pacientes/{pacienteUuid}/prescricoes`
   (GET lista, POST, PUT, DELETE), reusando `podeEditar` / `podeVisualizar`.
-- Testes de serviço e de permissão (RN03).
-- **Frontend:** aba "Prescrições" na tela de prontuário do paciente.
+- ✅ Testes de serviço e de permissão (RN03) — `PrescricaoServiceImplTest`.
+- ✅ **Frontend:** aba "Prescrições" na tela de prontuário do paciente.
 
-### RF15 — Anexação de exames e documentos
-- **Decisão de arquitetura primeiro:** abstrair o storage atrás de uma interface
-  `ArmazenamentoService` com implementação inicial em **filesystem/volume Docker**,
+### RF15 — Anexação de exames e documentos — ✅ CONCLUÍDO
+- ✅ **Arquitetura:** storage abstraído atrás de `ArmazenamentoService`
+  (`compartilhado.armazenamento`) com implementação em **filesystem/volume Docker**
+  (`ArmazenamentoFilesystemService`, com proteção contra path traversal),
   permitindo trocar por S3/MinIO depois sem mexer no domínio.
-- **Backend:** entidade `Anexo` (paciente_uuid, nome original, mime type, tamanho,
-  caminho/chave, `registradoPor`, timestamps) + migration `V21`.
-- Endpoint `multipart/form-data` para upload, download (stream) e exclusão;
-  validação de tipo/tamanho; nome de arquivo sanitizado.
-- **Frontend:** upload com preview de imagens (fotos de ferida são o caso central da
-  clínica) e lista de documentos.
+- ✅ **Backend:** entidade `Anexo` (paciente_uuid, agendamento_uuid opcional, nome
+  original, mime type, tamanho, chave de armazenamento, `registradoPor`, timestamp) +
+  migration `V21`. O binário não fica no banco.
+- ✅ Endpoint `multipart/form-data` para upload, download/preview (stream, inline) e
+  exclusão; validação de tipo (imagens JPG/PNG/WEBP + PDF) e tamanho (10 MB); nome de
+  arquivo sanitizado; extensão derivada do MIME. Reusa `podeEditar`/`podeVisualizar`.
+- ✅ Testes de serviço e permissão (RN03) — `AnexoServiceImplTest` (10 testes).
+- ✅ **Frontend:** aba "Anexos" na tela de prontuário, com upload, grade de cards,
+  preview de imagens (via blob autenticado) e abertura de PDFs.
+- ✅ Config: `spring.servlet.multipart` (10 MB), `app.armazenamento.*` e volume
+  `anexos_prontudigital_data` no docker-compose.
 
 ### RF18 — Consolidar histórico clínico
 - Endpoint agregador `/api/prontuario/pacientes/{pacienteUuid}/historico` que junta
@@ -93,5 +101,5 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Sequência recomendada
 
-**RF16 → RF15 → RF18** (fecham o PEP, maior valor clínico) **→ RF06 → RF04/RF05
+~~RF16~~ ~~RF15~~ (✅ concluídos) **→ RF18** (fecha o PEP, maior valor clínico) **→ RF06 → RF04/RF05
 → RF19/RF20 → RF17/RF21 → NFRs**

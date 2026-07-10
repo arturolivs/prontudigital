@@ -54,6 +54,135 @@
   color: var(--color-error);
 }
 
+/* Abas do prontuario */
+.pront-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--color-border-light);
+  margin-bottom: 1.25rem;
+}
+
+.pront-tab {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.6rem 1rem;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.pront-tab:hover {
+  color: var(--color-brand);
+}
+.pront-tab-ativa {
+  color: var(--color-brand);
+  border-bottom-color: var(--color-brand);
+}
+
+/* Barra de acao no topo de cada aba */
+.anx-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.anx-titulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-heading);
+}
+.anx-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 0.15rem;
+}
+
+/* Grade de anexos */
+.anx-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.anx-card {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border: 1px solid var(--color-border-brand);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(30, 41, 59, 0.04);
+}
+
+.anx-preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-page);
+  cursor: pointer;
+}
+
+.anx-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.anx-thumb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+.anx-thumb-pdf {
+  background: var(--color-bg-alt);
+}
+.anx-pdf-icon {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-brand-dark);
+  border: 2px solid var(--color-border-brand);
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+}
+
+.anx-card-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.75rem 0.35rem;
+}
+.anx-nome {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.anx-meta {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.anx-card-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  padding: 0 0.75rem 0.6rem;
+}
+
 /* Lista de prescricoes */
 .presc-lista {
   display: flex;

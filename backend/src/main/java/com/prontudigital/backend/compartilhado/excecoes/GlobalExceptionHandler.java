@@ -134,6 +134,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AvaliacaoNaoEncontradaException.class,
             AnamneseNaoEncontradaException.class,
             com.prontudigital.backend.prontuario.excecoes.PrescricaoNaoEncontradaException.class,
+            com.prontudigital.backend.prontuario.excecoes.AnexoNaoEncontradoException.class,
             PerfilNaoEncontradoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleNaoEncontrado(
@@ -164,12 +165,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             CancelamentoForaDoPrazoException.class,
             TipoVisualizacaoInvalidoException.class,
             com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class,
-            com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class
+            com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class,
+            com.prontudigital.backend.prontuario.excecoes.AnexoInvalidoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleRegraDeNegocio(
             ExcecaoBase ex, HttpServletRequest request) {
         return build(HttpStatus.UNPROCESSABLE_ENTITY, Mensagens.get("erro.operacao-invalida.titulo"),
                 ex.getMessage(), request);
+    }
+
+    // Upload acima do limite do servlet (multipart) — antes de chegar ao service
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErroRespostaDTO> handleUploadGrande(
+            org.springframework.web.multipart.MaxUploadSizeExceededException ex,
+            HttpServletRequest request) {
+        return build(HttpStatus.UNPROCESSABLE_ENTITY, Mensagens.get("erro.operacao-invalida.titulo"),
+                Mensagens.get("anexo.tamanho-excedido", 10), request);
     }
 
     @ExceptionHandler(TokenConfirmacaoInvalidoException.class)

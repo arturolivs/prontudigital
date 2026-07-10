@@ -21,8 +21,11 @@ services:
     # REMOVER: ports - não expor para fora
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - ARMAZENAMENTO_DIR=/dados/anexos
     depends_on:
       - postgres-prontudigital
+    volumes:
+      - anexos_prontudigital_data:/dados/anexos
     networks:
       - prontudigital-net
 
@@ -42,6 +45,7 @@ services:
 
 volumes:
   postgres_prontudigital_data:
+  anexos_prontudigital_data:
 
 networks:
   prontudigital-net:

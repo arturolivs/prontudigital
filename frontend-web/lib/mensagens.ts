@@ -37,6 +37,12 @@ export const MENSAGENS = {
     carregarPrescricoes: 'Erro ao carregar as prescrições.',
     salvarPrescricao: 'Erro ao salvar a prescrição.',
     excluirPrescricao: 'Erro ao excluir a prescrição.',
+    carregarAnexos: 'Erro ao carregar os anexos.',
+    enviarAnexo: 'Erro ao enviar o anexo.',
+    excluirAnexo: 'Erro ao excluir o anexo.',
+    abrirAnexo: 'Não foi possível abrir o anexo.',
+    anexoTipoInvalido: 'Tipo de arquivo não permitido. Envie imagem (JPG, PNG, WEBP) ou PDF.',
+    anexoTamanho: 'Arquivo muito grande. O tamanho máximo é 10 MB.',
   },
   sucesso: {
     horarioRegistrado: 'Horário registrado com sucesso!',
@@ -53,6 +59,8 @@ export const MENSAGENS = {
     prescricaoCriada: 'Prescrição registrada com sucesso!',
     prescricaoAtualizada: 'Prescrição atualizada com sucesso!',
     prescricaoExcluida: 'Prescrição excluída com sucesso!',
+    anexoEnviado: 'Anexo enviado com sucesso!',
+    anexoExcluido: 'Anexo excluído com sucesso!',
   },
   validacao: {
     nomeObrigatorio: 'Nome é obrigatório',
