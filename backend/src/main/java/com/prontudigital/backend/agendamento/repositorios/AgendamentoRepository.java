@@ -71,7 +71,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             WHERE a.inicioEm BETWEEN :inicio AND :fim
             AND (:status IS NULL OR a.status = :status)
             AND (:busca IS NULL OR a.pacienteUuid IN (
-                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', :busca, '%'))
+                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', CAST(:busca AS string), '%'))
             ))
             GROUP BY a.pacienteUuid
             ORDER BY MAX(a.inicioEm) DESC
@@ -82,7 +82,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             WHERE a.inicioEm BETWEEN :inicio AND :fim
             AND (:status IS NULL OR a.status = :status)
             AND (:busca IS NULL OR a.pacienteUuid IN (
-                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', :busca, '%'))
+                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', CAST(:busca AS string), '%'))
             ))
             """)
     Page<PacienteAgendamentoResumo> buscarPacientesComAgendamentos(

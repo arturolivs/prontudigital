@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import Link from 'next/link'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
@@ -92,7 +93,11 @@ const CardAgendamento = ({ agendamento }: { agendamento: AgendamentoView }) => (
   </div>
 )
 
-const CartaoPaciente = ({ paciente }: { paciente: PacienteAgendamentosDTO }) => {
+const CartaoPaciente = ({
+  paciente,
+}: {
+  paciente: PacienteAgendamentosDTO
+}) => {
   const [expandido, setExpandido] = useState(true)
 
   const stats = useMemo(() => {
@@ -178,6 +183,14 @@ const CartaoPaciente = ({ paciente }: { paciente: PacienteAgendamentosDTO }) => 
 
       {expandido && (
         <div className="pac-card-body">
+          <div className="pac-card-acoes">
+            <Link
+              href={`/pacientes/${paciente.pacienteUuid}/prontuario?nome=${encodeURIComponent(paciente.nomePaciente)}`}
+              className="pac-prontuario-link"
+            >
+              Ver prontuário →
+            </Link>
+          </div>
           {paciente.agendamentos.map(a => (
             <CardAgendamento key={a.id} agendamento={a} />
           ))}
@@ -193,7 +206,8 @@ function gerarPaginas(total: number, atual: number): (number | string)[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
   const paginas: (number | string)[] = [1]
   if (atual > 3) paginas.push('...')
-  for (let i = Math.max(2, atual - 1); i <= Math.min(total - 1, atual + 1); i++) paginas.push(i)
+  for (let i = Math.max(2, atual - 1); i <= Math.min(total - 1, atual + 1); i++)
+    paginas.push(i)
   if (atual < total - 2) paginas.push('...')
   paginas.push(total)
   return paginas
@@ -249,7 +263,14 @@ export default function PacientesPage() {
       busca ? 400 : 0,
     )
     return () => clearTimeout(timer)
-  }, [usuario, hasRequiredRole, paginaAtual, busca, filtroStatus, fetchPacientes])
+  }, [
+    usuario,
+    hasRequiredRole,
+    paginaAtual,
+    busca,
+    filtroStatus,
+    fetchPacientes,
+  ])
 
   const paginaValida = Math.min(paginaAtual, totalPaginas)
 
@@ -387,14 +408,21 @@ export default function PacientesPage() {
                 <div className="paginacao">
                   <button
                     className="paginacao-btn"
-                    onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                    onClick={() =>
+                      setPaginaAtual(prev => Math.max(1, prev - 1))
+                    }
                     disabled={paginaValida === 1}
                   >
                     ← Anterior
                   </button>
                   {gerarPaginas(totalPaginas, paginaValida).map((p, i) =>
                     typeof p === 'string' ? (
-                      <span key={`ellipsis-${i}`} className="paginacao-ellipsis">…</span>
+                      <span
+                        key={`ellipsis-${i}`}
+                        className="paginacao-ellipsis"
+                      >
+                        …
+                      </span>
                     ) : (
                       <button
                         key={`page-${p}`}
@@ -403,11 +431,13 @@ export default function PacientesPage() {
                       >
                         {p}
                       </button>
-                    )
+                    ),
                   )}
                   <button
                     className="paginacao-btn"
-                    onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                    onClick={() =>
+                      setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))
+                    }
                     disabled={paginaValida === totalPaginas}
                   >
                     Próximo →

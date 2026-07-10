@@ -34,6 +34,9 @@ export const MENSAGENS = {
     removerBloqueio: 'Erro ao remover o bloqueio.',
     identificarProfissional: 'Não foi possível identificar o profissional.',
     carregarHorariosIndisponiveis: 'Erro ao carregar horários indisponíveis.',
+    carregarPrescricoes: 'Erro ao carregar as prescrições.',
+    salvarPrescricao: 'Erro ao salvar a prescrição.',
+    excluirPrescricao: 'Erro ao excluir a prescrição.',
   },
   sucesso: {
     horarioRegistrado: 'Horário registrado com sucesso!',
@@ -47,16 +50,22 @@ export const MENSAGENS = {
     perfilAtualizado: 'Perfil atualizado com sucesso!',
     senhaAlterada: 'Senha alterada com sucesso!',
     consultaFinalizada: 'Consulta finalizada com sucesso!',
+    prescricaoCriada: 'Prescrição registrada com sucesso!',
+    prescricaoAtualizada: 'Prescrição atualizada com sucesso!',
+    prescricaoExcluida: 'Prescrição excluída com sucesso!',
   },
   validacao: {
     nomeObrigatorio: 'Nome é obrigatório',
+    descricaoPrescricaoObrigatoria:
+      'Informe o medicamento ou cuidado prescrito',
     emailInvalido: 'Email inválido',
     senhaAtualObrigatoria: 'Informe a senha atual',
     novaSenhaObrigatoria: 'Informe a nova senha',
     senhaMinima: 'A senha deve ter pelo menos 6 caracteres',
     confirmarSenhaObrigatoria: 'Confirme a nova senha',
     senhasNaoCoincidem: 'As senhas não coincidem',
-    horarioTerminoInvalido: 'O horário de término deve ser posterior ao de início.',
+    horarioTerminoInvalido:
+      'O horário de término deve ser posterior ao de início.',
     selecioneDiaSemana: 'Selecione ao menos um dia da semana.',
     diasJaComRegra:
       'Todos os dias selecionados já possuem regras recorrentes. Selecione um novo dia para adicionar.',
@@ -67,7 +76,13 @@ export const MENSAGENS = {
  * Extrai a mensagem de erro priorizando o que o backend retornou
  * (`response.data.message`), depois `err.message`, e por fim um fallback local.
  */
-export function mensagemErro(err: unknown, fallback: string = MENSAGENS.erro.generico): string {
-  const e = err as { response?: { data?: { message?: string } }; message?: string }
+export function mensagemErro(
+  err: unknown,
+  fallback: string = MENSAGENS.erro.generico,
+): string {
+  const e = err as {
+    response?: { data?: { message?: string } }
+    message?: string
+  }
   return e?.response?.data?.message || e?.message || fallback
 }
