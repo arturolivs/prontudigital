@@ -133,6 +133,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AgendamentoNaoEncontradoException.class,
             AvaliacaoNaoEncontradaException.class,
             AnamneseNaoEncontradaException.class,
+            com.prontudigital.backend.prontuario.excecoes.PrescricaoNaoEncontradaException.class,
             PerfilNaoEncontradoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleNaoEncontrado(
