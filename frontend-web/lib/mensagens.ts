@@ -43,6 +43,7 @@ export const MENSAGENS = {
     abrirAnexo: 'Não foi possível abrir o anexo.',
     anexoTipoInvalido: 'Tipo de arquivo não permitido. Envie imagem (JPG, PNG, WEBP) ou PDF.',
     anexoTamanho: 'Arquivo muito grande. O tamanho máximo é 10 MB.',
+    carregarHistorico: 'Erro ao carregar o histórico clínico.',
   },
   sucesso: {
     horarioRegistrado: 'Horário registrado com sucesso!',

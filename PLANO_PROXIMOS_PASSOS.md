@@ -20,7 +20,8 @@ Isso mantém consistência e reaproveita a política de acesso existente
 
 ## Fase 2 — Concluir o PEP (prioridade máxima)
 
-> **Progresso:** RF16 e RF15 concluídos (backend + frontend). Próximo: **RF18**.
+> **Progresso:** RF16, RF15 e RF18 concluídos (backend + frontend). **Fase 2 / PEP completo.**
+> Próximo: **Fase 3 — RF06**.
 
 ### RF16 — Prescrição de medicamentos e cuidados de enfermagem — ✅ CONCLUÍDO
 Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do tempo).
@@ -51,10 +52,13 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 - ✅ Config: `spring.servlet.multipart` (10 MB), `app.armazenamento.*` e volume
   `anexos_prontudigital_data` no docker-compose.
 
-### RF18 — Consolidar histórico clínico
-- Endpoint agregador `/api/prontuario/pacientes/{pacienteUuid}/historico` que junta
-  agendamentos, evoluções, prescrições e anexos em ordem cronológica (linha do tempo).
-- **Frontend:** timeline única do paciente.
+### RF18 — Consolidar histórico clínico — ✅ CONCLUÍDO
+- ✅ Endpoint agregador (leitura) `GET /api/prontuario/pacientes/{pacienteUuid}/historico`
+  que junta agendamentos, evoluções, prescrições e anexos em ordem cronológica. Evoluções
+  derivadas de `agendamento.getEvolucaoClinica()`. Reusa `podeVisualizar` (RN03).
+  `HistoricoServiceImplTest` (5 testes, 100%).
+- ✅ **Frontend:** aba "Histórico" (padrão) — timeline única com marcadores/badges por tipo
+  e filtro por tipo de evento.
 
 ---
 

@@ -8,11 +8,13 @@ import { useAuth } from '../../../../contexts/AuthContext'
 import Layout from '@/components/Layout/Layout'
 import AbaPrescricoes from './AbaPrescricoes'
 import AbaAnexos from './AbaAnexos'
+import AbaHistorico from './AbaHistorico'
 import './prontuario.css'
 
-type Aba = 'prescricoes' | 'anexos'
+type Aba = 'historico' | 'prescricoes' | 'anexos'
 
 const ABAS: { id: Aba; rotulo: string }[] = [
+  { id: 'historico', rotulo: 'Histórico' },
   { id: 'prescricoes', rotulo: 'Prescrições' },
   { id: 'anexos', rotulo: 'Anexos' },
 ]
@@ -25,7 +27,7 @@ export default function ProntuarioPage() {
 
   const { usuario, temPerfil } = useAuth()
 
-  const [aba, setAba] = useState<Aba>('prescricoes')
+  const [aba, setAba] = useState<Aba>('historico')
   const [nomePaciente, setNomePaciente] = useState<string>(
     nomeQuery || 'Paciente',
   )
@@ -77,12 +79,14 @@ export default function ProntuarioPage() {
             ))}
           </div>
 
-          {aba === 'prescricoes' ? (
+          {aba === 'historico' && <AbaHistorico pacienteUuid={pacienteUuid} />}
+          {aba === 'prescricoes' && (
             <AbaPrescricoes
               pacienteUuid={pacienteUuid}
               onNomePaciente={setNomePaciente}
             />
-          ) : (
+          )}
+          {aba === 'anexos' && (
             <AbaAnexos
               pacienteUuid={pacienteUuid}
               onNomePaciente={setNomePaciente}
