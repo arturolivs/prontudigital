@@ -5,6 +5,7 @@ import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
+import com.prontudigital.backend.compartilhado.armazenamento.ArmazenamentoException;
 import com.prontudigital.backend.compartilhado.armazenamento.ArmazenamentoProperties;
 import com.prontudigital.backend.compartilhado.armazenamento.ArmazenamentoService;
 import com.prontudigital.backend.prontuario.dto.AnexoDownloadDTO;
@@ -96,6 +97,23 @@ class AnexoServiceImplTest {
                 .build();
     }
 
+    private void autorizarProfissional() {
+        when(usuarioContexto.getUsuarioAtual()).thenReturn(usuario(PROFISSIONAL_UUID, "PROFISSIONAL"));
+        when(agendamentoRepository.existsByProfissionalUuidAndPacienteUuid(PROFISSIONAL_UUID, PACIENTE_UUID))
+                .thenReturn(true);
+    }
+
+    private void mockPersistencia() {
+        when(anexoRepository.save(any(Anexo.class))).thenAnswer(inv -> inv.getArgument(0));
+        mockPacienteNome();
+    }
+
+    private Anexo capturarAnexoSalvo() {
+        ArgumentCaptor<Anexo> captor = ArgumentCaptor.forClass(Anexo.class);
+        verify(anexoRepository).save(captor.capture());
+        return captor.getValue();
+    }
+
     // =========================================================
     // enviar()
     // =========================================================
@@ -170,10 +188,150 @@ class AnexoServiceImplTest {
             when(agendamentoRepository.existsByProfissionalUuidAndPacienteUuid(PROFISSIONAL_UUID, PACIENTE_UUID))
                     .thenReturn(false);
 
-            // autorizacao falha antes de qualquer inspecao do arquivo
             assertThrows(UsuarioSemAutorizacaoException.class,
                     () -> service.enviar(PACIENTE_UUID, mock(MultipartFile.class), null));
             verify(anexoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita arquivo nulo")
+        void deveRejeitarArquivoNulo() {
+            autorizarProfissional();
+
+            assertThrows(AnexoInvalidoException.class,
+                    () -> service.enviar(PACIENTE_UUID, null, null));
+            verify(anexoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita arquivo vazio")
+        void deveRejeitarArquivoVazio() {
+            autorizarProfissional();
+            MultipartFile mf = mock(MultipartFile.class);
+            when(mf.isEmpty()).thenReturn(true);
+
+            assertThrows(AnexoInvalidoException.class,
+                    () -> service.enviar(PACIENTE_UUID, mf, null));
+            verify(anexoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("converte falha de I/O na gravacao em ArmazenamentoException")
+        void deveTratarIOException() throws IOException {
+            autorizarProfissional();
+            MultipartFile mf = mock(MultipartFile.class);
+            when(mf.isEmpty()).thenReturn(false);
+            when(mf.getSize()).thenReturn(2048L);
+            when(mf.getContentType()).thenReturn("image/png");
+            when(mf.getOriginalFilename()).thenReturn("x.png");
+            when(mf.getInputStream()).thenThrow(new IOException("disco cheio"));
+
+            assertThrows(ArmazenamentoException.class,
+                    () -> service.enviar(PACIENTE_UUID, mf, null));
+            verify(anexoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("deriva a extensao a partir do MIME (jpeg/webp/pdf)")
+        void deveDerivarExtensaoPorMime() throws IOException {
+            autorizarProfissional();
+            mockPersistencia();
+
+            service.enviar(PACIENTE_UUID, arquivo("f", "image/jpeg", 2048L), null);
+            assertTrue(capturarAnexoSalvo().getChaveArmazenamento().endsWith(".jpg"));
+        }
+
+        @Test
+        @DisplayName("usa extensao .webp para image/webp")
+        void deveDerivarWebp() throws IOException {
+            autorizarProfissional();
+            mockPersistencia();
+
+            service.enviar(PACIENTE_UUID, arquivo("f", "image/webp", 2048L), null);
+            assertTrue(capturarAnexoSalvo().getChaveArmazenamento().endsWith(".webp"));
+        }
+
+        @Test
+        @DisplayName("usa extensao .pdf para application/pdf")
+        void deveDerivarPdf() throws IOException {
+            autorizarProfissional();
+            mockPersistencia();
+
+            service.enviar(PACIENTE_UUID, arquivo("f", "application/pdf", 2048L), null);
+            assertTrue(capturarAnexoSalvo().getChaveArmazenamento().endsWith(".pdf"));
+        }
+
+        @Test
+        @DisplayName("grava sem extensao quando o MIME permitido nao mapeia extensao")
+        void deveGravarSemExtensaoParaMimeSemMapa() throws IOException {
+            propriedades.setTiposPermitidos(java.util.List.of("image/gif"));
+            autorizarProfissional();
+            mockPersistencia();
+
+            service.enviar(PACIENTE_UUID, arquivo("f", "image/gif", 2048L), null);
+
+            // extensaoPara -> default "" : a chave nao possui ponto de extensao
+            assertFalse(capturarAnexoSalvo().getChaveArmazenamento().contains("."));
+        }
+
+        @Test
+        @DisplayName("usa nome padrao quando o nome original eh nulo")
+        void deveUsarNomePadraoQuandoNulo() throws IOException {
+            autorizarProfissional();
+            mockPersistencia();
+
+            AnexoResponseDTO resp = service.enviar(
+                    PACIENTE_UUID, arquivo(null, "image/png", 2048L), null);
+
+            assertEquals("arquivo", resp.nomeOriginal());
+        }
+
+        @Test
+        @DisplayName("usa nome padrao quando o nome original eh em branco")
+        void deveUsarNomePadraoQuandoEmBranco() throws IOException {
+            autorizarProfissional();
+            mockPersistencia();
+
+            AnexoResponseDTO resp = service.enviar(
+                    PACIENTE_UUID, arquivo("   ", "image/png", 2048L), null);
+
+            assertEquals("arquivo", resp.nomeOriginal());
+        }
+
+        @Test
+        @DisplayName("remove o caminho do nome (protege contra path traversal)")
+        void deveRemoverCaminhoDoNome() throws IOException {
+            autorizarProfissional();
+            mockPersistencia();
+
+            AnexoResponseDTO resp = service.enviar(
+                    PACIENTE_UUID, arquivo("../../etc/senha.pdf", "application/pdf", 2048L), null);
+
+            assertEquals("senha.pdf", resp.nomeOriginal());
+        }
+
+        @Test
+        @DisplayName("usa nome padrao quando sobra apenas pontos apos limpeza")
+        void deveUsarNomePadraoQuandoSoPontos() throws IOException {
+            autorizarProfissional();
+            mockPersistencia();
+
+            AnexoResponseDTO resp = service.enviar(
+                    PACIENTE_UUID, arquivo("..", "application/pdf", 2048L), null);
+
+            assertEquals("arquivo", resp.nomeOriginal());
+        }
+
+        @Test
+        @DisplayName("trunca nome muito longo para 255 caracteres")
+        void deveTruncarNomeLongo() throws IOException {
+            autorizarProfissional();
+            mockPersistencia();
+
+            AnexoResponseDTO resp = service.enviar(
+                    PACIENTE_UUID, arquivo("a".repeat(300), "image/png", 2048L), null);
+
+            assertEquals(255, resp.nomeOriginal().length());
         }
     }
 
