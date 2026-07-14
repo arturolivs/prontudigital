@@ -174,13 +174,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 ex.getMessage(), request);
     }
 
-    // Upload acima do limite do servlet (multipart) — antes de chegar ao service
-    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
-    public ResponseEntity<ErroRespostaDTO> handleUploadGrande(
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
             org.springframework.web.multipart.MaxUploadSizeExceededException ex,
-            HttpServletRequest request) {
-        return build(HttpStatus.UNPROCESSABLE_ENTITY, Mensagens.get("erro.operacao-invalida.titulo"),
-                Mensagens.get("anexo.tamanho-excedido", 10), request);
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        ErroRespostaDTO erro = new ErroRespostaDTO(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                Mensagens.get("erro.operacao-invalida.titulo"),
+                Mensagens.get("anexo.tamanho-excedido", 10),
+                extrairCaminho(request));
+
+        return handleExceptionInternal(ex, erro, headers, HttpStatus.UNPROCESSABLE_ENTITY, request);
     }
 
     @ExceptionHandler(TokenConfirmacaoInvalidoException.class)
