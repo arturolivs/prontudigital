@@ -96,32 +96,122 @@ public class AnamneseServiceImpl implements AnamneseService {
     }
 
     private void aplicar(Anamnese anamnese, AnamneseRequestDTO request) {
-        anamnese.setQueixaPrincipal(request.queixaPrincipal());
-        anamnese.setHistoricoDoencaAtual(request.historicoDoencaAtual());
-        anamnese.setHistoricoMedicoPregresso(request.historicoMedicoPregresso());
-        anamnese.setAlergias(request.alergias());
-        anamnese.setMedicamentosEmUso(request.medicamentosEmUso());
-        anamnese.setHistoricoFamiliar(request.historicoFamiliar());
-        anamnese.setHabitos(request.habitos());
-        anamnese.setObservacoes(request.observacoes());
+        anamnese.setProfissao(request.profissao());
+        anamnese.setResponsavelCuidador(request.responsavelCuidador());
+
+        anamnese.setMotivoConsulta(request.motivoConsulta());
+        anamnese.setTempoExistenciaFerida(request.tempoExistenciaFerida());
+        anamnese.setComoFeridaSurgiu(request.comoFeridaSurgiu());
+        anamnese.setDataInicioAproximada(request.dataInicioAproximada());
+        anamnese.setTratamentosAnteriores(request.tratamentosAnteriores());
+        anamnese.setCurativosPrevios(request.curativosPrevios());
+
+        anamnese.setDiabetesMellitus(request.diabetesMellitus());
+        anamnese.setDiabetesMellitusDetalhe(request.diabetesMellitusDetalhe());
+        anamnese.setHipertensaoArterial(request.hipertensaoArterial());
+        anamnese.setHipertensaoArterialDetalhe(request.hipertensaoArterialDetalhe());
+        anamnese.setDoencaVenosaCronica(request.doencaVenosaCronica());
+        anamnese.setDoencaVenosaCronicaDetalhe(request.doencaVenosaCronicaDetalhe());
+        anamnese.setDoencaArterialPeriferica(request.doencaArterialPeriferica());
+        anamnese.setDoencaArterialPerifericaDetalhe(request.doencaArterialPerifericaDetalhe());
+        anamnese.setInsuficienciaRenal(request.insuficienciaRenal());
+        anamnese.setInsuficienciaRenalDetalhe(request.insuficienciaRenalDetalhe());
+        anamnese.setCancer(request.cancer());
+        anamnese.setCancerDetalhe(request.cancerDetalhe());
+        anamnese.setProblemasNeurologicos(request.problemasNeurologicos());
+        anamnese.setProblemasNeurologicosDetalhe(request.problemasNeurologicosDetalhe());
+        anamnese.setHistoricoCirurgias(request.historicoCirurgias());
+        anamnese.setHistoricoCirurgiasDetalhe(request.historicoCirurgiasDetalhe());
+
+        anamnese.setMedAntibioticos(request.medAntibioticos());
+        anamnese.setMedAnticoagulantes(request.medAnticoagulantes());
+        anamnese.setMedCorticoides(request.medCorticoides());
+        anamnese.setMedInsulinaHipoglicemiantes(request.medInsulinaHipoglicemiantes());
+        anamnese.setMedOutrosContinuos(request.medOutrosContinuos());
+
+        anamnese.setAlergiaMedicamentos(request.alergiaMedicamentos());
+        anamnese.setAlergiaProdutosTopicos(request.alergiaProdutosTopicos());
+        anamnese.setAlergiaCurativosAdesivos(request.alergiaCurativosAdesivos());
+
+        anamnese.setTabagismo(request.tabagismo());
+        anamnese.setConsumoAlcool(request.consumoAlcool());
+        anamnese.setAlimentacaoEstadoNutricional(request.alimentacaoEstadoNutricional());
+        anamnese.setIngestaoHidrica(request.ingestaoHidrica());
+        anamnese.setIngestaoHidricaDetalhe(request.ingestaoHidricaDetalhe());
+
+        anamnese.setDeambulaSozinho(request.deambulaSozinho());
+        anamnese.setDeambulaSozinhoDetalhe(request.deambulaSozinhoDetalhe());
+        anamnese.setAcamadoOuCadeirante(request.acamadoOuCadeirante());
+        anamnese.setAcamadoOuCadeiranteDetalhe(request.acamadoOuCadeiranteDetalhe());
+        anamnese.setUsoDispositivos(request.usoDispositivos());
+        anamnese.setUsoDispositivosDetalhe(request.usoDispositivosDetalhe());
+        anamnese.setMudancaPosicaoLeito(request.mudancaPosicaoLeito());
+        anamnese.setMudancaPosicaoLeitoDetalhe(request.mudancaPosicaoLeitoDetalhe());
+
+        anamnese.setExamesRecentes(request.examesRecentes());
+        anamnese.setRedeApoio(request.redeApoio());
+        anamnese.setAcompanhamentoMedico(request.acompanhamentoMedico());
+        anamnese.setAcompanhamentoMedicoDetalhe(request.acompanhamentoMedicoDetalhe());
     }
 
     private AnamneseResponseDTO toResponse(Anamnese a) {
         String pacienteNome = usuarioService.buscarPorUuid(a.getPacienteUuid()).nomeCompleto();
-        return new AnamneseResponseDTO(
-                a.getUuid(),
-                a.getPacienteUuid(),
-                pacienteNome,
-                a.getQueixaPrincipal(),
-                a.getHistoricoDoencaAtual(),
-                a.getHistoricoMedicoPregresso(),
-                a.getAlergias(),
-                a.getMedicamentosEmUso(),
-                a.getHistoricoFamiliar(),
-                a.getHabitos(),
-                a.getObservacoes(),
-                a.getRegistradoPor(),
-                a.getCriadoEm(),
-                a.getAtualizadoEm());
+        return AnamneseResponseDTO.builder()
+                .uuid(a.getUuid())
+                .pacienteUuid(a.getPacienteUuid())
+                .pacienteNome(pacienteNome)
+                .profissao(a.getProfissao())
+                .responsavelCuidador(a.getResponsavelCuidador())
+                .motivoConsulta(a.getMotivoConsulta())
+                .tempoExistenciaFerida(a.getTempoExistenciaFerida())
+                .comoFeridaSurgiu(a.getComoFeridaSurgiu())
+                .dataInicioAproximada(a.getDataInicioAproximada())
+                .tratamentosAnteriores(a.getTratamentosAnteriores())
+                .curativosPrevios(a.getCurativosPrevios())
+                .diabetesMellitus(a.getDiabetesMellitus())
+                .diabetesMellitusDetalhe(a.getDiabetesMellitusDetalhe())
+                .hipertensaoArterial(a.getHipertensaoArterial())
+                .hipertensaoArterialDetalhe(a.getHipertensaoArterialDetalhe())
+                .doencaVenosaCronica(a.getDoencaVenosaCronica())
+                .doencaVenosaCronicaDetalhe(a.getDoencaVenosaCronicaDetalhe())
+                .doencaArterialPeriferica(a.getDoencaArterialPeriferica())
+                .doencaArterialPerifericaDetalhe(a.getDoencaArterialPerifericaDetalhe())
+                .insuficienciaRenal(a.getInsuficienciaRenal())
+                .insuficienciaRenalDetalhe(a.getInsuficienciaRenalDetalhe())
+                .cancer(a.getCancer())
+                .cancerDetalhe(a.getCancerDetalhe())
+                .problemasNeurologicos(a.getProblemasNeurologicos())
+                .problemasNeurologicosDetalhe(a.getProblemasNeurologicosDetalhe())
+                .historicoCirurgias(a.getHistoricoCirurgias())
+                .historicoCirurgiasDetalhe(a.getHistoricoCirurgiasDetalhe())
+                .medAntibioticos(a.getMedAntibioticos())
+                .medAnticoagulantes(a.getMedAnticoagulantes())
+                .medCorticoides(a.getMedCorticoides())
+                .medInsulinaHipoglicemiantes(a.getMedInsulinaHipoglicemiantes())
+                .medOutrosContinuos(a.getMedOutrosContinuos())
+                .alergiaMedicamentos(a.getAlergiaMedicamentos())
+                .alergiaProdutosTopicos(a.getAlergiaProdutosTopicos())
+                .alergiaCurativosAdesivos(a.getAlergiaCurativosAdesivos())
+                .tabagismo(a.getTabagismo())
+                .consumoAlcool(a.getConsumoAlcool())
+                .alimentacaoEstadoNutricional(a.getAlimentacaoEstadoNutricional())
+                .ingestaoHidrica(a.getIngestaoHidrica())
+                .ingestaoHidricaDetalhe(a.getIngestaoHidricaDetalhe())
+                .deambulaSozinho(a.getDeambulaSozinho())
+                .deambulaSozinhoDetalhe(a.getDeambulaSozinhoDetalhe())
+                .acamadoOuCadeirante(a.getAcamadoOuCadeirante())
+                .acamadoOuCadeiranteDetalhe(a.getAcamadoOuCadeiranteDetalhe())
+                .usoDispositivos(a.getUsoDispositivos())
+                .usoDispositivosDetalhe(a.getUsoDispositivosDetalhe())
+                .mudancaPosicaoLeito(a.getMudancaPosicaoLeito())
+                .mudancaPosicaoLeitoDetalhe(a.getMudancaPosicaoLeitoDetalhe())
+                .examesRecentes(a.getExamesRecentes())
+                .redeApoio(a.getRedeApoio())
+                .acompanhamentoMedico(a.getAcompanhamentoMedico())
+                .acompanhamentoMedicoDetalhe(a.getAcompanhamentoMedicoDetalhe())
+                .registradoPor(a.getRegistradoPor())
+                .criadoEm(a.getCriadoEm())
+                .atualizadoEm(a.getAtualizadoEm())
+                .build();
     }
 }

@@ -10,6 +10,7 @@ import com.prontudigital.backend.prontuario.dto.AnamneseResponseDTO;
 import com.prontudigital.backend.prontuario.entidades.Anamnese;
 import com.prontudigital.backend.prontuario.excecoes.AnamneseJaExisteException;
 import com.prontudigital.backend.prontuario.excecoes.AnamneseNaoEncontradaException;
+import com.prontudigital.backend.prontuario.enums.RedeApoio;
 import com.prontudigital.backend.prontuario.repositorios.AnamneseRepository;
 import com.prontudigital.backend.prontuario.seguranca.ProntuarioPermissaoPolicy;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -57,16 +59,27 @@ class AnamneseServiceImplTest {
     }
 
     private AnamneseRequestDTO request() {
-        return new AnamneseRequestDTO(
-                "Dor em ferida", "Ha 3 meses", "Diabetes",
-                "Penicilina", "Losartana", "Pai hipertenso", "Tabagista", "Colaborativo");
+        return AnamneseRequestDTO.builder()
+                .profissao("Aposentado")
+                .motivoConsulta("Dor em ferida")
+                .tempoExistenciaFerida("3 meses")
+                .dataInicioAproximada(LocalDate.of(2026, 4, 1))
+                .diabetesMellitus(true)
+                .diabetesMellitusDetalhe("Tipo 2, controlada")
+                .alergiaMedicamentos(true)
+                .tabagismo(false)
+                .deambulaSozinho(true)
+                .redeApoio(RedeApoio.CUIDADOR)
+                .acompanhamentoMedico(true)
+                .acompanhamentoMedicoDetalhe("Dr. Souza - Angiologista")
+                .build();
     }
 
     private Anamnese anamneseExistente() {
         return Anamnese.builder()
                 .id(1L)
                 .pacienteUuid(PACIENTE_UUID)
-                .queixaPrincipal("Antiga")
+                .motivoConsulta("Antiga")
                 .build();
     }
 
@@ -90,13 +103,15 @@ class AnamneseServiceImplTest {
 
             AnamneseResponseDTO resp = service.registrar(PACIENTE_UUID, request());
 
-            assertEquals("Dor em ferida", resp.queixaPrincipal());
+            assertEquals("Dor em ferida", resp.motivoConsulta());
             assertEquals("Carlos", resp.pacienteNome());
 
             ArgumentCaptor<Anamnese> captor = ArgumentCaptor.forClass(Anamnese.class);
             verify(anamneseRepository).save(captor.capture());
             assertEquals(PROFISSIONAL_UUID, captor.getValue().getRegistradoPor());
-            assertEquals("Penicilina", captor.getValue().getAlergias());
+            assertEquals(true, captor.getValue().getDiabetesMellitus());
+            assertEquals("Tipo 2, controlada", captor.getValue().getDiabetesMellitusDetalhe());
+            assertEquals(RedeApoio.CUIDADOR, captor.getValue().getRedeApoio());
         }
 
         @Test
@@ -196,7 +211,7 @@ class AnamneseServiceImplTest {
 
             AnamneseResponseDTO resp = service.atualizar(PACIENTE_UUID, request());
 
-            assertEquals("Dor em ferida", resp.queixaPrincipal());
+            assertEquals("Dor em ferida", resp.motivoConsulta());
             assertEquals(OUTRO_UUID, existente.getRegistradoPor());
         }
 
