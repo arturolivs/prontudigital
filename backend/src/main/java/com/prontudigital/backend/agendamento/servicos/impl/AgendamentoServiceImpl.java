@@ -4,12 +4,14 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoEnfermagemRequestDTO;
 import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.PacienteAgendamentosDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
 import com.prontudigital.backend.agendamento.entidades.Procedimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
@@ -23,6 +25,7 @@ import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
 import com.prontudigital.backend.agendamento.repositorios.EvolucaoClinicaRepository;
+import com.prontudigital.backend.agendamento.repositorios.EvolucaoEnfermagemRepository;
 import com.prontudigital.backend.agendamento.repositorios.HistoricoAgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.PacienteAgendamentoResumo;
 import com.prontudigital.backend.agendamento.repositorios.ProcedimentoRepository;
@@ -63,6 +66,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     private final AgendamentoRepository agendamentoRepository;
     private final EvolucaoClinicaRepository evolucaoClinicaRepository;
+    private final EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
     private final HistoricoAgendamentoRepository historicoRepository;
     private final ProcedimentoRepository procedimentoRepository;
@@ -179,6 +183,114 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     private static <T> Set<T> novoConjunto(Set<T> origem) {
         return origem == null ? new LinkedHashSet<>() : new LinkedHashSet<>(origem);
+    }
+
+    @Override
+    @Transactional
+    public AgendamentoDetalhadoDTO registrarEvolucaoEnfermagem(Long id,
+                                                               EvolucaoEnfermagemRequestDTO request) {
+        Agendamento agendamento = buscarOuFalhar(id);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+        if ("PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    Mensagens.get("agendamento.paciente.nao-registra-evolucao"));
+        }
+        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    Mensagens.get("agendamento.nao-autorizado.registrar-evolucao"));
+        }
+        if (agendamento.getTipo() != TipoAgendamento.AVALIACAO) {
+            throw new AgendamentoStatusInvalidoException(
+                    Mensagens.get("agendamento.evolucao-enfermagem.apenas-avaliacao"));
+        }
+        if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
+            throw new AgendamentoStatusInvalidoException(
+                    Mensagens.get("agendamento.evolucao.cancelado"));
+        }
+
+        EvolucaoEnfermagem evolucao = evolucaoEnfermagemRepository
+                .findByAgendamento(agendamento)
+                .orElseGet(() -> EvolucaoEnfermagem.builder().agendamento(agendamento).build());
+
+        aplicarEvolucaoEnfermagem(evolucao, request);
+
+        evolucaoEnfermagemRepository.save(evolucao);
+        log.info("Evolucao de enfermagem registrada para agendamento id={}", agendamento.getId());
+
+        Agendamento atualizado = agendamentoRepository.findById(agendamento.getId())
+                .orElseThrow(() -> new AgendamentoNaoEncontradoException(
+                        Mensagens.get("agendamento.nao-encontrado", agendamento.getId())));
+        return agendamentoUtil.convertToDetalhadoDTO(atualizado);
+    }
+
+    private void aplicarEvolucaoEnfermagem(EvolucaoEnfermagem evolucao,
+                                           EvolucaoEnfermagemRequestDTO request) {
+        // 1. Dados da avaliacao
+        evolucao.setDataAvaliacao(request.dataAvaliacao());
+        evolucao.setHoraAvaliacao(request.horaAvaliacao());
+        evolucao.setDiagnosticoMedico(request.diagnosticoMedico());
+        evolucao.setComorbDiabetes(request.comorbDiabetes());
+        evolucao.setComorbHipertensao(request.comorbHipertensao());
+        evolucao.setComorbDoencaVascular(request.comorbDoencaVascular());
+        evolucao.setComorbNeuropatia(request.comorbNeuropatia());
+        evolucao.setComorbOutras(request.comorbOutras());
+        evolucao.setComorbOutrasDetalhe(request.comorbOutrasDetalhe());
+        evolucao.setMedicamentosRelevantes(request.medicamentosRelevantes());
+
+        // 2. Avaliacao da ferida (TIME)
+        evolucao.setLocalizacaoAnatomica(request.localizacaoAnatomica());
+        evolucao.setTipoFerida(request.tipoFerida());
+        evolucao.setTipoFeridaOutra(request.tipoFeridaOutra());
+        evolucao.setDimensoes(request.dimensoes());
+        evolucao.setComprimento(request.comprimento());
+        evolucao.setLargura(request.largura());
+        evolucao.setProfundidade(request.profundidade());
+        evolucao.setTunelizacao(request.tunelizacao());
+        evolucao.setDescolamento(request.descolamento());
+        evolucao.setTecidoLeito(request.tecidoLeito());
+        evolucao.setInfeccaoInflamacao(request.infeccaoInflamacao());
+        evolucao.setExsudato(request.exsudato());
+        evolucao.setExsudatoTipo(request.exsudatoTipo());
+        evolucao.setBordas(request.bordas());
+        evolucao.setPelePerilesional(request.pelePerilesional());
+        evolucao.setDorEscala(request.dorEscala());
+        evolucao.setSinaisVitais(request.sinaisVitais());
+        evolucao.setPa(request.pa());
+        evolucao.setFc(request.fc());
+        evolucao.setFr(request.fr());
+        evolucao.setTemp(request.temp());
+
+        // 3. Diagnosticos de enfermagem
+        evolucao.setDiagIntegridadePele(request.diagIntegridadePele());
+        evolucao.setDiagIntegridadeTissular(request.diagIntegridadeTissular());
+        evolucao.setDiagRiscoInfeccao(request.diagRiscoInfeccao());
+        evolucao.setDiagPerfusaoIneficaz(request.diagPerfusaoIneficaz());
+        evolucao.setDiagDorAguda(request.diagDorAguda());
+        evolucao.setDiagOutros(request.diagOutros());
+
+        // 4. Conduta realizada
+        evolucao.setLimpeza(request.limpeza());
+        evolucao.setLimpezaOutro(request.limpezaOutro());
+        evolucao.setDesbridamento(request.desbridamento());
+        evolucao.setCoberturaPrimaria(request.coberturaPrimaria());
+        evolucao.setCoberturaSecundaria(request.coberturaSecundaria());
+        evolucao.setFixacao(request.fixacao());
+        evolucao.setOrientacoesPaciente(request.orientacoesPaciente());
+
+        // 5. Avaliacao da evolucao
+        evolucao.setAvaliacaoEvolucao(request.avaliacaoEvolucao());
+        evolucao.setReducaoArea(request.reducaoArea());
+        evolucao.setObservacoes(request.observacoes());
+
+        // 6. Plano
+        evolucao.setPlanoManterConduta(request.planoManterConduta());
+        evolucao.setPlanoAjustarCobertura(request.planoAjustarCobertura());
+        evolucao.setPlanoAvaliacaoMedica(request.planoAvaliacaoMedica());
+        evolucao.setPlanoSolicitarExames(request.planoSolicitarExames());
+        evolucao.setPlanoEncaminhamento(request.planoEncaminhamento());
+        evolucao.setRetornoDias(request.retornoDias());
     }
 
     @Override

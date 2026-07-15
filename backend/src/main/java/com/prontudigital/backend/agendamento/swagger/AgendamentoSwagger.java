@@ -288,6 +288,43 @@ public class AgendamentoSwagger {
     public @interface RegistrarEvolucaoSwagger {}
 
     // =========================================================
+    // PATCH /api/agendamentos/{id}/evolucao-enfermagem
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Registrar Ficha de Evolução de Enfermagem (avaliação)",
+            description = """
+            Registra ou atualiza a Ficha de Evolução de Enfermagem de um agendamento do tipo AVALIACAO.\n
+            Seções do modelo:
+            - Dados da avaliação (data/hora, diagnóstico médico, comorbidades, medicamentos relevantes)
+            - Avaliação da ferida segundo o acrônimo TIME (tecido, infecção/inflamação, exsudato, bordas)
+            - Diagnósticos de enfermagem
+            - Conduta realizada (limpeza, desbridamento, coberturas, orientações)
+            - Avaliação da evolução e plano\n
+            Regras:
+            - Exclusivo para ADMIN e PROFISSIONAL
+            - PROFISSIONAL só pode registrar em agendamentos da própria agenda
+            - Agendamento deve ser do tipo AVALIACAO
+            - Agendamento não pode estar CANCELADO
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Ficha de evolução de enfermagem registrada com sucesso",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseConflict
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface RegistrarEvolucaoEnfermagemSwagger {}
+
+    // =========================================================
     // GET /api/agendamentos/meus
     // =========================================================
     @Target(ElementType.METHOD)

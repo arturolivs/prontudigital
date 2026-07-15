@@ -3,6 +3,8 @@ package com.prontudigital.backend.agendamento.servicos.impl;
 import com.prontudigital.backend.agendamento.dto.*;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
+import com.prontudigital.backend.agendamento.enums.AvaliacaoEvolucao;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
 import com.prontudigital.backend.agendamento.enums.CaracteristicaBorda;
 import com.prontudigital.backend.agendamento.enums.ClassificacaoDor;
@@ -10,6 +12,7 @@ import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
+import com.prontudigital.backend.agendamento.enums.TecidoLeito;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
 import com.prontudigital.backend.agendamento.eventos.*;
 import com.prontudigital.backend.agendamento.excecoes.*;
@@ -42,6 +45,7 @@ class AgendamentoServiceImplTest {
 
     @Mock private AgendamentoRepository agendamentoRepository;
     @Mock private EvolucaoClinicaRepository evolucaoClinicaRepository;
+    @Mock private EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
     @Mock private BloqueioHorarioRepository bloqueioHorarioRepository;
     @Mock private HistoricoAgendamentoRepository historicoRepository;
     @Mock private ProcedimentoRepository procedimentoRepository;
@@ -62,9 +66,10 @@ class AgendamentoServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new AgendamentoServiceImpl(
-                agendamentoRepository, evolucaoClinicaRepository, bloqueioHorarioRepository,
-                historicoRepository, procedimentoRepository, usuarioService, usuarioContexto,
-                permissaoPolicy, agendamentoUtil, eventPublisher, clock);
+                agendamentoRepository, evolucaoClinicaRepository, evolucaoEnfermagemRepository,
+                bloqueioHorarioRepository, historicoRepository, procedimentoRepository,
+                usuarioService, usuarioContexto, permissaoPolicy, agendamentoUtil,
+                eventPublisher, clock);
     }
 
     private void mockSemConflitos() {
@@ -720,6 +725,143 @@ class AgendamentoServiceImplTest {
 
             // findById é chamado duas vezes: buscarOuFalhar + reload pós-save
             verify(agendamentoRepository, times(2)).findById(2L);
+        }
+    }
+
+    // =========================================================
+    // registrarEvolucaoEnfermagem()
+    // =========================================================
+    @Nested
+    @DisplayName("registrarEvolucaoEnfermagem()")
+    class RegistrarEvolucaoEnfermagem {
+
+        private EvolucaoEnfermagemRequestDTO requestEnfermagem() {
+            return EvolucaoEnfermagemRequestDTO.builder()
+                    .dataAvaliacao(LocalDate.of(2026, 5, 1))
+                    .horaAvaliacao(LocalTime.of(10, 0))
+                    .diagnosticoMedico("Ulcera venosa MID")
+                    .comorbDiabetes(true)
+                    .localizacaoAnatomica("Perna direita, terco distal")
+                    .tecidoLeito(TecidoLeito.GRANULACAO)
+                    .dorEscala(5)
+                    .avaliacaoEvolucao(AvaliacaoEvolucao.MELHORA)
+                    .planoManterConduta(true)
+                    .retornoDias(7)
+                    .build();
+        }
+
+        @Test
+        @DisplayName("cria nova EvolucaoEnfermagem quando nao existe registro anterior")
+        void deveCriarNovaEvolucao() {
+            Agendamento avaliacao = agendamentoAgendado(); // tipo = AVALIACAO
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoEnfermagemRepository.findByAgendamento(avaliacao))
+                    .thenReturn(Optional.empty());
+            when(evolucaoEnfermagemRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoEnfermagem(1L, requestEnfermagem());
+
+            ArgumentCaptor<EvolucaoEnfermagem> captor =
+                    ArgumentCaptor.forClass(EvolucaoEnfermagem.class);
+            verify(evolucaoEnfermagemRepository).save(captor.capture());
+
+            EvolucaoEnfermagem salva = captor.getValue();
+            assertEquals(avaliacao, salva.getAgendamento());
+            assertEquals("Ulcera venosa MID", salva.getDiagnosticoMedico());
+            assertEquals(TecidoLeito.GRANULACAO, salva.getTecidoLeito());
+            assertEquals(5, salva.getDorEscala());
+            assertEquals(AvaliacaoEvolucao.MELHORA, salva.getAvaliacaoEvolucao());
+            assertEquals(7, salva.getRetornoDias());
+        }
+
+        @Test
+        @DisplayName("atualiza EvolucaoEnfermagem existente sem criar novo registro")
+        void deveAtualizarEvolucaoExistente() {
+            Agendamento avaliacao = agendamentoAgendado();
+            EvolucaoEnfermagem existente = EvolucaoEnfermagem.builder()
+                    .id(10L)
+                    .agendamento(avaliacao)
+                    .diagnosticoMedico("Antigo")
+                    .build();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoEnfermagemRepository.findByAgendamento(avaliacao))
+                    .thenReturn(Optional.of(existente));
+            when(evolucaoEnfermagemRepository.save(existente)).thenReturn(existente);
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoEnfermagem(1L, requestEnfermagem());
+
+            verify(evolucaoEnfermagemRepository).save(existente);
+            assertEquals("Ulcera venosa MID", existente.getDiagnosticoMedico());
+            assertEquals(TecidoLeito.GRANULACAO, existente.getTecidoLeito());
+        }
+
+        @Test
+        @DisplayName("paciente nao pode registrar ficha de enfermagem")
+        void deveRejeitarPaciente() {
+            Agendamento avaliacao = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.registrarEvolucaoEnfermagem(1L, requestEnfermagem()));
+
+            verify(evolucaoEnfermagemRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita ficha de enfermagem em agendamento do tipo TRATAMENTO")
+        void deveRejeitarTipoTratamento() {
+            Agendamento tratamento = agendamentoTratamento();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucaoEnfermagem(2L, requestEnfermagem()));
+
+            verify(evolucaoEnfermagemRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita ficha de enfermagem em agendamento cancelado")
+        void deveRejeitarAgendamentoCancelado() {
+            Agendamento cancelado = agendamentoAgendado();
+            cancelado.setStatus(StatusAgendamento.CANCELADO);
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(cancelado));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucaoEnfermagem(1L, requestEnfermagem()));
+
+            verify(evolucaoEnfermagemRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("recarrega o agendamento apos salvar para retornar DTO atualizado")
+        void deveRecarregarAgendamentoAposSalvar() {
+            Agendamento avaliacao = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoEnfermagemRepository.findByAgendamento(avaliacao))
+                    .thenReturn(Optional.empty());
+            when(evolucaoEnfermagemRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoEnfermagem(1L, requestEnfermagem());
+
+            verify(agendamentoRepository, times(2)).findById(1L);
         }
     }
 

@@ -4,6 +4,7 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoEnfermagemRequestDTO;
 import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.PacienteAgendamentosDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
@@ -88,6 +89,14 @@ public class AgendamentoController {
             @PathVariable Long id,
             @Valid @RequestBody EvolucaoTratamentoRequestDTO request) {
         return ResponseEntity.ok(agendamentoService.registrarEvolucao(id, request));
+    }
+
+    @PatchMapping("/{id}/evolucao-enfermagem")
+    @RegistrarEvolucaoEnfermagemSwagger
+    public ResponseEntity<AgendamentoDetalhadoDTO> registrarEvolucaoEnfermagem(
+            @PathVariable Long id,
+            @Valid @RequestBody EvolucaoEnfermagemRequestDTO request) {
+        return ResponseEntity.ok(agendamentoService.registrarEvolucaoEnfermagem(id, request));
     }
 
     @GetMapping("/agenda")

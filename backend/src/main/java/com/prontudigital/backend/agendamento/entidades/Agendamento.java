@@ -76,6 +76,9 @@ public class Agendamento {
     @OneToOne(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
     private EvolucaoClinica evolucaoClinica;
 
+    @OneToOne(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private EvolucaoEnfermagem evolucaoEnfermagem;
+
     @CreationTimestamp
     @Column(name = "criado_em", updatable = false)
     private LocalDateTime criadoEm;

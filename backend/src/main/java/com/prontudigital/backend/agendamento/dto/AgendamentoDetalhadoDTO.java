@@ -64,6 +64,9 @@ public record AgendamentoDetalhadoDTO(
         LocalDateTime concluidoEm,
 
         @Schema(description = "Evolução clínica registrada no atendimento (apenas para TRATAMENTO)")
-        EvolucaoClinicaDTO evolucaoClinica
+        EvolucaoClinicaDTO evolucaoClinica,
+
+        @Schema(description = "Ficha de Evolução de Enfermagem (apenas para AVALIACAO)")
+        EvolucaoEnfermagemDTO evolucaoEnfermagem
 
 ) {}

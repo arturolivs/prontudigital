@@ -4,6 +4,7 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoEnfermagemRequestDTO;
 import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.PacienteAgendamentosDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
@@ -24,6 +25,7 @@ public interface AgendamentoService {
     void cancelar(Long agendamentoId);
     void concluir(Long agendamentoId);
     AgendamentoDetalhadoDTO registrarEvolucao(Long id, EvolucaoTratamentoRequestDTO request);
+    AgendamentoDetalhadoDTO registrarEvolucaoEnfermagem(Long id, EvolucaoEnfermagemRequestDTO request);
     List<AgendamentoViewDTO> visualizarAgenda(LocalDate data,
                                               TipoVisualizacaoAgenda tipo,
                                               UUID profissionalUuidOpcional);
