@@ -1,7 +1,8 @@
 package com.prontudigital.backend.prontuario.servicos.impl;
 
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
-import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoCurativo;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
@@ -53,9 +54,12 @@ public class HistoricoServiceImpl implements HistoricoService {
                 agendamentoRepository.findByPacienteUuidOrderByInicioEmDesc(pacienteUuid);
 
         Stream<HistoricoItemDTO> deAgendamentos = agendamentos.stream().map(this::itemAgendamento);
-        Stream<HistoricoItemDTO> deEvolucoes = agendamentos.stream()
-                .filter(a -> a.getEvolucaoClinica() != null)
-                .map(this::itemEvolucao);
+        Stream<HistoricoItemDTO> deEvolucoesEnfermagem = agendamentos.stream()
+                .filter(a -> a.getEvolucaoEnfermagem() != null)
+                .map(this::itemEvolucaoEnfermagem);
+        Stream<HistoricoItemDTO> deEvolucoesCurativos = agendamentos.stream()
+                .filter(a -> a.getEvolucaoCurativo() != null)
+                .map(this::itemEvolucaoCurativo);
         Stream<HistoricoItemDTO> dePrescricoes =
                 prescricaoRepository.findByPacienteUuidOrderByCriadoEmDesc(pacienteUuid)
                         .stream().map(this::itemPrescricao);
@@ -63,7 +67,8 @@ public class HistoricoServiceImpl implements HistoricoService {
                 anexoRepository.findByPacienteUuidOrderByCriadoEmDesc(pacienteUuid)
                         .stream().map(this::itemAnexo);
 
-        return Stream.of(deAgendamentos, deEvolucoes, dePrescricoes, deAnexos)
+        return Stream.of(deAgendamentos, deEvolucoesEnfermagem, deEvolucoesCurativos,
+                        dePrescricoes, deAnexos)
                 .flatMap(s -> s)
                 .sorted(POR_DATA_DESC)
                 .collect(Collectors.toList());
@@ -85,13 +90,24 @@ public class HistoricoServiceImpl implements HistoricoService {
                 a.getUuid());
     }
 
-    private HistoricoItemDTO itemEvolucao(Agendamento a) {
-        EvolucaoClinica ev = a.getEvolucaoClinica();
+    private HistoricoItemDTO itemEvolucaoEnfermagem(Agendamento a) {
+        EvolucaoEnfermagem ev = a.getEvolucaoEnfermagem();
         return new HistoricoItemDTO(
                 TipoHistorico.EVOLUCAO,
                 a.getInicioEm(),
-                Mensagens.get("historico.evolucao.titulo"),
-                juntar(ev.getLocalizacaoAnatomica(), ev.getEtiologia()),
+                Mensagens.get("historico.evolucao-enfermagem.titulo"),
+                juntar(ev.getLocalizacaoAnatomica(), ev.getDiagnosticoMedico()),
+                null,
+                a.getUuid());
+    }
+
+    private HistoricoItemDTO itemEvolucaoCurativo(Agendamento a) {
+        EvolucaoCurativo ev = a.getEvolucaoCurativo();
+        return new HistoricoItemDTO(
+                TipoHistorico.EVOLUCAO,
+                a.getInicioEm(),
+                Mensagens.get("historico.evolucao-curativo.titulo"),
+                juntar(ev.getCoberturaPrimaria(), ev.getObservacoes()),
                 null,
                 a.getUuid());
     }

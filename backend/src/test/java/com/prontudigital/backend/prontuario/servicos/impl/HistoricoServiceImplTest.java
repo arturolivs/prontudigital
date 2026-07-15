@@ -1,7 +1,8 @@
 package com.prontudigital.backend.prontuario.servicos.impl;
 
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
-import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoCurativo;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
@@ -63,7 +64,7 @@ class HistoricoServiceImplTest {
         return UsuarioDTO.builder().uuid(uuid).perfis(Set.of(perfil)).build();
     }
 
-    private Agendamento agendamento(UUID uuid, LocalDateTime inicio, EvolucaoClinica evolucao) {
+    private Agendamento agendamento(UUID uuid, LocalDateTime inicio, EvolucaoEnfermagem evolucao) {
         return Agendamento.builder()
                 .uuid(uuid)
                 .pacienteUuid(PACIENTE_UUID)
@@ -73,7 +74,7 @@ class HistoricoServiceImplTest {
                 .status(StatusAgendamento.REALIZADO)
                 .tipo(TipoAgendamento.AVALIACAO)
                 .tipoProcedimento(TipoProcedimento.PODIATRIA)
-                .evolucaoClinica(evolucao)
+                .evolucaoEnfermagem(evolucao)
                 .build();
     }
 
@@ -116,9 +117,9 @@ class HistoricoServiceImplTest {
     @Test
     @DisplayName("consolida as 4 fontes e ordena da mais recente para a mais antiga")
     void deveConsolidarEOrdenar() {
-        EvolucaoClinica evolucao = EvolucaoClinica.builder()
+        EvolucaoEnfermagem evolucao = EvolucaoEnfermagem.builder()
                 .localizacaoAnatomica("MID")
-                .etiologia("Úlcera venosa")
+                .diagnosticoMedico("Úlcera venosa")
                 .build();
 
         Agendamento comEvolucao = agendamento(AG1_UUID, LocalDateTime.of(2026, 6, 10, 10, 0), evolucao);
@@ -152,11 +153,43 @@ class HistoricoServiceImplTest {
     }
 
     @Test
+    @DisplayName("gera item de evolucao tambem para a ficha diaria de curativos")
+    void deveGerarItemDaFichaDeCurativos() {
+        Agendamento tratamento = Agendamento.builder()
+                .uuid(AG2_UUID)
+                .pacienteUuid(PACIENTE_UUID)
+                .profissionalUuid(PROFISSIONAL_UUID)
+                .inicioEm(LocalDateTime.of(2026, 6, 12, 10, 0))
+                .status(StatusAgendamento.REALIZADO)
+                .tipo(TipoAgendamento.TRATAMENTO)
+                .evolucaoCurativo(EvolucaoCurativo.builder()
+                        .coberturaPrimaria("Hidrofibra com prata")
+                        .build())
+                .build();
+
+        when(usuarioContexto.getUsuarioAtual()).thenReturn(usuario(OUTRO_UUID, "ADMIN"));
+        when(agendamentoRepository.findByPacienteUuidOrderByInicioEmDesc(PACIENTE_UUID))
+                .thenReturn(List.of(tratamento));
+        when(prescricaoRepository.findByPacienteUuidOrderByCriadoEmDesc(PACIENTE_UUID))
+                .thenReturn(List.of());
+        when(anexoRepository.findByPacienteUuidOrderByCriadoEmDesc(PACIENTE_UUID))
+                .thenReturn(List.of());
+
+        List<HistoricoItemDTO> historico = service.montarHistorico(PACIENTE_UUID);
+
+        HistoricoItemDTO evolucaoItem = historico.stream()
+                .filter(i -> i.tipo() == TipoHistorico.EVOLUCAO)
+                .findFirst().orElseThrow();
+        assertEquals(AG2_UUID, evolucaoItem.agendamentoUuid());
+        assertEquals("Hidrofibra com prata", evolucaoItem.descricao());
+    }
+
+    @Test
     @DisplayName("lida com campos opcionais nulos/em branco (procedimento e detalhes da evolucao)")
     void deveLidarComCamposOpcionaisVazios() {
-        EvolucaoClinica evolucaoVazia = EvolucaoClinica.builder()
+        EvolucaoEnfermagem evolucaoVazia = EvolucaoEnfermagem.builder()
                 .localizacaoAnatomica("")   // em branco
-                .etiologia(null)            // nulo
+                .diagnosticoMedico(null)    // nulo
                 .build();
         Agendamento semProcedimento = Agendamento.builder()
                 .uuid(AG1_UUID)
@@ -165,7 +198,7 @@ class HistoricoServiceImplTest {
                 .status(StatusAgendamento.REALIZADO)
                 .tipo(TipoAgendamento.AVALIACAO)
                 .tipoProcedimento(null)     // sem procedimento
-                .evolucaoClinica(evolucaoVazia)
+                .evolucaoEnfermagem(evolucaoVazia)
                 .build();
 
         when(usuarioContexto.getUsuarioAtual()).thenReturn(usuario(OUTRO_UUID, "ADMIN"));

@@ -3,10 +3,10 @@ package com.prontudigital.backend.agendamento.utils;
 import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
-import com.prontudigital.backend.agendamento.dto.EvolucaoClinicaDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoCurativoDTO;
 import com.prontudigital.backend.agendamento.dto.EvolucaoEnfermagemDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
-import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoCurativo;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
 import com.prontudigital.backend.agendamento.entidades.Procedimento;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
@@ -110,8 +110,8 @@ public class AgendamentoUtil {
                 agendamento.getCriadoEm(),
                 agendamento.getAvaliacao() != null ? agendamento.getAvaliacao().getId() : null,
                 agendamento.getConcluidoEm(),
-                toEvolucaoDTO(agendamento.getEvolucaoClinica()),
-                toEvolucaoEnfermagemDTO(agendamento.getEvolucaoEnfermagem())
+                toEvolucaoEnfermagemDTO(agendamento.getEvolucaoEnfermagem()),
+                toEvolucaoCurativoDTO(agendamento.getEvolucaoCurativo())
         );
     }
 
@@ -123,46 +123,6 @@ public class AgendamentoUtil {
     private String procedimentoNome(Agendamento agendamento) {
         Procedimento p = agendamento.getProcedimento();
         return p != null ? p.getNome() : null;
-    }
-
-    private EvolucaoClinicaDTO toEvolucaoDTO(EvolucaoClinica ec) {
-        if (ec == null) return null;
-        return new EvolucaoClinicaDTO(
-                ec.getLocalizacaoAnatomica(),
-                ec.getEtiologia(),
-                ec.getTempoEvolucao(),
-                ec.getMedidaComprimento(),
-                ec.getMedidaLargura(),
-                ec.getMedidaProfundidade(),
-                ec.getTunelizacao(),
-                ec.getDescolamentoBordas(),
-                ec.getEpitelizacaoPercentual(),
-                ec.getGranulacaoPercentual(),
-                ec.getEsfaceloPercentual(),
-                ec.getNecrosePercentual(),
-                ec.getTendaoExposto(),
-                ec.getMusculoExposto(),
-                ec.getOssoExposto(),
-                ec.getExsudatoVolume(),
-                ec.getExsudatoCaracteristica(),
-                ec.getOdorIntensidade(),
-                ec.getCaracteristicasBordas(),
-                ec.getCaracteristicasPerilesional(),
-                ec.getSinaisInfeccao(),
-                ec.getClassificacaoDor(),
-                ec.getGrauEdema(),
-                ec.getAvaliacaoPulsos(),
-                ec.getEvolucaoFerida(),
-                ec.getSinaisEvolucao(),
-                ec.getLimpezaLesao(),
-                ec.getDesbridamento(),
-                ec.getCoberturaAplicada(),
-                ec.getCoberturaDescricao(),
-                ec.getTerapiaAdjuvante(),
-                ec.getTerapiaAdjuvanteDescricao(),
-                ec.getOrientacoesFornecidas(),
-                ec.getObservacoes()
-        );
     }
 
     private EvolucaoEnfermagemDTO toEvolucaoEnfermagemDTO(EvolucaoEnfermagem ee) {
@@ -223,6 +183,37 @@ public class AgendamentoUtil {
                 .retornoDias(ee.getRetornoDias())
                 .criadoEm(ee.getCriadoEm())
                 .atualizadoEm(ee.getAtualizadoEm())
+                .build();
+    }
+
+    private EvolucaoCurativoDTO toEvolucaoCurativoDTO(EvolucaoCurativo ec) {
+        if (ec == null) return null;
+        return EvolucaoCurativoDTO.builder()
+                .comprimento(ec.getComprimento())
+                .largura(ec.getLargura())
+                .profundidade(ec.getProfundidade())
+                .areaAproximada(ec.getAreaAproximada())
+                .tecido(ec.getTecido())
+                .infeccaoInflamacao(ec.getInfeccaoInflamacao())
+                .exsudato(ec.getExsudato())
+                .bordas(ec.getBordas())
+                .odorPresente(ec.getOdorPresente())
+                .dorEscala(ec.getDorEscala())
+                .pelePerilesional(ec.getPelePerilesional())
+                .limpezaIrrigacao(ec.getLimpezaIrrigacao())
+                .desbridamento(ec.getDesbridamento())
+                .desbridamentoObs(ec.getDesbridamentoObs())
+                .coberturaPrimaria(ec.getCoberturaPrimaria())
+                .orientacoesPaciente(ec.getOrientacoesPaciente())
+                .evolucao(ec.getEvolucao())
+                .observacoes(ec.getObservacoes())
+                .planoManterConduta(ec.getPlanoManterConduta())
+                .planoAlterarCobertura(ec.getPlanoAlterarCobertura())
+                .planoSolicitarExames(ec.getPlanoSolicitarExames())
+                .planoEncaminhamento(ec.getPlanoEncaminhamento())
+                .retornoPrevisto(ec.getRetornoPrevisto())
+                .criadoEm(ec.getCriadoEm())
+                .atualizadoEm(ec.getAtualizadoEm())
                 .build();
     }
 }

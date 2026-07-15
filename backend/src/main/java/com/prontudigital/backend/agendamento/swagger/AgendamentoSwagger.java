@@ -252,42 +252,6 @@ public class AgendamentoSwagger {
     public @interface TratamentosPorAvaliacaoSwagger {}
 
     // =========================================================
-    // PATCH /api/agendamentos/{id}/evolucao
-    // =========================================================
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    @Operation(
-            summary = "Registrar evolução clínica pós-curativo",
-            description = """
-            Registra ou atualiza a evolução de enfermagem de um agendamento do tipo TRATAMENTO.\n
-            Campos cobertos pelo modelo de evolução (tratamento.md):
-            - Avaliação da lesão (localização, tipo, medidas, aspecto, exsudato, bordas, pele perilesional)
-            - Procedimento realizado (limpeza, coberturas, produtos)
-            - Resposta do paciente (aceitação, escala de dor EVA, intercorrências)
-            - Orientações fornecidas (cuidados, sinais de alerta, retorno)\n
-            Regras:
-            - Exclusivo para ADMIN e PROFISSIONAL
-            - PROFISSIONAL só pode registrar em agendamentos da própria agenda
-            - Agendamento deve ser do tipo TRATAMENTO
-            - Agendamento não pode estar CANCELADO
-            """
-    )
-    @ApiResponse(
-            responseCode = "200",
-            description = "Evolução registrada com sucesso",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
-            )
-    )
-    @CommonsSwagger.ApiResponseUnauthorized
-    @CommonsSwagger.ApiResponseForbidden
-    @CommonsSwagger.ApiResponseNotFound
-    @CommonsSwagger.ApiResponseConflict
-    @CommonsSwagger.ApiResponseInternalServerError
-    public @interface RegistrarEvolucaoSwagger {}
-
-    // =========================================================
     // PATCH /api/agendamentos/{id}/evolucao-enfermagem
     // =========================================================
     @Target(ElementType.METHOD)
@@ -323,6 +287,43 @@ public class AgendamentoSwagger {
     @CommonsSwagger.ApiResponseConflict
     @CommonsSwagger.ApiResponseInternalServerError
     public @interface RegistrarEvolucaoEnfermagemSwagger {}
+
+    // =========================================================
+    // PATCH /api/agendamentos/{id}/evolucao-curativo
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Registrar Ficha de Evolução Diária - Curativos (tratamento)",
+            description = """
+            Registra ou atualiza a Ficha de Evolução Diária - Curativos de um agendamento do tipo TRATAMENTO.\n
+            Seções do modelo:
+            - Avaliação diária da ferida com legenda TIME (medidas, área aproximada, tecido,
+              infecção/inflamação, exsudato, bordas, odor, dor, pele perilesional)
+            - Intervenções (limpeza/irrigação, desbridamento, cobertura primária, orientações)
+            - Avaliação da evolução
+            - Plano/ações futuras (observação preenchida equivale à ação marcada)\n
+            Regras:
+            - Exclusivo para ADMIN e PROFISSIONAL
+            - PROFISSIONAL só pode registrar em agendamentos da própria agenda
+            - Agendamento deve ser do tipo TRATAMENTO
+            - Agendamento não pode estar CANCELADO
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Ficha de evolução diária de curativos registrada com sucesso",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseConflict
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface RegistrarEvolucaoCurativoSwagger {}
 
     // =========================================================
     // GET /api/agendamentos/meus

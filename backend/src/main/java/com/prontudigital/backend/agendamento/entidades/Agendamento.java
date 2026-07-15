@@ -74,10 +74,10 @@ public class Agendamento {
     private LocalDateTime concluidoEm;
 
     @OneToOne(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
-    private EvolucaoClinica evolucaoClinica;
+    private EvolucaoEnfermagem evolucaoEnfermagem;
 
     @OneToOne(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
-    private EvolucaoEnfermagem evolucaoEnfermagem;
+    private EvolucaoCurativo evolucaoCurativo;
 
     @CreationTimestamp
     @Column(name = "criado_em", updatable = false)

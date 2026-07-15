@@ -2,12 +2,12 @@ package com.prontudigital.backend.agendamento.servicos.impl;
 
 import com.prontudigital.backend.agendamento.dto.*;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
-import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoCurativo;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
 import com.prontudigital.backend.agendamento.enums.AvaliacaoEvolucao;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
-import com.prontudigital.backend.agendamento.enums.CaracteristicaBorda;
-import com.prontudigital.backend.agendamento.enums.ClassificacaoDor;
+import com.prontudigital.backend.agendamento.enums.InfeccaoInflamacaoCurativo;
+import com.prontudigital.backend.agendamento.enums.TipoDesbridamento;
 import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.math.BigDecimal;
 import java.time.*;
 import java.util.List;
 import java.util.Optional;
@@ -44,8 +45,8 @@ import static org.mockito.Mockito.*;
 class AgendamentoServiceImplTest {
 
     @Mock private AgendamentoRepository agendamentoRepository;
-    @Mock private EvolucaoClinicaRepository evolucaoClinicaRepository;
     @Mock private EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
+    @Mock private EvolucaoCurativoRepository evolucaoCurativoRepository;
     @Mock private BloqueioHorarioRepository bloqueioHorarioRepository;
     @Mock private HistoricoAgendamentoRepository historicoRepository;
     @Mock private ProcedimentoRepository procedimentoRepository;
@@ -66,7 +67,7 @@ class AgendamentoServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new AgendamentoServiceImpl(
-                agendamentoRepository, evolucaoClinicaRepository, evolucaoEnfermagemRepository,
+                agendamentoRepository, evolucaoEnfermagemRepository, evolucaoCurativoRepository,
                 bloqueioHorarioRepository, historicoRepository, procedimentoRepository,
                 usuarioService, usuarioContexto, permissaoPolicy, agendamentoUtil,
                 eventPublisher, clock);
@@ -604,131 +605,6 @@ class AgendamentoServiceImplTest {
     }
 
     // =========================================================
-    // registrarEvolucao()
-    // =========================================================
-    @Nested
-    @DisplayName("registrarEvolucao()")
-    class RegistrarEvolucao {
-
-        @Test
-        @DisplayName("cria nova EvolucaoClinica quando nao existe registro anterior")
-        void deveCriarNovaEvolucao() {
-            Agendamento tratamento = agendamentoTratamento();
-            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
-
-            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
-                    .thenReturn(Optional.empty());
-            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(agendamentoUtil.convertToDetalhadoDTO(any()))
-                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
-
-            service.registrarEvolucao(2L, request);
-
-            ArgumentCaptor<EvolucaoClinica> captor = ArgumentCaptor.forClass(EvolucaoClinica.class);
-            verify(evolucaoClinicaRepository).save(captor.capture());
-
-            EvolucaoClinica salva = captor.getValue();
-            assertEquals(tratamento, salva.getAgendamento());
-            assertEquals("Úlcera venosa", salva.getEtiologia());
-            assertEquals(ClassificacaoDor.MODERADA, salva.getClassificacaoDor());
-            assertEquals(60, salva.getGranulacaoPercentual());
-            assertTrue(salva.getCaracteristicasBordas().contains(CaracteristicaBorda.INTEGRAS));
-        }
-
-        @Test
-        @DisplayName("atualiza EvolucaoClinica existente sem criar novo registro")
-        void deveAtualizarEvolucaoExistente() {
-            Agendamento tratamento = agendamentoTratamento();
-            EvolucaoClinica existente = evolucaoClinicaExistente(tratamento);
-            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
-
-            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
-                    .thenReturn(Optional.of(existente));
-            when(evolucaoClinicaRepository.save(existente)).thenReturn(existente);
-            when(agendamentoUtil.convertToDetalhadoDTO(any()))
-                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
-
-            service.registrarEvolucao(2L, request);
-
-            // Deve salvar o mesmo objeto (atualização), não criar outro
-            verify(evolucaoClinicaRepository).save(existente);
-            assertEquals("Úlcera venosa", existente.getEtiologia());
-            assertEquals(ClassificacaoDor.MODERADA, existente.getClassificacaoDor());
-        }
-
-        @Test
-        @DisplayName("paciente nao pode registrar evolucao")
-        void deveRejeitarPaciente() {
-            Agendamento tratamento = agendamentoTratamento();
-
-            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
-
-            assertThrows(UsuarioSemAutorizacaoException.class,
-                    () -> service.registrarEvolucao(2L, evolucaoRequest()));
-
-            verify(evolucaoClinicaRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("permite evolucao em agendamento do tipo AVALIACAO")
-        void devePermitirTipoAvaliacao() {
-            Agendamento avaliacao = agendamentoAgendado(); // tipo = AVALIACAO
-
-            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(evolucaoClinicaRepository.findByAgendamento(avaliacao))
-                    .thenReturn(Optional.empty());
-            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(agendamentoUtil.convertToDetalhadoDTO(any()))
-                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
-
-            service.registrarEvolucao(1L, evolucaoRequest());
-
-            verify(evolucaoClinicaRepository).save(any());
-        }
-
-        @Test
-        @DisplayName("rejeita evolucao em agendamento cancelado")
-        void deveRejeitarAgendamentoCancelado() {
-            Agendamento cancelado = agendamentoTratamento();
-            cancelado.setStatus(StatusAgendamento.CANCELADO);
-
-            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(cancelado));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-
-            assertThrows(AgendamentoStatusInvalidoException.class,
-                    () -> service.registrarEvolucao(2L, evolucaoRequest()));
-
-            verify(evolucaoClinicaRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("recarrega o agendamento apos salvar para retornar DTO atualizado")
-        void deveRecarregarAgendamentoAposSalvar() {
-            Agendamento tratamento = agendamentoTratamento();
-            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
-
-            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
-            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
-                    .thenReturn(Optional.empty());
-            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(agendamentoUtil.convertToDetalhadoDTO(any()))
-                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
-
-            service.registrarEvolucao(2L, request);
-
-            // findById é chamado duas vezes: buscarOuFalhar + reload pós-save
-            verify(agendamentoRepository, times(2)).findById(2L);
-        }
-    }
-
-    // =========================================================
     // registrarEvolucaoEnfermagem()
     // =========================================================
     @Nested
@@ -862,6 +738,147 @@ class AgendamentoServiceImplTest {
             service.registrarEvolucaoEnfermagem(1L, requestEnfermagem());
 
             verify(agendamentoRepository, times(2)).findById(1L);
+        }
+    }
+
+    // =========================================================
+    // registrarEvolucaoCurativo()
+    // =========================================================
+    @Nested
+    @DisplayName("registrarEvolucaoCurativo()")
+    class RegistrarEvolucaoCurativo {
+
+        private EvolucaoCurativoRequestDTO requestCurativo() {
+            return EvolucaoCurativoRequestDTO.builder()
+                    .comprimento(new BigDecimal("4.00"))
+                    .largura(new BigDecimal("2.50"))
+                    .areaAproximada(new BigDecimal("10.00"))
+                    .tecido(TecidoLeito.GRANULACAO)
+                    .infeccaoInflamacao(InfeccaoInflamacaoCurativo.AUSENTE)
+                    .odorPresente(false)
+                    .dorEscala(3)
+                    .limpezaIrrigacao("SF 0,9% em jato")
+                    .desbridamento(TipoDesbridamento.NAO)
+                    .coberturaPrimaria("Hidrofibra com prata")
+                    .evolucao(AvaliacaoEvolucao.MELHORA)
+                    .planoManterConduta("Manter cobertura atual")
+                    .retornoPrevisto("Retorno em 3 dias")
+                    .build();
+        }
+
+        @Test
+        @DisplayName("cria nova EvolucaoCurativo quando nao existe registro anterior")
+        void deveCriarNovaEvolucao() {
+            Agendamento tratamento = agendamentoTratamento();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoCurativoRepository.findByAgendamento(tratamento))
+                    .thenReturn(Optional.empty());
+            when(evolucaoCurativoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoCurativo(2L, requestCurativo());
+
+            ArgumentCaptor<EvolucaoCurativo> captor =
+                    ArgumentCaptor.forClass(EvolucaoCurativo.class);
+            verify(evolucaoCurativoRepository).save(captor.capture());
+
+            EvolucaoCurativo salva = captor.getValue();
+            assertEquals(tratamento, salva.getAgendamento());
+            assertEquals(new BigDecimal("10.00"), salva.getAreaAproximada());
+            assertEquals(TecidoLeito.GRANULACAO, salva.getTecido());
+            assertEquals(InfeccaoInflamacaoCurativo.AUSENTE, salva.getInfeccaoInflamacao());
+            assertEquals(3, salva.getDorEscala());
+            assertEquals(AvaliacaoEvolucao.MELHORA, salva.getEvolucao());
+            assertEquals("Retorno em 3 dias", salva.getRetornoPrevisto());
+        }
+
+        @Test
+        @DisplayName("atualiza EvolucaoCurativo existente sem criar novo registro")
+        void deveAtualizarEvolucaoExistente() {
+            Agendamento tratamento = agendamentoTratamento();
+            EvolucaoCurativo existente = EvolucaoCurativo.builder()
+                    .id(20L)
+                    .agendamento(tratamento)
+                    .coberturaPrimaria("Antiga")
+                    .build();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoCurativoRepository.findByAgendamento(tratamento))
+                    .thenReturn(Optional.of(existente));
+            when(evolucaoCurativoRepository.save(existente)).thenReturn(existente);
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoCurativo(2L, requestCurativo());
+
+            verify(evolucaoCurativoRepository).save(existente);
+            assertEquals("Hidrofibra com prata", existente.getCoberturaPrimaria());
+            assertEquals(TecidoLeito.GRANULACAO, existente.getTecido());
+        }
+
+        @Test
+        @DisplayName("paciente nao pode registrar ficha de curativos")
+        void deveRejeitarPaciente() {
+            Agendamento tratamento = agendamentoTratamento();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.registrarEvolucaoCurativo(2L, requestCurativo()));
+
+            verify(evolucaoCurativoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita ficha de curativos em agendamento do tipo AVALIACAO")
+        void deveRejeitarTipoAvaliacao() {
+            Agendamento avaliacao = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucaoCurativo(1L, requestCurativo()));
+
+            verify(evolucaoCurativoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita ficha de curativos em agendamento cancelado")
+        void deveRejeitarAgendamentoCancelado() {
+            Agendamento cancelado = agendamentoTratamento();
+            cancelado.setStatus(StatusAgendamento.CANCELADO);
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(cancelado));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucaoCurativo(2L, requestCurativo()));
+
+            verify(evolucaoCurativoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("recarrega o agendamento apos salvar para retornar DTO atualizado")
+        void deveRecarregarAgendamentoAposSalvar() {
+            Agendamento tratamento = agendamentoTratamento();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoCurativoRepository.findByAgendamento(tratamento))
+                    .thenReturn(Optional.empty());
+            when(evolucaoCurativoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoCurativo(2L, requestCurativo());
+
+            verify(agendamentoRepository, times(2)).findById(2L);
         }
     }
 
