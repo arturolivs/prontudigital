@@ -11,8 +11,10 @@ import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
+import com.prontudigital.backend.agendamento.entidades.Procedimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
+import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
 import com.prontudigital.backend.agendamento.eventos.AgendamentoCanceladoEvento;
 import com.prontudigital.backend.agendamento.eventos.AgendamentoCriadoEvento;
@@ -23,6 +25,7 @@ import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioReposit
 import com.prontudigital.backend.agendamento.repositorios.EvolucaoClinicaRepository;
 import com.prontudigital.backend.agendamento.repositorios.HistoricoAgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.PacienteAgendamentoResumo;
+import com.prontudigital.backend.agendamento.repositorios.ProcedimentoRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
 import com.prontudigital.backend.agendamento.utils.AgendamentoUtil;
@@ -62,6 +65,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final EvolucaoClinicaRepository evolucaoClinicaRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
     private final HistoricoAgendamentoRepository historicoRepository;
+    private final ProcedimentoRepository procedimentoRepository;
     private final UsuarioService usuarioService;
     private final UsuarioContexto usuarioContexto;
     private final AgendamentoPermissaoPolicy permissaoPolicy;
@@ -198,6 +202,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 request.inicioEm(), request.fimEm());
         validarRegraAvaliacaoTratamento(request);
 
+        Procedimento procedimento = resolverProcedimento(request);
+
         Agendamento agendamento = Agendamento.builder()
                 .pacienteUuid(request.pacienteUuid())
                 .profissionalUuid(request.profissionalUuid())
@@ -205,7 +211,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .fimEm(request.fimEm())
                 .status(StatusAgendamento.AGENDADO)
                 .tipo(request.tipo())
-                .tipoProcedimento(request.tipoProcedimento())
+                .procedimento(procedimento)
+                .tipoProcedimento(tipoProcedimentoLegado(procedimento))
                 .localAtendimento(request.localAtendimento())
                 .pacienteAcamado(request.pacienteAcamado())
                 .build();
@@ -561,6 +568,38 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 throw new AgendamentoInvalidoException(
                         Mensagens.get("agendamento.tratamento.avaliacao-nao-concluida"));
             }
+        }
+    }
+
+    /**
+     * RF06: resolve o procedimento a partir do id (preferido) ou do enum legado
+     * tipoProcedimento, mantendo compatibilidade durante a migracao.
+     */
+    private Procedimento resolverProcedimento(AgendamentoRequestDTO request) {
+        if (request.procedimentoId() != null) {
+            Procedimento procedimento = procedimentoRepository.findById(request.procedimentoId())
+                    .orElseThrow(() -> new ProcedimentoNaoEncontradoException(
+                            Mensagens.get("procedimento.nao-encontrado", request.procedimentoId())));
+            if (!Boolean.TRUE.equals(procedimento.getAtivo())) {
+                throw new AgendamentoInvalidoException(Mensagens.get("procedimento.inativo"));
+            }
+            return procedimento;
+        }
+        if (request.tipoProcedimento() != null) {
+            return procedimentoRepository.findByCodigo(request.tipoProcedimento().name())
+                    .orElseThrow(() -> new ProcedimentoNaoEncontradoException(
+                            Mensagens.get("procedimento.nao-encontrado", request.tipoProcedimento())));
+        }
+        throw new AgendamentoInvalidoException(
+                Mensagens.get("agendamento.procedimento-obrigatorio"));
+    }
+
+    private TipoProcedimento tipoProcedimentoLegado(Procedimento procedimento) {
+        if (procedimento.getCodigo() == null) return null;
+        try {
+            return TipoProcedimento.valueOf(procedimento.getCodigo());
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 

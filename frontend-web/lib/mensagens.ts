@@ -44,6 +44,9 @@ export const MENSAGENS = {
     anexoTipoInvalido: 'Tipo de arquivo não permitido. Envie imagem (JPG, PNG, WEBP) ou PDF.',
     anexoTamanho: 'Arquivo muito grande. O tamanho máximo é 10 MB.',
     carregarHistorico: 'Erro ao carregar o histórico clínico.',
+    carregarProcedimentos: 'Erro ao carregar os procedimentos.',
+    salvarProcedimento: 'Erro ao salvar o procedimento.',
+    excluirProcedimento: 'Erro ao excluir o procedimento.',
   },
   sucesso: {
     horarioRegistrado: 'Horário registrado com sucesso!',
@@ -62,6 +65,9 @@ export const MENSAGENS = {
     prescricaoExcluida: 'Prescrição excluída com sucesso!',
     anexoEnviado: 'Anexo enviado com sucesso!',
     anexoExcluido: 'Anexo excluído com sucesso!',
+    procedimentoCriado: 'Procedimento criado com sucesso!',
+    procedimentoAtualizado: 'Procedimento atualizado com sucesso!',
+    procedimentoExcluido: 'Procedimento excluído com sucesso!',
   },
   validacao: {
     nomeObrigatorio: 'Nome é obrigatório',

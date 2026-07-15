@@ -8,6 +8,7 @@ import {
   Ban,
   Users,
   FileText,
+  Stethoscope,
   BarChart3,
   Settings,
   LogOut,
@@ -76,6 +77,12 @@ const BarraLateral = ({
       rotulo: 'Usuários',
       caminho: '/dashboard/usuarios',
       icone: Users,
+      perfis: ['ROLE_ADMIN'],
+    },
+    {
+      rotulo: 'Procedimentos',
+      caminho: '/dashboard/procedimentos',
+      icone: Stethoscope,
       perfis: ['ROLE_ADMIN'],
     },
     {

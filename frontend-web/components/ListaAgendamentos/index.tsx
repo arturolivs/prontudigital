@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { AlertTriangle, CalendarX, Clock, Timer } from 'lucide-react'
 import './listaAgendamentos.styles.css'
 import { Agendamento } from '@/tipos/agendamento'
-import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
+import { nomeProcedimento } from '@/tipos/TipoProcedimento'
 import { ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendimento'
 
 export type AgendamentosAgrupados = Record<string, Agendamento[]>
@@ -241,13 +241,9 @@ const ListaAgendamentos: React.FC<PropsListaAgendamentos> = ({
                     </div>
                     <div className="badges-wrapper">
                       <BadgeTipo tipo={agendamento.tipo} />
-                      {agendamento.tipoProcedimento && (
+                      {nomeProcedimento(agendamento) && (
                         <div className="status-badge status-procedimento">
-                          {
-                            ROTULO_TIPO_PROCEDIMENTO[
-                              agendamento.tipoProcedimento
-                            ]
-                          }
+                          {nomeProcedimento(agendamento)}
                         </div>
                       )}
                       {agendamento.localAtendimento && (

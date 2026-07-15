@@ -14,7 +14,7 @@ import {
   SinalInfeccao,
   SinalEvolucao,
 } from '@/tipos/agendamento'
-import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
+import { nomeProcedimento } from '@/tipos/TipoProcedimento'
 import { ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendimento'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import Layout from '@/components/Layout/Layout'
@@ -585,6 +585,8 @@ export default function ProcedimentoPage({
     params.set('pacienteUuid', agendamento.pacienteUuid)
     params.set('profissionalUuid', agendamento.profissionalUuid)
     if (avaliacaoId) params.set('avaliacaoId', String(avaliacaoId))
+    if (agendamento.procedimentoId)
+      params.set('procedimentoId', String(agendamento.procedimentoId))
     if (agendamento.tipoProcedimento)
       params.set('tipoProcedimento', agendamento.tipoProcedimento)
     if (agendamento.localAtendimento)
@@ -650,9 +652,9 @@ export default function ProcedimentoPage({
                       <Pill size={14} />
                     )}
                     {ROTULO_TIPO[agendamento.tipo]}
-                    {agendamento.tipoProcedimento && (
+                    {nomeProcedimento(agendamento) && (
                       <span className="proc-hero-procedimento">
-                        {ROTULO_TIPO_PROCEDIMENTO[agendamento.tipoProcedimento]}
+                        {nomeProcedimento(agendamento)}
                       </span>
                     )}
                     {agendamento.localAtendimento && (

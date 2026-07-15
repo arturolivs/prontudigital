@@ -21,7 +21,7 @@ Isso mantém consistência e reaproveita a política de acesso existente
 ## Fase 2 — Concluir o PEP (prioridade máxima)
 
 > **Progresso:** RF16, RF15 e RF18 concluídos (backend + frontend). **Fase 2 / PEP completo.**
-> Próximo: **Fase 3 — RF06**.
+> Próximo: **Fase 3 — RF04/RF05** (RF06 concluído).
 
 ### RF16 — Prescrição de medicamentos e cuidados de enfermagem — ✅ CONCLUÍDO
 Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do tempo).
@@ -64,11 +64,26 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Fase 3 — Enriquecer cadastros
 
-### RF06 — Serviços/procedimentos em tabela
-- Migrar de `enum TipoProcedimento` para entidade `Procedimento` (nome, descrição,
-  duração padrão, ativo) com CRUD ADMIN + migration de dados a partir do enum atual.
-- Ajustar `Agendamento` para referenciar `procedimento_id` (manter compatibilidade
-  durante a migração).
+> **Progresso:** RF06 concluído (backend + frontend). Próximo: **RF04/RF05**.
+
+### RF06 — Serviços/procedimentos em tabela — ✅ CONCLUÍDO
+- ✅ **Backend:** entidade `Procedimento` (codigo legado do enum, nome, descrição,
+  duração padrão em minutos, ativo) + migration `V22` com seed a partir do enum
+  (`PODIATRIA`, `TRATAMENTO_FERIDAS`).
+- ✅ CRUD em `/api/procedimentos` (GET público/autenticado; POST/PUT/DELETE
+  restritos a ADMIN — `@PreAuthorize` + checagem no service). DELETE físico só
+  quando sem vínculos; procedimento em uso é desativado via PUT (`ativo=false`).
+- ✅ `Agendamento` referencia `procedimento_id` (FK, backfill na migration); a
+  coluna `tipo_procedimento` foi mantida (agora opcional) para compatibilidade.
+  `AgendamentoRequestDTO` aceita `procedimentoId` (preferido) ou o enum legado;
+  DTOs de resposta expõem `procedimentoId`/`procedimentoNome`.
+- ✅ Testes: `ProcedimentoServiceImplTest` (CRUD, permissão ADMIN, nome duplicado,
+  em uso) + novos casos em `AgendamentoServiceImplTest` (procedimento inativo/
+  inexistente/ausente).
+- ✅ **Frontend:** tela ADMIN `/dashboard/procedimentos` (CRUD + ativar/desativar);
+  formulários de agendamento (modal e página pública `/agendar`) passaram a listar
+  procedimentos da API e enviar `procedimentoId`; exibição usa `procedimentoNome`
+  com fallback ao rótulo do enum legado (`nomeProcedimento()`).
 
 ### RF04 / RF05 — Campos faltantes
 - **RF04:** adicionar CPF (com validação), data de nascimento e endereço ao cadastro de paciente.
@@ -105,5 +120,5 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Sequência recomendada
 
-~~RF16~~ ~~RF15~~ (✅ concluídos) **→ RF18** (fecha o PEP, maior valor clínico) **→ RF06 → RF04/RF05
+~~RF16~~ ~~RF15~~ ~~RF18~~ ~~RF06~~ (✅ concluídos) **→ RF04/RF05
 → RF19/RF20 → RF17/RF21 → NFRs**

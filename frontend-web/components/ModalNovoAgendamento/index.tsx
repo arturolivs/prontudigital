@@ -1,15 +1,14 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Modal from '@/components/Modal'
 import SelectAutocomplete, { OpcaoSAC } from '@/components/SelectAutocomplete'
 import { usuariosAPI } from '@/lib/usuario.service'
+import { procedimentoAPI } from '@/lib/procedimento.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { AgendamentoRequisicao } from '@/tipos/agendamento'
-import {
-  TipoProcedimento,
-  ROTULO_TIPO_PROCEDIMENTO,
-} from '@/tipos/TipoProcedimento'
+import { Procedimento } from '@/tipos/procedimento'
+import { TipoProcedimento } from '@/tipos/TipoProcedimento'
 import {
   LocalAtendimento,
   ROTULO_LOCAL_ATENDIMENTO,
@@ -22,6 +21,7 @@ interface PrefillNovoAgendamento {
   avaliacaoId?: number
   tipo?: 'AVALIACAO' | 'TRATAMENTO'
   tipoProcedimento?: TipoProcedimento
+  procedimentoId?: number
   localAtendimento?: LocalAtendimento
   pacienteAcamado?: boolean
   data?: string
@@ -57,9 +57,10 @@ export default function ModalNovoAgendamento({
   const [tipo, setTipo] = useState<'AVALIACAO' | 'TRATAMENTO'>(
     prefill?.tipo ?? 'AVALIACAO',
   )
-  const [tipoProcedimento, setTipoProcedimento] = useState<
-    TipoProcedimento | ''
-  >(prefill?.tipoProcedimento ?? '')
+  const [procedimentos, setProcedimentos] = useState<Procedimento[]>([])
+  const [procedimentoId, setProcedimentoId] = useState<number | null>(
+    prefill?.procedimentoId ?? null,
+  )
   const [localAtendimento, setLocalAtendimento] = useState<
     LocalAtendimento | ''
   >(prefill?.localAtendimento ?? '')
@@ -69,6 +70,21 @@ export default function ModalNovoAgendamento({
   const [avaliacaoId, setAvaliacaoId] = useState(
     prefill?.avaliacaoId?.toString() ?? '',
   )
+
+  useEffect(() => {
+    procedimentoAPI
+      .listar()
+      .then(lista => {
+        setProcedimentos(lista)
+        // Prefill legado por código do enum (links antigos)
+        if (prefill?.tipoProcedimento && !prefill?.procedimentoId) {
+          const legado = lista.find(p => p.codigo === prefill.tipoProcedimento)
+          if (legado) setProcedimentoId(legado.id)
+        }
+      })
+      .catch(() => setErro(MENSAGENS.erro.carregarProcedimentos))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const carregarPacientes = useCallback(async (): Promise<OpcaoSAC[]> => {
     const todos = await usuariosAPI.listarUsuarios(0, 1000)
@@ -90,7 +106,7 @@ export default function ModalNovoAgendamento({
     data &&
     horaInicio &&
     horaFim &&
-    tipoProcedimento &&
+    procedimentoId !== null &&
     localAtendimento &&
     pacienteAcamado !== null &&
     (tipo === 'AVALIACAO' || avaliacaoId)
@@ -106,7 +122,7 @@ export default function ModalNovoAgendamento({
         inicioEm: `${data}T${horaInicio}:00`,
         fimEm: `${data}T${horaFim}:00`,
         tipo,
-        tipoProcedimento: tipoProcedimento as TipoProcedimento,
+        procedimentoId: procedimentoId!,
         localAtendimento: localAtendimento as LocalAtendimento,
         pacienteAcamado: pacienteAcamado!,
         avaliacaoId:
@@ -241,22 +257,20 @@ export default function ModalNovoAgendamento({
           </div>
         </div>
 
-        {/* Tipo de procedimento */}
+        {/* Procedimento */}
         <div className="mna-grupo">
-          <label className="mna-rotulo">Tipo de procedimento</label>
+          <label className="mna-rotulo">Procedimento</label>
           <div className="mna-opcoes">
-            {(['PODIATRIA', 'TRATAMENTO_FERIDAS'] as TipoProcedimento[]).map(
-              tp => (
-                <button
-                  key={tp}
-                  type="button"
-                  className={`mna-opcao-btn${tipoProcedimento === tp ? ' ativo' : ''}`}
-                  onClick={() => setTipoProcedimento(tp)}
-                >
-                  {ROTULO_TIPO_PROCEDIMENTO[tp]}
-                </button>
-              ),
-            )}
+            {procedimentos.map(p => (
+              <button
+                key={p.id}
+                type="button"
+                className={`mna-opcao-btn${procedimentoId === p.id ? ' ativo' : ''}`}
+                onClick={() => setProcedimentoId(p.id)}
+              >
+                {p.nome}
+              </button>
+            ))}
           </div>
         </div>
 

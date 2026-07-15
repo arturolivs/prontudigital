@@ -11,7 +11,7 @@ import { agendamentoAPI } from '@/lib/agendamento.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import LayoutPaciente from '@/components/LayoutPaciente'
 import { Agendamento } from '@/tipos/agendamento'
-import { ROTULO_TIPO_PROCEDIMENTO } from '@/tipos/TipoProcedimento'
+import { nomeProcedimento } from '@/tipos/TipoProcedimento'
 import { ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendimento'
 import './minha-agenda.css'
 
@@ -124,9 +124,9 @@ const CardAgendamento = ({
         <span className="ma-card-tipo">
           {agendamento.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'}
         </span>
-        {agendamento.tipoProcedimento && (
+        {nomeProcedimento(agendamento) && (
           <span className="ma-card-procedimento">
-            {ROTULO_TIPO_PROCEDIMENTO[agendamento.tipoProcedimento]}
+            {nomeProcedimento(agendamento)}
           </span>
         )}
         {agendamento.localAtendimento && (
@@ -320,9 +320,9 @@ export default function MinhaAgendaPage() {
                   >
                     {proximoAgendamento.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'}
                   </span>
-                  {proximoAgendamento.tipoProcedimento && (
+                  {nomeProcedimento(proximoAgendamento) && (
                     <span className="ma-proximo-procedimento">
-                      {ROTULO_TIPO_PROCEDIMENTO[proximoAgendamento.tipoProcedimento]}
+                      {nomeProcedimento(proximoAgendamento)}
                     </span>
                   )}
                 </div>

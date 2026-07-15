@@ -6,6 +6,7 @@ import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.Procedimento;
 import com.prontudigital.backend.agendamento.enums.AvaliacaoPulsos;
 import com.prontudigital.backend.agendamento.enums.CaracteristicaBorda;
 import com.prontudigital.backend.agendamento.enums.CaracteristicaPerilesional;
@@ -65,11 +66,36 @@ public final class AgendamentoTestFixtures {
                 .build();
     }
 
+    public static Procedimento procedimentoPodiatria() {
+        return Procedimento.builder()
+                .id(1L)
+                .codigo(TipoProcedimento.PODIATRIA.name())
+                .nome("Podiatria")
+                .ativo(true)
+                .build();
+    }
+
+    public static Procedimento procedimentoNovo() {
+        return Procedimento.builder()
+                .id(5L)
+                .nome("Laserterapia")
+                .ativo(true)
+                .build();
+    }
+
     public static AgendamentoRequestDTO requestAvaliacao() {
         return new AgendamentoRequestDTO(
                 PACIENTE_UUID, PROFISSIONAL_UUID,
                 INICIO, FIM,
-                TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null,
+                LocalAtendimento.CLINICA, false, null);
+    }
+
+    public static AgendamentoRequestDTO requestAvaliacaoComProcedimentoId(Long procedimentoId) {
+        return new AgendamentoRequestDTO(
+                PACIENTE_UUID, PROFISSIONAL_UUID,
+                INICIO, FIM,
+                TipoAgendamento.AVALIACAO, null, procedimentoId,
                 LocalAtendimento.CLINICA, false, null);
     }
 
@@ -77,7 +103,7 @@ public final class AgendamentoTestFixtures {
         return new AgendamentoRequestDTO(
                 PACIENTE_UUID, PROFISSIONAL_UUID,
                 INICIO, FIM,
-                TipoAgendamento.TRATAMENTO, TipoProcedimento.PODIATRIA,
+                TipoAgendamento.TRATAMENTO, TipoProcedimento.PODIATRIA, null,
                 LocalAtendimento.CLINICA, false, avaliacaoId);
     }
 

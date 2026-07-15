@@ -44,6 +44,7 @@ class AgendamentoServiceImplTest {
     @Mock private EvolucaoClinicaRepository evolucaoClinicaRepository;
     @Mock private BloqueioHorarioRepository bloqueioHorarioRepository;
     @Mock private HistoricoAgendamentoRepository historicoRepository;
+    @Mock private ProcedimentoRepository procedimentoRepository;
     @Mock private UsuarioService usuarioService;
     @Mock private UsuarioContexto usuarioContexto;
     @Mock private AgendamentoUtil agendamentoUtil;
@@ -62,8 +63,8 @@ class AgendamentoServiceImplTest {
     void setUp() {
         service = new AgendamentoServiceImpl(
                 agendamentoRepository, evolucaoClinicaRepository, bloqueioHorarioRepository,
-                historicoRepository, usuarioService, usuarioContexto, permissaoPolicy,
-                agendamentoUtil, eventPublisher, clock);
+                historicoRepository, procedimentoRepository, usuarioService, usuarioContexto,
+                permissaoPolicy, agendamentoUtil, eventPublisher, clock);
     }
 
     private void mockSemConflitos() {
@@ -73,6 +74,11 @@ class AgendamentoServiceImplTest {
                 .thenReturn(List.of());
         when(agendamentoRepository.findConflitosParaPacienteComLock(any(), any(), any()))
                 .thenReturn(List.of());
+    }
+
+    private void mockProcedimentoPodiatria() {
+        when(procedimentoRepository.findByCodigo(TipoProcedimento.PODIATRIA.name()))
+                .thenReturn(Optional.of(procedimentoPodiatria()));
     }
 
     // =========================================================
@@ -90,6 +96,7 @@ class AgendamentoServiceImplTest {
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
             mockSemConflitos();
+            mockProcedimentoPodiatria();
             when(agendamentoRepository.save(any())).thenReturn(salvo);
             when(agendamentoUtil.convertToResponseDTO(salvo))
                     .thenReturn(mock(AgendamentoResponseDTO.class));
@@ -102,11 +109,77 @@ class AgendamentoServiceImplTest {
         }
 
         @Test
+        @DisplayName("agenda com procedimentoId da tabela de procedimentos (RF06)")
+        void deveCriarComProcedimentoId() {
+            AgendamentoRequestDTO request = requestAvaliacaoComProcedimentoId(5L);
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            when(procedimentoRepository.findById(5L))
+                    .thenReturn(Optional.of(procedimentoNovo()));
+            when(agendamentoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            service.agendar(request);
+
+            ArgumentCaptor<Agendamento> captor = ArgumentCaptor.forClass(Agendamento.class);
+            verify(agendamentoRepository).save(captor.capture());
+            assertEquals(5L, captor.getValue().getProcedimento().getId());
+            // procedimento sem codigo legado nao preenche o enum
+            assertNull(captor.getValue().getTipoProcedimento());
+        }
+
+        @Test
+        @DisplayName("rejeita procedimento inativo")
+        void deveRejeitarProcedimentoInativo() {
+            AgendamentoRequestDTO request = requestAvaliacaoComProcedimentoId(5L);
+            var inativo = procedimentoNovo();
+            inativo.setAtivo(false);
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            when(procedimentoRepository.findById(5L)).thenReturn(Optional.of(inativo));
+
+            assertThrows(AgendamentoInvalidoException.class,
+                    () -> service.agendar(request));
+            verify(agendamentoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita procedimentoId inexistente")
+        void deveRejeitarProcedimentoInexistente() {
+            AgendamentoRequestDTO request = requestAvaliacaoComProcedimentoId(999L);
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            when(procedimentoRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThrows(ProcedimentoNaoEncontradoException.class,
+                    () -> service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("rejeita agendamento sem procedimento e sem tipoProcedimento")
+        void deveRejeitarSemProcedimento() {
+            AgendamentoRequestDTO request = new AgendamentoRequestDTO(
+                    PACIENTE_UUID, PROFISSIONAL_UUID, INICIO, FIM,
+                    TipoAgendamento.AVALIACAO, null, null,
+                    LocalAtendimento.CLINICA, false, null);
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+
+            assertThrows(AgendamentoInvalidoException.class,
+                    () -> service.agendar(request));
+        }
+
+        @Test
         @DisplayName("paciente não pode criar agendamento para outro paciente")
         void deveRejeitarPacienteAgendandoParaOutro() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     OUTRO_UUID, PROFISSIONAL_UUID, INICIO, FIM,
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null,
                     LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
@@ -125,7 +198,7 @@ class AgendamentoServiceImplTest {
                     PACIENTE_UUID, PROFISSIONAL_UUID,
                     LocalDateTime.of(2020, 1, 1, 10, 0),
                     LocalDateTime.of(2020, 1, 1, 11, 0),
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null,
                     LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
@@ -140,7 +213,7 @@ class AgendamentoServiceImplTest {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     PACIENTE_UUID, PROFISSIONAL_UUID,
                     INICIO, INICIO.plusMinutes(10),
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null,
                     LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
@@ -200,6 +273,7 @@ class AgendamentoServiceImplTest {
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
             mockSemConflitos();
+            mockProcedimentoPodiatria();
             when(agendamentoRepository.findById(99L)).thenReturn(Optional.of(avaliacao));
             when(agendamentoRepository.getReferenceById(99L)).thenReturn(referencia);
             when(agendamentoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));

@@ -49,7 +49,10 @@ export interface AgendamentoRequisicao {
   inicioEm: string
   fimEm: string
   tipo: 'AVALIACAO' | 'TRATAMENTO'
-  tipoProcedimento: TipoProcedimento
+  /** Legado (RF06): prefira procedimentoId */
+  tipoProcedimento?: TipoProcedimento
+  /** ID do procedimento na tabela de procedimentos (RF06) */
+  procedimentoId?: number
   localAtendimento: LocalAtendimento
   pacienteAcamado: boolean
   avaliacaoId?: number
@@ -112,6 +115,8 @@ export interface Agendamento {
   pacienteUuid: string
   tipo: TipoAgendamento
   tipoProcedimento?: TipoProcedimento
+  procedimentoId?: number
+  procedimentoNome?: string
   localAtendimento?: LocalAtendimento
   pacienteAcamado?: boolean
   status: StatusAgendamento
@@ -139,6 +144,8 @@ export interface AgendamentoView {
   pacienteUuid: string
   tipo: TipoAgendamento
   tipoProcedimento?: TipoProcedimento
+  procedimentoId?: number
+  procedimentoNome?: string
   localAtendimento?: LocalAtendimento
   pacienteAcamado?: boolean
   status: StatusAgendamento

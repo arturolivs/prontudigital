@@ -27,8 +27,13 @@ public record AgendamentoRequestDTO(
         @Schema(description = "Tipo do agendamento", example = "AVALIACAO")
         @NotNull TipoAgendamento tipo,
 
-        @Schema(description = "Tipo de procedimento: PODIATRIA ou TRATAMENTO_FERIDAS", example = "PODIATRIA")
-        @NotNull TipoProcedimento tipoProcedimento,
+        @Schema(description = "Tipo de procedimento legado (PODIATRIA ou TRATAMENTO_FERIDAS). "
+                + "Mantido para compatibilidade; prefira procedimentoId.", example = "PODIATRIA")
+        TipoProcedimento tipoProcedimento,
+
+        @Schema(description = "ID do procedimento (tabela de procedimentos, RF06). "
+                + "Obrigatorio quando tipoProcedimento nao for informado.")
+        Long procedimentoId,
 
         @Schema(description = "Local do atendimento: CLINICA ou RESIDENCIAL", example = "CLINICA")
         @NotNull LocalAtendimento localAtendimento,

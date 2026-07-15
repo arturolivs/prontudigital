@@ -60,6 +60,7 @@ interface PrefillModal {
   avaliacaoId?: number
   tipo?: 'AVALIACAO' | 'TRATAMENTO'
   tipoProcedimento?: TipoProcedimento
+  procedimentoId?: number
   localAtendimento?: LocalAtendimento
   pacienteAcamado?: boolean
   data?: string
@@ -86,6 +87,7 @@ export default function AgendaPage() {
       profissionalUuid: searchParams.get('profissionalUuid') ?? undefined,
       avaliacaoId: searchParams.get('avaliacaoId') ? Number(searchParams.get('avaliacaoId')) : undefined,
       tipoProcedimento: (searchParams.get('tipoProcedimento') as TipoProcedimento) ?? undefined,
+      procedimentoId: searchParams.get('procedimentoId') ? Number(searchParams.get('procedimentoId')) : undefined,
       localAtendimento: (searchParams.get('localAtendimento') as LocalAtendimento) ?? undefined,
       pacienteAcamado: searchParams.get('pacienteAcamado') != null
         ? searchParams.get('pacienteAcamado') === 'true'

@@ -70,8 +70,11 @@ public class HistoricoServiceImpl implements HistoricoService {
     }
 
     private HistoricoItemDTO itemAgendamento(Agendamento a) {
-        String titulo = a.getTipoProcedimento() != null
-                ? a.getTipo() + " — " + a.getTipoProcedimento()
+        String procedimento = a.getProcedimento() != null
+                ? a.getProcedimento().getNome()
+                : (a.getTipoProcedimento() != null ? String.valueOf(a.getTipoProcedimento()) : null);
+        String titulo = procedimento != null
+                ? a.getTipo() + " — " + procedimento
                 : String.valueOf(a.getTipo());
         return new HistoricoItemDTO(
                 TipoHistorico.AGENDAMENTO,

@@ -6,6 +6,7 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
 import com.prontudigital.backend.agendamento.dto.EvolucaoClinicaDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.Procedimento;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,8 @@ public class AgendamentoUtil {
                 agendamento.getPacienteUuid(),
                 agendamento.getTipo(),
                 agendamento.getTipoProcedimento(),
+                procedimentoId(agendamento),
+                procedimentoNome(agendamento),
                 agendamento.getLocalAtendimento(),
                 agendamento.getPacienteAcamado(),
                 agendamento.getStatus(),
@@ -61,6 +64,8 @@ public class AgendamentoUtil {
                 agendamento.getPacienteUuid(),
                 agendamento.getTipo(),
                 agendamento.getTipoProcedimento(),
+                procedimentoId(agendamento),
+                procedimentoNome(agendamento),
                 agendamento.getLocalAtendimento(),
                 agendamento.getPacienteAcamado(),
                 agendamento.getStatus(),
@@ -93,6 +98,8 @@ public class AgendamentoUtil {
                 agendamento.getPacienteUuid(),
                 agendamento.getTipo(),
                 agendamento.getTipoProcedimento(),
+                procedimentoId(agendamento),
+                procedimentoNome(agendamento),
                 agendamento.getLocalAtendimento(),
                 agendamento.getPacienteAcamado(),
                 agendamento.getStatus(),
@@ -103,6 +110,16 @@ public class AgendamentoUtil {
                 agendamento.getConcluidoEm(),
                 toEvolucaoDTO(agendamento.getEvolucaoClinica())
         );
+    }
+
+    private Long procedimentoId(Agendamento agendamento) {
+        Procedimento p = agendamento.getProcedimento();
+        return p != null ? p.getId() : null;
+    }
+
+    private String procedimentoNome(Agendamento agendamento) {
+        Procedimento p = agendamento.getProcedimento();
+        return p != null ? p.getNome() : null;
     }
 
     private EvolucaoClinicaDTO toEvolucaoDTO(EvolucaoClinica ec) {

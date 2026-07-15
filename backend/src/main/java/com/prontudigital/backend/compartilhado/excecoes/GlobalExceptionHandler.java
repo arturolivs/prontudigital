@@ -133,6 +133,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AgendamentoNaoEncontradoException.class,
             AvaliacaoNaoEncontradaException.class,
             AnamneseNaoEncontradaException.class,
+            ProcedimentoNaoEncontradoException.class,
             com.prontudigital.backend.prontuario.excecoes.PrescricaoNaoEncontradaException.class,
             com.prontudigital.backend.prontuario.excecoes.AnexoNaoEncontradoException.class,
             PerfilNaoEncontradoException.class
@@ -149,6 +150,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AgendamentoJaCanceladoException.class,
             AgendamentoJaConcluidoException.class,
             AnamneseJaExisteException.class,
+            ProcedimentoJaExisteException.class,
+            ProcedimentoEmUsoException.class,
             HorarioIndisponivelException.class,
             ProfissionalIndisponivelException.class,
             PacienteIndisponivelException.class
