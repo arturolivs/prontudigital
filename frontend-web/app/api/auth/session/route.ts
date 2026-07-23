@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const BACKEND_AUTH =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:9090/api/auth'
+import { urlAuth } from '../../../../lib/server/backend'
 
 const COOKIE = '__pd_rt'
 
@@ -18,7 +16,7 @@ export async function POST(request: NextRequest) {
 
   let backendResp: Response
   try {
-    backendResp = await fetch(`${BACKEND_AUTH}/login`, {
+    backendResp = await fetch(urlAuth('login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -47,7 +45,7 @@ export async function DELETE(request: NextRequest) {
   const refreshToken = request.cookies.get(COOKIE)?.value
 
   if (refreshToken) {
-    fetch(`${BACKEND_AUTH}/logout`, {
+    fetch(urlAuth('logout'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),

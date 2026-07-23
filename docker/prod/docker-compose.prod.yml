@@ -1,11 +1,13 @@
 # ============================================================
 # Docker Compose — Produção
 #
-# Uso:
-#   cp .env.example .env          # primeira vez — preencha TODOS os valores
-#   docker compose up -d          # sobe em background
-#   docker compose logs -f        # acompanha logs
-#   docker compose pull && docker compose up -d  # atualiza imagens
+# Uso (a partir de docker/prod/):
+#   cp .env.prod.example .env     # primeira vez — preencha TODOS os valores
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml logs -f
+#
+# Ponto de entrada: Caddy (80/443), com TLS automático.
+# O Spring Cloud Gateway foi removido — ver Caddyfile.
 # ============================================================
 
 services:
@@ -21,7 +23,7 @@ services:
       POSTGRES_DB:       ${POSTGRES_DB}
       POSTGRES_USER:     ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    # Produção: porta NÃO exposta no host — acesso apenas pela rede interna
+    # Porta NÃO exposta no host — acesso apenas pela rede interna
     expose:
       - "5432"
     volumes:
@@ -32,8 +34,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - backend-network
-    # Limite de recursos
+      - interna
     deploy:
       resources:
         limits:
@@ -57,76 +58,90 @@ services:
       SPRING_FLYWAY_URL:          jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_FLYWAY_USER:         ${POSTGRES_USER}
       SPRING_FLYWAY_PASSWORD:     ${POSTGRES_PASSWORD}
+      APP_JWT_SECRET:                ${JWT_SECRET}
       APP_JWT_ACCESS_EXPIRATION_MS:  ${JWT_ACCESS_EXPIRATION_MS}
       APP_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS}
-      APP_JWT_SECRET:             ${JWT_SECRET}
-    # Produção: porta NÃO exposta — acesso apenas via gateway
+      # Diretório dos anexos no container (app.armazenamento.diretorio-base)
+      ARMAZENAMENTO_DIR: /dados/anexos
     expose:
       - "8080"
+    volumes:
+      # Anexos do prontuário — SEM isto os arquivos somem a cada redeploy
+      - anexos_data:/dados/anexos
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - backend-network
+      - interna
     deploy:
       resources:
         limits:
           cpus: "2.0"
           memory: 1G
-    # Aguarda o backend estar respondendo antes de aceitar tráfego
+    # O projeto não inclui spring-boot-starter-actuator, então não existe
+    # /actuator/health. Verifica se a porta 8080 já aceita conexão.
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080'"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s   # tempo para o Spring Boot inicializar
+      start_period: 60s   # tempo para o Spring Boot subir e rodar o Flyway
 
   # ----------------------------------------------------------
-  # Gateway (Spring Cloud Gateway)
-  # ----------------------------------------------------------
-  gateway:
-    build:
-      context: ../../gateway
-      dockerfile: Dockerfile.prod
-    image: prontudigital/gateway:latest
-    container_name: prontudigital-gateway
-    restart: always
-    environment:
-      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://backend:8080
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
-    expose:
-      - "9090"
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - backend-network
-      - frontend-network
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
-
-  # ----------------------------------------------------------
-  # Frontend Web (build estático servido pelo Nginx)
+  # Frontend Web (Next.js standalone — servidor Node)
   # ----------------------------------------------------------
   frontend:
     build:
       context: ../../frontend-web
       dockerfile: Dockerfile.prod
+      args:
+        # Embutido no bundle em tempo de BUILD. Precisa ser a URL
+        # pública; mudar exige rebuild da imagem, não só restart.
+        NEXT_PUBLIC_BASE_URL: https://${DOMINIO}
     image: prontudigital/frontend:latest
     container_name: prontudigital-frontend
     restart: always
-    ports:
-      # Único serviço com porta exposta — ponto de entrada HTTP
-      - "80:80"
-      # Se usar SSL com Nginx: descomente e configure os certificados
-      # - "443:443"
+    environment:
+      # Lida em RUNTIME pelas Route Handlers de /api/auth/*.
+      # Fala com o backend pela rede interna, sem sair para a internet.
+      BACKEND_INTERNAL_URL: http://backend:8080
+    expose:
+      - "3000"
     depends_on:
-      - gateway
+      backend:
+        condition: service_healthy
     networks:
-      - frontend-network
+      - interna
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+
+  # ----------------------------------------------------------
+  # Caddy — proxy reverso + TLS automático
+  # Único serviço com portas publicadas no host
+  # ----------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    container_name: prontudigital-caddy
+    restart: always
+    environment:
+      DOMINIO: ${DOMINIO}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # certificados — PERSISTIR (perder = rate limit do Let's Encrypt)
+      - caddy_config:/config
+      - caddy_logs:/var/log/caddy
+    depends_on:
+      - frontend
+    networks:
+      - interna   # alcança frontend:3000 e backend:8080
+      - externa   # saída para a internet (ACME / Let's Encrypt)
     deploy:
       resources:
         limits:
@@ -139,18 +154,27 @@ services:
 volumes:
   postgres_data:
     name: prontudigital_postgres_prod
+  anexos_data:
+    name: prontudigital_anexos_prod
+  caddy_data:
+    name: prontudigital_caddy_data
+  caddy_config:
+    name: prontudigital_caddy_config
+  caddy_logs:
+    name: prontudigital_caddy_logs
 
 # ----------------------------------------------------------
-# Redes — segmentadas por responsabilidade
+# Redes
 #
-#  backend-network:  postgres ↔ backend ↔ gateway
-#  frontend-network: gateway ↔ frontend
+#  interna (internal: true): postgres ↔ backend ↔ frontend ↔ caddy
+#                            sem rota para a internet
+#  externa:                  apenas o Caddy, para emitir certificados
 #
-# O postgres nunca é acessível pelo frontend diretamente.
+# O Postgres não é alcançável de fora do host em nenhuma hipótese.
 # ----------------------------------------------------------
 networks:
-  backend-network:
-    name: prontudigital_backend_network
-    internal: true   # sem acesso à internet — tráfego apenas interno
-  frontend-network:
-    name: prontudigital_frontend_network
+  interna:
+    name: prontudigital_interna
+    internal: true
+  externa:
+    name: prontudigital_externa

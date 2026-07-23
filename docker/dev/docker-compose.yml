@@ -99,9 +99,10 @@ services:
     container_name: prontudigital-frontend-dev
     restart: unless-stopped
     environment:
-      # Aponta para o gateway — ajuste a variável conforme seu framework
-      VITE_API_URL: http://localhost:${GATEWAY_PORT:-9090}
-      # Next.js:  NEXT_PUBLIC_API_URL: http://localhost:${GATEWAY_PORT:-9090}
+      # Navegador: URL pública do gateway (base, sem sufixo de caminho)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9090}
+      # Servidor Next (Route Handlers): rede interna do Docker
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://gateway:9090}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     volumes:

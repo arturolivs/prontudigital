@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const BACKEND_AUTH =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:9090/api/auth'
+import { urlAuth } from '../../../../lib/server/backend'
 
 const COOKIE = '__pd_rt'
 
@@ -25,7 +23,7 @@ export async function POST(request: NextRequest) {
 
   let backendResp: Response
   try {
-    backendResp = await fetch(`${BACKEND_AUTH}/renovar-token`, {
+    backendResp = await fetch(urlAuth('renovar-token'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),

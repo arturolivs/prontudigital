@@ -1,0 +1,71 @@
+# ============================================================
+# Caddy — proxy reverso e TLS automático (Let's Encrypt)
+#
+# Substitui o Spring Cloud Gateway: fazia apenas roteamento /api/**
+# e CORS, ambos resolvidos aqui — servindo frontend e API no MESMO
+# domínio, o CORS deixa de existir (as chamadas viram same-origin).
+#
+# ATENÇÃO À ORDEM DOS BLOCOS `handle`: o Caddy avalia na ordem em que
+# aparecem e para no primeiro que casar.
+# ============================================================
+
+{$DOMINIO} {
+	encode gzip zstd
+
+	# --- Logs de acesso ---
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+	}
+
+	# --- Cabeçalhos de segurança ---
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# ------------------------------------------------------------
+	# 1) Route Handlers do PRÓPRIO Next.js.
+	#    /api/auth/session e /api/auth/refresh NÃO existem no backend
+	#    Spring — se caírem no bloco /api/* abaixo, o login retorna 404.
+	#    Por isso vêm primeiro.
+	# ------------------------------------------------------------
+	handle /api/auth/session* {
+		reverse_proxy frontend:3000
+	}
+
+	handle /api/auth/refresh* {
+		reverse_proxy frontend:3000
+	}
+
+	# ------------------------------------------------------------
+	# 2) Todo o resto da API vai para o backend Spring Boot,
+	#    inclusive /api/auth/login, /logout, /renovar-token,
+	#    /registrar, /cadastrar-paciente e /recuperar-senha/*.
+	# ------------------------------------------------------------
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# ------------------------------------------------------------
+	# 3) Swagger — exposto apenas para a rede administrativa.
+	#    Deixe comentado em produção ou restrinja por IP.
+	# ------------------------------------------------------------
+	# handle /swagger-ui/* {
+	# 	@interno remote_ip 203.0.113.0/24
+	# 	reverse_proxy @interno backend:8080
+	# 	respond 404
+	# }
+
+	# ------------------------------------------------------------
+	# 4) Qualquer outra rota é página do Next.js
+	# ------------------------------------------------------------
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
