@@ -420,12 +420,47 @@ A API é exposta pelo backend na porta `8080` e acessada pelos clientes através
 | `GET` | `/agenda?data=DATE&tipo=DIA\|SEMANA\|MES` | Agenda por período | PROFISSIONAL |
 | `GET` | `/meus` | Agendamentos do paciente logado | PACIENTE |
 | `GET` | `/avaliacoes/{id}/tratamentos` | Tratamentos vinculados a uma avaliação | Autenticado |
+| `GET` | `/pacientes` | Pacientes com agendamentos nos últimos 3 meses (paginado) | ADMIN / PROFISSIONAL |
 | `PATCH` | `/{id}/confirmar` | Confirma presença | PACIENTE / PROFISSIONAL |
 | `PATCH` | `/{id}/cancelar` | Cancela agendamento | Autenticado |
 | `PATCH` | `/{id}/reagendar` | Reagenda para nova data/hora | PROFISSIONAL |
 | `PATCH` | `/{id}/concluir` | Marca como realizado | PROFISSIONAL |
-| `PATCH` | `/{id}/evolucao` | Registra evolução clínica | PROFISSIONAL |
-| `PATCH` | `/{id}/observacoes` | Atualiza observações | PROFISSIONAL |
+| `PATCH` | `/{id}/evolucao-enfermagem` | Registra a Ficha de Evolução de Enfermagem (só `AVALIACAO`) | PROFISSIONAL |
+| `PATCH` | `/{id}/evolucao-curativo` | Registra a Ficha de Evolução Diária – Curativos (só `TRATAMENTO`) | PROFISSIONAL |
+
+### Procedimentos — `/api/procedimentos`
+
+| Método | Endpoint | Descrição | Acesso |
+|---|---|---|---|
+| `GET` | `/` | Lista procedimentos ativos (`?incluirInativos=true` inclui os desativados) | Público |
+| `GET` | `/{id}` | Detalha procedimento | Público |
+| `POST` | `/` | Cria procedimento | ADMIN |
+| `PUT` | `/{id}` | Atualiza procedimento (inclui ativar/desativar) | ADMIN |
+| `DELETE` | `/{id}` | Remove procedimento sem vínculos | ADMIN |
+
+### Prontuário — `/api/prontuario/pacientes/{pacienteUuid}`
+
+Todos os endpoints aplicam a **RN03** via `ProntuarioPermissaoPolicy`:
+
+- **Leitura** (`podeVisualizar`): ADMIN sempre; PROFISSIONAL só de pacientes que já
+  atendeu; PACIENTE só o próprio prontuário.
+- **Escrita** (`podeEditar`): ADMIN e PROFISSIONAL vinculado — o paciente nunca edita
+  dados clínicos.
+
+| Método | Endpoint | Descrição | Acesso |
+|---|---|---|---|
+| `GET` | `/historico` | Histórico clínico consolidado (timeline) | RN03 leitura |
+| `GET` | `/anamnese` | Anamnese do paciente (1:1) | RN03 leitura |
+| `POST` | `/anamnese` | Registra anamnese | RN03 escrita |
+| `PUT` | `/anamnese` | Atualiza anamnese | RN03 escrita |
+| `GET` | `/prescricoes` | Lista prescrições | RN03 leitura |
+| `POST` | `/prescricoes` | Cria prescrição | RN03 escrita |
+| `PUT` | `/prescricoes/{uuid}` | Atualiza prescrição | RN03 escrita |
+| `DELETE` | `/prescricoes/{uuid}` | Remove prescrição | RN03 escrita |
+| `GET` | `/anexos` | Lista anexos | RN03 leitura |
+| `POST` | `/anexos` | Upload `multipart/form-data` (JPG/PNG/WEBP/PDF, 10 MB) | RN03 escrita |
+| `GET` | `/anexos/{uuid}/conteudo` | Stream do arquivo (inline) | RN03 leitura |
+| `DELETE` | `/anexos/{uuid}` | Remove anexo | RN03 escrita |
 
 ### Bloqueios de Horário — `/api/bloqueios-horario`
 

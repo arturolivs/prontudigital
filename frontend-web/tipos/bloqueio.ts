@@ -52,12 +52,13 @@ export interface BloqueioRecorrenteRequisicao {
   tipo: TipoBloqueio
 }
 
-export const DIAS_SEMANA: { valor: DiaSemana; label: string; abrev: string }[] = [
-  { valor: 1, label: 'Segunda-feira', abrev: 'Seg' },
-  { valor: 2, label: 'Terça-feira',   abrev: 'Ter' },
-  { valor: 3, label: 'Quarta-feira',  abrev: 'Qua' },
-  { valor: 4, label: 'Quinta-feira',  abrev: 'Qui' },
-  { valor: 5, label: 'Sexta-feira',   abrev: 'Sex' },
-  { valor: 6, label: 'Sábado',        abrev: 'Sáb' },
-  { valor: 7, label: 'Domingo',       abrev: 'Dom' },
-]
+export const DIAS_SEMANA: { valor: DiaSemana; label: string; abrev: string }[] =
+  [
+    { valor: 1, label: 'Segunda-feira', abrev: 'Seg' },
+    { valor: 2, label: 'Terça-feira', abrev: 'Ter' },
+    { valor: 3, label: 'Quarta-feira', abrev: 'Qua' },
+    { valor: 4, label: 'Quinta-feira', abrev: 'Qui' },
+    { valor: 5, label: 'Sexta-feira', abrev: 'Sex' },
+    { valor: 6, label: 'Sábado', abrev: 'Sáb' },
+    { valor: 7, label: 'Domingo', abrev: 'Dom' },
+  ]

@@ -41,7 +41,8 @@ export const MENSAGENS = {
     enviarAnexo: 'Erro ao enviar o anexo.',
     excluirAnexo: 'Erro ao excluir o anexo.',
     abrirAnexo: 'Não foi possível abrir o anexo.',
-    anexoTipoInvalido: 'Tipo de arquivo não permitido. Envie imagem (JPG, PNG, WEBP) ou PDF.',
+    anexoTipoInvalido:
+      'Tipo de arquivo não permitido. Envie imagem (JPG, PNG, WEBP) ou PDF.',
     anexoTamanho: 'Arquivo muito grande. O tamanho máximo é 10 MB.',
     carregarHistorico: 'Erro ao carregar o histórico clínico.',
     carregarAnamnese: 'Erro ao carregar a anamnese do paciente.',
