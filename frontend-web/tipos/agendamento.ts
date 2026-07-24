@@ -3,45 +3,52 @@ import { TipoAgendamento } from './TipoAgendamento'
 import { TipoProcedimento } from './TipoProcedimento'
 import { LocalAtendimento } from './LocalAtendimento'
 
-export type ExsudatoVolume = 'AUSENTE' | 'PEQUENO' | 'MODERADO' | 'GRANDE'
-export type ExsudatoCaracteristica =
-  | 'SEROSO'
-  | 'SEROSSANGUINOLENTO'
-  | 'SANGUINOLENTO'
-  | 'PURULENTO'
-export type OdorIntensidade = 'AUSENTE' | 'LEVE' | 'MODERADO' | 'INTENSO'
-export type CaracteristicaBorda =
+// ── Enums das fichas clínicas (TIME) ─────────────────────────────
+// Espelham os enums do backend em agendamento/enums. Compartilhados
+// entre a Ficha de Evolução de Enfermagem e a de Curativos.
+
+/** T (Tecido): G = Granulação | E = Esfacelo | N = Necrose | EP = Epitelização */
+export type TecidoLeito = 'GRANULACAO' | 'ESFACELO' | 'NECROSE' | 'EPITELIZACAO'
+
+/** I (Infecção/Inflamação) na ficha de curativos: 0 = Ausente | 1 = Local | 2 = Sistêmica */
+export type InfeccaoInflamacaoCurativo = 'AUSENTE' | 'LOCAL' | 'SISTEMICA'
+
+/** I (Infecção/Inflamação) na ficha de enfermagem — sinal predominante. */
+export type InfeccaoInflamacao =
+  | 'AUSENTE'
+  | 'EXSUDATO_PURULENTO'
+  | 'ODOR'
+  | 'DOR'
+
+/** M (Exsudato): 0 = Ausente | 1 = Pequeno | 2 = Moderado | 3 = Intenso */
+export type ExsudatoTime = 'AUSENTE' | 'PEQUENO' | 'MODERADO' | 'INTENSO'
+
+/** E (Bordas): I = Íntegras | M = Maceradas | D = Descoladas | EP = Epitelizando */
+export type BordasFerida =
   | 'INTEGRAS'
   | 'MACERADAS'
-  | 'ADERIDAS'
   | 'DESCOLADAS'
-  | 'EPIBOLIA'
-  | 'HIPERQUERATOSE'
-export type CaracteristicaPerilesional =
-  | 'INTEGRA'
-  | 'HIPEREMIADA'
-  | 'MACERADA'
-  | 'RESSECADA'
-  | 'EDEMACIADA'
-  | 'DERMATITE'
-export type SinalInfeccao =
-  | 'AUSENTES'
-  | 'ERITEMA'
-  | 'CALOR_LOCAL'
-  | 'EDEMA'
-  | 'DOR_AUMENTADA'
-  | 'EXSUDATO_PURULENTO'
-  | 'MAU_ODOR'
-export type ClassificacaoDor = 'AUSENTE' | 'LEVE' | 'MODERADA' | 'INTENSA'
-export type GrauEdema = 'SEM_EDEMA' | 'MAIS_1' | 'MAIS_2' | 'MAIS_3' | 'MAIS_4'
-export type AvaliacaoPulsos = 'PALPAVEIS' | 'DIMINUIDOS' | 'AUSENTES'
-export type EvolucaoFerida = 'MELHORANDO' | 'ESTAVEL' | 'PIORANDO'
-export type SinalEvolucao =
-  | 'REDUCAO_DIMENSOES'
-  | 'AUMENTO_GRANULACAO'
-  | 'REDUCAO_EXSUDATO'
-  | 'EPITELIZACAO_PROGRESSIVA'
-  | 'NECESSITA_REAVALIACAO'
+  | 'EPITELIZANDO'
+
+export type TipoDesbridamento =
+  | 'NAO'
+  | 'AUTOLITICO'
+  | 'INSTRUMENTAL'
+  | 'ENZIMATICO'
+
+export type AvaliacaoEvolucao = 'MELHORA' | 'ESTAVEL' | 'PIORA'
+
+/** Etiologia da ferida na Ficha de Evolução de Enfermagem. */
+export type TipoFerida =
+  | 'CIRURGICA'
+  | 'TRAUMATICA'
+  | 'ULCERA_VENOSA'
+  | 'LESAO_PRESSAO'
+  | 'PE_DIABETICO'
+  | 'OUTRA'
+
+/** Solução utilizada na limpeza da ferida. */
+export type TipoLimpeza = 'SF_09' | 'OUTRO'
 
 export interface AgendamentoRequisicao {
   pacienteUuid: string
@@ -58,53 +65,123 @@ export interface AgendamentoRequisicao {
   avaliacaoId?: number
 }
 
-export interface EvolucaoClinica {
-  // Dados da ferida
+/**
+ * Ficha de Evolução de Enfermagem.
+ * Preenchida em agendamentos do tipo AVALIACAO (o backend recusa os demais).
+ * Espelha EvolucaoEnfermagemRequestDTO.
+ */
+export interface EvolucaoEnfermagemRequisicao {
+  // 1. Dados da avaliação
+  /** Data no formato YYYY-MM-DD — pré-preenchida do agendamento. */
+  dataAvaliacao?: string
+  /** Hora no formato HH:mm — pré-preenchida do agendamento. */
+  horaAvaliacao?: string
+  diagnosticoMedico?: string
+  comorbDiabetes?: boolean
+  comorbHipertensao?: boolean
+  comorbDoencaVascular?: boolean
+  comorbNeuropatia?: boolean
+  comorbOutras?: boolean
+  comorbOutrasDetalhe?: string
+  medicamentosRelevantes?: string
+  // 2. Avaliação da ferida (modelo TIME)
   localizacaoAnatomica?: string
-  etiologia?: string
-  tempoEvolucao?: string
-  // Mensuração
-  medidaComprimento?: number
-  medidaLargura?: number
-  medidaProfundidade?: number
+  tipoFerida?: TipoFerida
+  tipoFeridaOutra?: string
+  dimensoes?: string
+  comprimento?: number
+  largura?: number
+  profundidade?: number
   tunelizacao?: boolean
-  descolamentoBordas?: boolean
-  // Leito da ferida
-  epitelizacaoPercentual?: number
-  granulacaoPercentual?: number
-  esfaceloPercentual?: number
-  necrosePercentual?: number
-  tendaoExposto?: boolean
-  musculoExposto?: boolean
-  ossoExposto?: boolean
-  // Exsudato
-  exsudatoVolume?: ExsudatoVolume
-  exsudatoCaracteristica?: ExsudatoCaracteristica
-  odorIntensidade?: OdorIntensidade
-  // Bordas
-  caracteristicasBordas?: CaracteristicaBorda[]
-  // Pele perilesional
-  caracteristicasPerilesional?: CaracteristicaPerilesional[]
-  // Sinais de infecção
-  sinaisInfeccao?: SinalInfeccao[]
-  // Dor
-  classificacaoDor?: ClassificacaoDor
-  // Avaliação vascular
-  grauEdema?: GrauEdema
-  avaliacaoPulsos?: AvaliacaoPulsos
-  // Evolução da ferida
-  evolucaoFerida?: EvolucaoFerida
-  sinaisEvolucao?: SinalEvolucao[]
-  // Conduta
-  limpezaLesao?: boolean
-  desbridamento?: boolean
-  coberturaAplicada?: boolean
-  coberturaDescricao?: string
-  terapiaAdjuvante?: boolean
-  terapiaAdjuvanteDescricao?: string
-  orientacoesFornecidas?: boolean
-  // Observações
+  descolamento?: boolean
+  tecidoLeito?: TecidoLeito
+  infeccaoInflamacao?: InfeccaoInflamacao
+  exsudato?: ExsudatoTime
+  exsudatoTipo?: string
+  bordas?: BordasFerida
+  pelePerilesional?: string
+  /** Escala de 0 a 10 */
+  dorEscala?: number
+  sinaisVitais?: string
+  pa?: string
+  fc?: string
+  fr?: string
+  temp?: string
+  // 3. Diagnósticos de enfermagem
+  diagIntegridadePele?: boolean
+  diagIntegridadeTissular?: boolean
+  diagRiscoInfeccao?: boolean
+  diagPerfusaoIneficaz?: boolean
+  diagDorAguda?: boolean
+  diagOutros?: string
+  // 4. Conduta realizada
+  limpeza?: TipoLimpeza
+  limpezaOutro?: string
+  desbridamento?: TipoDesbridamento
+  coberturaPrimaria?: string
+  coberturaSecundaria?: string
+  fixacao?: string
+  orientacoesPaciente?: string
+  // 5. Avaliação da evolução
+  avaliacaoEvolucao?: AvaliacaoEvolucao
+  reducaoArea?: boolean
   observacoes?: string
+  // 6. Plano
+  planoManterConduta?: boolean
+  planoAjustarCobertura?: boolean
+  planoAvaliacaoMedica?: boolean
+  planoSolicitarExames?: boolean
+  planoEncaminhamento?: boolean
+  retornoDias?: number
+}
+
+/** Resposta do backend (EvolucaoEnfermagemDTO) — requisição + auditoria. */
+export interface EvolucaoEnfermagem extends EvolucaoEnfermagemRequisicao {
+  criadoEm?: string
+  atualizadoEm?: string
+}
+
+/**
+ * Ficha de Evolução Diária – Curativos.
+ * Preenchida em agendamentos do tipo TRATAMENTO (o backend recusa os demais).
+ * Espelha EvolucaoCurativoRequestDTO.
+ */
+export interface EvolucaoCurativoRequisicao {
+  // 1. Avaliação diária da ferida
+  comprimento?: number
+  largura?: number
+  profundidade?: number
+  /** C × L — calculada no frontend */
+  areaAproximada?: number
+  tecido?: TecidoLeito
+  infeccaoInflamacao?: InfeccaoInflamacaoCurativo
+  exsudato?: ExsudatoTime
+  bordas?: BordasFerida
+  odorPresente?: boolean
+  /** Escala de 0 a 10 */
+  dorEscala?: number
+  pelePerilesional?: string
+  // 2. Intervenções realizadas
+  limpezaIrrigacao?: string
+  desbridamento?: TipoDesbridamento
+  desbridamentoObs?: string
+  coberturaPrimaria?: string
+  orientacoesPaciente?: string
+  // 3. Avaliação da evolução
+  evolucao?: AvaliacaoEvolucao
+  observacoes?: string
+  // 4. Plano / ações futuras — observação preenchida equivale a ação marcada
+  planoManterConduta?: string
+  planoAlterarCobertura?: string
+  planoSolicitarExames?: string
+  planoEncaminhamento?: string
+  retornoPrevisto?: string
+}
+
+/** Resposta do backend (EvolucaoCurativoDTO) — requisição + auditoria. */
+export interface EvolucaoCurativo extends EvolucaoCurativoRequisicao {
+  criadoEm?: string
+  atualizadoEm?: string
 }
 
 export interface Agendamento {
@@ -125,10 +202,9 @@ export interface Agendamento {
   criadoEm: string
   avaliacaoId?: number
   concluidoEm?: string
-  evolucaoClinica?: EvolucaoClinica
+  evolucaoEnfermagem?: EvolucaoEnfermagem
+  evolucaoCurativo?: EvolucaoCurativo
 }
-
-export type EvolucaoTratamentoRequisicao = EvolucaoClinica
 
 export interface ReagendarRequisicao {
   novoInicioEm: string

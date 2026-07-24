@@ -628,6 +628,22 @@
   gap: 1rem;
 }
 
+/* Legenda TIME da Ficha de Evolução Diária – Curativos */
+.proc-legenda {
+  margin: 0;
+  padding: 0.75rem 0.875rem;
+  border-radius: 8px;
+  background: #f8f7fb;
+  border: 1px solid #ece9f3;
+  color: #6b6880;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.proc-legenda strong {
+  color: #4a4560;
+}
+
 .proc-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -754,6 +770,67 @@
 }
 
 .proc-check:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Subtítulo de bloco dentro de uma ficha ─── */
+.proc-subsecao {
+  margin: 0.5rem 0 0;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-heading, #1f2937);
+}
+
+/* ── Perguntas Sim/Não dos modelos ──────────── */
+.proc-radio-grupo {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.proc-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  background: var(--color-bg-subtle, #f9fafb);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--color-text-heading, #1f2937);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.proc-radio:hover {
+  background: var(--color-bg-hover, #f3f4f6);
+  border-color: var(--color-brand-light, #6b9bd2);
+}
+
+.proc-radio input[type="radio"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-brand, #2b6cb0);
+  cursor: pointer;
+  margin: 0;
+}
+
+.proc-radio input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.proc-radio:has(input:checked) {
+  background: var(--color-brand, #2b6cb0);
+  border-color: var(--color-brand, #2b6cb0);
+  color: white;
+}
+
+.proc-radio:has(input:disabled) {
   opacity: 0.6;
   cursor: not-allowed;
 }
