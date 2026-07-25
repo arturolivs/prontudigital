@@ -35,6 +35,7 @@ export const MENSAGENS = {
     identificarProfissional: 'Não foi possível identificar o profissional.',
     carregarHorariosIndisponiveis: 'Erro ao carregar horários indisponíveis.',
     carregarHorariosTrabalho: 'Erro ao carregar os horários de trabalho.',
+    gerarRelatorio: 'Erro ao gerar o relatório.',
     criarHorarioTrabalho: 'Erro ao cadastrar o horário de trabalho.',
     removerHorarioTrabalho: 'Erro ao remover o horário de trabalho.',
     carregarPrescricoes: 'Erro ao carregar as prescrições.',
@@ -89,6 +90,7 @@ export const MENSAGENS = {
     horarioTerminoInvalido:
       'O horário de término deve ser posterior ao de início.',
     selecioneDiaSemana: 'Selecione ao menos um dia da semana.',
+    periodoInvertido: 'A data final deve ser igual ou posterior à inicial.',
     diasJaComRegra:
       'Todos os dias selecionados já possuem regras recorrentes. Selecione um novo dia para adicionar.',
   },

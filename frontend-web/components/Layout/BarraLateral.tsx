@@ -86,10 +86,11 @@ const BarraLateral = ({
       perfis: ['ROLE_ADMIN'],
     },
     {
+      // O profissional também acessa, mas só enxerga a própria agenda (RF19/RF20).
       rotulo: 'Relatórios',
-      caminho: '/reports',
+      caminho: '/relatorios',
       icone: BarChart3,
-      perfis: ['ROLE_ADMIN'],
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Configurações',

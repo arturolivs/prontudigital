@@ -38,8 +38,8 @@ O sistema gerencia as operações de uma **clínica de enfermagem especializada 
 - **RF18:** 🟡 Histórico de atendimentos (hoje: histórico de mudanças de status do agendamento). *Pendente: histórico clínico completo consolidado.*
 
 ### **2.5 Módulo de Relatórios**
-- **RF19:** ❌ Relatório de atendimentos por período/profissional.
-- **RF20:** ❌ Relatório de ocupação da clínica (taxa de comparecimento e cancelamentos).
+- **RF19:** ✅ Relatório de atendimentos por período/profissional.
+- **RF20:** ✅ Relatório de ocupação da clínica (taxa de comparecimento e cancelamentos), com taxa de ocupação da agenda a partir dos horários de trabalho (RF05).
 - **RF21:** ❌ Exportação de dados em PDF/Excel.
 
 ---

@@ -462,6 +462,23 @@ Todos os endpoints aplicam a **RN03** via `ProntuarioPermissaoPolicy`:
 | `GET` | `/anexos/{uuid}/conteudo` | Stream do arquivo (inline) | RN03 leitura |
 | `DELETE` | `/anexos/{uuid}` | Remove anexo | RN03 escrita |
 
+### Relatórios — `/api/relatorios`
+
+ADMIN pode omitir `profissionalUuid` para ver a clínica inteira; PROFISSIONAL só
+consulta a própria agenda (pedir outra retorna 403); PACIENTE não acessa.
+
+| Método | Endpoint | Descrição | Acesso |
+|---|---|---|---|
+| `GET` | `/atendimentos?inicio=&fim=[&profissionalUuid=&status=&tipo=]` | Atendimentos do período com totais por status e tipo (RF19) | ADMIN / PROFISSIONAL |
+| `GET` | `/ocupacao?inicio=&fim=[&profissionalUuid=]` | Comparecimento, cancelamentos e ocupação da agenda (RF20) | ADMIN / PROFISSIONAL |
+
+Sobre as taxas de `/ocupacao`: comparecimento e absenteísmo são calculados sobre
+os atendimentos que **chegaram a acontecer** (realizados + faltas) — o que foi
+cancelado antes nunca virou presença nem falta. A taxa de cancelamento é sobre o
+total. Todas vêm `null` quando não há base de comparação, em vez de zero.
+`taxaOcupacao` compara as horas ocupadas com o expediente do RF05 e exige um
+profissional filtrado que tenha horários cadastrados; caso contrário vem `null`.
+
 ### Horários de Trabalho — `/api/horarios-trabalho`
 
 Expediente semanal do profissional (RF05). Alimenta a validação de disponibilidade:

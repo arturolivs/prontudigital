@@ -122,12 +122,37 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Fase 4 — Relatórios e documentos
 
-- **RF19:** relatório de atendimentos por período/profissional (query + endpoint filtrado).
-- **RF20:** relatório de ocupação (taxa de comparecimento × cancelamentos), reaproveitando
-  `HistoricoAgendamento` e status.
+> **Progresso:** RF19 e RF20 concluídos (backend + frontend). Próximo: **RF17/RF21**.
+
+### RF19 / RF20 — Relatórios gerenciais — ✅ CONCLUÍDO
+- ✅ **Backend:** novo módulo `com.prontudigital.backend.relatorio` (DTOs, service,
+  `RelatorioController` em `/api/relatorios`), sem entidade nem migration — os dois
+  relatórios são leitura agregada sobre `agendamentos`.
+- ✅ `AgendamentoRepository.buscarParaRelatorio` — período obrigatório + profissional,
+  status e tipo opcionais, seguindo o padrão `(:param IS NULL OR ...)` já usado no repo.
+- ✅ **RF19** `GET /atendimentos`: linhas do período (com duração calculada, nomes
+  resolvidos e procedimento) + totais por status e por tipo. Os nomes são resolvidos
+  com cache por UUID no service, senão seria uma consulta por linha.
+- ✅ **RF20** `GET /ocupacao`: realizados/cancelados/faltas/remarcados/em aberto,
+  taxas de comparecimento, cancelamento e absenteísmo, horas ocupadas e taxa de
+  ocupação. **Comparecimento e absenteísmo são calculados sobre os atendimentos que
+  chegaram a acontecer** (realizados + faltas), não sobre o total — cancelamento
+  prévio não é falta. Taxas vêm `null` sem base de comparação, nunca zero.
+- ✅ A capacidade da agenda reaproveita os **horários de trabalho do RF05**: a taxa de
+  ocupação só existe quando há profissional filtrado com expediente cadastrado.
+- ✅ **Acesso:** ADMIN vê a clínica inteira ou qualquer profissional; PROFISSIONAL tem o
+  filtro forçado para a própria agenda e recebe 403 ao pedir outra (em vez de trocar o
+  recorte em silêncio); PACIENTE não acessa.
+- ✅ **Frontend:** página `/relatorios` (ADMIN + PROFISSIONAL) com filtros de período,
+  profissional (só ADMIN), status e tipo; cards de indicadores, resumo numérico e
+  tabela de atendimentos. O item "Relatórios" da barra lateral apontava para `/reports`
+  (rota inexistente) e passou a apontar para cá.
+- ✅ `RelatorioServiceImplTest` (15 testes). Suíte em **291 testes, 0 falhas**.
+
+### RF17 / RF21 — Atestados e exportação
 - **RF17 / RF21:** emissão de atestados e **exportação PDF/Excel** — adicionar biblioteca de
   geração (ex.: OpenPDF/JasperReports para PDF, Apache POI para Excel). RF17 e RF21
-  compartilham a mesma infra de geração.
+  compartilham a mesma infra de geração. O RF21 tem alvo natural nos relatórios do RF19/RF20.
 
 ---
 
@@ -147,5 +172,5 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Sequência recomendada
 
-~~RF16~~ ~~RF15~~ ~~RF18~~ ~~RF06~~ ~~RF04/RF05~~ (✅ concluídos)
-**→ RF19/RF20 → RF17/RF21 → NFRs**
+~~RF16~~ ~~RF15~~ ~~RF18~~ ~~RF06~~ ~~RF04/RF05~~ ~~RF19/RF20~~ (✅ concluídos)
+**→ RF17/RF21 → NFRs**
