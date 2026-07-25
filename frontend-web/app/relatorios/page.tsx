@@ -6,7 +6,10 @@ import {
   CalendarCheck,
   CalendarX,
   Clock,
+  Download,
+  FileText,
   Percent,
+  Sheet,
   UserX,
 } from 'lucide-react'
 import Layout from '@/components/Layout/Layout'
@@ -17,7 +20,11 @@ import { relatorioAPI } from '@/lib/relatorio.service'
 import { usuariosAPI } from '@/lib/usuario.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { Usuario } from '@/tipos/autenticacao'
-import { RelatorioAtendimentos, RelatorioOcupacao } from '@/tipos/relatorio'
+import {
+  FormatoExportacao,
+  RelatorioAtendimentos,
+  RelatorioOcupacao,
+} from '@/tipos/relatorio'
 import { StatusAgendamento } from '@/tipos/StatusAgendamento'
 import { TipoAgendamento } from '@/tipos/TipoAgendamento'
 import { ROTULO_LOCAL_ATENDIMENTO } from '@/tipos/LocalAtendimento'
@@ -87,6 +94,7 @@ export default function RelatoriosPage() {
     useState<RelatorioAtendimentos | null>(null)
   const [ocupacao, setOcupacao] = useState<RelatorioOcupacao | null>(null)
   const [carregando, setCarregando] = useState(false)
+  const [exportando, setExportando] = useState<string | null>(null)
 
   // Só o ADMIN escolhe o profissional; o profissional sempre vê a própria
   // agenda (o backend força o filtro).
@@ -138,6 +146,43 @@ export default function RelatoriosPage() {
     gerar()
     // Só na carga inicial — depois o usuário aciona pelo botão.
   }, [])
+
+  // RF21 — o arquivo respeita os mesmos filtros da tela.
+  const exportar = async (
+    relatorio: 'atendimentos' | 'ocupacao',
+    formato: FormatoExportacao,
+  ) => {
+    setExportando(`${relatorio}-${formato}`)
+    try {
+      if (relatorio === 'atendimentos') {
+        await relatorioAPI.exportarAtendimentos(
+          {
+            inicio,
+            fim,
+            profissionalUuid: profissionalUuid || undefined,
+            status: status || undefined,
+            tipo: tipo || undefined,
+          },
+          formato,
+        )
+      } else {
+        await relatorioAPI.exportarOcupacao(
+          inicio,
+          fim,
+          formato,
+          profissionalUuid || undefined,
+        )
+      }
+    } catch (err) {
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.exportarRelatorio),
+        'error',
+        5000,
+      )
+    } finally {
+      setExportando(null)
+    }
+  }
 
   const indicadores = ocupacao
     ? [
@@ -262,6 +307,49 @@ export default function RelatoriosPage() {
             >
               {carregando ? 'Gerando...' : 'Gerar'}
             </button>
+          </section>
+
+          {/* ── Exportação (RF21) ── */}
+          <section className="rel-exportacao">
+            <span className="rel-exportacao-rotulo">
+              <Download size={14} strokeWidth={2} />
+              Exportar
+            </span>
+            <button
+              className="rel-btn-exportar"
+              onClick={() => exportar('atendimentos', 'PDF')}
+              disabled={exportando !== null}
+            >
+              <FileText size={14} strokeWidth={1.75} />
+              Atendimentos (PDF)
+            </button>
+            <button
+              className="rel-btn-exportar"
+              onClick={() => exportar('atendimentos', 'XLSX')}
+              disabled={exportando !== null}
+            >
+              <Sheet size={14} strokeWidth={1.75} />
+              Atendimentos (Excel)
+            </button>
+            <button
+              className="rel-btn-exportar"
+              onClick={() => exportar('ocupacao', 'PDF')}
+              disabled={exportando !== null}
+            >
+              <FileText size={14} strokeWidth={1.75} />
+              Ocupação (PDF)
+            </button>
+            <button
+              className="rel-btn-exportar"
+              onClick={() => exportar('ocupacao', 'XLSX')}
+              disabled={exportando !== null}
+            >
+              <Sheet size={14} strokeWidth={1.75} />
+              Ocupação (Excel)
+            </button>
+            {exportando && (
+              <span className="rel-exportando">Gerando arquivo...</span>
+            )}
           </section>
 
           {/* ── Ocupação (RF20) ── */}

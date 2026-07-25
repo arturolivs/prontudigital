@@ -53,6 +53,9 @@ export interface RelatorioOcupacao {
   taxaOcupacao?: number
 }
 
+/** Formatos aceitos pelos endpoints de exportação (RF21). */
+export type FormatoExportacao = 'PDF' | 'XLSX'
+
 export interface FiltrosRelatorio {
   inicio: string
   fim: string

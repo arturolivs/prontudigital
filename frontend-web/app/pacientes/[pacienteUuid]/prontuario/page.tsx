@@ -9,14 +9,16 @@ import Layout from '@/components/Layout/Layout'
 import AbaPrescricoes from './AbaPrescricoes'
 import AbaAnexos from './AbaAnexos'
 import AbaHistorico from './AbaHistorico'
+import AbaAtestados from './AbaAtestados'
 import './prontuario.css'
 
-type Aba = 'historico' | 'prescricoes' | 'anexos'
+type Aba = 'historico' | 'prescricoes' | 'anexos' | 'atestados'
 
 const ABAS: { id: Aba; rotulo: string }[] = [
   { id: 'historico', rotulo: 'Histórico' },
   { id: 'prescricoes', rotulo: 'Prescrições' },
   { id: 'anexos', rotulo: 'Anexos' },
+  { id: 'atestados', rotulo: 'Atestados' },
 ]
 
 export default function ProntuarioPage() {
@@ -88,6 +90,12 @@ export default function ProntuarioPage() {
           )}
           {aba === 'anexos' && (
             <AbaAnexos
+              pacienteUuid={pacienteUuid}
+              onNomePaciente={setNomePaciente}
+            />
+          )}
+          {aba === 'atestados' && (
+            <AbaAtestados
               pacienteUuid={pacienteUuid}
               onNomePaciente={setNomePaciente}
             />

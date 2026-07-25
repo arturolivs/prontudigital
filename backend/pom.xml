@@ -22,6 +22,8 @@
 		<jjwt.version>0.11.5</jjwt.version>
 		<springdoc.version>2.8.6</springdoc.version>
 		<lombok.version>1.18.30</lombok.version>
+		<openpdf.version>1.4.2</openpdf.version>
+		<poi.version>5.4.0</poi.version>
 	</properties>
 
 	<dependencies>
@@ -93,6 +95,20 @@
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>${springdoc.version}</version>
+		</dependency>
+
+		<!-- ===== Geração de documentos (RF17/RF21) ===== -->
+		<!-- OpenPDF: fork LGPL/MPL do iText 4, sem a licença AGPL do iText moderno. -->
+		<dependency>
+			<groupId>com.github.librepdf</groupId>
+			<artifactId>openpdf</artifactId>
+			<version>${openpdf.version}</version>
+		</dependency>
+		<!-- Apache POI: exportação XLSX. -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>${poi.version}</version>
 		</dependency>
 
 		<!-- ===== Testes ===== -->

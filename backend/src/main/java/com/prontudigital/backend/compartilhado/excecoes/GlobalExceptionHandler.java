@@ -138,6 +138,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             ProcedimentoNaoEncontradoException.class,
             com.prontudigital.backend.prontuario.excecoes.PrescricaoNaoEncontradaException.class,
             com.prontudigital.backend.prontuario.excecoes.AnexoNaoEncontradoException.class,
+            com.prontudigital.backend.prontuario.excecoes.AtestadoNaoEncontradoException.class,
             PerfilNaoEncontradoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleNaoEncontrado(
@@ -174,7 +175,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             com.prontudigital.backend.agendamento.excecoes.ForaDoHorarioTrabalhoException.class,
             com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class,
             com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class,
-            com.prontudigital.backend.prontuario.excecoes.AnexoInvalidoException.class
+            com.prontudigital.backend.prontuario.excecoes.AnexoInvalidoException.class,
+            com.prontudigital.backend.prontuario.excecoes.AtestadoInvalidoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleRegraDeNegocio(
             ExcecaoBase ex, HttpServletRequest request) {

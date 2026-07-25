@@ -552,3 +552,79 @@
   color: var(--color-text-body);
   margin: 0.15rem 0 0;
 }
+
+/* ── Atestados (RF17) ───────────────────────────────────────── */
+
+.atst-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.atst-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.7rem;
+  background: var(--color-bg-surface);
+}
+
+.atst-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.atst-linha-titulo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.atst-badge {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.atst-badge--COMPARECIMENTO { background: #eff6ff; color: #1d4ed8; }
+.atst-badge--AFASTAMENTO    { background: #fffbeb; color: #b45309; }
+
+.atst-dias,
+.atst-cid {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.atst-observacoes {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+}
+
+.atst-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.atst-acoes {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.atst-ajuda {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+}
