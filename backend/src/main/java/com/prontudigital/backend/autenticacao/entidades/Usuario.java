@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -39,6 +40,27 @@ public class Usuario {
 
     @Column(name = "telefone", length = 20)
     private String telefone;
+
+    // ── RF04: dados cadastrais do paciente ───────────────────────
+    // Opcionais: o cadastro rapido cria o paciente so com nome e telefone.
+
+    /** Somente digitos. */
+    @Column(name = "cpf", length = 11, unique = true)
+    private String cpf;
+
+    @Column(name = "data_nascimento")
+    private LocalDate dataNascimento;
+
+    @Embedded
+    private Endereco endereco;
+
+    // ── RF05: credenciais do profissional ────────────────────────
+
+    @Column(name = "coren", length = 20, unique = true)
+    private String coren;
+
+    @Column(name = "especialidade", length = 100)
+    private String especialidade;
 
     @Column(name = "ativo", nullable = false)
     @Builder.Default

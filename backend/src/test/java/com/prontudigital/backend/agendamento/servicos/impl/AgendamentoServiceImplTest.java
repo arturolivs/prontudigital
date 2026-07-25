@@ -6,6 +6,7 @@ import com.prontudigital.backend.agendamento.entidades.EvolucaoCurativo;
 import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
 import com.prontudigital.backend.agendamento.enums.AvaliacaoEvolucao;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
+import com.prontudigital.backend.agendamento.entidades.HorarioTrabalho;
 import com.prontudigital.backend.agendamento.enums.InfeccaoInflamacaoCurativo;
 import com.prontudigital.backend.agendamento.enums.TipoDesbridamento;
 import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
@@ -37,6 +38,7 @@ import java.util.Optional;
 import static com.prontudigital.backend.agendamento.servicos.impl.fixtures.AgendamentoTestFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -48,6 +50,7 @@ class AgendamentoServiceImplTest {
     @Mock private EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
     @Mock private EvolucaoCurativoRepository evolucaoCurativoRepository;
     @Mock private BloqueioHorarioRepository bloqueioHorarioRepository;
+    @Mock private HorarioTrabalhoRepository horarioTrabalhoRepository;
     @Mock private HistoricoAgendamentoRepository historicoRepository;
     @Mock private ProcedimentoRepository procedimentoRepository;
     @Mock private UsuarioService usuarioService;
@@ -68,9 +71,9 @@ class AgendamentoServiceImplTest {
     void setUp() {
         service = new AgendamentoServiceImpl(
                 agendamentoRepository, evolucaoEnfermagemRepository, evolucaoCurativoRepository,
-                bloqueioHorarioRepository, historicoRepository, procedimentoRepository,
-                usuarioService, usuarioContexto, permissaoPolicy, agendamentoUtil,
-                eventPublisher, clock);
+                bloqueioHorarioRepository, horarioTrabalhoRepository, historicoRepository,
+                procedimentoRepository, usuarioService, usuarioContexto, permissaoPolicy,
+                agendamentoUtil, eventPublisher, clock);
     }
 
     private void mockSemConflitos() {
@@ -1030,6 +1033,112 @@ class AgendamentoServiceImplTest {
 
             assertEquals(LocalDate.of(2026, 6, 1), inicioCaptor.getValue().toLocalDate());
             assertEquals(LocalDate.of(2026, 6, 7), fimCaptor.getValue().toLocalDate());
+        }
+    }
+
+    // =========================================================
+    // RF05 - horario de trabalho do profissional
+    // =========================================================
+    @Nested
+    @DisplayName("validacao de horario de trabalho (RF05)")
+    class HorarioDeTrabalho {
+
+        /** A janela de expediente que cobre INICIO..FIM (01/06/2026, 14h-15h). */
+        private HorarioTrabalho janela(LocalTime inicio, LocalTime fim) {
+            return HorarioTrabalho.builder()
+                    .profissionalUuid(PROFISSIONAL_UUID)
+                    .diaSemana(INICIO.getDayOfWeek().getValue())
+                    .horaInicio(inicio)
+                    .horaFim(fim)
+                    .ativo(true)
+                    .build();
+        }
+
+        private void mockExpediente(HorarioTrabalho... janelas) {
+            when(horarioTrabalhoRepository
+                    .existsByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID)).thenReturn(true);
+            when(horarioTrabalhoRepository
+                    .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(eq(PROFISSIONAL_UUID), anyInt()))
+                    .thenReturn(List.of(janelas));
+        }
+
+        @Test
+        @DisplayName("profissional sem expediente cadastrado nao e validado")
+        void deveIgnorarQuandoSemExpediente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            mockProcedimentoPodiatria();
+            when(agendamentoRepository.save(any())).thenReturn(agendamentoAgendado());
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            assertNotNull(service.agendar(request));
+
+            verify(horarioTrabalhoRepository, never())
+                    .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(any(), anyInt());
+        }
+
+        @Test
+        @DisplayName("agenda dentro da janela de expediente")
+        void deveAceitarDentroDoExpediente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockExpediente(janela(LocalTime.of(8, 0), LocalTime.of(18, 0)));
+            mockSemConflitos();
+            mockProcedimentoPodiatria();
+            when(agendamentoRepository.save(any())).thenReturn(agendamentoAgendado());
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            assertNotNull(service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("rejeita agendamento fora da janela de expediente")
+        void deveRejeitarForaDoExpediente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockExpediente(janela(LocalTime.of(8, 0), LocalTime.of(12, 0)));
+
+            assertThrows(ForaDoHorarioTrabalhoException.class,
+                    () -> service.agendar(request));
+            verify(agendamentoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita quando o atendimento so cabe somando duas janelas")
+        void deveRejeitarQuandoAtravessaDuasJanelas() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            // 13h-14h30 e 14h30-16h: o atendimento de 14h-15h cruza o intervalo
+            // entre as duas e nao cabe inteiro em nenhuma delas.
+            mockExpediente(
+                    janela(LocalTime.of(13, 0), LocalTime.of(14, 30)),
+                    janela(LocalTime.of(14, 30), LocalTime.of(16, 0)));
+
+            assertThrows(ForaDoHorarioTrabalhoException.class,
+                    () -> service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("rejeita quando o dia da semana nao tem expediente")
+        void deveRejeitarDiaSemExpediente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            when(horarioTrabalhoRepository
+                    .existsByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID)).thenReturn(true);
+            when(horarioTrabalhoRepository
+                    .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(eq(PROFISSIONAL_UUID), anyInt()))
+                    .thenReturn(List.of());
+
+            assertThrows(ForaDoHorarioTrabalhoException.class,
+                    () -> service.agendar(request));
         }
     }
 }

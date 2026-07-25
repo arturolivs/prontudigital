@@ -4,7 +4,9 @@ import com.prontudigital.backend.autenticacao.dto.AlterarSenhaRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.AtivarAcessoRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.AtualizarPerfilRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.CadastrarPacienteDTO;
+import com.prontudigital.backend.autenticacao.dto.EnderecoDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
+import com.prontudigital.backend.autenticacao.entidades.Endereco;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
 import com.prontudigital.backend.autenticacao.excecoes.*;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -442,7 +445,8 @@ class UsuarioServiceImplTest {
         void deveAtualizarPerfil() {
             Usuario existente = usuarioComPerfil();
             AtualizarPerfilRequestDTO dto =
-                    new AtualizarPerfilRequestDTO("Novo Nome", "novo@email.com", "11988887777");
+                    new AtualizarPerfilRequestDTO("Novo Nome", "novo@email.com", "11988887777",
+                            null, null, null);
 
             when(usuarioRepository.findById(USUARIO_ID)).thenReturn(Optional.of(existente));
             when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -460,11 +464,140 @@ class UsuarioServiceImplTest {
         @DisplayName("lanca excecao quando usuario nao existe")
         void deveLancarQuandoInexistente() {
             AtualizarPerfilRequestDTO dto =
-                    new AtualizarPerfilRequestDTO(NOME, EMAIL, "11988887777");
+                    new AtualizarPerfilRequestDTO(NOME, EMAIL, "11988887777", null, null, null);
             when(usuarioRepository.findById(999L)).thenReturn(Optional.empty());
 
             assertThrows(UsuarioNaoEncontradoException.class,
                     () -> service.atualizarPerfil(999L, dto));
+            verify(usuarioRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("grava CPF so com digitos e o endereco informado (RF04)")
+        void deveGravarDadosPessoais() {
+            Usuario existente = usuarioComPerfil();
+            EnderecoDTO endereco = EnderecoDTO.builder()
+                    .cep("01310-100")
+                    .logradouro("  Avenida Paulista  ")
+                    .numero("1578")
+                    .bairro("Bela Vista")
+                    .cidade("Sao Paulo")
+                    .uf("sp")
+                    .build();
+            AtualizarPerfilRequestDTO dto = new AtualizarPerfilRequestDTO(
+                    NOME, EMAIL, "11988887777",
+                    "529.982.247-25", LocalDate.of(1985, 3, 27), endereco);
+
+            when(usuarioRepository.findById(USUARIO_ID)).thenReturn(Optional.of(existente));
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            UsuarioDTO resultado = service.atualizarPerfil(USUARIO_ID, dto);
+
+            assertEquals("52998224725", existente.getCpf());
+            assertEquals(LocalDate.of(1985, 3, 27), existente.getDataNascimento());
+            assertEquals("01310100", existente.getEndereco().getCep());
+            assertEquals("Avenida Paulista", existente.getEndereco().getLogradouro());
+            assertEquals("SP", existente.getEndereco().getUf());
+            assertEquals("52998224725", resultado.cpf());
+        }
+
+        @Test
+        @DisplayName("rejeita CPF ja usado por outro usuario (RF04)")
+        void deveRejeitarCpfDuplicado() {
+            Usuario existente = usuarioComPerfil();
+            AtualizarPerfilRequestDTO dto = new AtualizarPerfilRequestDTO(
+                    NOME, EMAIL, "11988887777", "529.982.247-25", null, null);
+
+            when(usuarioRepository.findById(USUARIO_ID)).thenReturn(Optional.of(existente));
+            when(usuarioRepository.existsByCpfAndIdNot("52998224725", USUARIO_ID))
+                    .thenReturn(true);
+
+            assertThrows(CpfExistenteException.class,
+                    () -> service.atualizarPerfil(USUARIO_ID, dto));
+            verify(usuarioRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("endereco ausente na requisicao preserva o que ja estava gravado")
+        void devePreservarEnderecoQuandoNaoEnviado() {
+            Usuario existente = usuarioComPerfil();
+            existente.setEndereco(Endereco.builder().cidade("Recife").uf("PE").build());
+
+            AtualizarPerfilRequestDTO dto = new AtualizarPerfilRequestDTO(
+                    NOME, EMAIL, "11988887777", null, null, null);
+
+            when(usuarioRepository.findById(USUARIO_ID)).thenReturn(Optional.of(existente));
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            service.atualizarPerfil(USUARIO_ID, dto);
+
+            assertEquals("Recife", existente.getEndereco().getCidade());
+        }
+
+        @Test
+        @DisplayName("nao mexe em COREN nem especialidade — sao do ADMIN (RF05)")
+        void naoDeveAlterarDadosProfissionais() {
+            Usuario existente = usuarioComPerfil();
+            existente.setCoren("COREN-SP 123456");
+            existente.setEspecialidade("Estomaterapia");
+
+            AtualizarPerfilRequestDTO dto = new AtualizarPerfilRequestDTO(
+                    NOME, EMAIL, "11988887777", null, null, null);
+
+            when(usuarioRepository.findById(USUARIO_ID)).thenReturn(Optional.of(existente));
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            service.atualizarPerfil(USUARIO_ID, dto);
+
+            assertEquals("COREN-SP 123456", existente.getCoren());
+            assertEquals("Estomaterapia", existente.getEspecialidade());
+        }
+    }
+
+    // =========================================================
+    // atualizar() - dados profissionais (RF05)
+    // =========================================================
+    @Nested
+    @DisplayName("atualizar() com dados profissionais (RF05)")
+    class AtualizarDadosProfissionais {
+
+        private UsuarioDTO dtoComCoren(String coren) {
+            return UsuarioDTO.builder()
+                    .nomeCompleto(NOME)
+                    .email(EMAIL)
+                    .telefone("11988887777")
+                    .ativo(true)
+                    .coren(coren)
+                    .especialidade("  Estomaterapia  ")
+                    .build();
+        }
+
+        @Test
+        @DisplayName("grava COREN e especialidade normalizados")
+        void deveGravarDadosProfissionais() {
+            Usuario existente = usuarioComPerfil();
+
+            when(usuarioRepository.findById(USUARIO_ID)).thenReturn(Optional.of(existente));
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            service.atualizar(USUARIO_ID, dtoComCoren("COREN-SP 123456"));
+
+            assertEquals("COREN-SP 123456", existente.getCoren());
+            assertEquals("Estomaterapia", existente.getEspecialidade());
+        }
+
+        @Test
+        @DisplayName("rejeita COREN ja usado por outro profissional")
+        void deveRejeitarCorenDuplicado() {
+            Usuario existente = usuarioComPerfil();
+            UsuarioDTO dto = dtoComCoren("COREN-SP 123456");
+
+            when(usuarioRepository.findById(USUARIO_ID)).thenReturn(Optional.of(existente));
+            when(usuarioRepository.existsByCorenAndIdNot("COREN-SP 123456", USUARIO_ID))
+                    .thenReturn(true);
+
+            assertThrows(CorenExistenteException.class,
+                    () -> service.atualizar(USUARIO_ID, dto));
             verify(usuarioRepository, never()).save(any());
         }
     }

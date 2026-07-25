@@ -24,6 +24,8 @@ import com.prontudigital.backend.agendamento.eventos.AgendamentoReagendadoEvento
 import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
+import com.prontudigital.backend.agendamento.repositorios.HorarioTrabalhoRepository;
+import com.prontudigital.backend.agendamento.excecoes.ForaDoHorarioTrabalhoException;
 import com.prontudigital.backend.agendamento.repositorios.EvolucaoCurativoRepository;
 import com.prontudigital.backend.agendamento.repositorios.EvolucaoEnfermagemRepository;
 import com.prontudigital.backend.agendamento.repositorios.HistoricoAgendamentoRepository;
@@ -66,6 +68,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
     private final EvolucaoCurativoRepository evolucaoCurativoRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
+    private final HorarioTrabalhoRepository horarioTrabalhoRepository;
     private final HistoricoAgendamentoRepository historicoRepository;
     private final ProcedimentoRepository procedimentoRepository;
     private final UsuarioService usuarioService;
@@ -573,6 +576,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     private void validarDisponibilidade(UUID profissionalUuid, UUID pacienteUuid,
                                         LocalDateTime inicio, LocalDateTime fim) {
+        validarHorarioTrabalho(profissionalUuid, inicio, fim);
         validarBloqueioHorario(profissionalUuid, inicio, fim);
 
         if (!agendamentoRepository
@@ -590,6 +594,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private void validarDisponibilidadeReagendamento(Agendamento agendamento,
                                                      LocalDateTime inicio,
                                                      LocalDateTime fim) {
+        validarHorarioTrabalho(agendamento.getProfissionalUuid(), inicio, fim);
         validarBloqueioHorario(agendamento.getProfissionalUuid(), inicio, fim);
 
         agendamentoRepository
@@ -613,6 +618,38 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                     throw new PacienteIndisponivelException(
                             Mensagens.get("agendamento.paciente-indisponivel"));
                 });
+    }
+
+    /**
+     * RF05 — o atendimento precisa caber inteiro em uma janela de expediente do
+     * profissional naquele dia da semana.
+     *
+     * <p>Profissional sem nenhuma janela cadastrada nao e validado: a regra so
+     * passa a valer depois que alguem define o expediente, para nao invalidar os
+     * profissionais que ja existiam antes do RF05.
+     */
+    private void validarHorarioTrabalho(UUID profissionalUuid,
+                                        LocalDateTime inicio, LocalDateTime fim) {
+        if (!horarioTrabalhoRepository.existsByProfissionalUuidAndAtivoTrue(profissionalUuid)) {
+            return;
+        }
+
+        // Um atendimento que vira o dia nunca cabe numa janela de um dia so.
+        boolean mesmoDia = inicio.toLocalDate().equals(fim.toLocalDate());
+
+        boolean dentroDoExpediente = mesmoDia && horarioTrabalhoRepository
+                .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(
+                        profissionalUuid, inicio.getDayOfWeek().getValue())
+                .stream()
+                .anyMatch(h -> h.contem(inicio.toLocalTime(), fim.toLocalTime()));
+
+        if (!dentroDoExpediente) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            throw new ForaDoHorarioTrabalhoException(Mensagens.get(
+                    "agendamento.fora-do-horario-trabalho",
+                    inicio.format(fmt),
+                    fim.format(fmt)));
+        }
     }
 
     private void validarBloqueioHorario(UUID profissionalUuid,

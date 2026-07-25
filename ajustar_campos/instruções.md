@@ -13,3 +13,5 @@ FICHA DE EVOLUÇÃO DIÁRIA - CURATIVOS.pdf
 
 
 Crie uma lista de passos a serem feitos para que as modificações sejam aplicadas de forma incremental.
+
+

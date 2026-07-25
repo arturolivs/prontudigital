@@ -111,26 +111,29 @@ Enums compartilhados entre as duas fichas: `TecidoLeito`, `BordasFerida`, `Exsud
 
 Cada passo deixa o projeto compilando, com testes verdes.
 
-### Passo 1 — Backend: remodelar Anamnese
+> **Status:** Passos 1–8 concluídos. Backend nos commits `2580034` / `a699ad7` /
+> `d13fe1b`; frontend em `e3202f4`.
+
+### Passo 1 — Backend: remodelar Anamnese — ✅ CONCLUÍDO
 - Reescrever `V18__criacao_tabela_anamneses.sql` com os novos campos.
 - Atualizar entidade `Anamnese`, `AnamneseRequestDTO`, `AnamneseResponseDTO`, mapeamento no
   `AnamneseServiceImpl` e criar enum `RedeApoio`.
 - Atualizar testes de `AnamneseServiceImpl`.
 
-### Passo 2 — Backend: criar Ficha de Evolução de Enfermagem (Avaliação)
+### Passo 2 — Backend: criar Ficha de Evolução de Enfermagem (Avaliação) — ✅ CONCLUÍDO
 - Nova migração de criação `evolucoes_enfermagem` (numerar após a última existente).
 - Novos enums compartilhados + entidade `EvolucaoEnfermagem`, repository, DTOs.
 - Endpoint no fluxo do agendamento (`registrarEvolucaoEnfermagem`) restrito a agendamentos
   do tipo `AVALIACAO`; expor a ficha no `AgendamentoDetalhadoDTO`.
 - Testes de service.
 
-### Passo 3 — Backend: criar Ficha de Evolução Diária – Curativos (Tratamento)
+### Passo 3 — Backend: criar Ficha de Evolução Diária – Curativos (Tratamento) — ✅ CONCLUÍDO
 - Nova migração de criação `evolucoes_curativos`.
 - Entidade `EvolucaoCurativo`, repository, DTOs; `registrarEvolucaoCurativo` restrito a
   `TRATAMENTO`; expor no `AgendamentoDetalhadoDTO`.
 - Testes de service.
 
-### Passo 4 — Backend: remover a EvolucaoClinica antiga
+### Passo 4 — Backend: remover a EvolucaoClinica antiga — ✅ CONCLUÍDO
 - Excluir `V14__adicionar_campos_evolucao_tratamento_agendamentos.sql` e
   `V15__separar_evolucao_clinica.sql` (banco do zero; V14 só criava colunas que a V15 dropava).
 - Remover entidade `EvolucaoClinica`, `EvolucaoClinicaDTO`, `EvolucaoClinicaRepository`,
@@ -139,27 +142,37 @@ Cada passo deixa o projeto compilando, com testes verdes.
   (enfermagem e curativos); ajustar `messages.properties`.
 - Atualizar/remover testes e fixtures que referenciam a estrutura antiga.
 
-### Passo 5 — Frontend: tipos e serviços
+### Passo 5 — Frontend: tipos e serviços — ✅ CONCLUÍDO
 - Reescrever tipos em `tipos/agendamento.ts` (novas fichas + enums) e criar `tipos/anamnese.ts`.
 - Atualizar `lib/agendamento.service.ts` (novos endpoints) e criar `lib/anamnese.service.ts`.
 - Adicionar mensagens em `lib/mensagens.ts`.
 
-### Passo 6 — Frontend: formulário da Avaliação
+### Passo 6 — Frontend: formulário da Avaliação — ✅ CONCLUÍDO
 - Na página `agenda/procedimento/[id]`: quando `tipo === 'AVALIACAO'`, exibir **Anamnese**
   (seções do modelo, Sim/Não + detalhe, checkboxes, rede de apoio) e **Ficha de Evolução de
   Enfermagem** (6 seções do modelo, data/hora pré-preenchidas do agendamento).
 - Finalizar consulta grava anamnese + ficha de enfermagem.
 
-### Passo 7 — Frontend: formulário do Tratamento
+### Passo 7 — Frontend: formulário do Tratamento — ✅ CONCLUÍDO
 - Quando `tipo === 'TRATAMENTO'`, exibir a **Ficha de Evolução Diária – Curativos**
   (avaliação diária com legenda TIME, intervenções, evolução, plano/ações futuras);
   `area_aproximada` calculada automaticamente (C×L).
 - Remover o formulário antigo (dados da ferida/leito/exsudato/percentuais etc.).
 
-### Passo 8 — Verificação final
+### Passo 8 — Verificação final — ✅ CONCLUÍDO (exceto E2E)
 - `mvn test` no backend (JaCoCo), build do frontend, revisão do histórico do prontuário
   (`AbaHistorico`) e do fluxo completo: agendar Avaliação → preencher anamnese + ficha →
   concluir → agendar Tratamento → preencher ficha diária → concluir.
+
+Resultado (24/07/2026):
+
+| Verificação | Resultado |
+|---|---|
+| `mvnw test` (backend) | 253/253 verdes, 0 falhas/erros |
+| `tsc --noEmit` | limpo |
+| `next build` | sucesso (16 rotas) |
+| `eslint` | limpo nos arquivos da fatia |
+| Fluxo E2E em runtime | **pendente** — exige Docker + DB + gateway de pé |
 
 ---
 

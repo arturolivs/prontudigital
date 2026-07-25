@@ -7,6 +7,8 @@ import com.prontudigital.backend.notificacao.excecoes.TokenConfirmacaoInvalidoEx
 import com.prontudigital.backend.autenticacao.excecoes.*;
 import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
 import com.prontudigital.backend.autenticacao.excecoes.TelefoneExistenteException;
+import com.prontudigital.backend.autenticacao.excecoes.CpfExistenteException;
+import com.prontudigital.backend.autenticacao.excecoes.CorenExistenteException;
 import com.prontudigital.backend.compartilhado.dto.ErroRespostaDTO;
 import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import jakarta.servlet.http.HttpServletRequest;
@@ -147,6 +149,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             UserNameExistenteException.class,
             EmailExistenteException.class,
             TelefoneExistenteException.class,
+            CpfExistenteException.class,
+            CorenExistenteException.class,
             AgendamentoJaCanceladoException.class,
             AgendamentoJaConcluidoException.class,
             AnamneseJaExisteException.class,
@@ -167,6 +171,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             AgendamentoStatusInvalidoException.class,
             CancelamentoForaDoPrazoException.class,
             TipoVisualizacaoInvalidoException.class,
+            com.prontudigital.backend.agendamento.excecoes.ForaDoHorarioTrabalhoException.class,
             com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class,
             com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class,
             com.prontudigital.backend.prontuario.excecoes.AnexoInvalidoException.class

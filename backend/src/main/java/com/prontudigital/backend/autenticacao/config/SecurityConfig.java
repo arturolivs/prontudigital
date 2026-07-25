@@ -50,6 +50,8 @@ public class SecurityConfig {
 
     private static final String[] GET_PUBLICOS = {
             "/api/bloqueios-horario/public",
+            // RF05: expediente do profissional (a tela publica so oferece horarios validos)
+            "/api/horarios-trabalho/public",
             "/api/public/**",
             "/api/confirmacao/**",
             // RF06: catalogo de procedimentos (necessario no agendamento publico)
