@@ -1,14 +1,29 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Mail, Phone, AtSign, Save, RefreshCw, Lock, Eye, EyeOff } from 'lucide-react'
+import {
+  User,
+  Mail,
+  Phone,
+  AtSign,
+  Save,
+  RefreshCw,
+  Lock,
+  Eye,
+  EyeOff,
+} from 'lucide-react'
 import Layout from '@/components/Layout/Layout'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { usuariosAPI } from '@/lib/usuario.service'
 import { tokenService } from '@/lib/auth.service'
-import { mascaraTelefone } from '@/lib/mascaras'
+import {
+  mascaraCEP,
+  mascaraCPF,
+  mascaraTelefone,
+  somenteDigitos,
+} from '@/lib/mascaras'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { Usuario } from '@/tipos/autenticacao'
 import './perfil.css'
@@ -36,6 +51,18 @@ export default function PerfilPage() {
   const [nomeCompleto, setNomeCompleto] = useState('')
   const [email, setEmail] = useState('')
   const [telefone, setTelefone] = useState('')
+  // RF04 — dados pessoais
+  const [cpf, setCpf] = useState('')
+  const [dataNascimento, setDataNascimento] = useState('')
+  const [endereco, setEndereco] = useState({
+    cep: '',
+    logradouro: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    uf: '',
+  })
   const [erros, setErros] = useState<Record<string, string>>({})
 
   // Campos de senha
@@ -61,6 +88,17 @@ export default function PerfilPage() {
       setNomeCompleto(dados.nomeCompleto || '')
       setEmail(dados.email || '')
       setTelefone(mascaraTelefone(dados.telefone || ''))
+      setCpf(mascaraCPF(dados.cpf || ''))
+      setDataNascimento(dados.dataNascimento || '')
+      setEndereco({
+        cep: mascaraCEP(dados.endereco?.cep || ''),
+        logradouro: dados.endereco?.logradouro || '',
+        numero: dados.endereco?.numero || '',
+        complemento: dados.endereco?.complemento || '',
+        bairro: dados.endereco?.bairro || '',
+        cidade: dados.endereco?.cidade || '',
+        uf: dados.endereco?.uf || '',
+      })
     } catch {
       exibirNotificacao(MENSAGENS.erro.carregarPerfil, 'error')
     } finally {
@@ -70,7 +108,8 @@ export default function PerfilPage() {
 
   const validarPerfil = (): boolean => {
     const novosErros: Record<string, string> = {}
-    if (!nomeCompleto.trim()) novosErros.nomeCompleto = MENSAGENS.validacao.nomeObrigatorio
+    if (!nomeCompleto.trim())
+      novosErros.nomeCompleto = MENSAGENS.validacao.nomeObrigatorio
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       novosErros.email = MENSAGENS.validacao.emailInvalido
     setErros(novosErros)
@@ -79,11 +118,14 @@ export default function PerfilPage() {
 
   const validarSenha = (): boolean => {
     const novosErros: Record<string, string> = {}
-    if (!senhaAtual) novosErros.senhaAtual = MENSAGENS.validacao.senhaAtualObrigatoria
-    if (!novaSenha) novosErros.novaSenha = MENSAGENS.validacao.novaSenhaObrigatoria
+    if (!senhaAtual)
+      novosErros.senhaAtual = MENSAGENS.validacao.senhaAtualObrigatoria
+    if (!novaSenha)
+      novosErros.novaSenha = MENSAGENS.validacao.novaSenhaObrigatoria
     else if (novaSenha.length < 6)
       novosErros.novaSenha = MENSAGENS.validacao.senhaMinima
-    if (!confirmarSenha) novosErros.confirmarSenha = MENSAGENS.validacao.confirmarSenhaObrigatoria
+    if (!confirmarSenha)
+      novosErros.confirmarSenha = MENSAGENS.validacao.confirmarSenhaObrigatoria
     else if (novaSenha !== confirmarSenha)
       novosErros.confirmarSenha = MENSAGENS.validacao.senhasNaoCoincidem
     setErrosSenha(novosErros)
@@ -94,10 +136,26 @@ export default function PerfilPage() {
     if (!validarPerfil() || !dadosUsuario) return
     try {
       setSalvando(true)
+      const enderecoLimpo = {
+        cep: somenteDigitos(endereco.cep),
+        logradouro: endereco.logradouro.trim() || undefined,
+        numero: endereco.numero.trim() || undefined,
+        complemento: endereco.complemento.trim() || undefined,
+        bairro: endereco.bairro.trim() || undefined,
+        cidade: endereco.cidade.trim() || undefined,
+        uf: endereco.uf.trim().toUpperCase() || undefined,
+      }
+
       const atualizado = await usuariosAPI.atualizarPerfil(dadosUsuario.id, {
         nomeCompleto: nomeCompleto.trim(),
         email: email.trim() || undefined,
         telefone: telefone.trim() || undefined,
+        // O backend guarda o CPF só com dígitos.
+        cpf: somenteDigitos(cpf),
+        dataNascimento: dataNascimento || undefined,
+        endereco: Object.values(enderecoLimpo).some(Boolean)
+          ? enderecoLimpo
+          : undefined,
       })
       setDadosUsuario(atualizado)
 
@@ -150,11 +208,21 @@ export default function PerfilPage() {
     .map(n => n[0].toUpperCase())
     .join('')
 
+  const enderecoSalvo = dadosUsuario?.endereco
   const temAlteracaoPerfil =
     dadosUsuario &&
     (nomeCompleto.trim() !== (dadosUsuario.nomeCompleto || '') ||
       email.trim() !== (dadosUsuario.email || '') ||
-      telefone.trim() !== (dadosUsuario.telefone || ''))
+      telefone.trim() !== (dadosUsuario.telefone || '') ||
+      (somenteDigitos(cpf) ?? '') !== (dadosUsuario.cpf || '') ||
+      dataNascimento !== (dadosUsuario.dataNascimento || '') ||
+      (somenteDigitos(endereco.cep) ?? '') !== (enderecoSalvo?.cep || '') ||
+      endereco.logradouro.trim() !== (enderecoSalvo?.logradouro || '') ||
+      endereco.numero.trim() !== (enderecoSalvo?.numero || '') ||
+      endereco.complemento.trim() !== (enderecoSalvo?.complemento || '') ||
+      endereco.bairro.trim() !== (enderecoSalvo?.bairro || '') ||
+      endereco.cidade.trim() !== (enderecoSalvo?.cidade || '') ||
+      endereco.uf.trim() !== (enderecoSalvo?.uf || ''))
 
   const temCampoSenha = senhaAtual || novaSenha || confirmarSenha
 
@@ -190,7 +258,9 @@ export default function PerfilPage() {
                 <span className="perfil-nome-exibido">
                   {nomeCompleto || 'Sem nome'}
                 </span>
-                <span className="perfil-username">@{dadosUsuario?.username}</span>
+                <span className="perfil-username">
+                  @{dadosUsuario?.username}
+                </span>
                 <div className="perfil-badges">
                   {dadosUsuario?.perfis.map(p => (
                     <span key={p} className="perfil-badge">
@@ -258,10 +328,150 @@ export default function PerfilPage() {
                       type="tel"
                       className="campo-input com-icone"
                       value={telefone}
-                      onChange={e => setTelefone(mascaraTelefone(e.target.value))}
+                      onChange={e =>
+                        setTelefone(mascaraTelefone(e.target.value))
+                      }
                       placeholder="(99) 9 9999-9999"
                     />
                   </div>
+                </div>
+
+                {/* RF04 — identificação */}
+                <div className="campo">
+                  <label htmlFor="cpf">CPF</label>
+                  <input
+                    id="cpf"
+                    type="text"
+                    className="campo-input"
+                    value={cpf}
+                    onChange={e => setCpf(mascaraCPF(e.target.value))}
+                    placeholder="000.000.000-00"
+                    inputMode="numeric"
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="dataNascimento">Data de nascimento</label>
+                  <input
+                    id="dataNascimento"
+                    type="date"
+                    className="campo-input"
+                    value={dataNascimento}
+                    onChange={e => setDataNascimento(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+
+                {/* RF04 — endereço */}
+                <div className="campo">
+                  <label htmlFor="cep">CEP</label>
+                  <input
+                    id="cep"
+                    type="text"
+                    className="campo-input"
+                    value={endereco.cep}
+                    onChange={e =>
+                      setEndereco(prev => ({
+                        ...prev,
+                        cep: mascaraCEP(e.target.value),
+                      }))
+                    }
+                    placeholder="00000-000"
+                    inputMode="numeric"
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="logradouro">Logradouro</label>
+                  <input
+                    id="logradouro"
+                    type="text"
+                    className="campo-input"
+                    value={endereco.logradouro}
+                    onChange={e =>
+                      setEndereco(prev => ({
+                        ...prev,
+                        logradouro: e.target.value,
+                      }))
+                    }
+                    placeholder="Rua, avenida..."
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="numero">Número</label>
+                  <input
+                    id="numero"
+                    type="text"
+                    className="campo-input"
+                    value={endereco.numero}
+                    onChange={e =>
+                      setEndereco(prev => ({ ...prev, numero: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="complemento">Complemento</label>
+                  <input
+                    id="complemento"
+                    type="text"
+                    className="campo-input"
+                    value={endereco.complemento}
+                    onChange={e =>
+                      setEndereco(prev => ({
+                        ...prev,
+                        complemento: e.target.value,
+                      }))
+                    }
+                    placeholder="Apto, bloco..."
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="bairro">Bairro</label>
+                  <input
+                    id="bairro"
+                    type="text"
+                    className="campo-input"
+                    value={endereco.bairro}
+                    onChange={e =>
+                      setEndereco(prev => ({ ...prev, bairro: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="cidade">Cidade</label>
+                  <input
+                    id="cidade"
+                    type="text"
+                    className="campo-input"
+                    value={endereco.cidade}
+                    onChange={e =>
+                      setEndereco(prev => ({ ...prev, cidade: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="uf">UF</label>
+                  <input
+                    id="uf"
+                    type="text"
+                    className="campo-input"
+                    value={endereco.uf}
+                    onChange={e =>
+                      setEndereco(prev => ({
+                        ...prev,
+                        uf: e.target.value
+                          .replace(/[^A-Za-z]/g, '')
+                          .slice(0, 2),
+                      }))
+                    }
+                    placeholder="SP"
+                    maxLength={2}
+                  />
                 </div>
               </div>
 
@@ -274,6 +484,17 @@ export default function PerfilPage() {
                       setNomeCompleto(dadosUsuario.nomeCompleto || '')
                       setEmail(dadosUsuario.email || '')
                       setTelefone(dadosUsuario.telefone || '')
+                      setCpf(mascaraCPF(dadosUsuario.cpf || ''))
+                      setDataNascimento(dadosUsuario.dataNascimento || '')
+                      setEndereco({
+                        cep: mascaraCEP(dadosUsuario.endereco?.cep || ''),
+                        logradouro: dadosUsuario.endereco?.logradouro || '',
+                        numero: dadosUsuario.endereco?.numero || '',
+                        complemento: dadosUsuario.endereco?.complemento || '',
+                        bairro: dadosUsuario.endereco?.bairro || '',
+                        cidade: dadosUsuario.endereco?.cidade || '',
+                        uf: dadosUsuario.endereco?.uf || '',
+                      })
                       setErros({})
                     }}
                     disabled={salvando}
@@ -310,7 +531,8 @@ export default function PerfilPage() {
                     />
                   </div>
                   <span className="campo-hint">
-                    O nome de usuário é usado para login e não pode ser alterado aqui
+                    O nome de usuário é usado para login e não pode ser alterado
+                    aqui
                   </span>
                 </div>
               </div>
@@ -342,7 +564,11 @@ export default function PerfilPage() {
                       onClick={() => toggleVisibilidade('atual')}
                       tabIndex={-1}
                     >
-                      {mostrarSenhas.atual ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {mostrarSenhas.atual ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
                     </button>
                   </div>
                   {errosSenha.senhaAtual && (
@@ -372,7 +598,11 @@ export default function PerfilPage() {
                       onClick={() => toggleVisibilidade('nova')}
                       tabIndex={-1}
                     >
-                      {mostrarSenhas.nova ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {mostrarSenhas.nova ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
                     </button>
                   </div>
                   {errosSenha.novaSenha && (
@@ -380,9 +610,15 @@ export default function PerfilPage() {
                   )}
                   {novaSenha && !errosSenha.novaSenha && (
                     <div className="senha-forca">
-                      <div className={`senha-forca-barra${novaSenha.length >= 10 ? ' forte' : novaSenha.length >= 6 ? ' media' : ' fraca'}`} />
+                      <div
+                        className={`senha-forca-barra${novaSenha.length >= 10 ? ' forte' : novaSenha.length >= 6 ? ' media' : ' fraca'}`}
+                      />
                       <span className="senha-forca-rotulo">
-                        {novaSenha.length >= 10 ? 'Forte' : novaSenha.length >= 6 ? 'Média' : 'Fraca'}
+                        {novaSenha.length >= 10
+                          ? 'Forte'
+                          : novaSenha.length >= 6
+                            ? 'Média'
+                            : 'Fraca'}
                       </span>
                     </div>
                   )}
@@ -410,11 +646,17 @@ export default function PerfilPage() {
                       onClick={() => toggleVisibilidade('confirmar')}
                       tabIndex={-1}
                     >
-                      {mostrarSenhas.confirmar ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {mostrarSenhas.confirmar ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
                     </button>
                   </div>
                   {errosSenha.confirmarSenha && (
-                    <span className="campo-erro">{errosSenha.confirmarSenha}</span>
+                    <span className="campo-erro">
+                      {errosSenha.confirmarSenha}
+                    </span>
                   )}
                 </div>
               </div>

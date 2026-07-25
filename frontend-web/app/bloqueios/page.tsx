@@ -20,6 +20,7 @@ import { useNotificacao } from '../../contexts/ToastContext'
 import { usuariosAPI } from '../../lib/usuario.service'
 import { bloqueioAPI } from '../../lib/bloqueio.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+import HorariosTrabalho from './HorariosTrabalho'
 import Layout from '@/components/Layout/Layout'
 import {
   BloqueioHorario,
@@ -456,6 +457,9 @@ export default function BloqueiosPage() {
               </div>
             ))}
           </div>
+
+          {/* ── Horários de trabalho (RF05) ── */}
+          <HorariosTrabalho profissionalUuid={profissionalUuid} />
 
           {/* ── Regras Recorrentes ── */}
           {recorrentes.length > 0 && (

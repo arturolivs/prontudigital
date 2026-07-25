@@ -3,7 +3,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { Usuario } from '@/tipos/autenticacao'
 import Modal from '@/components/Modal'
-import { mascaraTelefone } from '@/lib/mascaras'
+import {
+  mascaraCEP,
+  mascaraCPF,
+  mascaraTelefone,
+  somenteDigitos,
+} from '@/lib/mascaras'
 import './FormularioUsuarioModal.style.css'
 
 const OPCOES_PERFIL = [
@@ -148,9 +153,24 @@ export default function FormularioUsuarioModal({
     senha: '',
     ativo: user?.ativo !== undefined ? user.ativo : true,
     perfis: user?.perfis ?? ['USUARIO'],
+    // RF04 — dados do paciente
+    cpf: mascaraCPF(user?.cpf ?? ''),
+    dataNascimento: user?.dataNascimento ?? '',
+    cep: mascaraCEP(user?.endereco?.cep ?? ''),
+    logradouro: user?.endereco?.logradouro ?? '',
+    numero: user?.endereco?.numero ?? '',
+    complemento: user?.endereco?.complemento ?? '',
+    bairro: user?.endereco?.bairro ?? '',
+    cidade: user?.endereco?.cidade ?? '',
+    uf: user?.endereco?.uf ?? '',
+    // RF05 — credenciais do profissional
+    coren: user?.coren ?? '',
+    especialidade: user?.especialidade ?? '',
   })
 
   const [salvando, setSalvando] = useState(false)
+
+  const ehProfissional = formData.perfis.includes('PROFISSIONAL')
 
   const set =
     (field: keyof typeof formData) =>
@@ -161,10 +181,43 @@ export default function FormularioUsuarioModal({
     e.preventDefault()
     setSalvando(true)
     try {
-      const payload =
-        editando && !formData.senha
-          ? { ...formData, senha: undefined }
-          : formData
+      const {
+        cpf,
+        cep,
+        logradouro,
+        numero,
+        complemento,
+        bairro,
+        cidade,
+        uf,
+        ...resto
+      } = formData
+
+      const endereco = {
+        cep: somenteDigitos(cep),
+        logradouro: logradouro || undefined,
+        numero: numero || undefined,
+        complemento: complemento || undefined,
+        bairro: bairro || undefined,
+        cidade: cidade || undefined,
+        uf: uf ? uf.toUpperCase() : undefined,
+      }
+      const enderecoPreenchido = Object.values(endereco).some(Boolean)
+
+      const payload = {
+        ...resto,
+        // O backend guarda o CPF só com dígitos.
+        cpf: somenteDigitos(cpf),
+        dataNascimento: resto.dataNascimento || undefined,
+        endereco: enderecoPreenchido ? endereco : undefined,
+        // COREN/especialidade só fazem sentido para profissional.
+        coren: ehProfissional ? resto.coren || undefined : undefined,
+        especialidade: ehProfissional
+          ? resto.especialidade || undefined
+          : undefined,
+        senha: editando && !resto.senha ? undefined : resto.senha,
+      }
+
       await onSave(payload)
     } finally {
       setSalvando(false)
@@ -292,6 +345,164 @@ export default function FormularioUsuarioModal({
             onChange={perfis => setFormData(prev => ({ ...prev, perfis }))}
           />
         </div>
+
+        {/* RF04 — identificação e endereço */}
+        <fieldset className="uf-secao">
+          <legend className="uf-secao-titulo">Dados pessoais</legend>
+
+          <div className="uf-linha-dupla">
+            <div className="uf-grupo">
+              <label className="uf-label">
+                CPF<span className="uf-label-opcional">(opcional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.cpf}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    cpf: mascaraCPF(e.target.value),
+                  }))
+                }
+                className="uf-input"
+                placeholder="000.000.000-00"
+                inputMode="numeric"
+              />
+            </div>
+            <div className="uf-grupo">
+              <label className="uf-label">
+                Data de nascimento
+                <span className="uf-label-opcional">(opcional)</span>
+              </label>
+              <input
+                type="date"
+                value={formData.dataNascimento}
+                onChange={set('dataNascimento')}
+                className="uf-input"
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+          </div>
+
+          <div className="uf-linha-dupla">
+            <div className="uf-grupo">
+              <label className="uf-label">CEP</label>
+              <input
+                type="text"
+                value={formData.cep}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    cep: mascaraCEP(e.target.value),
+                  }))
+                }
+                className="uf-input"
+                placeholder="00000-000"
+                inputMode="numeric"
+              />
+            </div>
+            <div className="uf-grupo">
+              <label className="uf-label">Logradouro</label>
+              <input
+                type="text"
+                value={formData.logradouro}
+                onChange={set('logradouro')}
+                className="uf-input"
+                placeholder="Rua, avenida..."
+              />
+            </div>
+          </div>
+
+          <div className="uf-linha-dupla">
+            <div className="uf-grupo">
+              <label className="uf-label">Número</label>
+              <input
+                type="text"
+                value={formData.numero}
+                onChange={set('numero')}
+                className="uf-input"
+              />
+            </div>
+            <div className="uf-grupo">
+              <label className="uf-label">Complemento</label>
+              <input
+                type="text"
+                value={formData.complemento}
+                onChange={set('complemento')}
+                className="uf-input"
+                placeholder="Apto, bloco..."
+              />
+            </div>
+          </div>
+
+          <div className="uf-linha-tripla">
+            <div className="uf-grupo">
+              <label className="uf-label">Bairro</label>
+              <input
+                type="text"
+                value={formData.bairro}
+                onChange={set('bairro')}
+                className="uf-input"
+              />
+            </div>
+            <div className="uf-grupo">
+              <label className="uf-label">Cidade</label>
+              <input
+                type="text"
+                value={formData.cidade}
+                onChange={set('cidade')}
+                className="uf-input"
+              />
+            </div>
+            <div className="uf-grupo">
+              <label className="uf-label">UF</label>
+              <input
+                type="text"
+                value={formData.uf}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    uf: e.target.value.replace(/[^A-Za-z]/g, '').slice(0, 2),
+                  }))
+                }
+                className="uf-input"
+                placeholder="SP"
+                maxLength={2}
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        {/* RF05 — só aparece para quem tem o perfil PROFISSIONAL */}
+        {ehProfissional && (
+          <fieldset className="uf-secao">
+            <legend className="uf-secao-titulo">Dados profissionais</legend>
+            <div className="uf-linha-dupla">
+              <div className="uf-grupo">
+                <label className="uf-label">COREN</label>
+                <input
+                  type="text"
+                  value={formData.coren}
+                  onChange={set('coren')}
+                  className="uf-input"
+                  placeholder="COREN-SP 123456"
+                  maxLength={20}
+                />
+              </div>
+              <div className="uf-grupo">
+                <label className="uf-label">Especialidade</label>
+                <input
+                  type="text"
+                  value={formData.especialidade}
+                  onChange={set('especialidade')}
+                  className="uf-input"
+                  placeholder="Estomaterapia"
+                  maxLength={100}
+                />
+              </div>
+            </div>
+          </fieldset>
+        )}
       </form>
     </Modal>
   )

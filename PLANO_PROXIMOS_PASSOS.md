@@ -64,7 +64,8 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Fase 3 — Enriquecer cadastros
 
-> **Progresso:** RF06 concluído (backend + frontend). Próximo: **RF04/RF05**.
+> **Progresso:** RF06 e RF04/RF05 concluídos (backend + frontend). **Fase 3 completa.**
+> Próximo: **Fase 4 — RF19/RF20** (relatórios).
 
 ### RF06 — Serviços/procedimentos em tabela — ✅ CONCLUÍDO
 - ✅ **Backend:** entidade `Procedimento` (codigo legado do enum, nome, descrição,
@@ -85,11 +86,37 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
   procedimentos da API e enviar `procedimentoId`; exibição usa `procedimentoNome`
   com fallback ao rótulo do enum legado (`nomeProcedimento()`).
 
-### RF04 / RF05 — Campos faltantes
-- **RF04:** adicionar CPF (com validação), data de nascimento e endereço ao cadastro de paciente.
-- **RF05:** adicionar COREN, especialidade e horários de trabalho ao profissional — os
-  horários alimentam a validação de disponibilidade da agenda.
-- Migrations incrementais + ajustes de formulário no frontend.
+### RF04 / RF05 — Campos faltantes — ✅ CONCLUÍDO
+- ✅ **RF04 (backend):** `cpf` (único, guardado só com dígitos, validado por
+  `@CPF` do hibernate-validator), `data_nascimento` (`@Past`) e endereço
+  (`@Embeddable Endereco`: cep/logradouro/número/complemento/bairro/cidade/uf)
+  em `usuarios` — migration `V25`, todas as colunas opcionais para não invalidar
+  o cadastro rápido de paciente (só nome + telefone). `CpfExistenteException` (409).
+- ✅ **RF05 (backend):** `coren` (único) e `especialidade` em `usuarios` (mesma
+  `V25`); `CorenExistenteException` (409). Nova tabela `horarios_trabalho`
+  (migration `V26`) espelhando `bloqueios_recorrentes`, com entidade, repository,
+  DTO, service e `HorarioTrabalhoController` em `/api/horarios-trabalho`
+  (POST/GET/DELETE + `GET /public`).
+- ✅ **Validação da agenda:** `AgendamentoServiceImpl.validarHorarioTrabalho`
+  roda em `agendar` e `reagendar` — o atendimento precisa caber **inteiro** em
+  uma janela do dia da semana (`ForaDoHorarioTrabalhoException`, 422).
+  Profissional sem janelas cadastradas não é validado, preservando os cadastros
+  anteriores ao RF05.
+- ✅ **Divisão de escrita:** `PATCH /{id}/perfil` (autoatendimento) grava só os
+  dados pessoais do RF04; COREN e especialidade são credenciais profissionais,
+  alteradas pelo ADMIN via `PUT /api/usuarios/{id}`.
+- ✅ **Frontend:** seções "Dados pessoais" e "Dados profissionais" (esta só quando
+  o perfil PROFISSIONAL está marcado) no `FormularioUsuarioModal`; campos de CPF,
+  nascimento e endereço na tela `/perfil`; componente `HorariosTrabalho` na página
+  `/bloqueios`, que passou a ser a tela de disponibilidade completa (expediente +
+  bloqueios). Máscaras `mascaraCPF`/`mascaraCEP` em `lib/mascaras.ts`.
+- ✅ Testes: `HorarioTrabalhoServiceImplTest` (12), novos casos de horário de
+  trabalho em `AgendamentoServiceImplTest` (5) e de CPF/endereço/COREN em
+  `UsuarioServiceImplTest` (6). Suíte em **276 testes, 0 falhas**.
+
+> **Observação para o RF04:** o requisito também citava "histórico médico" como
+> pendente — isso já foi entregue na Fase 2 pelo prontuário (anamnese, evoluções,
+> prescrições, anexos e histórico consolidado).
 
 ---
 
@@ -120,5 +147,5 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Sequência recomendada
 
-~~RF16~~ ~~RF15~~ ~~RF18~~ ~~RF06~~ (✅ concluídos) **→ RF04/RF05
-→ RF19/RF20 → RF17/RF21 → NFRs**
+~~RF16~~ ~~RF15~~ ~~RF18~~ ~~RF06~~ ~~RF04/RF05~~ (✅ concluídos)
+**→ RF19/RF20 → RF17/RF21 → NFRs**

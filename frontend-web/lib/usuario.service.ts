@@ -2,6 +2,7 @@ import axios from 'axios'
 import { tokenService, setupRefreshInterceptor } from './auth.service'
 import {
   Usuario,
+  AtualizarPerfilRequisicao,
   RegistrarRequisicao,
   CadastrarPacienteRequisicao,
   JwtResposta,
@@ -76,7 +77,7 @@ export const usuariosAPI = {
 
   atualizarPerfil: async (
     id: number,
-    dados: { nomeCompleto: string; email?: string; telefone?: string },
+    dados: AtualizarPerfilRequisicao,
   ): Promise<Usuario> => {
     const response = await api.patch<Usuario>(`/${id}/perfil`, dados)
     return response.data

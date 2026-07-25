@@ -462,6 +462,20 @@ Todos os endpoints aplicam a **RN03** via `ProntuarioPermissaoPolicy`:
 | `GET` | `/anexos/{uuid}/conteudo` | Stream do arquivo (inline) | RN03 leitura |
 | `DELETE` | `/anexos/{uuid}` | Remove anexo | RN03 escrita |
 
+### Horários de Trabalho — `/api/horarios-trabalho`
+
+Expediente semanal do profissional (RF05). Alimenta a validação de disponibilidade:
+um agendamento precisa caber inteiro em uma janela do dia da semana. Profissional
+**sem nenhuma janela cadastrada não é restringido** — a regra só passa a valer
+depois que o expediente é definido.
+
+| Método | Endpoint | Descrição | Acesso |
+|---|---|---|---|
+| `POST` | `/` | Cria janela de atendimento | ADMIN / PROFISSIONAL (própria agenda) |
+| `GET` | `/?profissionalUuid=` | Lista janelas do profissional | Autenticado |
+| `GET` | `/public?profissionalUuid=` | Idem, para a tela pública de agendamento | Público |
+| `DELETE` | `/{id}` | Remove janela | ADMIN / PROFISSIONAL (própria agenda) |
+
 ### Bloqueios de Horário — `/api/bloqueios-horario`
 
 | Método | Endpoint | Descrição | Acesso |

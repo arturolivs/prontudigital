@@ -17,8 +17,8 @@ O sistema gerencia as operações de uma **clínica de enfermagem especializada 
 - **RF03:** ✅ Recuperação de senha via código.
 
 ### **2.2 Módulo de Cadastro**
-- **RF04:** 🟡 Cadastro de pacientes (nome, telefone, e-mail). *Pendente: CPF, data de nascimento, endereço e histórico médico.*
-- **RF05:** 🟡 Cadastro de profissionais de enfermagem (nome, perfil). *Pendente: registro no COREN, especialidade e horários de trabalho.*
+- **RF04:** ✅ Cadastro de pacientes (nome, telefone, e-mail, CPF, data de nascimento, endereço). Histórico médico coberto pelo prontuário (RF13/RF15/RF16/RF18).
+- **RF05:** ✅ Cadastro de profissionais de enfermagem (nome, perfil, COREN, especialidade e horários de trabalho — estes validam a disponibilidade da agenda).
 - **RF06:** 🟡 Serviços/procedimentos oferecidos pela clínica (hoje via enum `TipoProcedimento`). *Pendente: cadastro dinâmico em tabela.*
 
 ### **2.3 Módulo de Agenda**
