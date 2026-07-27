@@ -24,6 +24,8 @@ import com.prontudigital.backend.agendamento.eventos.AgendamentoReagendadoEvento
 import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
+import com.prontudigital.backend.agendamento.repositorios.BloqueioRecorrenteRepository;
+import com.prontudigital.backend.agendamento.entidades.BloqueioRecorrente;
 import com.prontudigital.backend.agendamento.repositorios.HorarioTrabalhoRepository;
 import com.prontudigital.backend.agendamento.excecoes.ForaDoHorarioTrabalhoException;
 import com.prontudigital.backend.agendamento.repositorios.EvolucaoCurativoRepository;
@@ -68,6 +70,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
     private final EvolucaoCurativoRepository evolucaoCurativoRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
+    private final BloqueioRecorrenteRepository bloqueioRecorrenteRepository;
     private final HorarioTrabalhoRepository horarioTrabalhoRepository;
     private final HistoricoAgendamentoRepository historicoRepository;
     private final ProcedimentoRepository procedimentoRepository;
@@ -652,6 +655,11 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         }
     }
 
+    /**
+     * Bloqueios do profissional: os avulsos ({@link BloqueioHorario}) e as regras
+     * semanais ({@link BloqueioRecorrente}), que precisam ser materializadas nos
+     * dias do periodo antes de comparar.
+     */
     private void validarBloqueioHorario(UUID profissionalUuid,
                                         LocalDateTime inicio, LocalDateTime fim) {
         List<BloqueioHorario> bloqueios = bloqueioHorarioRepository
@@ -659,13 +667,53 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!bloqueios.isEmpty()) {
             BloqueioHorario b = bloqueios.get(0);
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            throw new HorarioIndisponivelException(Mensagens.get(
-                    "agendamento.horario-indisponivel",
-                    b.getInicioEm().format(fmt),
-                    b.getFimEm().format(fmt),
-                    b.getMotivo()));
+            throw indisponivel(b.getInicioEm(), b.getFimEm(), b.getMotivo());
         }
+
+        validarBloqueioRecorrente(profissionalUuid, inicio, fim);
+    }
+
+    /**
+     * Uma regra recorrente vale para todo dia da semana correspondente, entao a
+     * comparacao e feita dia a dia dentro do periodo do agendamento (que a
+     * validacao de duracao ja limita a poucas horas).
+     */
+    private void validarBloqueioRecorrente(UUID profissionalUuid,
+                                           LocalDateTime inicio, LocalDateTime fim) {
+        List<BloqueioRecorrente> regras =
+                bloqueioRecorrenteRepository.findByProfissionalUuidAndAtivoTrue(profissionalUuid);
+        if (regras.isEmpty()) {
+            return;
+        }
+
+        for (LocalDate dia = inicio.toLocalDate();
+             !dia.isAfter(fim.toLocalDate());
+             dia = dia.plusDays(1)) {
+
+            int diaSemana = dia.getDayOfWeek().getValue();
+            for (BloqueioRecorrente regra : regras) {
+                if (!regra.getDiaSemana().equals(diaSemana)) {
+                    continue;
+                }
+                LocalDateTime bloqueioInicio = dia.atTime(regra.getHoraInicio());
+                LocalDateTime bloqueioFim = dia.atTime(regra.getHoraFim());
+
+                if (inicio.isBefore(bloqueioFim) && bloqueioInicio.isBefore(fim)) {
+                    throw indisponivel(bloqueioInicio, bloqueioFim, regra.getMotivo());
+                }
+            }
+        }
+    }
+
+    private HorarioIndisponivelException indisponivel(LocalDateTime inicio,
+                                                     LocalDateTime fim,
+                                                     String motivo) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        return new HorarioIndisponivelException(Mensagens.get(
+                "agendamento.horario-indisponivel",
+                inicio.format(fmt),
+                fim.format(fmt),
+                motivo));
     }
 
     private void validarRegraAvaliacaoTratamento(AgendamentoRequestDTO request) {

@@ -7,6 +7,7 @@ import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
 import com.prontudigital.backend.agendamento.enums.AvaliacaoEvolucao;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
 import com.prontudigital.backend.agendamento.entidades.HorarioTrabalho;
+import com.prontudigital.backend.agendamento.entidades.BloqueioRecorrente;
 import com.prontudigital.backend.agendamento.enums.InfeccaoInflamacaoCurativo;
 import com.prontudigital.backend.agendamento.enums.TipoDesbridamento;
 import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
@@ -15,6 +16,7 @@ import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import com.prontudigital.backend.agendamento.enums.TecidoLeito;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
+import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
 import com.prontudigital.backend.agendamento.eventos.*;
 import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.*;
@@ -50,6 +52,7 @@ class AgendamentoServiceImplTest {
     @Mock private EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
     @Mock private EvolucaoCurativoRepository evolucaoCurativoRepository;
     @Mock private BloqueioHorarioRepository bloqueioHorarioRepository;
+    @Mock private BloqueioRecorrenteRepository bloqueioRecorrenteRepository;
     @Mock private HorarioTrabalhoRepository horarioTrabalhoRepository;
     @Mock private HistoricoAgendamentoRepository historicoRepository;
     @Mock private ProcedimentoRepository procedimentoRepository;
@@ -71,7 +74,8 @@ class AgendamentoServiceImplTest {
     void setUp() {
         service = new AgendamentoServiceImpl(
                 agendamentoRepository, evolucaoEnfermagemRepository, evolucaoCurativoRepository,
-                bloqueioHorarioRepository, horarioTrabalhoRepository, historicoRepository,
+                bloqueioHorarioRepository, bloqueioRecorrenteRepository,
+                horarioTrabalhoRepository, historicoRepository,
                 procedimentoRepository, usuarioService, usuarioContexto, permissaoPolicy,
                 agendamentoUtil, eventPublisher, clock);
     }
@@ -1139,6 +1143,122 @@ class AgendamentoServiceImplTest {
 
             assertThrows(ForaDoHorarioTrabalhoException.class,
                     () -> service.agendar(request));
+        }
+    }
+
+    // =========================================================
+    // Bloqueios recorrentes na validacao de agendamento
+    // =========================================================
+    @Nested
+    @DisplayName("validacao de bloqueio recorrente")
+    class BloqueioRecorrenteNaAgenda {
+
+        /** Regra semanal no dia de INICIO (01/06/2026, agendamento das 14h às 15h). */
+        private BloqueioRecorrente regra(LocalTime horaInicio, LocalTime horaFim) {
+            return BloqueioRecorrente.builder()
+                    .profissionalUuid(PROFISSIONAL_UUID)
+                    .diaSemana(INICIO.getDayOfWeek().getValue())
+                    .horaInicio(horaInicio)
+                    .horaFim(horaFim)
+                    .motivo("Reunião semanal")
+                    .tipo(TipoBloqueio.INDISPONIVEL)
+                    .ativo(true)
+                    .build();
+        }
+
+        @Test
+        @DisplayName("rejeita agendamento que cai numa regra semanal")
+        void deveRejeitarDentroDaRegra() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            when(bloqueioHorarioRepository.findConflitos(any(), any(), any()))
+                    .thenReturn(List.of());
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regra(LocalTime.of(13, 0), LocalTime.of(16, 0))));
+
+            assertThrows(HorarioIndisponivelException.class,
+                    () -> service.agendar(request));
+            verify(agendamentoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita sobreposicao parcial com a regra")
+        void deveRejeitarSobreposicaoParcial() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            when(bloqueioHorarioRepository.findConflitos(any(), any(), any()))
+                    .thenReturn(List.of());
+            // 14h30-16h invade o fim do agendamento (14h-15h)
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regra(LocalTime.of(14, 30), LocalTime.of(16, 0))));
+
+            assertThrows(HorarioIndisponivelException.class,
+                    () -> service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("aceita regra que encosta no inicio sem sobrepor")
+        void deveAceitarRegraAdjacente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            mockProcedimentoPodiatria();
+            // Termina exatamente às 14h, quando o agendamento começa.
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regra(LocalTime.of(8, 0), LocalTime.of(14, 0))));
+            when(agendamentoRepository.save(any())).thenReturn(agendamentoAgendado());
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            assertNotNull(service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("ignora regra de outro dia da semana")
+        void deveIgnorarOutroDiaDaSemana() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            mockProcedimentoPodiatria();
+
+            BloqueioRecorrente outroDia = regra(LocalTime.of(13, 0), LocalTime.of(16, 0));
+            outroDia.setDiaSemana(INICIO.plusDays(1).getDayOfWeek().getValue());
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(outroDia));
+            when(agendamentoRepository.save(any())).thenReturn(agendamentoAgendado());
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            assertNotNull(service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("reagendamento tambem respeita a regra semanal")
+        void deveValidarNoReagendamento() {
+            Agendamento existente = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(existente.getId()))
+                    .thenReturn(Optional.of(existente));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(bloqueioHorarioRepository.findConflitos(any(), any(), any()))
+                    .thenReturn(List.of());
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regra(LocalTime.of(13, 0), LocalTime.of(16, 0))));
+
+            ReagendarRequestDTO request = new ReagendarRequestDTO(
+                    INICIO.plusDays(7), FIM.plusDays(7), "Pedido do paciente");
+
+            assertThrows(HorarioIndisponivelException.class,
+                    () -> service.reagendar(existente.getId(), request));
         }
     }
 }

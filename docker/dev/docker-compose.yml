@@ -2,10 +2,19 @@
 # Docker Compose — Desenvolvimento
 #
 # Uso:
-#   cp .env.example .env          # primeira vez
+#   cp .env.dev.example .env      # primeira vez
 #   docker compose up             # sobe tudo
 #   docker compose up backend     # sobe só um serviço
 #   docker compose down -v        # derruba e limpa volumes
+#
+# Entrada pela porta 9090 (Caddy), igual a produção:
+#
+#   http://localhost:9090   → app completo, same-origin (recomendado)
+#   http://localhost:3000   → Next.js direto (o Caddy libera CORS p/ isto)
+#   http://localhost:8080   → Spring direto, para debug
+#   http://localhost:9090/swagger-ui/index.html → Swagger
+#
+# O Spring Cloud Gateway foi substituído pelo Caddy — ver Caddyfile.
 # ============================================================
 
 services:
@@ -67,25 +76,23 @@ services:
       - prontudigital-dev
 
   # ----------------------------------------------------------
-  # Gateway (Spring Cloud Gateway)
+  # Caddy — proxy reverso (mesmo papel que em produção)
+  #
+  # Substituiu o Spring Cloud Gateway. Mantém a porta 9090 que o
+  # gateway usava, então nenhuma URL do frontend precisou mudar.
   # ----------------------------------------------------------
-  gateway:
-    build:
-      context: ../../gateway
-      dockerfile: Dockerfile.dev
-    container_name: prontudigital-gateway-dev
+  caddy:
+    image: caddy:2-alpine
+    container_name: prontudigital-caddy-dev
     restart: unless-stopped
-    environment:
-      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://backend:8080
-      CORS_ALLOWED_ORIGINS: "http://localhost:${FRONTEND_PORT:-3000}"
     ports:
-      - "${GATEWAY_PORT:-9090}:9090"
+      - "${CADDY_PORT:-9090}:9090"
     volumes:
-      - ../../gateway/src:/app/src
-      - ../../gateway/pom.xml:/app/pom.xml
-      - maven_cache:/root/.m2
+      # :ro — o Caddyfile é editado no host, nunca pelo container
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
       - backend
+      - frontend
     networks:
       - prontudigital-dev
 
@@ -99,10 +106,12 @@ services:
     container_name: prontudigital-frontend-dev
     restart: unless-stopped
     environment:
-      # Navegador: URL pública do gateway (base, sem sufixo de caminho)
+      # Navegador: URL pública do Caddy (base, sem sufixo de caminho)
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9090}
-      # Servidor Next (Route Handlers): rede interna do Docker
-      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://gateway:9090}
+      # Servidor Next (Route Handlers): rede interna do Docker.
+      # Aponta direto para o backend — passar pelo Caddy aqui seria
+      # um salto de rede sem função, já que ambos estão na mesma rede.
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:8080}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     volumes:
@@ -110,7 +119,7 @@ services:
       - ../../frontend-web:/app
       - /app/node_modules
     depends_on:
-      - gateway
+      - backend
     networks:
       - prontudigital-dev
 
@@ -121,7 +130,7 @@ volumes:
   postgres_data_dev:
     name: prontudigital_postgres_dev
   maven_cache:
-    name: prontudigital_maven_cache   # compartilhado entre backend e gateway
+    name: prontudigital_maven_cache
 
 # ----------------------------------------------------------
 # Rede interna isolada

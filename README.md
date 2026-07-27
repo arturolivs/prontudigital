@@ -2,7 +2,7 @@
 
 ![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-brightgreen?logo=springboot)
-![Spring Cloud Gateway](https://img.shields.io/badge/Spring%20Cloud%20Gateway-2025.0.0-brightgreen?logo=spring)
+![Caddy](https://img.shields.io/badge/Caddy-2-1f88c0?logo=caddy)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![React](https://img.shields.io/badge/React-19-blue?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)
@@ -29,7 +29,9 @@ Sistema de prontuário eletrônico e agendamento para clínicas de enfermagem es
 
 ## 🏗 Arquitetura
 
-O ProntuDigital adota uma arquitetura em três camadas: **gateway centralizado**, **backend monolítico modular** e **frontend React**. Todo o tráfego dos clientes passa pelo gateway, que valida o JWT e encaminha ao backend.
+O ProntuDigital adota uma arquitetura em três camadas: **proxy reverso na borda**, **backend monolítico modular** e **frontend Next.js**. Todo o tráfego externo entra pelo **Caddy**, que termina o TLS e roteia entre frontend e backend — o backend nunca é publicado diretamente.
+
+> A **autenticação é validada no backend** (`JWTFilter` + `@PreAuthorize` + policies de permissão), não na borda. O proxy não inspeciona o token: como o backend só é alcançável através dele, não há caminho que escape do filtro.
 
 ```mermaid
 graph TB
@@ -38,8 +40,8 @@ graph TB
         WA[WhatsApp / Link de Confirmação]
     end
 
-    subgraph Gateway["Gateway — Spring Cloud Gateway  (porta 9090)"]
-        GW[Roteamento · CORS · Proxy JWT]
+    subgraph Borda["Caddy — proxy reverso  (443 em prod · 9090 em dev)"]
+        GW[Roteamento · TLS · Cabeçalhos de segurança]
     end
 
     subgraph Backend["Backend — Spring Boot  (porta 8080)"]
@@ -89,14 +91,14 @@ graph TB
 sequenceDiagram
     participant P as Profissional
     participant FE as Frontend
-    participant GW as Gateway
+    participant GW as Caddy
     participant BE as Backend
     participant DB as PostgreSQL
     participant WA as WhatsApp
 
     P->>FE: Cria agendamento
     FE->>GW: POST /api/agendamentos (JWT)
-    GW->>BE: Encaminha requisição validada
+    GW->>BE: Encaminha (JWT validado no backend)
     BE->>DB: Salva agendamento (status: AGENDADO)
     BE-->>FE: 201 Created
 
@@ -145,14 +147,16 @@ stateDiagram-v2
 | SpringDoc OpenAPI | — | Documentação Swagger UI |
 | Maven | 3.x (wrapper incluso) | Build e gerenciamento de dependências |
 
-### Gateway — `gateway/`
+### Borda — Caddy
 
 | Tecnologia | Versão | Função |
 |---|---|---|
-| Java | 21 (LTS) | Linguagem principal |
-| Spring Cloud Gateway | 2025.0.0 | Roteamento, CORS e proxy reverso |
-| Spring WebFlux | Incluído | I/O reativo (non-blocking) |
-| Maven | 3.x (wrapper incluso) | Build |
+| Caddy | 2 (alpine) | Proxy reverso, TLS automático, cabeçalhos de segurança |
+
+> O módulo `gateway/` (Spring Cloud Gateway) foi **substituído pelo Caddy** em dev e em
+> produção. Ele fazia apenas roteamento e CORS: o Caddy faz o primeiro e elimina o
+> segundo, servindo frontend e API no mesmo domínio. A troca ainda dispensa uma JVM
+> (~300 MB e ~30 s de boot) e trouxe TLS de graça.
 
 ### Frontend Web — `frontend-web/`
 
@@ -214,7 +218,7 @@ prontudigital/
 │   ├── Dockerfile.prod
 │   └── pom.xml
 │
-├── gateway/                                 # Spring Cloud Gateway (porta 9090)
+├── gateway/                                 # LEGADO — substituído pelo Caddy; mantido no repositório, mas não sobe em nenhum ambiente
 │   ├── src/main/java/com/prontudigital/gateway/
 │   ├── src/main/resources/
 │   │   ├── application.yml
@@ -385,7 +389,7 @@ erDiagram
 
 ## 🔌 API REST
 
-A API é exposta pelo backend na porta `8080` e acessada pelos clientes através do gateway na porta `9090`. Documentação interativa disponível em `http://localhost:8080/swagger-ui.html`.
+O backend escuta na `8080`, mas os clientes chegam pelo Caddy: `9090` em desenvolvimento e `443` em produção. Documentação interativa em `http://localhost:9090/swagger-ui/index.html` — **aberta apenas em dev**; em produção o Swagger não é roteado.
 
 ### Autenticação — `/api/auth`
 
@@ -461,6 +465,14 @@ Todos os endpoints aplicam a **RN03** via `ProntuarioPermissaoPolicy`:
 | `POST` | `/anexos` | Upload `multipart/form-data` (JPG/PNG/WEBP/PDF, 10 MB) | RN03 escrita |
 | `GET` | `/anexos/{uuid}/conteudo` | Stream do arquivo (inline) | RN03 leitura |
 | `DELETE` | `/anexos/{uuid}` | Remove anexo | RN03 escrita |
+| `GET` | `/atestados` | Lista atestados emitidos (RF17) | RN03 leitura |
+| `POST` | `/atestados` | Emite atestado | RN03 escrita |
+| `GET` | `/atestados/{uuid}/pdf` | PDF do atestado, regerado a cada chamada | RN03 leitura |
+| `DELETE` | `/atestados/{uuid}` | Remove atestado | RN03 escrita |
+
+O PDF do atestado **não é persistido**: é regerado a partir do registro sempre que
+solicitado, então o registro é a fonte da verdade. `AFASTAMENTO` exige
+`diasAfastamento`; `COMPARECIMENTO` o recusa (422).
 
 ### Relatórios — `/api/relatorios`
 
@@ -471,6 +483,8 @@ consulta a própria agenda (pedir outra retorna 403); PACIENTE não acessa.
 |---|---|---|---|
 | `GET` | `/atendimentos?inicio=&fim=[&profissionalUuid=&status=&tipo=]` | Atendimentos do período com totais por status e tipo (RF19) | ADMIN / PROFISSIONAL |
 | `GET` | `/ocupacao?inicio=&fim=[&profissionalUuid=]` | Comparecimento, cancelamentos e ocupação da agenda (RF20) | ADMIN / PROFISSIONAL |
+| `GET` | `/atendimentos/exportar?...&formato=PDF\|XLSX` | Mesmo relatório como arquivo (RF21) | ADMIN / PROFISSIONAL |
+| `GET` | `/ocupacao/exportar?...&formato=PDF\|XLSX` | Mesmo relatório como arquivo (RF21) | ADMIN / PROFISSIONAL |
 
 Sobre as taxas de `/ocupacao`: comparecimento e absenteísmo são calculados sobre
 os atendimentos que **chegaram a acontecer** (realizados + faltas) — o que foi
@@ -494,6 +508,10 @@ depois que o expediente é definido.
 | `DELETE` | `/{id}` | Remove janela | ADMIN / PROFISSIONAL (própria agenda) |
 
 ### Bloqueios de Horário — `/api/bloqueios-horario`
+
+Tanto os bloqueios avulsos quanto as **regras recorrentes** são checados ao agendar
+e ao reagendar: a regra semanal é materializada nos dias do período antes da
+comparação.
 
 | Método | Endpoint | Descrição | Acesso |
 |---|---|---|---|
@@ -522,7 +540,8 @@ depois que o expediente é definido.
 - **Codificação de senhas**: BCrypt
 - **Sessão**: stateless — sem HttpSession
 - **Controle de acesso**: `@PreAuthorize` por perfil em cada endpoint
-- **CORS**: configurado no gateway para `http://localhost:3000`
+- **CORS**: inexistente em produção — o Caddy serve frontend e API no mesmo domínio, então as chamadas são same-origin. Em dev, o Caddy libera as origens `localhost` para permitir abrir o app direto em `:3000`
+- **Isolamento**: em produção só o Caddy publica portas; backend e Postgres ficam numa rede Docker `internal: true`, inalcançáveis de fora do host
 
 ### Perfis de Usuário
 
@@ -566,10 +585,12 @@ SPRING_FLYWAY_USER=user
 SPRING_FLYWAY_PASSWORD=senha
 ```
 
-### Gateway — `application.yml`
+### Borda — `docker/{dev,prod}/Caddyfile`
+
+Não tem `.env` próprio. O único parâmetro é o domínio, em produção:
 
 ```env
-BACKEND_URL=http://backend:8080
+DOMINIO=prontudigital.com.br    # sem https:// e sem barra final
 ```
 
 ### Frontend — `next.config.ts`
@@ -597,30 +618,44 @@ git clone <url-do-repositorio>
 cd prontudigital
 
 # 2. Configure as variáveis de ambiente
-cp docker/dev/.env.dev.example docker/dev/.env.dev
+cp docker/dev/.env.dev.example docker/dev/.env
 
 # 3. Suba o stack completo com hot-reload
 cd docker/dev
 docker compose up
 ```
 
-| Serviço | URL |
-|---|---|
-| Frontend Web | http://localhost:3000 |
-| Gateway | http://localhost:9090 |
-| Backend (Swagger) | http://localhost:8080/swagger-ui.html |
-| PostgreSQL | localhost:5432 |
+| Entrada | URL | Observação |
+|---|---|---|
+| **App (recomendado)** | http://localhost:9090 | Caddy — same-origin, igual à produção |
+| Frontend direto | http://localhost:3000 | Next.js; o Caddy libera CORS para esta origem |
+| Backend direto | http://localhost:8080 | Debug; em produção **não** é publicado |
+| Swagger | http://localhost:9090/swagger-ui/index.html | Aberto só em dev |
+| PostgreSQL | localhost:5432 | Para DBeaver/IntelliJ |
+
+> Dev e produção usam o **mesmo proxy (Caddy)** e o mesmo roteamento — ver
+> `docker/dev/Caddyfile` e `docker/prod/Caddyfile`. As duas diferenças são
+> propositais: dev não tem TLS e libera CORS (porque o app pode ser aberto em
+> `:3000`, origem diferente da API em `:9090`); produção não precisa de CORS
+> porque serve tudo no mesmo domínio.
 
 ### Produção com Docker
 
 ```bash
-# Configure as credenciais de produção
-cp .env.example .env
-
-docker compose up -d
+cd docker/prod
+cp .env.prod.example .env          # preencha TODOS os valores
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-> O `docker-compose.yml` de produção inicia backend, gateway e banco de dados. O frontend é servido via build estático no Nginx a partir do `Dockerfile.prod`.
+> Sobe quatro serviços: **Postgres**, **backend** (Spring Boot), **frontend**
+> (Next.js standalone — servidor Node, não build estático) e **Caddy**, que faz proxy
+> reverso e TLS automático. O Spring Cloud Gateway **não** é usado em produção: o Caddy
+> serve frontend e API no mesmo domínio, o que elimina o CORS. Só o Caddy publica portas
+> (80/443); o Postgres não é alcançável de fora do host.
+
+**Antes de considerar o deploy concluído**, configure o backup: veja
+[`docker/prod/scripts/README.md`](docker/prod/scripts/README.md). O banco sozinho não
+basta — os anexos do prontuário ficam em volume, fora dele.
 
 ### Sem Docker (local)
 
@@ -631,15 +666,17 @@ docker compose up -d
 cd backend
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 
-# 3. Gateway (nova aba)
-cd gateway
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-
-# 4. Frontend (nova aba)
+# 3. Frontend (nova aba)
 cd frontend-web
 npm install
 npm run dev
 ```
+
+> Sem Docker não há proxy: o frontend em `:3000` chama o backend em `:8080`, que são
+> origens diferentes. Aponte as variáveis para a porta do backend, por exemplo
+> `NEXT_PUBLIC_API_URL=http://localhost:8080` — e note que o backend **não tem
+> configuração de CORS**, justamente porque em dev e prod ele fica atrás do Caddy.
+> Para o fluxo completo, prefira `docker/dev`.
 
 ---
 

@@ -122,7 +122,8 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Fase 4 — Relatórios e documentos
 
-> **Progresso:** RF19 e RF20 concluídos (backend + frontend). Próximo: **RF17/RF21**.
+> **Progresso:** RF19, RF20, RF17 e RF21 concluídos (backend + frontend).
+> **Fase 4 completa.** Próximo: **Fase 5 — NFRs e regras residuais.**
 
 ### RF19 / RF20 — Relatórios gerenciais — ✅ CONCLUÍDO
 - ✅ **Backend:** novo módulo `com.prontudigital.backend.relatorio` (DTOs, service,
@@ -149,10 +150,29 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
   (rota inexistente) e passou a apontar para cá.
 - ✅ `RelatorioServiceImplTest` (15 testes). Suíte em **291 testes, 0 falhas**.
 
-### RF17 / RF21 — Atestados e exportação
-- **RF17 / RF21:** emissão de atestados e **exportação PDF/Excel** — adicionar biblioteca de
-  geração (ex.: OpenPDF/JasperReports para PDF, Apache POI para Excel). RF17 e RF21
-  compartilham a mesma infra de geração. O RF21 tem alvo natural nos relatórios do RF19/RF20.
+### RF17 / RF21 — Atestados e exportação — ✅ CONCLUÍDO
+- ✅ **Infra compartilhada** em `compartilhado.documento`: `PdfBuilder` (envolve o
+  **OpenPDF** — fork LGPL/MPL do iText 4, sem a AGPL do iText moderno) e
+  `PlanilhaBuilder` (**Apache POI**), mais `FormatoExportacao` e `ArquivoGerado`.
+  Os arquivos ficam em memória: são pequenos e gerados sob demanda, sem nada a
+  persistir — diferente dos anexos, que seguem pelo `ArmazenamentoService`.
+- ✅ **RF21:** `GET /api/relatorios/{atendimentos,ocupacao}/exportar?formato=PDF|XLSX`.
+  A exportação delega a apuração ao `RelatorioService`, então regras de acesso e
+  fórmulas das taxas continuam num lugar só — aqui é apenas formatação. O XLSX de
+  atendimentos sai com duas abas (dados + resumo). Taxa nula vira "—", não 0%.
+- ✅ **RF17:** entidade `Atestado` (migration `V27`) no módulo `prontuario`, com
+  `AtestadoController` em `/api/prontuario/pacientes/{uuid}/atestados`. **O PDF não é
+  persistido** — é regerado a partir do registro a cada download, então o registro é a
+  fonte da verdade. `AFASTAMENTO` exige `diasAfastamento` e `COMPARECIMENTO` o recusa
+  (422): aceitar dias num atestado de comparecimento produziria um documento que afirma
+  algo que o tipo não sustenta. Reusa a `ProntuarioPermissaoPolicy` (RN03) — o paciente
+  lê os próprios atestados mas nunca emite.
+- ✅ **Frontend:** botões de exportação (4 combinações) na página `/relatorios`, baixando
+  via axios para que o token seja enviado; aba "Atestados" no prontuário, com emissão,
+  abertura do PDF e remoção.
+- ✅ Testes: `AtestadoServiceImplTest` (15) e `RelatorioExportacaoServiceImplTest` (8, que
+  abrem o XLSX gerado com o POI e conferem o conteúdo das células). Suíte em
+  **314 testes, 0 falhas**.
 
 ---
 
@@ -172,5 +192,6 @@ Espelha a Anamnese, mas **1:N por paciente** (várias prescrições ao longo do 
 
 ## Sequência recomendada
 
-~~RF16~~ ~~RF15~~ ~~RF18~~ ~~RF06~~ ~~RF04/RF05~~ ~~RF19/RF20~~ (✅ concluídos)
-**→ RF17/RF21 → NFRs**
+~~RF16~~ ~~RF15~~ ~~RF18~~ ~~RF06~~ ~~RF04/RF05~~ ~~RF19/RF20~~ ~~RF17/RF21~~
+(✅ concluídos — **todos os RFs pendentes do `Requisitos.md` foram entregues**)
+**→ Fase 5: NFRs (RNF01 LGPD, RNF02 backup, RNF03 auditoria, RNF08 API) + RN01**
