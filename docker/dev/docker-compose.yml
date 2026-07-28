@@ -7,6 +7,9 @@
 #   docker compose up backend     # sobe só um serviço
 #   docker compose down -v        # derruba e limpa volumes
 #
+# Para depurar o backend no IntelliJ (backend fora do container):
+#   docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d
+#
 # Entrada pela porta 9090 (Caddy), igual a produção:
 #
 #   http://localhost:9090   → app completo, same-origin (recomendado)
@@ -115,9 +118,17 @@ services:
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     volumes:
-      # Hot reload: monta src e ignora node_modules do host
+      # Hot reload: monta o projeto do host
       - ../../frontend-web:/app
-      - /app/node_modules
+      # Sombreia o node_modules do host (binários nativos do Windows não
+      # rodam no Alpine). Volume NOMEADO de propósito: o Docker só o
+      # popula a partir da imagem quando está vazio, então trocar o
+      # package.json exige descartá-lo explicitamente —
+      #   docker compose rm -sfv frontend
+      #   docker compose up -d --build frontend
+      # Nomeado (e não anônimo) para aparecer no `docker volume ls` com
+      # um nome legível, em vez de um hash.
+      - frontend_node_modules:/app/node_modules
     depends_on:
       - backend
     networks:
@@ -131,6 +142,8 @@ volumes:
     name: prontudigital_postgres_dev
   maven_cache:
     name: prontudigital_maven_cache
+  frontend_node_modules:
+    name: prontudigital_frontend_node_modules
 
 # ----------------------------------------------------------
 # Rede interna isolada

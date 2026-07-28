@@ -639,6 +639,34 @@ docker compose up
 > `:3000`, origem diferente da API em `:9090`); produção não precisa de CORS
 > porque serve tudo no mesmo domínio.
 
+### Debug do backend no IntelliJ
+
+Com o Spring Cloud Gateway aposentado, o proxy só existe como container — mas o
+**backend** pode continuar rodando na IDE, com breakpoints e hot swap nativos. O
+override `docker/dev/docker-compose.debug.yml` sobe Postgres, Caddy e frontend em
+container e deixa a porta `8080` livre para a JVM do IntelliJ:
+
+```bash
+cd docker/dev
+docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d
+```
+
+Depois, no IntelliJ, dê **Debug** em `BackendApplication` com `Active profiles: local`
+— esse profile aponta para `localhost:5432`, que é a porta publicada pelo container
+do Postgres. A entrada continua sendo http://localhost:9090.
+
+O que o override muda: o serviço `backend` fica desativado (profile `nunca` do
+compose), o Caddy passa a resolver o host `backend` para a máquina host via
+`extra_hosts: backend:host-gateway` — então o `Caddyfile` **não muda** — e o
+`BACKEND_INTERNAL_URL` do frontend (usado pelos Route Handlers do Next, que rodam
+dentro do container) aponta para `host.docker.internal:8080`.
+
+> Na primeira execução o Windows pode pedir liberação de firewall para o Java
+> aceitar conexões — sem isso o Caddy não alcança o backend da IDE.
+
+Para voltar a rodar tudo em container, basta omitir o arquivo de override
+(`docker compose up`).
+
 ### Produção com Docker
 
 ```bash
