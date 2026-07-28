@@ -2,6 +2,7 @@ import axios from 'axios'
 import { tokenService, setupRefreshInterceptor } from './auth.service'
 import {
   Usuario,
+  AtualizarPerfilRequisicao,
   RegistrarRequisicao,
   CadastrarPacienteRequisicao,
   JwtResposta,
@@ -12,8 +13,11 @@ const USUARIOS_API_URL =
   process.env.NEXT_PUBLIC_USUARIOS_API_URL ||
   'http://localhost:9090/api/usuarios'
 
-const AUTH_API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/auth'
+// NEXT_PUBLIC_API_URL é a base pública da API, SEM sufixo de caminho
+// (ex.: https://prontudigital.com.br). O caminho é montado aqui.
+const AUTH_API_URL = `${(
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090'
+).replace(/\/+$/, '')}/api/auth`
 
 const api = axios.create({ baseURL: USUARIOS_API_URL })
 
@@ -73,7 +77,7 @@ export const usuariosAPI = {
 
   atualizarPerfil: async (
     id: number,
-    dados: { nomeCompleto: string; email?: string; telefone?: string },
+    dados: AtualizarPerfilRequisicao,
   ): Promise<Usuario> => {
     const response = await api.patch<Usuario>(`/${id}/perfil`, dados)
     return response.data

@@ -2,6 +2,7 @@ package com.prontudigital.backend.agendamento.repositorios;
 
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
+import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,10 @@ import java.util.UUID;
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
 
     Optional<Agendamento> findByIdAndPacienteUuid(Long id, UUID pacienteUuid);
+
+    boolean existsByProfissionalUuidAndPacienteUuid(UUID profissionalUuid, UUID pacienteUuid);
+
+    boolean existsByProcedimentoId(Long procedimentoId);
 
     List<Agendamento> findByProfissionalUuidAndInicioEmBetween(
             UUID profissionalUuid, LocalDateTime inicio, LocalDateTime fim);
@@ -69,7 +74,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             WHERE a.inicioEm BETWEEN :inicio AND :fim
             AND (:status IS NULL OR a.status = :status)
             AND (:busca IS NULL OR a.pacienteUuid IN (
-                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', :busca, '%'))
+                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', CAST(:busca AS string), '%'))
             ))
             GROUP BY a.pacienteUuid
             ORDER BY MAX(a.inicioEm) DESC
@@ -80,7 +85,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             WHERE a.inicioEm BETWEEN :inicio AND :fim
             AND (:status IS NULL OR a.status = :status)
             AND (:busca IS NULL OR a.pacienteUuid IN (
-                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', :busca, '%'))
+                SELECT u.uuid FROM Usuario u WHERE LOWER(u.nomeCompleto) LIKE LOWER(CONCAT('%', CAST(:busca AS string), '%'))
             ))
             """)
     Page<PacienteAgendamentoResumo> buscarPacientesComAgendamentos(
@@ -102,4 +107,23 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim,
             @Param("status") StatusAgendamento status);
+
+    /**
+     * RF19/RF20 — atendimentos do periodo, com filtros opcionais.
+     * Serve tanto a listagem do relatorio quanto a apuracao de ocupacao.
+     */
+    @Query("""
+            SELECT a FROM Agendamento a
+            WHERE a.inicioEm BETWEEN :inicio AND :fim
+            AND (:profissionalUuid IS NULL OR a.profissionalUuid = :profissionalUuid)
+            AND (:status IS NULL OR a.status = :status)
+            AND (:tipo IS NULL OR a.tipo = :tipo)
+            ORDER BY a.inicioEm
+            """)
+    List<Agendamento> buscarParaRelatorio(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim,
+            @Param("profissionalUuid") UUID profissionalUuid,
+            @Param("status") StatusAgendamento status,
+            @Param("tipo") TipoAgendamento tipo);
 }

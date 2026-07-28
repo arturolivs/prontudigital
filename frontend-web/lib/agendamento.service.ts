@@ -3,7 +3,8 @@ import { setupRefreshInterceptor } from './auth.service'
 import {
   AgendamentoRequisicao,
   Agendamento,
-  EvolucaoTratamentoRequisicao,
+  EvolucaoCurativoRequisicao,
+  EvolucaoEnfermagemRequisicao,
   PacienteAgendamentosDTO,
   ReagendarRequisicao,
 } from '../tipos/agendamento'
@@ -86,12 +87,31 @@ export const agendamentoAPI = {
     return response.data
   },
 
-  registrarEvolucao: async (
+  /**
+   * Registra a Ficha de Evolução de Enfermagem.
+   * Apenas para agendamentos do tipo AVALIACAO — o backend rejeita os demais.
+   */
+  registrarEvolucaoEnfermagem: async (
     id: number,
-    dados: EvolucaoTratamentoRequisicao,
+    dados: EvolucaoEnfermagemRequisicao,
   ): Promise<Agendamento> => {
     const response = await api.patch<Agendamento>(
-      `${API_BASE_URL}/${id}/evolucao`,
+      `${API_BASE_URL}/${id}/evolucao-enfermagem`,
+      dados,
+    )
+    return response.data
+  },
+
+  /**
+   * Registra a Ficha de Evolução Diária – Curativos.
+   * Apenas para agendamentos do tipo TRATAMENTO — o backend rejeita os demais.
+   */
+  registrarEvolucaoCurativo: async (
+    id: number,
+    dados: EvolucaoCurativoRequisicao,
+  ): Promise<Agendamento> => {
+    const response = await api.patch<Agendamento>(
+      `${API_BASE_URL}/${id}/evolucao-curativo`,
       dados,
     )
     return response.data

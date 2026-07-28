@@ -2,15 +2,21 @@ package com.prontudigital.backend.agendamento.servicos.impl;
 
 import com.prontudigital.backend.agendamento.dto.*;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
-import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoCurativo;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
+import com.prontudigital.backend.agendamento.enums.AvaliacaoEvolucao;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
-import com.prontudigital.backend.agendamento.enums.CaracteristicaBorda;
-import com.prontudigital.backend.agendamento.enums.ClassificacaoDor;
+import com.prontudigital.backend.agendamento.entidades.HorarioTrabalho;
+import com.prontudigital.backend.agendamento.entidades.BloqueioRecorrente;
+import com.prontudigital.backend.agendamento.enums.InfeccaoInflamacaoCurativo;
+import com.prontudigital.backend.agendamento.enums.TipoDesbridamento;
 import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
+import com.prontudigital.backend.agendamento.enums.TecidoLeito;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
+import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
 import com.prontudigital.backend.agendamento.eventos.*;
 import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.*;
@@ -26,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.math.BigDecimal;
 import java.time.*;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +40,7 @@ import java.util.Optional;
 import static com.prontudigital.backend.agendamento.servicos.impl.fixtures.AgendamentoTestFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -41,9 +49,13 @@ import static org.mockito.Mockito.*;
 class AgendamentoServiceImplTest {
 
     @Mock private AgendamentoRepository agendamentoRepository;
-    @Mock private EvolucaoClinicaRepository evolucaoClinicaRepository;
+    @Mock private EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
+    @Mock private EvolucaoCurativoRepository evolucaoCurativoRepository;
     @Mock private BloqueioHorarioRepository bloqueioHorarioRepository;
+    @Mock private BloqueioRecorrenteRepository bloqueioRecorrenteRepository;
+    @Mock private HorarioTrabalhoRepository horarioTrabalhoRepository;
     @Mock private HistoricoAgendamentoRepository historicoRepository;
+    @Mock private ProcedimentoRepository procedimentoRepository;
     @Mock private UsuarioService usuarioService;
     @Mock private UsuarioContexto usuarioContexto;
     @Mock private AgendamentoUtil agendamentoUtil;
@@ -61,8 +73,10 @@ class AgendamentoServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new AgendamentoServiceImpl(
-                agendamentoRepository, evolucaoClinicaRepository, bloqueioHorarioRepository,
-                historicoRepository, usuarioService, usuarioContexto, permissaoPolicy,
+                agendamentoRepository, evolucaoEnfermagemRepository, evolucaoCurativoRepository,
+                bloqueioHorarioRepository, bloqueioRecorrenteRepository,
+                horarioTrabalhoRepository, historicoRepository,
+                procedimentoRepository, usuarioService, usuarioContexto, permissaoPolicy,
                 agendamentoUtil, eventPublisher, clock);
     }
 
@@ -73,6 +87,11 @@ class AgendamentoServiceImplTest {
                 .thenReturn(List.of());
         when(agendamentoRepository.findConflitosParaPacienteComLock(any(), any(), any()))
                 .thenReturn(List.of());
+    }
+
+    private void mockProcedimentoPodiatria() {
+        when(procedimentoRepository.findByCodigo(TipoProcedimento.PODIATRIA.name()))
+                .thenReturn(Optional.of(procedimentoPodiatria()));
     }
 
     // =========================================================
@@ -90,6 +109,7 @@ class AgendamentoServiceImplTest {
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
             mockSemConflitos();
+            mockProcedimentoPodiatria();
             when(agendamentoRepository.save(any())).thenReturn(salvo);
             when(agendamentoUtil.convertToResponseDTO(salvo))
                     .thenReturn(mock(AgendamentoResponseDTO.class));
@@ -102,11 +122,77 @@ class AgendamentoServiceImplTest {
         }
 
         @Test
+        @DisplayName("agenda com procedimentoId da tabela de procedimentos (RF06)")
+        void deveCriarComProcedimentoId() {
+            AgendamentoRequestDTO request = requestAvaliacaoComProcedimentoId(5L);
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            when(procedimentoRepository.findById(5L))
+                    .thenReturn(Optional.of(procedimentoNovo()));
+            when(agendamentoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            service.agendar(request);
+
+            ArgumentCaptor<Agendamento> captor = ArgumentCaptor.forClass(Agendamento.class);
+            verify(agendamentoRepository).save(captor.capture());
+            assertEquals(5L, captor.getValue().getProcedimento().getId());
+            // procedimento sem codigo legado nao preenche o enum
+            assertNull(captor.getValue().getTipoProcedimento());
+        }
+
+        @Test
+        @DisplayName("rejeita procedimento inativo")
+        void deveRejeitarProcedimentoInativo() {
+            AgendamentoRequestDTO request = requestAvaliacaoComProcedimentoId(5L);
+            var inativo = procedimentoNovo();
+            inativo.setAtivo(false);
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            when(procedimentoRepository.findById(5L)).thenReturn(Optional.of(inativo));
+
+            assertThrows(AgendamentoInvalidoException.class,
+                    () -> service.agendar(request));
+            verify(agendamentoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita procedimentoId inexistente")
+        void deveRejeitarProcedimentoInexistente() {
+            AgendamentoRequestDTO request = requestAvaliacaoComProcedimentoId(999L);
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            when(procedimentoRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThrows(ProcedimentoNaoEncontradoException.class,
+                    () -> service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("rejeita agendamento sem procedimento e sem tipoProcedimento")
+        void deveRejeitarSemProcedimento() {
+            AgendamentoRequestDTO request = new AgendamentoRequestDTO(
+                    PACIENTE_UUID, PROFISSIONAL_UUID, INICIO, FIM,
+                    TipoAgendamento.AVALIACAO, null, null,
+                    LocalAtendimento.CLINICA, false, null);
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+
+            assertThrows(AgendamentoInvalidoException.class,
+                    () -> service.agendar(request));
+        }
+
+        @Test
         @DisplayName("paciente não pode criar agendamento para outro paciente")
         void deveRejeitarPacienteAgendandoParaOutro() {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     OUTRO_UUID, PROFISSIONAL_UUID, INICIO, FIM,
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null,
                     LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
@@ -125,7 +211,7 @@ class AgendamentoServiceImplTest {
                     PACIENTE_UUID, PROFISSIONAL_UUID,
                     LocalDateTime.of(2020, 1, 1, 10, 0),
                     LocalDateTime.of(2020, 1, 1, 11, 0),
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null,
                     LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
@@ -140,7 +226,7 @@ class AgendamentoServiceImplTest {
             AgendamentoRequestDTO request = new AgendamentoRequestDTO(
                     PACIENTE_UUID, PROFISSIONAL_UUID,
                     INICIO, INICIO.plusMinutes(10),
-                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA,
+                    TipoAgendamento.AVALIACAO, TipoProcedimento.PODIATRIA, null,
                     LocalAtendimento.CLINICA, false, null);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
@@ -200,6 +286,7 @@ class AgendamentoServiceImplTest {
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
             mockSemConflitos();
+            mockProcedimentoPodiatria();
             when(agendamentoRepository.findById(99L)).thenReturn(Optional.of(avaliacao));
             when(agendamentoRepository.getReferenceById(99L)).thenReturn(referencia);
             when(agendamentoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -378,6 +465,40 @@ class AgendamentoServiceImplTest {
             assertThrows(AgendamentoNaoEncontradoException.class,
                     () -> service.cancelar(999L));
         }
+
+        @Test
+        @DisplayName("rejeita cancelamento com menos de 24h de antecedencia")
+        void deveRejeitarForaDoPrazo() {
+            Agendamento agendamento = agendamentoAgendado();
+            // clock fixo em 2026-05-01 10:00; inicio a 10h de distancia (< 24h)
+            agendamento.setInicioEm(LocalDateTime.of(2026, 5, 1, 20, 0));
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(CancelamentoForaDoPrazoException.class,
+                    () -> service.cancelar(1L));
+
+            assertEquals(StatusAgendamento.AGENDADO, agendamento.getStatus());
+            verify(agendamentoRepository, never()).save(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("admin cancela mesmo com menos de 24h de antecedencia")
+        void devemitirAdminForaDoPrazo() {
+            Agendamento agendamento = agendamentoAgendado();
+            agendamento.setInicioEm(LocalDateTime.of(2026, 5, 1, 20, 0));
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(agendamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioAdmin());
+
+            service.cancelar(1L);
+
+            assertEquals(StatusAgendamento.CANCELADO, agendamento.getStatus());
+            verify(agendamentoRepository).save(agendamento);
+            verify(eventPublisher).publishEvent(any(AgendamentoCanceladoEvento.class));
+        }
     }
 
     // =========================================================
@@ -491,64 +612,223 @@ class AgendamentoServiceImplTest {
     }
 
     // =========================================================
-    // registrarEvolucao()
+    // registrarEvolucaoEnfermagem()
     // =========================================================
     @Nested
-    @DisplayName("registrarEvolucao()")
-    class RegistrarEvolucao {
+    @DisplayName("registrarEvolucaoEnfermagem()")
+    class RegistrarEvolucaoEnfermagem {
+
+        private EvolucaoEnfermagemRequestDTO requestEnfermagem() {
+            return EvolucaoEnfermagemRequestDTO.builder()
+                    .dataAvaliacao(LocalDate.of(2026, 5, 1))
+                    .horaAvaliacao(LocalTime.of(10, 0))
+                    .diagnosticoMedico("Ulcera venosa MID")
+                    .comorbDiabetes(true)
+                    .localizacaoAnatomica("Perna direita, terco distal")
+                    .tecidoLeito(TecidoLeito.GRANULACAO)
+                    .dorEscala(5)
+                    .avaliacaoEvolucao(AvaliacaoEvolucao.MELHORA)
+                    .planoManterConduta(true)
+                    .retornoDias(7)
+                    .build();
+        }
 
         @Test
-        @DisplayName("cria nova EvolucaoClinica quando nao existe registro anterior")
+        @DisplayName("cria nova EvolucaoEnfermagem quando nao existe registro anterior")
+        void deveCriarNovaEvolucao() {
+            Agendamento avaliacao = agendamentoAgendado(); // tipo = AVALIACAO
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoEnfermagemRepository.findByAgendamento(avaliacao))
+                    .thenReturn(Optional.empty());
+            when(evolucaoEnfermagemRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoEnfermagem(1L, requestEnfermagem());
+
+            ArgumentCaptor<EvolucaoEnfermagem> captor =
+                    ArgumentCaptor.forClass(EvolucaoEnfermagem.class);
+            verify(evolucaoEnfermagemRepository).save(captor.capture());
+
+            EvolucaoEnfermagem salva = captor.getValue();
+            assertEquals(avaliacao, salva.getAgendamento());
+            assertEquals("Ulcera venosa MID", salva.getDiagnosticoMedico());
+            assertEquals(TecidoLeito.GRANULACAO, salva.getTecidoLeito());
+            assertEquals(5, salva.getDorEscala());
+            assertEquals(AvaliacaoEvolucao.MELHORA, salva.getAvaliacaoEvolucao());
+            assertEquals(7, salva.getRetornoDias());
+        }
+
+        @Test
+        @DisplayName("atualiza EvolucaoEnfermagem existente sem criar novo registro")
+        void deveAtualizarEvolucaoExistente() {
+            Agendamento avaliacao = agendamentoAgendado();
+            EvolucaoEnfermagem existente = EvolucaoEnfermagem.builder()
+                    .id(10L)
+                    .agendamento(avaliacao)
+                    .diagnosticoMedico("Antigo")
+                    .build();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoEnfermagemRepository.findByAgendamento(avaliacao))
+                    .thenReturn(Optional.of(existente));
+            when(evolucaoEnfermagemRepository.save(existente)).thenReturn(existente);
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoEnfermagem(1L, requestEnfermagem());
+
+            verify(evolucaoEnfermagemRepository).save(existente);
+            assertEquals("Ulcera venosa MID", existente.getDiagnosticoMedico());
+            assertEquals(TecidoLeito.GRANULACAO, existente.getTecidoLeito());
+        }
+
+        @Test
+        @DisplayName("paciente nao pode registrar ficha de enfermagem")
+        void deveRejeitarPaciente() {
+            Agendamento avaliacao = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+
+            assertThrows(UsuarioSemAutorizacaoException.class,
+                    () -> service.registrarEvolucaoEnfermagem(1L, requestEnfermagem()));
+
+            verify(evolucaoEnfermagemRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita ficha de enfermagem em agendamento do tipo TRATAMENTO")
+        void deveRejeitarTipoTratamento() {
+            Agendamento tratamento = agendamentoTratamento();
+
+            when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucaoEnfermagem(2L, requestEnfermagem()));
+
+            verify(evolucaoEnfermagemRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita ficha de enfermagem em agendamento cancelado")
+        void deveRejeitarAgendamentoCancelado() {
+            Agendamento cancelado = agendamentoAgendado();
+            cancelado.setStatus(StatusAgendamento.CANCELADO);
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(cancelado));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucaoEnfermagem(1L, requestEnfermagem()));
+
+            verify(evolucaoEnfermagemRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("recarrega o agendamento apos salvar para retornar DTO atualizado")
+        void deveRecarregarAgendamentoAposSalvar() {
+            Agendamento avaliacao = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(evolucaoEnfermagemRepository.findByAgendamento(avaliacao))
+                    .thenReturn(Optional.empty());
+            when(evolucaoEnfermagemRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(agendamentoUtil.convertToDetalhadoDTO(any()))
+                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
+
+            service.registrarEvolucaoEnfermagem(1L, requestEnfermagem());
+
+            verify(agendamentoRepository, times(2)).findById(1L);
+        }
+    }
+
+    // =========================================================
+    // registrarEvolucaoCurativo()
+    // =========================================================
+    @Nested
+    @DisplayName("registrarEvolucaoCurativo()")
+    class RegistrarEvolucaoCurativo {
+
+        private EvolucaoCurativoRequestDTO requestCurativo() {
+            return EvolucaoCurativoRequestDTO.builder()
+                    .comprimento(new BigDecimal("4.00"))
+                    .largura(new BigDecimal("2.50"))
+                    .areaAproximada(new BigDecimal("10.00"))
+                    .tecido(TecidoLeito.GRANULACAO)
+                    .infeccaoInflamacao(InfeccaoInflamacaoCurativo.AUSENTE)
+                    .odorPresente(false)
+                    .dorEscala(3)
+                    .limpezaIrrigacao("SF 0,9% em jato")
+                    .desbridamento(TipoDesbridamento.NAO)
+                    .coberturaPrimaria("Hidrofibra com prata")
+                    .evolucao(AvaliacaoEvolucao.MELHORA)
+                    .planoManterConduta("Manter cobertura atual")
+                    .retornoPrevisto("Retorno em 3 dias")
+                    .build();
+        }
+
+        @Test
+        @DisplayName("cria nova EvolucaoCurativo quando nao existe registro anterior")
         void deveCriarNovaEvolucao() {
             Agendamento tratamento = agendamentoTratamento();
-            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
 
             when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
+            when(evolucaoCurativoRepository.findByAgendamento(tratamento))
                     .thenReturn(Optional.empty());
-            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(evolucaoCurativoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(agendamentoUtil.convertToDetalhadoDTO(any()))
                     .thenReturn(mock(AgendamentoDetalhadoDTO.class));
 
-            service.registrarEvolucao(2L, request);
+            service.registrarEvolucaoCurativo(2L, requestCurativo());
 
-            ArgumentCaptor<EvolucaoClinica> captor = ArgumentCaptor.forClass(EvolucaoClinica.class);
-            verify(evolucaoClinicaRepository).save(captor.capture());
+            ArgumentCaptor<EvolucaoCurativo> captor =
+                    ArgumentCaptor.forClass(EvolucaoCurativo.class);
+            verify(evolucaoCurativoRepository).save(captor.capture());
 
-            EvolucaoClinica salva = captor.getValue();
+            EvolucaoCurativo salva = captor.getValue();
             assertEquals(tratamento, salva.getAgendamento());
-            assertEquals("Úlcera venosa", salva.getEtiologia());
-            assertEquals(ClassificacaoDor.MODERADA, salva.getClassificacaoDor());
-            assertEquals(60, salva.getGranulacaoPercentual());
-            assertTrue(salva.getCaracteristicasBordas().contains(CaracteristicaBorda.INTEGRAS));
+            assertEquals(new BigDecimal("10.00"), salva.getAreaAproximada());
+            assertEquals(TecidoLeito.GRANULACAO, salva.getTecido());
+            assertEquals(InfeccaoInflamacaoCurativo.AUSENTE, salva.getInfeccaoInflamacao());
+            assertEquals(3, salva.getDorEscala());
+            assertEquals(AvaliacaoEvolucao.MELHORA, salva.getEvolucao());
+            assertEquals("Retorno em 3 dias", salva.getRetornoPrevisto());
         }
 
         @Test
-        @DisplayName("atualiza EvolucaoClinica existente sem criar novo registro")
+        @DisplayName("atualiza EvolucaoCurativo existente sem criar novo registro")
         void deveAtualizarEvolucaoExistente() {
             Agendamento tratamento = agendamentoTratamento();
-            EvolucaoClinica existente = evolucaoClinicaExistente(tratamento);
-            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
+            EvolucaoCurativo existente = EvolucaoCurativo.builder()
+                    .id(20L)
+                    .agendamento(tratamento)
+                    .coberturaPrimaria("Antiga")
+                    .build();
 
             when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
+            when(evolucaoCurativoRepository.findByAgendamento(tratamento))
                     .thenReturn(Optional.of(existente));
-            when(evolucaoClinicaRepository.save(existente)).thenReturn(existente);
+            when(evolucaoCurativoRepository.save(existente)).thenReturn(existente);
             when(agendamentoUtil.convertToDetalhadoDTO(any()))
                     .thenReturn(mock(AgendamentoDetalhadoDTO.class));
 
-            service.registrarEvolucao(2L, request);
+            service.registrarEvolucaoCurativo(2L, requestCurativo());
 
-            // Deve salvar o mesmo objeto (atualização), não criar outro
-            verify(evolucaoClinicaRepository).save(existente);
-            assertEquals("Úlcera venosa", existente.getEtiologia());
-            assertEquals(ClassificacaoDor.MODERADA, existente.getClassificacaoDor());
+            verify(evolucaoCurativoRepository).save(existente);
+            assertEquals("Hidrofibra com prata", existente.getCoberturaPrimaria());
+            assertEquals(TecidoLeito.GRANULACAO, existente.getTecido());
         }
 
         @Test
-        @DisplayName("paciente nao pode registrar evolucao")
+        @DisplayName("paciente nao pode registrar ficha de curativos")
         void deveRejeitarPaciente() {
             Agendamento tratamento = agendamentoTratamento();
 
@@ -556,31 +836,27 @@ class AgendamentoServiceImplTest {
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
 
             assertThrows(UsuarioSemAutorizacaoException.class,
-                    () -> service.registrarEvolucao(2L, evolucaoRequest()));
+                    () -> service.registrarEvolucaoCurativo(2L, requestCurativo()));
 
-            verify(evolucaoClinicaRepository, never()).save(any());
+            verify(evolucaoCurativoRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("permite evolucao em agendamento do tipo AVALIACAO")
-        void devePermitirTipoAvaliacao() {
-            Agendamento avaliacao = agendamentoAgendado(); // tipo = AVALIACAO
+        @DisplayName("rejeita ficha de curativos em agendamento do tipo AVALIACAO")
+        void deveRejeitarTipoAvaliacao() {
+            Agendamento avaliacao = agendamentoAgendado();
 
             when(agendamentoRepository.findById(1L)).thenReturn(Optional.of(avaliacao));
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(evolucaoClinicaRepository.findByAgendamento(avaliacao))
-                    .thenReturn(Optional.empty());
-            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(agendamentoUtil.convertToDetalhadoDTO(any()))
-                    .thenReturn(mock(AgendamentoDetalhadoDTO.class));
 
-            service.registrarEvolucao(1L, evolucaoRequest());
+            assertThrows(AgendamentoStatusInvalidoException.class,
+                    () -> service.registrarEvolucaoCurativo(1L, requestCurativo()));
 
-            verify(evolucaoClinicaRepository).save(any());
+            verify(evolucaoCurativoRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("rejeita evolucao em agendamento cancelado")
+        @DisplayName("rejeita ficha de curativos em agendamento cancelado")
         void deveRejeitarAgendamentoCancelado() {
             Agendamento cancelado = agendamentoTratamento();
             cancelado.setStatus(StatusAgendamento.CANCELADO);
@@ -589,28 +865,26 @@ class AgendamentoServiceImplTest {
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
 
             assertThrows(AgendamentoStatusInvalidoException.class,
-                    () -> service.registrarEvolucao(2L, evolucaoRequest()));
+                    () -> service.registrarEvolucaoCurativo(2L, requestCurativo()));
 
-            verify(evolucaoClinicaRepository, never()).save(any());
+            verify(evolucaoCurativoRepository, never()).save(any());
         }
 
         @Test
         @DisplayName("recarrega o agendamento apos salvar para retornar DTO atualizado")
         void deveRecarregarAgendamentoAposSalvar() {
             Agendamento tratamento = agendamentoTratamento();
-            EvolucaoTratamentoRequestDTO request = evolucaoRequest();
 
             when(agendamentoRepository.findById(2L)).thenReturn(Optional.of(tratamento));
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(evolucaoClinicaRepository.findByAgendamento(tratamento))
+            when(evolucaoCurativoRepository.findByAgendamento(tratamento))
                     .thenReturn(Optional.empty());
-            when(evolucaoClinicaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(evolucaoCurativoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(agendamentoUtil.convertToDetalhadoDTO(any()))
                     .thenReturn(mock(AgendamentoDetalhadoDTO.class));
 
-            service.registrarEvolucao(2L, request);
+            service.registrarEvolucaoCurativo(2L, requestCurativo());
 
-            // findById é chamado duas vezes: buscarOuFalhar + reload pós-save
             verify(agendamentoRepository, times(2)).findById(2L);
         }
     }
@@ -763,6 +1037,228 @@ class AgendamentoServiceImplTest {
 
             assertEquals(LocalDate.of(2026, 6, 1), inicioCaptor.getValue().toLocalDate());
             assertEquals(LocalDate.of(2026, 6, 7), fimCaptor.getValue().toLocalDate());
+        }
+    }
+
+    // =========================================================
+    // RF05 - horario de trabalho do profissional
+    // =========================================================
+    @Nested
+    @DisplayName("validacao de horario de trabalho (RF05)")
+    class HorarioDeTrabalho {
+
+        /** A janela de expediente que cobre INICIO..FIM (01/06/2026, 14h-15h). */
+        private HorarioTrabalho janela(LocalTime inicio, LocalTime fim) {
+            return HorarioTrabalho.builder()
+                    .profissionalUuid(PROFISSIONAL_UUID)
+                    .diaSemana(INICIO.getDayOfWeek().getValue())
+                    .horaInicio(inicio)
+                    .horaFim(fim)
+                    .ativo(true)
+                    .build();
+        }
+
+        private void mockExpediente(HorarioTrabalho... janelas) {
+            when(horarioTrabalhoRepository
+                    .existsByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID)).thenReturn(true);
+            when(horarioTrabalhoRepository
+                    .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(eq(PROFISSIONAL_UUID), anyInt()))
+                    .thenReturn(List.of(janelas));
+        }
+
+        @Test
+        @DisplayName("profissional sem expediente cadastrado nao e validado")
+        void deveIgnorarQuandoSemExpediente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            mockProcedimentoPodiatria();
+            when(agendamentoRepository.save(any())).thenReturn(agendamentoAgendado());
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            assertNotNull(service.agendar(request));
+
+            verify(horarioTrabalhoRepository, never())
+                    .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(any(), anyInt());
+        }
+
+        @Test
+        @DisplayName("agenda dentro da janela de expediente")
+        void deveAceitarDentroDoExpediente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockExpediente(janela(LocalTime.of(8, 0), LocalTime.of(18, 0)));
+            mockSemConflitos();
+            mockProcedimentoPodiatria();
+            when(agendamentoRepository.save(any())).thenReturn(agendamentoAgendado());
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            assertNotNull(service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("rejeita agendamento fora da janela de expediente")
+        void deveRejeitarForaDoExpediente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockExpediente(janela(LocalTime.of(8, 0), LocalTime.of(12, 0)));
+
+            assertThrows(ForaDoHorarioTrabalhoException.class,
+                    () -> service.agendar(request));
+            verify(agendamentoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita quando o atendimento so cabe somando duas janelas")
+        void deveRejeitarQuandoAtravessaDuasJanelas() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            // 13h-14h30 e 14h30-16h: o atendimento de 14h-15h cruza o intervalo
+            // entre as duas e nao cabe inteiro em nenhuma delas.
+            mockExpediente(
+                    janela(LocalTime.of(13, 0), LocalTime.of(14, 30)),
+                    janela(LocalTime.of(14, 30), LocalTime.of(16, 0)));
+
+            assertThrows(ForaDoHorarioTrabalhoException.class,
+                    () -> service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("rejeita quando o dia da semana nao tem expediente")
+        void deveRejeitarDiaSemExpediente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            when(horarioTrabalhoRepository
+                    .existsByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID)).thenReturn(true);
+            when(horarioTrabalhoRepository
+                    .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(eq(PROFISSIONAL_UUID), anyInt()))
+                    .thenReturn(List.of());
+
+            assertThrows(ForaDoHorarioTrabalhoException.class,
+                    () -> service.agendar(request));
+        }
+    }
+
+    // =========================================================
+    // Bloqueios recorrentes na validacao de agendamento
+    // =========================================================
+    @Nested
+    @DisplayName("validacao de bloqueio recorrente")
+    class BloqueioRecorrenteNaAgenda {
+
+        /** Regra semanal no dia de INICIO (01/06/2026, agendamento das 14h às 15h). */
+        private BloqueioRecorrente regra(LocalTime horaInicio, LocalTime horaFim) {
+            return BloqueioRecorrente.builder()
+                    .profissionalUuid(PROFISSIONAL_UUID)
+                    .diaSemana(INICIO.getDayOfWeek().getValue())
+                    .horaInicio(horaInicio)
+                    .horaFim(horaFim)
+                    .motivo("Reunião semanal")
+                    .tipo(TipoBloqueio.INDISPONIVEL)
+                    .ativo(true)
+                    .build();
+        }
+
+        @Test
+        @DisplayName("rejeita agendamento que cai numa regra semanal")
+        void deveRejeitarDentroDaRegra() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            when(bloqueioHorarioRepository.findConflitos(any(), any(), any()))
+                    .thenReturn(List.of());
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regra(LocalTime.of(13, 0), LocalTime.of(16, 0))));
+
+            assertThrows(HorarioIndisponivelException.class,
+                    () -> service.agendar(request));
+            verify(agendamentoRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita sobreposicao parcial com a regra")
+        void deveRejeitarSobreposicaoParcial() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            when(bloqueioHorarioRepository.findConflitos(any(), any(), any()))
+                    .thenReturn(List.of());
+            // 14h30-16h invade o fim do agendamento (14h-15h)
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regra(LocalTime.of(14, 30), LocalTime.of(16, 0))));
+
+            assertThrows(HorarioIndisponivelException.class,
+                    () -> service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("aceita regra que encosta no inicio sem sobrepor")
+        void deveAceitarRegraAdjacente() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            mockProcedimentoPodiatria();
+            // Termina exatamente às 14h, quando o agendamento começa.
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regra(LocalTime.of(8, 0), LocalTime.of(14, 0))));
+            when(agendamentoRepository.save(any())).thenReturn(agendamentoAgendado());
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            assertNotNull(service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("ignora regra de outro dia da semana")
+        void deveIgnorarOutroDiaDaSemana() {
+            AgendamentoRequestDTO request = requestAvaliacao();
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioPaciente());
+            mockSemConflitos();
+            mockProcedimentoPodiatria();
+
+            BloqueioRecorrente outroDia = regra(LocalTime.of(13, 0), LocalTime.of(16, 0));
+            outroDia.setDiaSemana(INICIO.plusDays(1).getDayOfWeek().getValue());
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(outroDia));
+            when(agendamentoRepository.save(any())).thenReturn(agendamentoAgendado());
+            when(agendamentoUtil.convertToResponseDTO(any()))
+                    .thenReturn(mock(AgendamentoResponseDTO.class));
+
+            assertNotNull(service.agendar(request));
+        }
+
+        @Test
+        @DisplayName("reagendamento tambem respeita a regra semanal")
+        void deveValidarNoReagendamento() {
+            Agendamento existente = agendamentoAgendado();
+
+            when(agendamentoRepository.findById(existente.getId()))
+                    .thenReturn(Optional.of(existente));
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(bloqueioHorarioRepository.findConflitos(any(), any(), any()))
+                    .thenReturn(List.of());
+            when(bloqueioRecorrenteRepository
+                    .findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regra(LocalTime.of(13, 0), LocalTime.of(16, 0))));
+
+            ReagendarRequestDTO request = new ReagendarRequestDTO(
+                    INICIO.plusDays(7), FIM.plusDays(7), "Pedido do paciente");
+
+            assertThrows(HorarioIndisponivelException.class,
+                    () -> service.reagendar(existente.getId(), request));
         }
     }
 }

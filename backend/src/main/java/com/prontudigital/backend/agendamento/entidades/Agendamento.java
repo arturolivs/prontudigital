@@ -47,9 +47,17 @@ public class Agendamento {
     @Column(name = "tipo")
     private TipoAgendamento tipo;
 
+    /**
+     * Valor legado do enum, mantido para compatibilidade durante a migracao
+     * para a tabela de procedimentos (RF06). Nulo para procedimentos novos.
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_procedimento")
     private TipoProcedimento tipoProcedimento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "procedimento_id")
+    private Procedimento procedimento;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "local_atendimento")
@@ -66,7 +74,10 @@ public class Agendamento {
     private LocalDateTime concluidoEm;
 
     @OneToOne(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
-    private EvolucaoClinica evolucaoClinica;
+    private EvolucaoEnfermagem evolucaoEnfermagem;
+
+    @OneToOne(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private EvolucaoCurativo evolucaoCurativo;
 
     @CreationTimestamp
     @Column(name = "criado_em", updatable = false)

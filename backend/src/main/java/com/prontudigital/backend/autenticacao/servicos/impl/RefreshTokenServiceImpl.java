@@ -7,6 +7,7 @@ import com.prontudigital.backend.autenticacao.repositorios.RefreshTokenRepositor
 import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.seguranca.JwtTokenProvider;
 import com.prontudigital.backend.autenticacao.servicos.RefreshTokenService;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,7 +32,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public String gerarRefreshToken(String username) {
         Usuario usuario = usuarioRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException(Mensagens.get("usuario.nao-encontrado.username", username)));
 
         revogarTodosTokensDoUsuario(usuario);
 
@@ -84,10 +85,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public String rotacionarRefreshToken(String tokenAntigo) {
         RefreshToken refreshToken = buscarPorToken(tokenAntigo)
-                .orElseThrow(() -> new TokenInvalidoException("Refresh token nao encontrado"));
+                .orElseThrow(() -> new TokenInvalidoException(Mensagens.get("auth.refresh-token-nao-encontrado")));
 
         if (refreshToken.isRevogado()) {
-            throw new TokenInvalidoException("Refresh token ja revogado");
+            throw new TokenInvalidoException(Mensagens.get("auth.refresh-token-ja-revogado"));
         }
 
         revogarRefreshToken(tokenAntigo);

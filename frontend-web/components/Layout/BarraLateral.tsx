@@ -8,6 +8,7 @@ import {
   Ban,
   Users,
   FileText,
+  Stethoscope,
   BarChart3,
   Settings,
   LogOut,
@@ -79,10 +80,17 @@ const BarraLateral = ({
       perfis: ['ROLE_ADMIN'],
     },
     {
-      rotulo: 'Relatórios',
-      caminho: '/reports',
-      icone: BarChart3,
+      rotulo: 'Procedimentos',
+      caminho: '/dashboard/procedimentos',
+      icone: Stethoscope,
       perfis: ['ROLE_ADMIN'],
+    },
+    {
+      // O profissional também acessa, mas só enxerga a própria agenda (RF19/RF20).
+      rotulo: 'Relatórios',
+      caminho: '/relatorios',
+      icone: BarChart3,
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
       rotulo: 'Configurações',

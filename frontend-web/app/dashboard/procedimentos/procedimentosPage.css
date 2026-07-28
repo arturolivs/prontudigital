@@ -1,0 +1,94 @@
+/* procedimentosPage.css – formulário do modal de procedimento */
+
+.proc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.proc-form-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.proc-form-rotulo {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+}
+
+.proc-form-input,
+.proc-form-textarea {
+  border: 1px solid var(--color-border-brand);
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-heading);
+  background: white;
+}
+
+.proc-form-input:focus,
+.proc-form-textarea:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.proc-form-textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+.proc-form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-heading);
+  cursor: pointer;
+}
+
+.proc-form-erro {
+  background: var(--color-error-bg, #fdecea);
+  color: var(--color-error, #c0392b);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+}
+
+.proc-btn-cancelar {
+  background: none;
+  border: 1px solid var(--color-border-brand);
+  color: var(--color-text-heading);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.proc-btn-salvar {
+  background: var(--color-brand);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.proc-btn-salvar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.proc-codigo-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--color-bg-alt);
+  color: var(--color-brand);
+}

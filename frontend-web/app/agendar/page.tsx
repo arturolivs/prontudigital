@@ -10,9 +10,11 @@ import {
 } from '../../lib/agendamento-publico.service'
 import { BloqueioHorario } from '../../tipos/bloqueio'
 import { Agendamento } from '../../tipos/agendamento'
-import { TipoProcedimento, ROTULO_TIPO_PROCEDIMENTO } from '../../tipos/TipoProcedimento'
+import { Procedimento } from '../../tipos/procedimento'
+import { procedimentoAPI } from '../../lib/procedimento.service'
 import { LocalAtendimento, ROTULO_LOCAL_ATENDIMENTO } from '../../tipos/LocalAtendimento'
 import { mascaraTelefone } from '../../lib/mascaras'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import './agendar.css'
 
 /* ── helpers ── */
@@ -96,7 +98,7 @@ export default function AgendarPage() {
   )
   const [data, setData] = useState(amanha)
   const [slot, setSlot] = useState<string | null>(null)
-  const [tipoProcedimento, setTipoProcedimento] = useState<TipoProcedimento | null>(null)
+  const [procedimento, setProcedimento] = useState<Procedimento | null>(null)
   const [localAtendimento, setLocalAtendimento] = useState<LocalAtendimento | null>(null)
   const [pacienteAcamado, setPacienteAcamado] = useState<boolean | null>(null)
   const [pacienteUuid, setPacienteUuid] = useState<string | null>(null)
@@ -106,6 +108,7 @@ export default function AgendarPage() {
 
   /* listas */
   const [profissionais, setProfissionais] = useState<ProfissionalPublico[]>([])
+  const [procedimentos, setProcedimentos] = useState<Procedimento[]>([])
   const [bloqueios, setBloqueios] = useState<BloqueioHorario[]>([])
 
   /* loading / erro */
@@ -128,8 +131,16 @@ export default function AgendarPage() {
     agendamentoPublicoAPI
       .listarProfissionais()
       .then(setProfissionais)
-      .catch(() => setErro('Não foi possível carregar os profissionais.'))
+      .catch(() => setErro(MENSAGENS.erro.carregarProfissionais))
       .finally(() => setCarregandoProf(false))
+  }, [])
+
+  /* ── carregar procedimentos (RF06) ── */
+  useEffect(() => {
+    procedimentoAPI
+      .listar()
+      .then(setProcedimentos)
+      .catch(() => setErro(MENSAGENS.erro.carregarProcedimentos))
   }, [])
 
   /* ── carregar bloqueios ao avançar para etapa 2 ── */
@@ -173,7 +184,7 @@ export default function AgendarPage() {
       setPacienteUuid(usuarioAtual.uuid)
       setEtapa(4)
     } catch (err: any) {
-      setErro(err?.response?.data?.message || 'Usuário ou senha inválidos.')
+      setErro(mensagemErro(err, MENSAGENS.erro.credenciaisInvalidas))
     } finally {
       setCarregandoAuth(false)
     }
@@ -193,10 +204,7 @@ export default function AgendarPage() {
       setPacienteUuid(usuarioAtual.uuid)
       setEtapa(4)
     } catch (err: any) {
-      setErro(
-        err?.response?.data?.message ||
-          'Erro ao criar cadastro. Verifique os dados.',
-      )
+      setErro(mensagemErro(err, MENSAGENS.erro.criarCadastro))
     } finally {
       setCarregandoAuth(false)
     }
@@ -204,7 +212,7 @@ export default function AgendarPage() {
 
   /* ── confirmar agendamento ── */
   const handleConfirmar = async () => {
-    if (!profissional || !slot || !pacienteUuid || !tipoProcedimento || !localAtendimento || pacienteAcamado === null) return
+    if (!profissional || !slot || !pacienteUuid || !procedimento || !localAtendimento || pacienteAcamado === null) return
     setErro('')
     setCarregandoConfirmar(true)
     try {
@@ -214,17 +222,14 @@ export default function AgendarPage() {
         inicioEm: `${data}T${slot}:00`,
         fimEm: `${data}T${adicionarHora(slot)}:00`,
         tipo: 'AVALIACAO',
-        tipoProcedimento,
+        procedimentoId: procedimento.id,
         localAtendimento: localAtendimento!,
         pacienteAcamado: pacienteAcamado!,
       })
       setAgendamento(criado)
       setEtapa('sucesso')
     } catch (err: any) {
-      setErro(
-        err?.response?.data?.message ||
-          'Não foi possível confirmar o agendamento.',
-      )
+      setErro(mensagemErro(err, MENSAGENS.erro.confirmarAgendamento))
     } finally {
       setCarregandoConfirmar(false)
     }
@@ -235,7 +240,7 @@ export default function AgendarPage() {
     setProfissional(null)
     setData(amanha())
     setSlot(null)
-    setTipoProcedimento(null)
+    setProcedimento(null)
     setLocalAtendimento(null)
     setPacienteAcamado(null)
     setPacienteUuid(null)
@@ -462,15 +467,15 @@ export default function AgendarPage() {
               )}
 
               <div className="tipo-procedimento-secao">
-                <p className="tipo-procedimento-titulo">Tipo de procedimento</p>
+                <p className="tipo-procedimento-titulo">Procedimento</p>
                 <div className="tipo-procedimento-opcoes">
-                  {(['PODIATRIA', 'TRATAMENTO_FERIDAS'] as TipoProcedimento[]).map(tp => (
+                  {procedimentos.map(p => (
                     <button
-                      key={tp}
-                      className={`tipo-procedimento-btn${tipoProcedimento === tp ? ' selecionado' : ''}`}
-                      onClick={() => setTipoProcedimento(tp)}
+                      key={p.id}
+                      className={`tipo-procedimento-btn${procedimento?.id === p.id ? ' selecionado' : ''}`}
+                      onClick={() => setProcedimento(p)}
                     >
-                      {ROTULO_TIPO_PROCEDIMENTO[tp]}
+                      {p.nome}
                     </button>
                   ))}
                 </div>
@@ -525,7 +530,7 @@ export default function AgendarPage() {
               </button>
               <button
                 className="btn-continuar"
-                disabled={!slot || !tipoProcedimento || !localAtendimento || pacienteAcamado === null}
+                disabled={!slot || !procedimento || !localAtendimento || pacienteAcamado === null}
                 onClick={() => {
                   setEtapa(3)
                   setErro('')
@@ -803,7 +808,7 @@ export default function AgendarPage() {
                     <div className="resumo-linha-info">
                       <div className="resumo-linha-rotulo">Procedimento</div>
                       <div className="resumo-linha-valor">
-                        {tipoProcedimento ? ROTULO_TIPO_PROCEDIMENTO[tipoProcedimento] : '—'}
+                        {procedimento ? procedimento.nome : '—'}
                       </div>
                     </div>
                   </div>
@@ -937,7 +942,7 @@ export default function AgendarPage() {
                 </div>
                 <div className="sucesso-detalhe-linha">
                   <span>Procedimento</span>
-                  <span>{tipoProcedimento ? ROTULO_TIPO_PROCEDIMENTO[tipoProcedimento] : '—'}</span>
+                  <span>{procedimento ? procedimento.nome : '—'}</span>
                 </div>
                 <div className="sucesso-detalhe-linha">
                   <span>Local</span>

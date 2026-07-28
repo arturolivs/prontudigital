@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { Agendamento, AgendamentoRequisicao } from '../../tipos/agendamento'
 import { TipoProcedimento } from '../../tipos/TipoProcedimento'
 import { LocalAtendimento } from '../../tipos/LocalAtendimento'
@@ -59,6 +60,7 @@ interface PrefillModal {
   avaliacaoId?: number
   tipo?: 'AVALIACAO' | 'TRATAMENTO'
   tipoProcedimento?: TipoProcedimento
+  procedimentoId?: number
   localAtendimento?: LocalAtendimento
   pacienteAcamado?: boolean
   data?: string
@@ -85,6 +87,7 @@ export default function AgendaPage() {
       profissionalUuid: searchParams.get('profissionalUuid') ?? undefined,
       avaliacaoId: searchParams.get('avaliacaoId') ? Number(searchParams.get('avaliacaoId')) : undefined,
       tipoProcedimento: (searchParams.get('tipoProcedimento') as TipoProcedimento) ?? undefined,
+      procedimentoId: searchParams.get('procedimentoId') ? Number(searchParams.get('procedimentoId')) : undefined,
       localAtendimento: (searchParams.get('localAtendimento') as LocalAtendimento) ?? undefined,
       pacienteAcamado: searchParams.get('pacienteAcamado') != null
         ? searchParams.get('pacienteAcamado') === 'true'
@@ -110,7 +113,7 @@ export default function AgendaPage() {
       const data = await agendamentoAPI.getAgendamentos(viewType, selectedDate)
       setAgendamentos(data)
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar agendamentos')
+      setError(mensagemErro(err, MENSAGENS.erro.carregarAgendamentos))
       console.error('Erro:', err)
     } finally {
       setLoading(false)
@@ -143,7 +146,7 @@ export default function AgendaPage() {
       setPrefillModal(undefined)
       fetchAgendamentos()
     } catch (err: any) {
-      setError(err.message || 'Erro ao criar agendamento')
+      setError(mensagemErro(err, MENSAGENS.erro.criarAgendamento))
       console.error('Erro:', err)
     }
   }

@@ -1,13 +1,19 @@
 package com.prontudigital.backend.autenticacao.servicos.impl;
 
 import com.prontudigital.backend.autenticacao.dto.*;
+import com.prontudigital.backend.autenticacao.entidades.CodigoRecuperacaoSenha;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
+import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
+import com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.TokenInvalidoException;
+import com.prontudigital.backend.autenticacao.excecoes.UsuarioNaoEncontradoException;
+import com.prontudigital.backend.autenticacao.repositorios.CodigoRecuperacaoSenhaRepository;
 import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
 import com.prontudigital.backend.autenticacao.seguranca.JwtTokenProvider;
 import com.prontudigital.backend.autenticacao.seguranca.UserDetailsImpl;
 import com.prontudigital.backend.autenticacao.servicos.RefreshTokenService;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
+import com.prontudigital.backend.compartilhado.clientes.WhatsappCloudApiClient;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,19 +24,31 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.prontudigital.backend.autenticacao.servicos.impl.fixtures.AutenticacaoTestFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AutenticacaoServiceImpl")
 class AutenticacaoServiceImplTest {
+
+    private static final String TELEFONE = "11999999999";
+    private static final LocalDateTime AGORA = LocalDateTime.of(2026, 6, 1, 12, 0);
 
     @Mock private UsuarioService usuarioService;
     @Mock private UsuarioRepository usuarioRepository;
@@ -38,9 +56,30 @@ class AutenticacaoServiceImplTest {
     @Mock private AuthenticationManager authenticationManager;
     @Mock private RefreshTokenService refreshTokenService;
     @Mock private UserDetailsService userDetailsService;
+    @Mock private CodigoRecuperacaoSenhaRepository codigoRecuperacaoSenhaRepository;
+    @Mock private WhatsappCloudApiClient whatsappCliente;
+    @Mock private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AutenticacaoServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        Clock clock = Clock.fixed(AGORA.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+        ReflectionTestUtils.setField(service, "clock", clock);
+        ReflectionTestUtils.setField(service, "expiracaoCodigoMinutos", 10);
+    }
+
+    private CodigoRecuperacaoSenha codigo(String valor, LocalDateTime expiraEm, int tentativas) {
+        return CodigoRecuperacaoSenha.builder()
+                .id(1L)
+                .usuarioId(USUARIO_ID)
+                .codigo(valor)
+                .expiraEm(expiraEm)
+                .utilizado(false)
+                .tentativas(tentativas)
+                .build();
+    }
 
     // =========================================================
     // registrar()
@@ -126,6 +165,24 @@ class AutenticacaoServiceImplTest {
                     .thenThrow(new RuntimeException("Bad credentials"));
 
             assertThrows(RuntimeException.class, () -> service.autenticar(request));
+            verify(refreshTokenService, never()).gerarRefreshToken(any());
+        }
+
+        @Test
+        @DisplayName("rejeita usuario autenticado mas com acesso nao ativado")
+        void deveRejeitarAcessoNaoAtivado() {
+            LoginRequestDTO request = loginRequest();
+            UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+            Authentication authentication = mock(Authentication.class);
+
+            when(userDetails.getUsername()).thenReturn(USERNAME);
+            when(authentication.getPrincipal()).thenReturn(userDetails);
+            when(authenticationManager.authenticate(any())).thenReturn(authentication);
+            when(usuarioRepository.findByUsername(USERNAME)).thenReturn(
+                    Optional.of(Usuario.builder().username(USERNAME).acessoAtivado(false).build()));
+
+            assertThrows(AcessoNaoAtivadoException.class, () -> service.autenticar(request));
+            verify(tokenProvider, never()).generateAccessToken(any());
             verify(refreshTokenService, never()).gerarRefreshToken(any());
         }
 
@@ -229,6 +286,214 @@ class AutenticacaoServiceImplTest {
 
             assertThrows(RuntimeException.class,
                     () -> service.encerrarSessao(TOKEN_VALIDO));
+        }
+    }
+
+    // =========================================================
+    // cadastrarPaciente()
+    // =========================================================
+    @Nested
+    @DisplayName("cadastrarPaciente()")
+    class CadastrarPaciente {
+
+        @Test
+        @DisplayName("cadastra o paciente e ja retorna tokens de sessao")
+        void deveCadastrarERetornarTokens() {
+            CadastrarPacienteDTO dto = new CadastrarPacienteDTO(NOME, TELEFONE);
+            Usuario usuario = Usuario.builder().username(USERNAME).build();
+            UserDetails userDetails = mock(UserDetails.class);
+
+            when(usuarioService.cadastrarPaciente(dto)).thenReturn(usuario);
+            when(userDetailsService.loadUserByUsername(USERNAME)).thenReturn(userDetails);
+            doReturn(List.of(new SimpleGrantedAuthority("ROLE_PACIENTE")))
+                    .when(userDetails).getAuthorities();
+            when(tokenProvider.generateAccessToken(any())).thenReturn("access-token");
+            when(refreshTokenService.gerarRefreshToken(USERNAME)).thenReturn("refresh-token");
+
+            JwtResponseDTO resultado = service.cadastrarPaciente(dto);
+
+            assertEquals("access-token", resultado.accessToken());
+            assertEquals("refresh-token", resultado.refreshToken());
+            assertEquals(USERNAME, resultado.username());
+            assertEquals(List.of("ROLE_PACIENTE"), resultado.perfis());
+        }
+    }
+
+    // =========================================================
+    // ativarAcesso()
+    // =========================================================
+    @Nested
+    @DisplayName("ativarAcesso()")
+    class AtivarAcesso {
+
+        @Test
+        @DisplayName("delega a ativacao ao UsuarioService")
+        void deveDelegarAtivacao() {
+            AtivarAcessoRequestDTO dto =
+                    new AtivarAcessoRequestDTO(TELEFONE, EMAIL, USERNAME, SENHA_RAW);
+            UsuarioDTO esperado = usuarioDTO();
+
+            when(usuarioService.ativarAcesso(dto)).thenReturn(esperado);
+
+            assertSame(esperado, service.ativarAcesso(dto));
+            verify(usuarioService).ativarAcesso(dto);
+        }
+    }
+
+    // =========================================================
+    // solicitarRecuperacaoSenha()
+    // =========================================================
+    @Nested
+    @DisplayName("solicitarRecuperacaoSenha()")
+    class SolicitarRecuperacaoSenha {
+
+        @Test
+        @DisplayName("invalida codigos anteriores, gera novo e envia por WhatsApp")
+        void deveGerarEEnviarCodigo() {
+            RecuperarSenhaSolicitarRequestDTO dto =
+                    new RecuperarSenhaSolicitarRequestDTO("  " + TELEFONE + "  "); // com espacos
+            Usuario usuario = Usuario.builder().id(USUARIO_ID).username(USERNAME).build();
+            CodigoRecuperacaoSenha anterior = codigo("111111", AGORA.plusMinutes(5), 0);
+
+            when(usuarioRepository.findByTelefone(TELEFONE)).thenReturn(Optional.of(usuario));
+            when(codigoRecuperacaoSenhaRepository.findByUsuarioIdAndUtilizadoFalse(USUARIO_ID))
+                    .thenReturn(List.of(anterior));
+
+            service.solicitarRecuperacaoSenha(dto);
+
+            assertTrue(anterior.getUtilizado());
+
+            ArgumentCaptor<CodigoRecuperacaoSenha> captor =
+                    ArgumentCaptor.forClass(CodigoRecuperacaoSenha.class);
+            verify(codigoRecuperacaoSenhaRepository).save(captor.capture());
+            assertEquals(USUARIO_ID, captor.getValue().getUsuarioId());
+            assertTrue(captor.getValue().getCodigo().matches("\\d{6}"));
+            assertEquals(AGORA.plusMinutes(10), captor.getValue().getExpiraEm());
+
+            ArgumentCaptor<String> msg = ArgumentCaptor.forClass(String.class);
+            verify(whatsappCliente).enviarMensagemTexto(eq(TELEFONE), msg.capture());
+            assertTrue(msg.getValue().contains(captor.getValue().getCodigo()));
+        }
+
+        @Test
+        @DisplayName("lanca excecao quando nenhum usuario tem o telefone")
+        void deveLancarSeTelefoneNaoEncontrado() {
+            RecuperarSenhaSolicitarRequestDTO dto =
+                    new RecuperarSenhaSolicitarRequestDTO(TELEFONE);
+
+            when(usuarioRepository.findByTelefone(TELEFONE)).thenReturn(Optional.empty());
+
+            assertThrows(UsuarioNaoEncontradoException.class,
+                    () -> service.solicitarRecuperacaoSenha(dto));
+            verify(codigoRecuperacaoSenhaRepository, never()).save(any());
+            verifyNoInteractions(whatsappCliente);
+        }
+    }
+
+    // =========================================================
+    // confirmarRecuperacaoSenha()
+    // =========================================================
+    @Nested
+    @DisplayName("confirmarRecuperacaoSenha()")
+    class ConfirmarRecuperacaoSenha {
+
+        private RecuperarSenhaConfirmarRequestDTO dto(String codigo) {
+            return new RecuperarSenhaConfirmarRequestDTO(TELEFONE, codigo, "novaSenha123");
+        }
+
+        @Test
+        @DisplayName("lanca excecao quando nenhum usuario tem o telefone")
+        void deveLancarSeTelefoneNaoEncontrado() {
+            when(usuarioRepository.findByTelefone(TELEFONE)).thenReturn(Optional.empty());
+
+            assertThrows(UsuarioNaoEncontradoException.class,
+                    () -> service.confirmarRecuperacaoSenha(dto("123456")));
+        }
+
+        @Test
+        @DisplayName("lanca excecao quando nao ha codigo ativo")
+        void deveLancarSeSemCodigo() {
+            Usuario usuario = Usuario.builder().id(USUARIO_ID).build();
+            when(usuarioRepository.findByTelefone(TELEFONE)).thenReturn(Optional.of(usuario));
+            when(codigoRecuperacaoSenhaRepository
+                    .findFirstByUsuarioIdAndUtilizadoFalseOrderByCriadoEmDesc(USUARIO_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(CodigoRecuperacaoInvalidoException.class,
+                    () -> service.confirmarRecuperacaoSenha(dto("123456")));
+        }
+
+        @Test
+        @DisplayName("codigo expirado e marcado como utilizado e rejeitado")
+        void deveRejeitarCodigoExpirado() {
+            Usuario usuario = Usuario.builder().id(USUARIO_ID).build();
+            CodigoRecuperacaoSenha entidade = codigo("123456", AGORA.minusMinutes(1), 0);
+            when(usuarioRepository.findByTelefone(TELEFONE)).thenReturn(Optional.of(usuario));
+            when(codigoRecuperacaoSenhaRepository
+                    .findFirstByUsuarioIdAndUtilizadoFalseOrderByCriadoEmDesc(USUARIO_ID))
+                    .thenReturn(Optional.of(entidade));
+
+            assertThrows(CodigoRecuperacaoInvalidoException.class,
+                    () -> service.confirmarRecuperacaoSenha(dto("123456")));
+
+            assertTrue(entidade.getUtilizado());
+            verify(codigoRecuperacaoSenhaRepository).save(entidade);
+            verify(usuarioRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("codigo com tentativas excedidas e invalidado e rejeitado")
+        void deveRejeitarTentativasExcedidas() {
+            Usuario usuario = Usuario.builder().id(USUARIO_ID).build();
+            CodigoRecuperacaoSenha entidade = codigo("123456", AGORA.plusMinutes(5), 5);
+            when(usuarioRepository.findByTelefone(TELEFONE)).thenReturn(Optional.of(usuario));
+            when(codigoRecuperacaoSenhaRepository
+                    .findFirstByUsuarioIdAndUtilizadoFalseOrderByCriadoEmDesc(USUARIO_ID))
+                    .thenReturn(Optional.of(entidade));
+
+            assertThrows(CodigoRecuperacaoInvalidoException.class,
+                    () -> service.confirmarRecuperacaoSenha(dto("123456")));
+
+            assertTrue(entidade.getUtilizado());
+            verify(usuarioRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("codigo incorreto incrementa tentativas e rejeita sem invalidar")
+        void deveIncrementarTentativasSeCodigoIncorreto() {
+            Usuario usuario = Usuario.builder().id(USUARIO_ID).build();
+            CodigoRecuperacaoSenha entidade = codigo("123456", AGORA.plusMinutes(5), 1);
+            when(usuarioRepository.findByTelefone(TELEFONE)).thenReturn(Optional.of(usuario));
+            when(codigoRecuperacaoSenhaRepository
+                    .findFirstByUsuarioIdAndUtilizadoFalseOrderByCriadoEmDesc(USUARIO_ID))
+                    .thenReturn(Optional.of(entidade));
+
+            assertThrows(CodigoRecuperacaoInvalidoException.class,
+                    () -> service.confirmarRecuperacaoSenha(dto("999999")));
+
+            assertEquals(2, entidade.getTentativas());
+            assertFalse(entidade.getUtilizado());
+            verify(codigoRecuperacaoSenhaRepository).save(entidade);
+            verify(usuarioRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("codigo correto invalida o codigo e grava a nova senha (com hash)")
+        void deveTrocarSenhaComSucesso() {
+            Usuario usuario = Usuario.builder().id(USUARIO_ID).username(USERNAME).build();
+            CodigoRecuperacaoSenha entidade = codigo("123456", AGORA.plusMinutes(5), 0);
+            when(usuarioRepository.findByTelefone(TELEFONE)).thenReturn(Optional.of(usuario));
+            when(codigoRecuperacaoSenhaRepository
+                    .findFirstByUsuarioIdAndUtilizadoFalseOrderByCriadoEmDesc(USUARIO_ID))
+                    .thenReturn(Optional.of(entidade));
+            when(passwordEncoder.encode("novaSenha123")).thenReturn("HASH_NOVO");
+
+            service.confirmarRecuperacaoSenha(dto("123456"));
+
+            assertTrue(entidade.getUtilizado());
+            assertEquals("HASH_NOVO", usuario.getSenhaHash());
+            verify(codigoRecuperacaoSenhaRepository).save(entidade);
+            verify(usuarioRepository).save(usuario);
         }
     }
 }

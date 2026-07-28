@@ -1,11 +1,16 @@
 package com.prontudigital.backend.compartilhado.excecoes;
 
 import com.prontudigital.backend.agendamento.excecoes.*;
+import com.prontudigital.backend.prontuario.excecoes.AnamneseJaExisteException;
+import com.prontudigital.backend.prontuario.excecoes.AnamneseNaoEncontradaException;
 import com.prontudigital.backend.notificacao.excecoes.TokenConfirmacaoInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.*;
 import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
 import com.prontudigital.backend.autenticacao.excecoes.TelefoneExistenteException;
+import com.prontudigital.backend.autenticacao.excecoes.CpfExistenteException;
+import com.prontudigital.backend.autenticacao.excecoes.CorenExistenteException;
 import com.prontudigital.backend.compartilhado.dto.ErroRespostaDTO;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -43,8 +48,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         ErroRespostaDTO erro = new ErroRespostaDTO(
                 HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                "Dados inválidos",
-                "Verifique os campos enviados",
+                Mensagens.get("erro.validacao.titulo"),
+                Mensagens.get("erro.validacao.mensagem"),
                 extrairCaminho(request),
                 detalhes);
 
@@ -61,8 +66,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         ErroRespostaDTO erro = new ErroRespostaDTO(
                 HttpStatus.BAD_REQUEST.value(),
-                "Requisição invalida",
-                "O corpo da requisição esta ausente ou mal formado",
+                Mensagens.get("erro.requisicao-invalida.titulo"),
+                Mensagens.get("erro.requisicao-invalida.mensagem"),
                 extrairCaminho(request));
 
         return ResponseEntity.badRequest().body(erro);
@@ -77,8 +82,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         ErroRespostaDTO erro = new ErroRespostaDTO(
                 HttpStatus.METHOD_NOT_ALLOWED.value(),
-                "Método não permitido",
-                "Método " + ex.getMethod() + " não suportado para este endpoint",
+                Mensagens.get("erro.metodo-nao-permitido.titulo"),
+                Mensagens.get("erro.metodo-nao-permitido.mensagem", ex.getMethod()),
                 extrairCaminho(request));
 
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(erro);
@@ -93,8 +98,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         ErroRespostaDTO erro = new ErroRespostaDTO(
                 HttpStatus.BAD_REQUEST.value(),
-                "Parâmetro ausente",
-                "Parâmetro obrigatório ausente: " + ex.getParameterName(),
+                Mensagens.get("erro.parametro-ausente.titulo"),
+                Mensagens.get("erro.parametro-ausente.mensagem", ex.getParameterName()),
                 extrairCaminho(request));
 
         return ResponseEntity.badRequest().body(erro);
@@ -107,13 +112,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     })
     public ResponseEntity<ErroRespostaDTO> handleNaoAutenticado(
             RuntimeException ex, HttpServletRequest  request) {
-        return build(HttpStatus.UNAUTHORIZED, "Não autenticado", ex.getMessage(), request);
+        return build(HttpStatus.UNAUTHORIZED, Mensagens.get("erro.nao-autenticado.titulo"), ex.getMessage(), request);
     }
 
     @ExceptionHandler(TokenInvalidoException.class)
     public ResponseEntity<ErroRespostaDTO> handleTokenInvalido(
             TokenInvalidoException ex, HttpServletRequest request) {
-        return build(HttpStatus.UNAUTHORIZED, "Token inválido", ex.getMessage(), request);
+        return build(HttpStatus.UNAUTHORIZED, Mensagens.get("erro.token-invalido.titulo"), ex.getMessage(), request);
     }
 
     @ExceptionHandler({
@@ -122,61 +127,91 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     })
     public ResponseEntity<ErroRespostaDTO> handleSemPermissao(
             RuntimeException ex, HttpServletRequest request) {
-        return build(HttpStatus.FORBIDDEN, "Acesso negado", ex.getMessage(), request);
+        return build(HttpStatus.FORBIDDEN, Mensagens.get("erro.acesso-negado.titulo"), ex.getMessage(), request);
     }
 
     @ExceptionHandler({
             UsuarioNaoEncontradoException.class,
             AgendamentoNaoEncontradoException.class,
             AvaliacaoNaoEncontradaException.class,
+            AnamneseNaoEncontradaException.class,
+            ProcedimentoNaoEncontradoException.class,
+            com.prontudigital.backend.prontuario.excecoes.PrescricaoNaoEncontradaException.class,
+            com.prontudigital.backend.prontuario.excecoes.AnexoNaoEncontradoException.class,
+            com.prontudigital.backend.prontuario.excecoes.AtestadoNaoEncontradoException.class,
             PerfilNaoEncontradoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleNaoEncontrado(
             ExcecaoBase ex, HttpServletRequest request) {
-        return build(HttpStatus.NOT_FOUND, "Não encontrado", ex.getMessage(), request);
+        return build(HttpStatus.NOT_FOUND, Mensagens.get("erro.nao-encontrado.titulo"), ex.getMessage(), request);
     }
 
     @ExceptionHandler({
             UserNameExistenteException.class,
             EmailExistenteException.class,
             TelefoneExistenteException.class,
+            CpfExistenteException.class,
+            CorenExistenteException.class,
             AgendamentoJaCanceladoException.class,
             AgendamentoJaConcluidoException.class,
+            AnamneseJaExisteException.class,
+            ProcedimentoJaExisteException.class,
+            ProcedimentoEmUsoException.class,
             HorarioIndisponivelException.class,
             ProfissionalIndisponivelException.class,
             PacienteIndisponivelException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleConflito(
             ExcecaoBase ex, HttpServletRequest request) {
-        return build(HttpStatus.CONFLICT, "Conflito", ex.getMessage(), request);
+        return build(HttpStatus.CONFLICT, Mensagens.get("erro.conflito.titulo"), ex.getMessage(), request);
     }
 
     @ExceptionHandler({
             AgendamentoInvalidoException.class,
             AgendamentoDataHoraInvalidaException.class,
             AgendamentoStatusInvalidoException.class,
+            CancelamentoForaDoPrazoException.class,
             TipoVisualizacaoInvalidoException.class,
+            com.prontudigital.backend.agendamento.excecoes.ForaDoHorarioTrabalhoException.class,
             com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException.class,
-            com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class
+            com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException.class,
+            com.prontudigital.backend.prontuario.excecoes.AnexoInvalidoException.class,
+            com.prontudigital.backend.prontuario.excecoes.AtestadoInvalidoException.class
     })
     public ResponseEntity<ErroRespostaDTO> handleRegraDeNegocio(
             ExcecaoBase ex, HttpServletRequest request) {
-        return build(HttpStatus.UNPROCESSABLE_ENTITY, "Operação inválida",
+        return build(HttpStatus.UNPROCESSABLE_ENTITY, Mensagens.get("erro.operacao-invalida.titulo"),
                 ex.getMessage(), request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            org.springframework.web.multipart.MaxUploadSizeExceededException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        ErroRespostaDTO erro = new ErroRespostaDTO(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                Mensagens.get("erro.operacao-invalida.titulo"),
+                Mensagens.get("anexo.tamanho-excedido", 10),
+                extrairCaminho(request));
+
+        return handleExceptionInternal(ex, erro, headers, HttpStatus.UNPROCESSABLE_ENTITY, request);
     }
 
     @ExceptionHandler(TokenConfirmacaoInvalidoException.class)
     public ResponseEntity<ErroRespostaDTO> handleTokenConfirmacaoInvalido(
             TokenConfirmacaoInvalidoException ex, HttpServletRequest request) {
-        return build(HttpStatus.GONE, "Link inválido ou expirado", ex.getMessage(), request);
+        return build(HttpStatus.GONE, Mensagens.get("erro.link-invalido.titulo"), ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroRespostaDTO> handleErroGenerico(
             Exception ex, HttpServletRequest request) {
         log.error("Erro inesperado em {}: {}", request.getRequestURI(), ex.getMessage(), ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno",
-                "Ocorreu um erro inesperado. Tente novamente.", request);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, Mensagens.get("erro.interno.titulo"),
+                Mensagens.get("erro.interno.mensagem"), request);
     }
 
     private ResponseEntity<ErroRespostaDTO> build(HttpStatus status, String erro,

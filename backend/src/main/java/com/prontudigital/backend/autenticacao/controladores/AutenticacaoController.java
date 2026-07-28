@@ -2,6 +2,7 @@ package com.prontudigital.backend.autenticacao.controladores;
 
 import com.prontudigital.backend.autenticacao.dto.*;
 import com.prontudigital.backend.autenticacao.servicos.AutenticacaoService;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -106,7 +107,7 @@ public class AutenticacaoController {
             @Valid @RequestBody RecuperarSenhaSolicitarRequestDTO request) {
         autenticacaoService.solicitarRecuperacaoSenha(request);
         return ResponseEntity.ok(new RecuperarSenhaResponseDTO(
-                "Um código de recuperação foi enviado via WhatsApp para o telefone informado."));
+                Mensagens.get("auth.recuperar-senha.solicitado")));
     }
 
     @Operation(summary = "Confirmar código de recuperação e definir nova senha")
@@ -119,6 +120,6 @@ public class AutenticacaoController {
     public ResponseEntity<RecuperarSenhaResponseDTO> confirmarRecuperacaoSenha(
             @Valid @RequestBody RecuperarSenhaConfirmarRequestDTO request) {
         autenticacaoService.confirmarRecuperacaoSenha(request);
-        return ResponseEntity.ok(new RecuperarSenhaResponseDTO("Senha redefinida com sucesso."));
+        return ResponseEntity.ok(new RecuperarSenhaResponseDTO(Mensagens.get("auth.recuperar-senha.redefinida")));
     }
 }

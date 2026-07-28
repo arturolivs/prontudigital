@@ -7,6 +7,7 @@ import com.prontudigital.backend.agendamento.enums.StatusFilaEspera;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.FilaEsperaRepository;
 import com.prontudigital.backend.compartilhado.clientes.WhatsappCloudApiClient;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import com.prontudigital.backend.notificacao.entidades.LogNotificacaoWhatsapp;
 import com.prontudigital.backend.notificacao.enums.StatusNotificacao;
 import com.prontudigital.backend.notificacao.enums.TipoNotificacao;
@@ -156,7 +157,7 @@ public class NotificacaoWhatsappServiceImpl implements NotificacaoWhatsappServic
             entrada.setStatus(StatusNotificacao.EXPIRADO);
             logRepository.save(entrada);
             throw new TokenConfirmacaoInvalidoException(
-                    "O prazo de confirmação encerrou. Entre em contato para reagendar.");
+                    Mensagens.get("notificacao.prazo-encerrado"));
         }
 
         Agendamento agendamento = agendamentoRepository.findById(entrada.getAgendamentoId())
@@ -186,7 +187,7 @@ public class NotificacaoWhatsappServiceImpl implements NotificacaoWhatsappServic
             entrada.setStatus(StatusNotificacao.EXPIRADO);
             logRepository.save(entrada);
             throw new TokenConfirmacaoInvalidoException(
-                    "O prazo de confirmação encerrou. Entre em contato para reagendar.");
+                    Mensagens.get("notificacao.prazo-encerrado"));
         }
 
         Agendamento agendamento = agendamentoRepository.findById(entrada.getAgendamentoId())
@@ -250,7 +251,7 @@ public class NotificacaoWhatsappServiceImpl implements NotificacaoWhatsappServic
         if (entrada.getStatus() == StatusNotificacao.CONFIRMADO
                 || entrada.getStatus() == StatusNotificacao.RECUSADO
                 || entrada.getStatus() == StatusNotificacao.EXPIRADO) {
-            throw new TokenConfirmacaoInvalidoException("Este link já foi utilizado ou expirou.");
+            throw new TokenConfirmacaoInvalidoException(Mensagens.get("notificacao.link-utilizado"));
         }
     }
 

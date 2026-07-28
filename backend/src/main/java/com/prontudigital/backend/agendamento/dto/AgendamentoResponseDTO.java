@@ -19,6 +19,8 @@ public record AgendamentoResponseDTO(
         UUID pacienteUuid,
         TipoAgendamento tipo,
         TipoProcedimento tipoProcedimento,
+        Long procedimentoId,
+        String procedimentoNome,
         LocalAtendimento localAtendimento,
         Boolean pacienteAcamado,
         StatusAgendamento status,

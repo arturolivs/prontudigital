@@ -30,8 +30,14 @@ public record AgendamentoDetalhadoDTO(
         @Schema(description = "Tipo: AVALIACAO ou TRATAMENTO")
         TipoAgendamento tipo,
 
-        @Schema(description = "Tipo de procedimento: PODIATRIA ou TRATAMENTO_FERIDAS")
+        @Schema(description = "Tipo de procedimento legado (PODIATRIA ou TRATAMENTO_FERIDAS)")
         TipoProcedimento tipoProcedimento,
+
+        @Schema(description = "ID do procedimento (tabela de procedimentos, RF06)")
+        Long procedimentoId,
+
+        @Schema(description = "Nome do procedimento")
+        String procedimentoNome,
 
         @Schema(description = "Local do atendimento: CLINICA ou RESIDENCIAL")
         LocalAtendimento localAtendimento,
@@ -57,7 +63,10 @@ public record AgendamentoDetalhadoDTO(
         @Schema(description = "Data e hora em que o agendamento foi concluído")
         LocalDateTime concluidoEm,
 
-        @Schema(description = "Evolução clínica registrada no atendimento (apenas para TRATAMENTO)")
-        EvolucaoClinicaDTO evolucaoClinica
+        @Schema(description = "Ficha de Evolução de Enfermagem (apenas para AVALIACAO)")
+        EvolucaoEnfermagemDTO evolucaoEnfermagem,
+
+        @Schema(description = "Ficha de Evolução Diária - Curativos (apenas para TRATAMENTO)")
+        EvolucaoCurativoDTO evolucaoCurativo
 
 ) {}

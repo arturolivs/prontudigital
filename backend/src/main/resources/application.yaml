@@ -2,6 +2,11 @@ spring:
   application:
     name: prontudigital
 
+  messages:
+    basename: messages
+    encoding: UTF-8
+    use-code-as-default-message: true
+
   datasource:
     url: jdbc:postgresql://localhost:5432/prontudigital
     username: user_admin
@@ -13,6 +18,11 @@ spring:
     password: secret123
     locations: classpath:db/migracoes
     baseline-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
 
 server:
   port: 8080
@@ -34,6 +44,14 @@ app:
       api-version: "v21.0"
       phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
       access-token: ${WHATSAPP_ACCESS_TOKEN:}
+  armazenamento:
+    diretorio-base: ${ARMAZENAMENTO_DIR:dados/anexos}
+    tamanho-maximo-bytes: 10485760
+    tipos-permitidos:
+      - image/jpeg
+      - image/png
+      - image/webp
+      - application/pdf
 
 logging:
   level:

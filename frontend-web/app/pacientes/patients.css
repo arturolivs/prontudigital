@@ -246,6 +246,28 @@
   background: var(--color-bg-subtle);
 }
 
+.pac-card-acoes {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2px;
+}
+
+.pac-prontuario-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-brand);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border-brand);
+  border-radius: 6px;
+  background: white;
+  transition: all 0.15s;
+}
+.pac-prontuario-link:hover {
+  background: var(--color-bg-page);
+  border-color: var(--color-brand-light);
+}
+
 /* ===== CARD DE AGENDAMENTO ===== */
 
 .pac-appt-card {

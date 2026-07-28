@@ -5,6 +5,7 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.NaoAutenticadoException;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -16,12 +17,12 @@ public class AgendamentoPermissaoPolicy {
     public String perfilEfetivo(UsuarioDTO usuario) {
         Set<String> perfis = usuario.perfis();
         if (perfis == null || perfis.isEmpty()) {
-            throw new NaoAutenticadoException("Usuário sem perfil atribuído");
+            throw new NaoAutenticadoException(Mensagens.get("auth.sem-perfil-atribuido"));
         }
         if (perfis.contains("ADMIN"))        return "ADMIN";
         if (perfis.contains("PROFISSIONAL")) return "PROFISSIONAL";
         if (perfis.contains("PACIENTE"))     return "PACIENTE";
-        throw new NaoAutenticadoException("Usuário sem perfil reconhecido");
+        throw new NaoAutenticadoException(Mensagens.get("auth.sem-perfil-reconhecido"));
     }
 
     public boolean podeCriar(UsuarioDTO usuario, AgendamentoRequestDTO request) {

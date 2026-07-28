@@ -252,29 +252,30 @@ public class AgendamentoSwagger {
     public @interface TratamentosPorAvaliacaoSwagger {}
 
     // =========================================================
-    // PATCH /api/agendamentos/{id}/evolucao
+    // PATCH /api/agendamentos/{id}/evolucao-enfermagem
     // =========================================================
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(
-            summary = "Registrar evolução clínica pós-curativo",
+            summary = "Registrar Ficha de Evolução de Enfermagem (avaliação)",
             description = """
-            Registra ou atualiza a evolução de enfermagem de um agendamento do tipo TRATAMENTO.\n
-            Campos cobertos pelo modelo de evolução (tratamento.md):
-            - Avaliação da lesão (localização, tipo, medidas, aspecto, exsudato, bordas, pele perilesional)
-            - Procedimento realizado (limpeza, coberturas, produtos)
-            - Resposta do paciente (aceitação, escala de dor EVA, intercorrências)
-            - Orientações fornecidas (cuidados, sinais de alerta, retorno)\n
+            Registra ou atualiza a Ficha de Evolução de Enfermagem de um agendamento do tipo AVALIACAO.\n
+            Seções do modelo:
+            - Dados da avaliação (data/hora, diagnóstico médico, comorbidades, medicamentos relevantes)
+            - Avaliação da ferida segundo o acrônimo TIME (tecido, infecção/inflamação, exsudato, bordas)
+            - Diagnósticos de enfermagem
+            - Conduta realizada (limpeza, desbridamento, coberturas, orientações)
+            - Avaliação da evolução e plano\n
             Regras:
             - Exclusivo para ADMIN e PROFISSIONAL
             - PROFISSIONAL só pode registrar em agendamentos da própria agenda
-            - Agendamento deve ser do tipo TRATAMENTO
+            - Agendamento deve ser do tipo AVALIACAO
             - Agendamento não pode estar CANCELADO
             """
     )
     @ApiResponse(
             responseCode = "200",
-            description = "Evolução registrada com sucesso",
+            description = "Ficha de evolução de enfermagem registrada com sucesso",
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
@@ -285,7 +286,44 @@ public class AgendamentoSwagger {
     @CommonsSwagger.ApiResponseNotFound
     @CommonsSwagger.ApiResponseConflict
     @CommonsSwagger.ApiResponseInternalServerError
-    public @interface RegistrarEvolucaoSwagger {}
+    public @interface RegistrarEvolucaoEnfermagemSwagger {}
+
+    // =========================================================
+    // PATCH /api/agendamentos/{id}/evolucao-curativo
+    // =========================================================
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+            summary = "Registrar Ficha de Evolução Diária - Curativos (tratamento)",
+            description = """
+            Registra ou atualiza a Ficha de Evolução Diária - Curativos de um agendamento do tipo TRATAMENTO.\n
+            Seções do modelo:
+            - Avaliação diária da ferida com legenda TIME (medidas, área aproximada, tecido,
+              infecção/inflamação, exsudato, bordas, odor, dor, pele perilesional)
+            - Intervenções (limpeza/irrigação, desbridamento, cobertura primária, orientações)
+            - Avaliação da evolução
+            - Plano/ações futuras (observação preenchida equivale à ação marcada)\n
+            Regras:
+            - Exclusivo para ADMIN e PROFISSIONAL
+            - PROFISSIONAL só pode registrar em agendamentos da própria agenda
+            - Agendamento deve ser do tipo TRATAMENTO
+            - Agendamento não pode estar CANCELADO
+            """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Ficha de evolução diária de curativos registrada com sucesso",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AgendamentoDetalhadoDTO.class)
+            )
+    )
+    @CommonsSwagger.ApiResponseUnauthorized
+    @CommonsSwagger.ApiResponseForbidden
+    @CommonsSwagger.ApiResponseNotFound
+    @CommonsSwagger.ApiResponseConflict
+    @CommonsSwagger.ApiResponseInternalServerError
+    public @interface RegistrarEvolucaoCurativoSwagger {}
 
     // =========================================================
     // GET /api/agendamentos/meus

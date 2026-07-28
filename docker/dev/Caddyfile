@@ -1,0 +1,100 @@
+# ============================================================
+# Caddy — DESENVOLVIMENTO
+#
+# Espelha o roteamento de docker/prod/Caddyfile para que dev e
+# producao se comportem igual. Substitui o Spring Cloud Gateway.
+#
+# Diferencas em relacao a producao (propositais):
+#   - Sem TLS: escuta em :9090 puro. O prefixo `:porta` sem nome de
+#     host desliga o HTTPS automatico do Caddy.
+#   - Com CORS: em dev o navegador pode carregar o app direto de
+#     localhost:3000 e chamar a API em localhost:9090 — origens
+#     diferentes. Em producao isso nao existe, porque Caddy serve
+#     front e API no mesmo dominio (same-origin).
+#   - Swagger liberado: em producao fica fechado.
+#
+# A porta 9090 e a mesma que o gateway usava, de proposito: nenhuma
+# URL de frontend ou variavel de ambiente precisou mudar.
+# ============================================================
+
+:9090 {
+	encode gzip
+
+	# --- Logs legiveis no terminal ---
+	log {
+		output stdout
+		format console
+		level INFO
+	}
+
+	# ------------------------------------------------------------
+	# CORS — SOMENTE DESENVOLVIMENTO
+	#
+	# Origem e refletida em vez de "*" porque o cookie de refresh
+	# (__pd_rt) exige Allow-Credentials, e o navegador recusa a
+	# combinacao de credenciais com curinga. O matcher limita a
+	# reflexao a localhost, entao nao ha risco de refletir origem
+	# arbitraria.
+	# ------------------------------------------------------------
+	@origem_dev header_regexp Origin ^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$
+
+	@preflight {
+		method OPTIONS
+		header_regexp Origin ^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$
+	}
+
+	handle @preflight {
+		header {
+			Access-Control-Allow-Origin "{http.request.header.Origin}"
+			Access-Control-Allow-Credentials "true"
+			Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+			Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With, Accept, Origin"
+			Access-Control-Max-Age "3600"
+		}
+		respond 204
+	}
+
+	header @origem_dev {
+		Access-Control-Allow-Origin "{http.request.header.Origin}"
+		Access-Control-Allow-Credentials "true"
+		# Content-Disposition é lido pelo download de relatórios (RF21)
+		# para descobrir o nome do arquivo. Sem expor, o front cai no
+		# nome padrão — funciona, mas perde o nome vindo do servidor.
+		Access-Control-Expose-Headers "Authorization, Content-Type, Content-Disposition"
+	}
+
+	# ------------------------------------------------------------
+	# ORDEM DOS `handle` IMPORTA: o Caddy para no primeiro que casar.
+	# ------------------------------------------------------------
+
+	# 1) Route Handlers do próprio Next.js — não existem no Spring.
+	handle /api/auth/session* {
+		reverse_proxy frontend:3000
+	}
+
+	handle /api/auth/refresh* {
+		reverse_proxy frontend:3000
+	}
+
+	# 2) Swagger — liberado só em dev.
+	handle /swagger-ui* {
+		reverse_proxy backend:8080
+	}
+
+	handle /v3/api-docs* {
+		reverse_proxy backend:8080
+	}
+
+	# 3) Resto da API → Spring Boot.
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# 4) Qualquer outra rota → Next.js.
+	#    Permite abrir http://localhost:9090 e usar o app same-origin,
+	#    exatamente como em produção. O HMR do Next funciona: o Caddy
+	#    encaminha o upgrade para WebSocket automaticamente.
+	handle {
+		reverse_proxy frontend:3000
+	}
+}

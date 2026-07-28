@@ -19,6 +19,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useNotificacao } from '../../contexts/ToastContext'
 import { usuariosAPI } from '../../lib/usuario.service'
 import { bloqueioAPI } from '../../lib/bloqueio.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+import HorariosTrabalho from './HorariosTrabalho'
 import Layout from '@/components/Layout/Layout'
 import {
   BloqueioHorario,
@@ -167,7 +169,7 @@ export default function BloqueiosPage() {
         .then(u => setProfissionalUuid(u.uuid))
         .catch(() =>
           exibirNotificacao(
-            'Não foi possível identificar o profissional.',
+            MENSAGENS.erro.identificarProfissional,
             'error',
             5000,
           ),
@@ -188,7 +190,7 @@ export default function BloqueiosPage() {
       setRecorrentes(regrasDados)
     } catch {
       exibirNotificacao(
-        'Erro ao carregar horários indisponíveis.',
+        MENSAGENS.erro.carregarHorariosIndisponiveis,
         'error',
         5000,
       )
@@ -225,7 +227,7 @@ export default function BloqueiosPage() {
     setErroForm('')
 
     if (!profissionalUuid) {
-      setErroForm('Não foi possível identificar o profissional.')
+      setErroForm(MENSAGENS.erro.identificarProfissional)
       return
     }
 
@@ -233,7 +235,7 @@ export default function BloqueiosPage() {
     const fim = new Date(form.fimEm)
 
     if (fim <= inicio) {
-      setErroForm('O horário de término deve ser posterior ao de início.')
+      setErroForm(MENSAGENS.validacao.horarioTerminoInvalido)
       return
     }
 
@@ -255,10 +257,9 @@ export default function BloqueiosPage() {
         ),
       )
       fecharModal()
-      exibirNotificacao('Horário registrado com sucesso!', 'success', 4000)
+      exibirNotificacao(MENSAGENS.sucesso.horarioRegistrado, 'success', 4000)
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Erro ao registrar o horário.'
-      setErroForm(msg)
+      setErroForm(mensagemErro(err, MENSAGENS.erro.registrarHorario))
     } finally {
       setSalvando(false)
     }
@@ -270,15 +271,15 @@ export default function BloqueiosPage() {
     setErroForm('')
 
     if (!profissionalUuid) {
-      setErroForm('Não foi possível identificar o profissional.')
+      setErroForm(MENSAGENS.erro.identificarProfissional)
       return
     }
     if (formRecorrente.diasSemana.length === 0) {
-      setErroForm('Selecione ao menos um dia da semana.')
+      setErroForm(MENSAGENS.validacao.selecioneDiaSemana)
       return
     }
     if (formRecorrente.horaFim <= formRecorrente.horaInicio) {
-      setErroForm('O horário de término deve ser posterior ao de início.')
+      setErroForm(MENSAGENS.validacao.horarioTerminoInvalido)
       return
     }
 
@@ -288,9 +289,7 @@ export default function BloqueiosPage() {
     )
 
     if (diasNovos.length === 0) {
-      setErroForm(
-        'Todos os dias selecionados já possuem regras recorrentes. Selecione um novo dia para adicionar.',
-      )
+      setErroForm(MENSAGENS.validacao.diasJaComRegra)
       return
     }
 
@@ -313,15 +312,13 @@ export default function BloqueiosPage() {
       fecharModal()
       exibirNotificacao(
         novasRegras.length === 1
-          ? 'Regra recorrente criada com sucesso!'
-          : `${novasRegras.length} regras recorrentes criadas!`,
+          ? MENSAGENS.sucesso.regraCriada
+          : MENSAGENS.sucesso.regrasCriadas(novasRegras.length),
         'success',
         4000,
       )
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message || 'Erro ao criar regra recorrente.'
-      setErroForm(msg)
+      setErroForm(mensagemErro(err, MENSAGENS.erro.criarRegraRecorrente))
     } finally {
       setSalvando(false)
     }
@@ -335,13 +332,9 @@ export default function BloqueiosPage() {
     try {
       await bloqueioAPI.remover(bloqueio.id)
       setBloqueios(prev => prev.filter(b => b.uuid !== bloqueio.uuid))
-      exibirNotificacao('Bloqueio removido com sucesso!', 'success', 4000)
+      exibirNotificacao(MENSAGENS.sucesso.bloqueioRemovido, 'success', 4000)
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        'Erro ao remover o bloqueio.'
-      exibirNotificacao(String(msg), 'error', 6000)
+      exibirNotificacao(mensagemErro(err, MENSAGENS.erro.removerBloqueio), 'error', 6000)
     }
   }
 
@@ -358,10 +351,9 @@ export default function BloqueiosPage() {
         try {
           await bloqueioAPI.removerRecorrente(regra.id)
           setRecorrentes(prev => prev.filter(r => r.uuid !== regra.uuid))
-          exibirNotificacao('Regra recorrente removida!', 'success', 4000)
+          exibirNotificacao(MENSAGENS.sucesso.regraRemovida, 'success', 4000)
         } catch (err: any) {
-          const msg = err?.response?.data?.message || 'Erro ao remover a regra.'
-          exibirNotificacao(String(msg), 'error', 6000)
+          exibirNotificacao(mensagemErro(err, MENSAGENS.erro.removerRegra), 'error', 6000)
         }
       },
     })
@@ -465,6 +457,9 @@ export default function BloqueiosPage() {
               </div>
             ))}
           </div>
+
+          {/* ── Horários de trabalho (RF05) ── */}
+          <HorariosTrabalho profissionalUuid={profissionalUuid} />
 
           {/* ── Regras Recorrentes ── */}
           {recorrentes.length > 0 && (

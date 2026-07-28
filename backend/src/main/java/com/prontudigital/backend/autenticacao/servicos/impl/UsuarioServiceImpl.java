@@ -4,9 +4,13 @@ import com.prontudigital.backend.autenticacao.dto.AlterarSenhaRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.AtivarAcessoRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.AtualizarPerfilRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.CadastrarPacienteDTO;
+import com.prontudigital.backend.autenticacao.dto.EnderecoDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
+import com.prontudigital.backend.autenticacao.entidades.Endereco;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
+import com.prontudigital.backend.autenticacao.excecoes.CorenExistenteException;
+import com.prontudigital.backend.autenticacao.excecoes.CpfExistenteException;
 import com.prontudigital.backend.autenticacao.excecoes.EmailExistenteException;
 import com.prontudigital.backend.autenticacao.excecoes.SenhaAtualInvalidaException;
 import com.prontudigital.backend.autenticacao.excecoes.PerfilNaoEncontradoException;
@@ -25,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -91,6 +96,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setTelefone(dto.telefone());
         usuario.setAtivo(dto.ativo());
 
+        aplicarDadosPessoais(usuario, dto.cpf(), dto.dataNascimento(), dto.endereco());
+        aplicarDadosProfissionais(usuario, dto.coren(), dto.especialidade());
+
         atualizarPerfis(usuario, dto.perfis());
 
         return converterUsuarioParaDTO(usuarioRepository.save(usuario));
@@ -103,7 +111,51 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setNomeCompleto(dto.nomeCompleto());
         usuario.setEmail(dto.email());
         usuario.setTelefone(dto.telefone());
+
+        // COREN e especialidade nao entram aqui de proposito: sao credenciais
+        // profissionais, alteradas pelo ADMIN via PUT /api/usuarios/{id}.
+        aplicarDadosPessoais(usuario, dto.cpf(), dto.dataNascimento(), dto.endereco());
+
         return converterUsuarioParaDTO(usuarioRepository.save(usuario));
+    }
+
+    /** RF04 — CPF (unico), data de nascimento e endereco. */
+    private void aplicarDadosPessoais(Usuario usuario, String cpf,
+                                      LocalDate dataNascimento, EnderecoDTO endereco) {
+        String cpfNormalizado = UsuarioUtil.normalizarCpf(cpf);
+        if (cpfNormalizado != null && cpfJaUsado(cpfNormalizado, usuario.getId())) {
+            throw new CpfExistenteException(cpf);
+        }
+        usuario.setCpf(cpfNormalizado);
+        usuario.setDataNascimento(dataNascimento);
+
+        // Endereco ausente na requisicao preserva o que ja estava gravado.
+        Endereco novoEndereco = UsuarioUtil.converterEnderecoDeDTO(endereco);
+        if (novoEndereco != null) {
+            usuario.setEndereco(novoEndereco);
+        }
+    }
+
+    /** RF05 — COREN (unico) e especialidade. */
+    private void aplicarDadosProfissionais(Usuario usuario, String coren, String especialidade) {
+        String corenNormalizado = UsuarioUtil.normalizar(coren);
+        if (corenNormalizado != null && corenJaUsado(corenNormalizado, usuario.getId())) {
+            throw new CorenExistenteException(coren);
+        }
+        usuario.setCoren(corenNormalizado);
+        usuario.setEspecialidade(UsuarioUtil.normalizar(especialidade));
+    }
+
+    private boolean cpfJaUsado(String cpf, Long id) {
+        return id == null
+                ? usuarioRepository.existsByCpf(cpf)
+                : usuarioRepository.existsByCpfAndIdNot(cpf, id);
+    }
+
+    private boolean corenJaUsado(String coren, Long id) {
+        return id == null
+                ? usuarioRepository.existsByCoren(coren)
+                : usuarioRepository.existsByCorenAndIdNot(coren, id);
     }
 
     @Override
@@ -150,6 +202,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .ativo(Objects.requireNonNullElse(dto.ativo(), true))
                 .acessoAtivado(true)
                 .build();
+
+        aplicarDadosPessoais(usuario, dto.cpf(), dto.dataNascimento(), dto.endereco());
+        aplicarDadosProfissionais(usuario, dto.coren(), dto.especialidade());
 
         if (dto.perfis() != null) {
             atualizarPerfis(usuario, dto.perfis());

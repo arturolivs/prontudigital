@@ -801,3 +801,108 @@
   .tipo-opcoes { grid-template-columns: 1fr; }
   .filtros-rapidos { grid-template-columns: 1fr; }
 }
+
+/* ── Horários de trabalho (RF05) ──────────────────────────────
+   Complementa os bloqueios: define o expediente do profissional.
+   Reusa .recorrentes-secao / .recorrente-item como base visual. */
+
+.ht-item {
+  border-left: 3px solid var(--color-brand);
+}
+
+.ht-btn-adicionar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--color-brand);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ht-btn-adicionar:hover {
+  background: var(--color-brand-muted);
+  border-color: var(--color-brand);
+}
+
+.ht-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.6rem;
+  background: var(--color-bg-soft, #f8fafc);
+}
+
+.ht-dias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ht-dia {
+  min-width: 3rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
+  background: var(--color-bg-surface, #fff);
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ht-dia--ativo {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #fff;
+}
+
+.ht-horas {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ht-horas label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.ht-btn-salvar {
+  padding: 0.45rem 1.1rem;
+  border: none;
+  border-radius: 0.4rem;
+  background: var(--color-brand);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ht-btn-salvar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ht-vazio {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 0;
+}

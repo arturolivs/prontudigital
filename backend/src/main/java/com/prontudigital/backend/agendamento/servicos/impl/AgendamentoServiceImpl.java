@@ -4,15 +4,19 @@ import com.prontudigital.backend.agendamento.dto.AgendamentoDetalhadoDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoRequestDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoResponseDTO;
 import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
-import com.prontudigital.backend.agendamento.dto.EvolucaoTratamentoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoCurativoRequestDTO;
+import com.prontudigital.backend.agendamento.dto.EvolucaoEnfermagemRequestDTO;
 import com.prontudigital.backend.agendamento.dto.PacienteAgendamentosDTO;
 import com.prontudigital.backend.agendamento.dto.ReagendarRequestDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
-import com.prontudigital.backend.agendamento.entidades.EvolucaoClinica;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoCurativo;
+import com.prontudigital.backend.agendamento.entidades.EvolucaoEnfermagem;
 import com.prontudigital.backend.agendamento.entidades.HistoricoAgendamento;
+import com.prontudigital.backend.agendamento.entidades.Procedimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
+import com.prontudigital.backend.agendamento.enums.TipoProcedimento;
 import com.prontudigital.backend.agendamento.enums.TipoVisualizacaoAgenda;
 import com.prontudigital.backend.agendamento.eventos.AgendamentoCanceladoEvento;
 import com.prontudigital.backend.agendamento.eventos.AgendamentoCriadoEvento;
@@ -20,14 +24,21 @@ import com.prontudigital.backend.agendamento.eventos.AgendamentoReagendadoEvento
 import com.prontudigital.backend.agendamento.excecoes.*;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
-import com.prontudigital.backend.agendamento.repositorios.EvolucaoClinicaRepository;
+import com.prontudigital.backend.agendamento.repositorios.BloqueioRecorrenteRepository;
+import com.prontudigital.backend.agendamento.entidades.BloqueioRecorrente;
+import com.prontudigital.backend.agendamento.repositorios.HorarioTrabalhoRepository;
+import com.prontudigital.backend.agendamento.excecoes.ForaDoHorarioTrabalhoException;
+import com.prontudigital.backend.agendamento.repositorios.EvolucaoCurativoRepository;
+import com.prontudigital.backend.agendamento.repositorios.EvolucaoEnfermagemRepository;
 import com.prontudigital.backend.agendamento.repositorios.HistoricoAgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.PacienteAgendamentoResumo;
+import com.prontudigital.backend.agendamento.repositorios.ProcedimentoRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.AgendamentoService;
 import com.prontudigital.backend.agendamento.utils.AgendamentoUtil;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -43,9 +54,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -55,11 +64,16 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     private static final long DURACAO_MIN_MINUTOS = 15;
     private static final long DURACAO_MAX_MINUTOS = 480;
+    private static final long ANTECEDENCIA_MIN_CANCELAMENTO_HORAS = 24;
 
     private final AgendamentoRepository agendamentoRepository;
-    private final EvolucaoClinicaRepository evolucaoClinicaRepository;
+    private final EvolucaoEnfermagemRepository evolucaoEnfermagemRepository;
+    private final EvolucaoCurativoRepository evolucaoCurativoRepository;
     private final BloqueioHorarioRepository bloqueioHorarioRepository;
+    private final BloqueioRecorrenteRepository bloqueioRecorrenteRepository;
+    private final HorarioTrabalhoRepository horarioTrabalhoRepository;
     private final HistoricoAgendamentoRepository historicoRepository;
+    private final ProcedimentoRepository procedimentoRepository;
     private final UsuarioService usuarioService;
     private final UsuarioContexto usuarioContexto;
     private final AgendamentoPermissaoPolicy permissaoPolicy;
@@ -74,7 +88,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeVisualizar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a visualizar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.visualizar"));
         }
 
         return agendamentoUtil.convertToDetalhadoDTO(agendamento);
@@ -82,97 +96,185 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
     @Override
     @Transactional
-    public AgendamentoDetalhadoDTO registrarEvolucao(Long id, EvolucaoTratamentoRequestDTO request) {
+    public AgendamentoDetalhadoDTO registrarEvolucaoEnfermagem(Long id,
+                                                               EvolucaoEnfermagemRequestDTO request) {
         Agendamento agendamento = buscarOuFalhar(id);
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
 
         String perfil = permissaoPolicy.perfilEfetivo(usuario);
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode registrar evolucao de tratamento");
+                    Mensagens.get("agendamento.paciente.nao-registra-evolucao"));
         }
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a registrar evolucao neste agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.registrar-evolucao"));
         }
-        /*if (agendamento.getTipo() != TipoAgendamento.TRATAMENTO) {
+        if (agendamento.getTipo() != TipoAgendamento.AVALIACAO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Evolucao clinica so pode ser registrada em agendamentos do tipo TRATAMENTO");
-        }*/
+                    Mensagens.get("agendamento.evolucao-enfermagem.apenas-avaliacao"));
+        }
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Nao e possivel registrar evolucao em agendamento cancelado");
+                    Mensagens.get("agendamento.evolucao.cancelado"));
         }
 
-        EvolucaoClinica evolucao = evolucaoClinicaRepository
+        EvolucaoEnfermagem evolucao = evolucaoEnfermagemRepository
                 .findByAgendamento(agendamento)
-                .orElseGet(() -> EvolucaoClinica.builder().agendamento(agendamento).build());
+                .orElseGet(() -> EvolucaoEnfermagem.builder().agendamento(agendamento).build());
 
-        // Dados da ferida
-        evolucao.setLocalizacaoAnatomica(request.localizacaoAnatomica());
-        evolucao.setEtiologia(request.etiologia());
-        evolucao.setTempoEvolucao(request.tempoEvolucao());
+        aplicarEvolucaoEnfermagem(evolucao, request);
 
-        // Mensuração
-        evolucao.setMedidaComprimento(request.medidaComprimento());
-        evolucao.setMedidaLargura(request.medidaLargura());
-        evolucao.setMedidaProfundidade(request.medidaProfundidade());
-        evolucao.setTunelizacao(request.tunelizacao());
-        evolucao.setDescolamentoBordas(request.descolamentoBordas());
-
-        // Leito da ferida
-        evolucao.setEpitelizacaoPercentual(request.epitelizacaoPercentual());
-        evolucao.setGranulacaoPercentual(request.granulacaoPercentual());
-        evolucao.setEsfaceloPercentual(request.esfaceloPercentual());
-        evolucao.setNecrosePercentual(request.necrosePercentual());
-        evolucao.setTendaoExposto(request.tendaoExposto());
-        evolucao.setMusculoExposto(request.musculoExposto());
-        evolucao.setOssoExposto(request.ossoExposto());
-
-        // Exsudato
-        evolucao.setExsudatoVolume(request.exsudatoVolume());
-        evolucao.setExsudatoCaracteristica(request.exsudatoCaracteristica());
-        evolucao.setOdorIntensidade(request.odorIntensidade());
-
-        // Bordas / pele perilesional / sinais de infecção (múltipla escolha)
-        evolucao.setCaracteristicasBordas(novoConjunto(request.caracteristicasBordas()));
-        evolucao.setCaracteristicasPerilesional(novoConjunto(request.caracteristicasPerilesional()));
-        evolucao.setSinaisInfeccao(novoConjunto(request.sinaisInfeccao()));
-
-        // Dor
-        evolucao.setClassificacaoDor(request.classificacaoDor());
-
-        // Avaliação vascular
-        evolucao.setGrauEdema(request.grauEdema());
-        evolucao.setAvaliacaoPulsos(request.avaliacaoPulsos());
-
-        // Evolução da ferida
-        evolucao.setEvolucaoFerida(request.evolucaoFerida());
-        evolucao.setSinaisEvolucao(novoConjunto(request.sinaisEvolucao()));
-
-        // Conduta
-        evolucao.setLimpezaLesao(request.limpezaLesao());
-        evolucao.setDesbridamento(request.desbridamento());
-        evolucao.setCoberturaAplicada(request.coberturaAplicada());
-        evolucao.setCoberturaDescricao(request.coberturaDescricao());
-        evolucao.setTerapiaAdjuvante(request.terapiaAdjuvante());
-        evolucao.setTerapiaAdjuvanteDescricao(request.terapiaAdjuvanteDescricao());
-        evolucao.setOrientacoesFornecidas(request.orientacoesFornecidas());
-
-        // Observações
-        evolucao.setObservacoes(request.observacoes());
-
-        evolucaoClinicaRepository.save(evolucao);
-        log.info("Evolucao clinica registrada para agendamento id={}", agendamento.getId());
+        evolucaoEnfermagemRepository.save(evolucao);
+        log.info("Evolucao de enfermagem registrada para agendamento id={}", agendamento.getId());
 
         Agendamento atualizado = agendamentoRepository.findById(agendamento.getId())
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
-                        "Agendamento nao encontrado: " + agendamento.getId()));
+                        Mensagens.get("agendamento.nao-encontrado", agendamento.getId())));
         return agendamentoUtil.convertToDetalhadoDTO(atualizado);
     }
 
-    private static <T> Set<T> novoConjunto(Set<T> origem) {
-        return origem == null ? new LinkedHashSet<>() : new LinkedHashSet<>(origem);
+    private void aplicarEvolucaoEnfermagem(EvolucaoEnfermagem evolucao,
+                                           EvolucaoEnfermagemRequestDTO request) {
+        // 1. Dados da avaliacao
+        evolucao.setDataAvaliacao(request.dataAvaliacao());
+        evolucao.setHoraAvaliacao(request.horaAvaliacao());
+        evolucao.setDiagnosticoMedico(request.diagnosticoMedico());
+        evolucao.setComorbDiabetes(request.comorbDiabetes());
+        evolucao.setComorbHipertensao(request.comorbHipertensao());
+        evolucao.setComorbDoencaVascular(request.comorbDoencaVascular());
+        evolucao.setComorbNeuropatia(request.comorbNeuropatia());
+        evolucao.setComorbOutras(request.comorbOutras());
+        evolucao.setComorbOutrasDetalhe(request.comorbOutrasDetalhe());
+        evolucao.setMedicamentosRelevantes(request.medicamentosRelevantes());
+
+        // 2. Avaliacao da ferida (TIME)
+        evolucao.setLocalizacaoAnatomica(request.localizacaoAnatomica());
+        evolucao.setTipoFerida(request.tipoFerida());
+        evolucao.setTipoFeridaOutra(request.tipoFeridaOutra());
+        evolucao.setDimensoes(request.dimensoes());
+        evolucao.setComprimento(request.comprimento());
+        evolucao.setLargura(request.largura());
+        evolucao.setProfundidade(request.profundidade());
+        evolucao.setTunelizacao(request.tunelizacao());
+        evolucao.setDescolamento(request.descolamento());
+        evolucao.setTecidoLeito(request.tecidoLeito());
+        evolucao.setInfeccaoInflamacao(request.infeccaoInflamacao());
+        evolucao.setExsudato(request.exsudato());
+        evolucao.setExsudatoTipo(request.exsudatoTipo());
+        evolucao.setBordas(request.bordas());
+        evolucao.setPelePerilesional(request.pelePerilesional());
+        evolucao.setDorEscala(request.dorEscala());
+        evolucao.setSinaisVitais(request.sinaisVitais());
+        evolucao.setPa(request.pa());
+        evolucao.setFc(request.fc());
+        evolucao.setFr(request.fr());
+        evolucao.setTemp(request.temp());
+
+        // 3. Diagnosticos de enfermagem
+        evolucao.setDiagIntegridadePele(request.diagIntegridadePele());
+        evolucao.setDiagIntegridadeTissular(request.diagIntegridadeTissular());
+        evolucao.setDiagRiscoInfeccao(request.diagRiscoInfeccao());
+        evolucao.setDiagPerfusaoIneficaz(request.diagPerfusaoIneficaz());
+        evolucao.setDiagDorAguda(request.diagDorAguda());
+        evolucao.setDiagOutros(request.diagOutros());
+
+        // 4. Conduta realizada
+        evolucao.setLimpeza(request.limpeza());
+        evolucao.setLimpezaOutro(request.limpezaOutro());
+        evolucao.setDesbridamento(request.desbridamento());
+        evolucao.setCoberturaPrimaria(request.coberturaPrimaria());
+        evolucao.setCoberturaSecundaria(request.coberturaSecundaria());
+        evolucao.setFixacao(request.fixacao());
+        evolucao.setOrientacoesPaciente(request.orientacoesPaciente());
+
+        // 5. Avaliacao da evolucao
+        evolucao.setAvaliacaoEvolucao(request.avaliacaoEvolucao());
+        evolucao.setReducaoArea(request.reducaoArea());
+        evolucao.setObservacoes(request.observacoes());
+
+        // 6. Plano
+        evolucao.setPlanoManterConduta(request.planoManterConduta());
+        evolucao.setPlanoAjustarCobertura(request.planoAjustarCobertura());
+        evolucao.setPlanoAvaliacaoMedica(request.planoAvaliacaoMedica());
+        evolucao.setPlanoSolicitarExames(request.planoSolicitarExames());
+        evolucao.setPlanoEncaminhamento(request.planoEncaminhamento());
+        evolucao.setRetornoDias(request.retornoDias());
+    }
+
+    @Override
+    @Transactional
+    public AgendamentoDetalhadoDTO registrarEvolucaoCurativo(Long id,
+                                                             EvolucaoCurativoRequestDTO request) {
+        Agendamento agendamento = buscarOuFalhar(id);
+        UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
+
+        String perfil = permissaoPolicy.perfilEfetivo(usuario);
+        if ("PACIENTE".equals(perfil)) {
+            throw new UsuarioSemAutorizacaoException(
+                    Mensagens.get("agendamento.paciente.nao-registra-evolucao"));
+        }
+        if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
+            throw new UsuarioSemAutorizacaoException(
+                    Mensagens.get("agendamento.nao-autorizado.registrar-evolucao"));
+        }
+        if (agendamento.getTipo() != TipoAgendamento.TRATAMENTO) {
+            throw new AgendamentoStatusInvalidoException(
+                    Mensagens.get("agendamento.evolucao-curativo.apenas-tratamento"));
+        }
+        if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
+            throw new AgendamentoStatusInvalidoException(
+                    Mensagens.get("agendamento.evolucao.cancelado"));
+        }
+
+        EvolucaoCurativo evolucao = evolucaoCurativoRepository
+                .findByAgendamento(agendamento)
+                .orElseGet(() -> EvolucaoCurativo.builder().agendamento(agendamento).build());
+
+        aplicarEvolucaoCurativo(evolucao, request);
+
+        evolucaoCurativoRepository.save(evolucao);
+        log.info("Evolucao diaria de curativos registrada para agendamento id={}",
+                agendamento.getId());
+
+        Agendamento atualizado = agendamentoRepository.findById(agendamento.getId())
+                .orElseThrow(() -> new AgendamentoNaoEncontradoException(
+                        Mensagens.get("agendamento.nao-encontrado", agendamento.getId())));
+        return agendamentoUtil.convertToDetalhadoDTO(atualizado);
+    }
+
+    private void aplicarEvolucaoCurativo(EvolucaoCurativo evolucao,
+                                         EvolucaoCurativoRequestDTO request) {
+        // 1. Avaliacao diaria
+        evolucao.setComprimento(request.comprimento());
+        evolucao.setLargura(request.largura());
+        evolucao.setProfundidade(request.profundidade());
+        evolucao.setAreaAproximada(request.areaAproximada());
+        evolucao.setTecido(request.tecido());
+        evolucao.setInfeccaoInflamacao(request.infeccaoInflamacao());
+        evolucao.setExsudato(request.exsudato());
+        evolucao.setBordas(request.bordas());
+        evolucao.setOdorPresente(request.odorPresente());
+        evolucao.setDorEscala(request.dorEscala());
+        evolucao.setPelePerilesional(request.pelePerilesional());
+
+        // 2. Intervencoes
+        evolucao.setLimpezaIrrigacao(request.limpezaIrrigacao());
+        evolucao.setDesbridamento(request.desbridamento());
+        evolucao.setDesbridamentoObs(request.desbridamentoObs());
+        evolucao.setCoberturaPrimaria(request.coberturaPrimaria());
+        evolucao.setOrientacoesPaciente(request.orientacoesPaciente());
+
+        // 3. Avaliacao da evolucao
+        evolucao.setEvolucao(request.evolucao());
+        evolucao.setObservacoes(request.observacoes());
+
+        // 4. Plano / acoes futuras
+        evolucao.setPlanoManterConduta(request.planoManterConduta());
+        evolucao.setPlanoAlterarCobertura(request.planoAlterarCobertura());
+        evolucao.setPlanoSolicitarExames(request.planoSolicitarExames());
+        evolucao.setPlanoEncaminhamento(request.planoEncaminhamento());
+        evolucao.setRetornoPrevisto(request.retornoPrevisto());
     }
 
     @Override
@@ -185,7 +287,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeCriar(usuario, request)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a criar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.criar"));
         }
 
         usuarioService.validarUsuarioExiste(request.pacienteUuid());
@@ -196,6 +298,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 request.inicioEm(), request.fimEm());
         validarRegraAvaliacaoTratamento(request);
 
+        Procedimento procedimento = resolverProcedimento(request);
+
         Agendamento agendamento = Agendamento.builder()
                 .pacienteUuid(request.pacienteUuid())
                 .profissionalUuid(request.profissionalUuid())
@@ -203,7 +307,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .fimEm(request.fimEm())
                 .status(StatusAgendamento.AGENDADO)
                 .tipo(request.tipo())
-                .tipoProcedimento(request.tipoProcedimento())
+                .procedimento(procedimento)
+                .tipoProcedimento(tipoProcedimentoLegado(procedimento))
                 .localAtendimento(request.localAtendimento())
                 .pacienteAcamado(request.pacienteAcamado())
                 .build();
@@ -228,11 +333,11 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a confirmar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.confirmar"));
         }
         if (agendamento.getStatus() != StatusAgendamento.AGENDADO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Apenas agendamentos com status AGENDADO podem ser confirmados");
+                    Mensagens.get("agendamento.status.apenas-agendado-confirma"));
         }
 
         agendamento.setStatus(StatusAgendamento.CONFIRMADO);
@@ -248,15 +353,25 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a cancelar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.cancelar"));
         }
 
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
-            throw new AgendamentoJaCanceladoException("Agendamento ja esta cancelado");
+            throw new AgendamentoJaCanceladoException(Mensagens.get("agendamento.ja-cancelado"));
         }
         if (agendamento.getStatus() == StatusAgendamento.REALIZADO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Agendamento concluido nao pode ser cancelado");
+                    Mensagens.get("agendamento.concluido-nao-cancela"));
+        }
+
+        boolean isAdmin = "ADMIN".equals(permissaoPolicy.perfilEfetivo(usuario));
+        if (!isAdmin) {
+            LocalDateTime limiteCancelamento = agendamento.getInicioEm()
+                    .minusHours(ANTECEDENCIA_MIN_CANCELAMENTO_HORAS);
+            if (!LocalDateTime.now(clock).isBefore(limiteCancelamento)) {
+                throw new CancelamentoForaDoPrazoException(Mensagens.get(
+                        "agendamento.cancelamento.fora-prazo", ANTECEDENCIA_MIN_CANCELAMENTO_HORAS));
+            }
         }
 
         agendamento.setStatus(StatusAgendamento.CANCELADO);
@@ -273,14 +388,14 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a reagendar este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.reagendar"));
         }
 
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO ||
                 agendamento.getStatus() == StatusAgendamento.REALIZADO) {
-            throw new AgendamentoStatusInvalidoException(
-                    "Agendamento " + agendamento.getStatus().name().toLowerCase() +
-                            " nao pode ser reagendado");
+            throw new AgendamentoStatusInvalidoException(Mensagens.get(
+                    "agendamento.status-invalido.reagendar",
+                    agendamento.getStatus().name().toLowerCase()));
         }
 
         validarPeriodo(request.novoInicioEm(), request.novoFimEm());
@@ -323,14 +438,14 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!permissaoPolicy.podeModificar(usuario, agendamento)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a concluir este agendamento");
+                    Mensagens.get("agendamento.nao-autorizado.concluir"));
         }
         if (agendamento.getStatus() == StatusAgendamento.REALIZADO) {
-            throw new AgendamentoJaConcluidoException("Agendamento ja esta concluido");
+            throw new AgendamentoJaConcluidoException(Mensagens.get("agendamento.ja-concluido"));
         }
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO) {
             throw new AgendamentoStatusInvalidoException(
-                    "Agendamento cancelado nao pode ser concluido");
+                    Mensagens.get("agendamento.cancelado-nao-conclui"));
         }
 
         agendamento.setStatus(StatusAgendamento.REALIZADO);
@@ -347,7 +462,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode visualizar agenda de profissional");
+                    Mensagens.get("agendamento.paciente.nao-visualiza-agenda"));
         }
 
         UUID profissionalUuid = "ADMIN".equals(perfil)
@@ -371,7 +486,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!"PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Apenas pacientes podem acessar este endpoint");
+                    Mensagens.get("agendamento.apenas-pacientes-endpoint"));
         }
 
         return agendamentoRepository
@@ -385,13 +500,13 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     public List<AgendamentoViewDTO> getTratamentosPorAvaliacao(Long avaliacaoId) {
         Agendamento avaliacao = agendamentoRepository.findById(avaliacaoId)
                 .orElseThrow(() -> new AvaliacaoNaoEncontradaException(
-                        "Avaliacao nao encontrada"));
+                        Mensagens.get("avaliacao.nao-encontrada")));
 
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
 
         if (!permissaoPolicy.podeVisualizar(usuario, avaliacao)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Usuario nao autorizado a ver tratamentos desta avaliacao");
+                    Mensagens.get("agendamento.nao-autorizado.ver-tratamentos"));
         }
 
         List<AgendamentoViewDTO> historico = new ArrayList<>();
@@ -410,7 +525,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode visualizar lista de pacientes");
+                    Mensagens.get("agendamento.paciente.nao-visualiza-lista-pacientes"));
         }
 
         LocalDate hoje = LocalDate.now(clock);
@@ -429,7 +544,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
             try {
                 nomePaciente = usuarioService.buscarPorUuid(pacienteUuid).nomeCompleto();
             } catch (Exception e) {
-                nomePaciente = "Paciente nao encontrado";
+                nomePaciente = Mensagens.get("paciente.nao-encontrado");
             }
 
             List<AgendamentoViewDTO> agendamentos = agendamentoRepository
@@ -445,42 +560,44 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private void validarPeriodo(LocalDateTime inicio, LocalDateTime fim) {
         if (inicio.isBefore(LocalDateTime.now(clock))) {
             throw new AgendamentoDataHoraInvalidaException(
-                    "Nao e possivel agendar para datas/horarios passados");
+                    Mensagens.get("agendamento.data-passada"));
         }
         if (!fim.isAfter(inicio)) {
             throw new AgendamentoInvalidoException(
-                    "Fim deve ser posterior ao inicio");
+                    Mensagens.get("agendamento.fim-antes-inicio"));
         }
         long minutos = Duration.between(inicio, fim).toMinutes();
         if (minutos < DURACAO_MIN_MINUTOS) {
             throw new AgendamentoInvalidoException(
-                    "Duracao minima: " + DURACAO_MIN_MINUTOS + " minutos");
+                    Mensagens.get("agendamento.duracao-minima", DURACAO_MIN_MINUTOS));
         }
         if (minutos > DURACAO_MAX_MINUTOS) {
             throw new AgendamentoInvalidoException(
-                    "Duracao maxima: " + DURACAO_MAX_MINUTOS + " minutos");
+                    Mensagens.get("agendamento.duracao-maxima", DURACAO_MAX_MINUTOS));
         }
     }
 
     private void validarDisponibilidade(UUID profissionalUuid, UUID pacienteUuid,
                                         LocalDateTime inicio, LocalDateTime fim) {
+        validarHorarioTrabalho(profissionalUuid, inicio, fim);
         validarBloqueioHorario(profissionalUuid, inicio, fim);
 
         if (!agendamentoRepository
                 .findConflitosParaProfissionalComLock(profissionalUuid, inicio, fim).isEmpty()) {
             throw new ProfissionalIndisponivelException(
-                    "Profissional ja possui agendamento neste horario");
+                    Mensagens.get("agendamento.profissional-indisponivel"));
         }
         if (!agendamentoRepository
                 .findConflitosParaPacienteComLock(pacienteUuid, inicio, fim).isEmpty()) {
             throw new PacienteIndisponivelException(
-                    "Paciente ja possui agendamento neste horario");
+                    Mensagens.get("agendamento.paciente-indisponivel"));
         }
     }
 
     private void validarDisponibilidadeReagendamento(Agendamento agendamento,
                                                      LocalDateTime inicio,
                                                      LocalDateTime fim) {
+        validarHorarioTrabalho(agendamento.getProfissionalUuid(), inicio, fim);
         validarBloqueioHorario(agendamento.getProfissionalUuid(), inicio, fim);
 
         agendamentoRepository
@@ -491,7 +608,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .findFirst()
                 .ifPresent(a -> {
                     throw new ProfissionalIndisponivelException(
-                            "Profissional ja possui agendamento neste horario");
+                            Mensagens.get("agendamento.profissional-indisponivel"));
                 });
 
         agendamentoRepository
@@ -502,10 +619,47 @@ public class AgendamentoServiceImpl implements AgendamentoService {
                 .findFirst()
                 .ifPresent(a -> {
                     throw new PacienteIndisponivelException(
-                            "Paciente ja possui agendamento neste horario");
+                            Mensagens.get("agendamento.paciente-indisponivel"));
                 });
     }
 
+    /**
+     * RF05 — o atendimento precisa caber inteiro em uma janela de expediente do
+     * profissional naquele dia da semana.
+     *
+     * <p>Profissional sem nenhuma janela cadastrada nao e validado: a regra so
+     * passa a valer depois que alguem define o expediente, para nao invalidar os
+     * profissionais que ja existiam antes do RF05.
+     */
+    private void validarHorarioTrabalho(UUID profissionalUuid,
+                                        LocalDateTime inicio, LocalDateTime fim) {
+        if (!horarioTrabalhoRepository.existsByProfissionalUuidAndAtivoTrue(profissionalUuid)) {
+            return;
+        }
+
+        // Um atendimento que vira o dia nunca cabe numa janela de um dia so.
+        boolean mesmoDia = inicio.toLocalDate().equals(fim.toLocalDate());
+
+        boolean dentroDoExpediente = mesmoDia && horarioTrabalhoRepository
+                .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(
+                        profissionalUuid, inicio.getDayOfWeek().getValue())
+                .stream()
+                .anyMatch(h -> h.contem(inicio.toLocalTime(), fim.toLocalTime()));
+
+        if (!dentroDoExpediente) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            throw new ForaDoHorarioTrabalhoException(Mensagens.get(
+                    "agendamento.fora-do-horario-trabalho",
+                    inicio.format(fmt),
+                    fim.format(fmt)));
+        }
+    }
+
+    /**
+     * Bloqueios do profissional: os avulsos ({@link BloqueioHorario}) e as regras
+     * semanais ({@link BloqueioRecorrente}), que precisam ser materializadas nos
+     * dias do periodo antes de comparar.
+     */
     private void validarBloqueioHorario(UUID profissionalUuid,
                                         LocalDateTime inicio, LocalDateTime fim) {
         List<BloqueioHorario> bloqueios = bloqueioHorarioRepository
@@ -513,55 +667,127 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         if (!bloqueios.isEmpty()) {
             BloqueioHorario b = bloqueios.get(0);
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            throw new HorarioIndisponivelException(String.format(
-                    "Horario indisponivel. Bloqueio de %s ate %s. Motivo: %s",
-                    b.getInicioEm().format(fmt),
-                    b.getFimEm().format(fmt),
-                    b.getMotivo()));
+            throw indisponivel(b.getInicioEm(), b.getFimEm(), b.getMotivo());
         }
+
+        validarBloqueioRecorrente(profissionalUuid, inicio, fim);
+    }
+
+    /**
+     * Uma regra recorrente vale para todo dia da semana correspondente, entao a
+     * comparacao e feita dia a dia dentro do periodo do agendamento (que a
+     * validacao de duracao ja limita a poucas horas).
+     */
+    private void validarBloqueioRecorrente(UUID profissionalUuid,
+                                           LocalDateTime inicio, LocalDateTime fim) {
+        List<BloqueioRecorrente> regras =
+                bloqueioRecorrenteRepository.findByProfissionalUuidAndAtivoTrue(profissionalUuid);
+        if (regras.isEmpty()) {
+            return;
+        }
+
+        for (LocalDate dia = inicio.toLocalDate();
+             !dia.isAfter(fim.toLocalDate());
+             dia = dia.plusDays(1)) {
+
+            int diaSemana = dia.getDayOfWeek().getValue();
+            for (BloqueioRecorrente regra : regras) {
+                if (!regra.getDiaSemana().equals(diaSemana)) {
+                    continue;
+                }
+                LocalDateTime bloqueioInicio = dia.atTime(regra.getHoraInicio());
+                LocalDateTime bloqueioFim = dia.atTime(regra.getHoraFim());
+
+                if (inicio.isBefore(bloqueioFim) && bloqueioInicio.isBefore(fim)) {
+                    throw indisponivel(bloqueioInicio, bloqueioFim, regra.getMotivo());
+                }
+            }
+        }
+    }
+
+    private HorarioIndisponivelException indisponivel(LocalDateTime inicio,
+                                                     LocalDateTime fim,
+                                                     String motivo) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        return new HorarioIndisponivelException(Mensagens.get(
+                "agendamento.horario-indisponivel",
+                inicio.format(fmt),
+                fim.format(fmt),
+                motivo));
     }
 
     private void validarRegraAvaliacaoTratamento(AgendamentoRequestDTO request) {
         if (request.tipo() == TipoAgendamento.AVALIACAO) {
             if (request.avaliacaoId() != null) {
-                throw new AgendamentoInvalidoException("Avaliacao nao pode ter avaliacaoId");
+                throw new AgendamentoInvalidoException(Mensagens.get("agendamento.avaliacao.sem-avaliacao-id"));
             }
             return;
         }
         if (request.tipo() == TipoAgendamento.TRATAMENTO) {
             if (request.avaliacaoId() == null) {
                 throw new AgendamentoInvalidoException(
-                        "Tratamento deve estar associado a uma avaliacao");
+                        Mensagens.get("agendamento.tratamento.exige-avaliacao"));
             }
             Agendamento avaliacao = agendamentoRepository.findById(request.avaliacaoId())
                     .orElseThrow(() -> new AvaliacaoNaoEncontradaException(
-                            "Avaliacao nao encontrada"));
+                            Mensagens.get("avaliacao.nao-encontrada")));
             if (avaliacao.getTipo() != TipoAgendamento.AVALIACAO) {
                 throw new AgendamentoInvalidoException(
-                        "O agendamento referenciado nao e uma avaliacao");
+                        Mensagens.get("agendamento.tratamento.ref-nao-avaliacao"));
             }
             if (!avaliacao.getPacienteUuid().equals(request.pacienteUuid())) {
                 throw new AgendamentoInvalidoException(
-                        "O paciente do tratamento deve ser o mesmo da avaliacao");
+                        Mensagens.get("agendamento.tratamento.paciente-diferente"));
             }
             if (avaliacao.getStatus() != StatusAgendamento.REALIZADO) {
                 throw new AgendamentoInvalidoException(
-                        "A avaliacao deve estar concluida para agendar tratamentos");
+                        Mensagens.get("agendamento.tratamento.avaliacao-nao-concluida"));
             }
+        }
+    }
+
+    /**
+     * RF06: resolve o procedimento a partir do id (preferido) ou do enum legado
+     * tipoProcedimento, mantendo compatibilidade durante a migracao.
+     */
+    private Procedimento resolverProcedimento(AgendamentoRequestDTO request) {
+        if (request.procedimentoId() != null) {
+            Procedimento procedimento = procedimentoRepository.findById(request.procedimentoId())
+                    .orElseThrow(() -> new ProcedimentoNaoEncontradoException(
+                            Mensagens.get("procedimento.nao-encontrado", request.procedimentoId())));
+            if (!Boolean.TRUE.equals(procedimento.getAtivo())) {
+                throw new AgendamentoInvalidoException(Mensagens.get("procedimento.inativo"));
+            }
+            return procedimento;
+        }
+        if (request.tipoProcedimento() != null) {
+            return procedimentoRepository.findByCodigo(request.tipoProcedimento().name())
+                    .orElseThrow(() -> new ProcedimentoNaoEncontradoException(
+                            Mensagens.get("procedimento.nao-encontrado", request.tipoProcedimento())));
+        }
+        throw new AgendamentoInvalidoException(
+                Mensagens.get("agendamento.procedimento-obrigatorio"));
+    }
+
+    private TipoProcedimento tipoProcedimentoLegado(Procedimento procedimento) {
+        if (procedimento.getCodigo() == null) return null;
+        try {
+            return TipoProcedimento.valueOf(procedimento.getCodigo());
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 
     private Agendamento buscarOuFalhar(Long id) {
         return agendamentoRepository.findById(id)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
-                        "Agendamento nao encontrado: " + id));
+                        Mensagens.get("agendamento.nao-encontrado", id)));
     }
 
     private UUID exigirProfissionalUuid(UUID uuid) {
         if (uuid == null) {
             throw new AgendamentoInvalidoException(
-                    "ADMIN deve informar profissionalUuid");
+                    Mensagens.get("agendamento.admin.informar-profissional"));
         }
         return uuid;
     }

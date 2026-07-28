@@ -16,6 +16,7 @@ import com.prontudigital.backend.agendamento.servicos.BloqueioHorarioService;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,15 +47,15 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
         if ("PROFISSIONAL".equals(perfil) &&
                 !request.profissionalUuid().equals(usuario.uuid())) {
             throw new UsuarioSemAutorizacaoException(
-                    "Profissional so pode bloquear sua propria agenda");
+                    Mensagens.get("bloqueio.nao-autorizado.propria-agenda"));
         }
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode criar bloqueios de horario");
+                    Mensagens.get("bloqueio.paciente-nao-cria"));
         }
 
         if (!request.fimEm().isAfter(request.inicioEm())) {
-            throw new AgendamentoInvalidoException("Fim deve ser posterior ao inicio");
+            throw new AgendamentoInvalidoException(Mensagens.get("bloqueio.fim-antes-inicio"));
         }
 
         BloqueioHorario bloqueio = BloqueioHorario.builder()
@@ -73,7 +74,7 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
     public void remover(Long id) {
         BloqueioHorario bloqueio = repository.findById(id)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
-                        "Bloqueio nao encontrado: " + id));
+                        Mensagens.get("bloqueio.nao-encontrado", id)));
 
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
         String perfil = permissaoPolicy.perfilEfetivo(usuario);
@@ -81,7 +82,7 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
         if ("PROFISSIONAL".equals(perfil) &&
                 !bloqueio.getProfissionalUuid().equals(usuario.uuid())) {
             throw new UsuarioSemAutorizacaoException(
-                    "Sem autorizacao para remover este bloqueio");
+                    Mensagens.get("bloqueio.sem-autorizacao-remover"));
         }
 
         repository.delete(bloqueio);
@@ -145,15 +146,15 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
         if ("PROFISSIONAL".equals(perfil) &&
                 !request.profissionalUuid().equals(usuario.uuid())) {
             throw new UsuarioSemAutorizacaoException(
-                    "Profissional so pode bloquear sua propria agenda");
+                    Mensagens.get("bloqueio.nao-autorizado.propria-agenda"));
         }
         if ("PACIENTE".equals(perfil)) {
             throw new UsuarioSemAutorizacaoException(
-                    "Paciente nao pode criar bloqueios de horario");
+                    Mensagens.get("bloqueio.paciente-nao-cria"));
         }
 
         if (!request.horaFim().isAfter(request.horaInicio())) {
-            throw new AgendamentoInvalidoException("Horario fim deve ser posterior ao inicio");
+            throw new AgendamentoInvalidoException(Mensagens.get("bloqueio.horario-fim-antes-inicio"));
         }
 
         BloqueioRecorrente regra = BloqueioRecorrente.builder()
@@ -173,7 +174,7 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
     public void removerRecorrente(Long id) {
         BloqueioRecorrente regra = recorrenteRepository.findById(id)
                 .orElseThrow(() -> new AgendamentoNaoEncontradoException(
-                        "Regra recorrente nao encontrada: " + id));
+                        Mensagens.get("bloqueio.regra-nao-encontrada", id)));
 
         UsuarioDTO usuario = usuarioContexto.getUsuarioAtual();
         String perfil = permissaoPolicy.perfilEfetivo(usuario);
@@ -181,7 +182,7 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
         if ("PROFISSIONAL".equals(perfil) &&
                 !regra.getProfissionalUuid().equals(usuario.uuid())) {
             throw new UsuarioSemAutorizacaoException(
-                    "Sem autorizacao para remover esta regra");
+                    Mensagens.get("bloqueio.sem-autorizacao-remover-regra"));
         }
 
         recorrenteRepository.delete(regra);
@@ -207,7 +208,7 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
     private BloqueioHorarioDTO agendamentoParaBloqueioDTO(Agendamento a) {
         return new BloqueioHorarioDTO(
                 null, a.getUuid(), a.getProfissionalUuid(),
-                a.getInicioEm(), a.getFimEm(), "Horário reservado", TipoBloqueio.INDISPONIVEL, null);
+                a.getInicioEm(), a.getFimEm(), Mensagens.get("bloqueio.horario-reservado"), TipoBloqueio.INDISPONIVEL, null);
     }
 
     private BloqueioRecorrenteDTO toRecorrenteDTO(BloqueioRecorrente r) {

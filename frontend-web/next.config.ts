@@ -2,6 +2,10 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Gera .next/standalone com um server.js e só as deps usadas em runtime.
+  // Necessário para a imagem de produção (Dockerfile.prod) — o servidor Node
+  // precisa existir para as Route Handlers de /api/auth/* funcionarem.
+  output: 'standalone',
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
