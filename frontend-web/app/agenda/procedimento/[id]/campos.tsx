@@ -91,7 +91,13 @@ export function CampoSelect<T extends string>({
   )
 }
 
-/** Campo de texto de uma linha. */
+/**
+ * Campo de texto de uma linha.
+ *
+ * `maxLength` deve espelhar o `@Size` do DTO correspondente: sem ele o
+ * usuário só descobre que passou do limite quando o backend recusa a ficha
+ * inteira com 422, depois de já ter preenchido tudo.
+ */
 export function CampoTexto({
   label,
   valor,
@@ -99,6 +105,7 @@ export function CampoTexto({
   disabled,
   placeholder,
   tipo = 'text',
+  maxLength,
 }: {
   label: string
   valor: string
@@ -106,6 +113,7 @@ export function CampoTexto({
   disabled?: boolean
   placeholder?: string
   tipo?: 'text' | 'date' | 'time'
+  maxLength?: number
 }) {
   return (
     <Campo label={label}>
@@ -116,6 +124,7 @@ export function CampoTexto({
         onChange={onChange}
         disabled={disabled}
         placeholder={placeholder}
+        maxLength={maxLength}
       />
     </Campo>
   )
@@ -166,6 +175,7 @@ export function CampoTextarea({
   disabled,
   placeholder,
   rows = 3,
+  maxLength,
 }: {
   label: string
   valor: string
@@ -173,6 +183,7 @@ export function CampoTextarea({
   disabled?: boolean
   placeholder?: string
   rows?: number
+  maxLength?: number
 }) {
   return (
     <Campo label={label}>
@@ -183,6 +194,7 @@ export function CampoTextarea({
         disabled={disabled}
         placeholder={placeholder}
         rows={rows}
+        maxLength={maxLength}
       />
     </Campo>
   )
@@ -256,12 +268,14 @@ export function LinhaObservacao({
   onChange,
   disabled,
   placeholder,
+  maxLength,
 }: {
   rotulo: string
   valor: string
   onChange: (e: MudancaCampo) => void
   disabled?: boolean
   placeholder?: string
+  maxLength?: number
 }) {
   return (
     <Campo label={rotulo}>
@@ -271,6 +285,7 @@ export function LinhaObservacao({
         onChange={onChange}
         disabled={disabled}
         placeholder={placeholder}
+        maxLength={maxLength}
       />
     </Campo>
   )

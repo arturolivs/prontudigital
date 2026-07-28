@@ -102,20 +102,33 @@ export const MENSAGENS = {
       'Informe a quantidade de dias para o atestado de afastamento.',
     diasJaComRegra:
       'Todos os dias selecionados já possuem regras recorrentes. Selecione um novo dia para adicionar.',
+    dorForaDaEscala: 'A escala de dor deve ser um número inteiro de 0 a 10.',
+    medidaForaDaFaixa:
+      'As medidas da ferida devem ser números entre 0 e 999,99 cm.',
   },
 } as const
 
 /**
- * Extrai a mensagem de erro priorizando o que o backend retornou
- * (`response.data.message`), depois `err.message`, e por fim um fallback local.
+ * Extrai a mensagem de erro priorizando o que o backend retornou, depois
+ * `err.message`, e por fim um fallback local.
+ *
+ * O corpo de erro é o `ErroRespostaDTO` do backend, cujos campos são em
+ * PORTUGUÊS (`mensagem`, `detalhes`) — não `message`. O `detalhes` só vem
+ * preenchido em falha de validação (422), com um item por campo recusado
+ * (`"dorEscala: deve ser menor que ou igual à 10"`); sem ele o usuário recebe
+ * só "Verifique os campos enviados", que não diz o que corrigir.
  */
 export function mensagemErro(
   err: unknown,
   fallback: string = MENSAGENS.erro.generico,
 ): string {
   const e = err as {
-    response?: { data?: { message?: string } }
+    response?: { data?: { mensagem?: string; detalhes?: string[] } }
     message?: string
   }
-  return e?.response?.data?.message || e?.message || fallback
+
+  const dados = e?.response?.data
+  const base = dados?.mensagem || e?.message || fallback
+
+  return dados?.detalhes?.length ? `${base} ${dados.detalhes.join('; ')}` : base
 }

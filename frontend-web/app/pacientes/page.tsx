@@ -6,6 +6,11 @@ import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+import {
+  formatarDataCurta,
+  obterCorAvatar,
+  obterIniciais,
+} from '@/lib/paciente-ui'
 import Layout from '@/components/Layout/Layout'
 import './patients.css'
 import { AgendamentoView, PacienteAgendamentosDTO } from '@/tipos/agendamento'
@@ -15,19 +20,6 @@ const formatarHora = (dataString: string): string =>
     hour: '2-digit',
     minute: '2-digit',
   })
-
-const formatarDataCurta = (dataString: string): string =>
-  new Date(dataString).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-
-const obterIniciais = (nome: string): string => {
-  const partes = nome.trim().split(' ').filter(Boolean)
-  if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase()
-  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase()
-}
 
 const ROTULO_STATUS: Record<string, string> = {
   AGENDADO: 'Agendado',
@@ -45,25 +37,6 @@ const CLASSE_STATUS: Record<string, string> = {
   REMARCADO: 'status-remarcado',
   REALIZADO: 'status-realizado',
   NAO_COMPARECEU: 'status-nao-compareceu',
-}
-
-const CORES_AVATAR = [
-  '#2b6cb0',
-  '#7991bc',
-  '#10b981',
-  '#f59e0b',
-  '#8b5cf6',
-  '#ef4444',
-  '#3b82f6',
-  '#ec4899',
-]
-
-const obterCorAvatar = (uuid: string): string => {
-  let hash = 0
-  for (let i = 0; i < uuid.length; i++) {
-    hash = uuid.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return CORES_AVATAR[Math.abs(hash) % CORES_AVATAR.length]
 }
 
 const CardAgendamento = ({ agendamento }: { agendamento: AgendamentoView }) => (
@@ -185,7 +158,7 @@ const CartaoPaciente = ({
         <div className="pac-card-body">
           <div className="pac-card-acoes">
             <Link
-              href={`/pacientes/${paciente.pacienteUuid}/prontuario?nome=${encodeURIComponent(paciente.nomePaciente)}`}
+              href={`/pacientes/${paciente.pacienteUuid}/prontuario?nome=${encodeURIComponent(paciente.nomePaciente)}&de=pacientes`}
               className="pac-prontuario-link"
             >
               Ver prontuário →

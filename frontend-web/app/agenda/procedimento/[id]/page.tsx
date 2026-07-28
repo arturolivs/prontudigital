@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
 import { anamneseAPI } from '@/lib/anamnese.service'
-import { MENSAGENS } from '@/lib/mensagens'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import {
   Agendamento,
   EvolucaoCurativoRequisicao,
@@ -164,6 +164,61 @@ const OPCOES_EVOLUCAO: { value: AvaliacaoEvolucao; label: string }[] = [
   { value: 'ESTAVEL', label: 'Estável' },
   { value: 'PIORA', label: 'Piora' },
 ]
+
+// ── Limites da ficha ─────────────────────────────────────────────
+//
+// Espelham as restrições de EvolucaoCurativoRequestDTO no backend. Se
+// divergirem, o usuário preenche a ficha inteira e só descobre o problema
+// no 422 devolvido ao finalizar a consulta.
+
+/** `@Size(max = 5000)` — campos descritivos longos. */
+const LIMITE_TEXTO_LONGO = 5000
+/** `@Size(max = 1000)` — cobertura, plano de ações e retorno. */
+const LIMITE_TEXTO_CURTO = 1000
+/** `@Min(0) @Max(10)` — escala de dor. */
+const DOR_MIN = 0
+const DOR_MAX = 10
+
+/**
+ * Teto das medidas da ferida, em cm.
+ *
+ * O DTO não valida as dimensões: elas seguem direto para colunas
+ * `NUMERIC(6,2)` e estouram no Postgres como erro 500. O limite é 999,99 e
+ * não 9999,99 (o teto da coluna) porque `areaAproximada` = C × L vai para uma
+ * `NUMERIC(8,2)`: com 999,99 a área máxima é 999.980, que ainda cabe.
+ */
+const DIMENSAO_MAX = 999.99
+
+/**
+ * Valida o que o navegador não consegue impedir sozinho.
+ *
+ * Os `maxLength` dos campos já barram o `@Size` na digitação, mas `min`/`max`
+ * de um input `type="number"` limitam apenas as setas — não impedem digitar
+ * ou colar 15. O backend também aceitaria 4.5 arredondando para 4
+ * (ACCEPT_FLOAT_AS_INT do Jackson), o que falsearia a escala em silêncio.
+ *
+ * Retorna a mensagem do primeiro problema encontrado, ou `null` se estiver ok.
+ */
+function validarEvolucao(form: EvolucaoForm): string | null {
+  const dimensoes = [form.comprimento, form.largura, form.profundidade]
+  for (const bruto of dimensoes) {
+    const texto = bruto.trim()
+    if (!texto) continue
+    const medida = Number(texto)
+    if (!Number.isFinite(medida) || medida < 0 || medida > DIMENSAO_MAX) {
+      return MENSAGENS.validacao.medidaForaDaFaixa
+    }
+  }
+
+  const dor = form.dorEscala.trim()
+  if (!dor) return null
+
+  const valor = Number(dor)
+  if (!Number.isInteger(valor) || valor < DOR_MIN || valor > DOR_MAX) {
+    return MENSAGENS.validacao.dorForaDaEscala
+  }
+  return null
+}
 
 // ── Conversões formulário ↔ API ──────────────────────────────────
 
@@ -459,6 +514,18 @@ export default function ProcedimentoPage({
 
   const finalizarConsulta = async () => {
     if (!agendamento) return
+
+    // Barra o que o backend recusaria antes de gravar qualquer coisa — o
+    // fluxo grava a ficha e só depois conclui, então falhar na segunda
+    // chamada deixaria a consulta pela metade.
+    if (agendamento.tipo === 'TRATAMENTO') {
+      const invalido = validarEvolucao(evolucao)
+      if (invalido) {
+        exibirNotificacao(invalido, 'error', 5000)
+        return
+      }
+    }
+
     setFinalizando(true)
     try {
       // Cada tipo grava a ficha do seu modelo — o backend recusa a ficha
@@ -485,8 +552,14 @@ export default function ProcedimentoPage({
       setAgendamento(prev => (prev ? { ...prev, status: 'REALIZADO' } : prev))
       setIniciado(false)
       setModalAberto(true)
-    } catch {
-      exibirNotificacao(MENSAGENS.erro.finalizarConsulta, 'error', 5000)
+    } catch (erro) {
+      // O backend recusa a ficha campo a campo (422 + `detalhes`). Descartar o
+      // erro aqui deixava o usuário sem saber o que corrigir.
+      exibirNotificacao(
+        mensagemErro(erro, MENSAGENS.erro.finalizarConsulta),
+        'error',
+        8000,
+      )
     } finally {
       setFinalizando(false)
     }
@@ -772,6 +845,7 @@ export default function ProcedimentoPage({
                               className="proc-campo-input"
                               type="number"
                               min="0"
+                              max={DIMENSAO_MAX}
                               step="0.1"
                               value={evolucao.comprimento}
                               onChange={setEv('comprimento')}
@@ -784,6 +858,7 @@ export default function ProcedimentoPage({
                               className="proc-campo-input"
                               type="number"
                               min="0"
+                              max={DIMENSAO_MAX}
                               step="0.1"
                               value={evolucao.largura}
                               onChange={setEv('largura')}
@@ -796,6 +871,7 @@ export default function ProcedimentoPage({
                               className="proc-campo-input"
                               type="number"
                               min="0"
+                              max={DIMENSAO_MAX}
                               step="0.1"
                               value={evolucao.profundidade}
                               onChange={setEv('profundidade')}
@@ -877,6 +953,7 @@ export default function ProcedimentoPage({
                             onChange={setEv('pelePerilesional')}
                             disabled={!podeEditar}
                             placeholder="Ex: íntegra, macerada, hiperemiada…"
+                            maxLength={LIMITE_TEXTO_LONGO}
                           />
                         </Campo>
                       </div>
@@ -896,6 +973,7 @@ export default function ProcedimentoPage({
                           onChange={setEv('limpezaIrrigacao')}
                           disabled={!podeEditar}
                           placeholder="Ex: SF 0,9% morno em jato"
+                          maxLength={LIMITE_TEXTO_LONGO}
                         />
                         <div className="proc-form-grid">
                           <CampoSelect<TipoDesbridamento>
@@ -911,6 +989,7 @@ export default function ProcedimentoPage({
                             onChange={setEv('desbridamentoObs')}
                             disabled={!podeEditar}
                             placeholder="Detalhe do procedimento realizado"
+                            maxLength={LIMITE_TEXTO_LONGO}
                           />
                         </div>
                         <LinhaObservacao
@@ -919,6 +998,7 @@ export default function ProcedimentoPage({
                           onChange={setEv('coberturaPrimaria')}
                           disabled={!podeEditar}
                           placeholder="Qual cobertura foi aplicada?"
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Orientações ao paciente"
@@ -926,6 +1006,7 @@ export default function ProcedimentoPage({
                           onChange={setEv('orientacoesPaciente')}
                           disabled={!podeEditar}
                           placeholder="Orientações fornecidas ao paciente/cuidador"
+                          maxLength={LIMITE_TEXTO_LONGO}
                         />
                       </div>
                     </div>
@@ -953,6 +1034,7 @@ export default function ProcedimentoPage({
                             disabled={!podeEditar}
                             placeholder="Observações sobre a evolução da ferida…"
                             rows={3}
+                            maxLength={LIMITE_TEXTO_LONGO}
                           />
                         </Campo>
                       </div>
@@ -974,24 +1056,28 @@ export default function ProcedimentoPage({
                           valor={evolucao.planoManterConduta}
                           onChange={setEv('planoManterConduta')}
                           disabled={!podeEditar}
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Alterar cobertura"
                           valor={evolucao.planoAlterarCobertura}
                           onChange={setEv('planoAlterarCobertura')}
                           disabled={!podeEditar}
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Solicitar exames"
                           valor={evolucao.planoSolicitarExames}
                           onChange={setEv('planoSolicitarExames')}
                           disabled={!podeEditar}
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Encaminhamento"
                           valor={evolucao.planoEncaminhamento}
                           onChange={setEv('planoEncaminhamento')}
                           disabled={!podeEditar}
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Retorno previsto"
@@ -999,6 +1085,7 @@ export default function ProcedimentoPage({
                           onChange={setEv('retornoPrevisto')}
                           disabled={!podeEditar}
                           placeholder="Ex: retorno em 7 dias"
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                       </div>
                     </div>
