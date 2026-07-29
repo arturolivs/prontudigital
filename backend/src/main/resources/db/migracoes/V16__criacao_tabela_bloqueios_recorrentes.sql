@@ -10,7 +10,9 @@ CREATE TABLE bloqueios_recorrentes (
     profissional_uuid UUID         NOT NULL,
 
     -- ISO-8601: 1=Segunda ... 6=Sabado, 7=Domingo
-    dia_semana        SMALLINT     NOT NULL,
+    -- INTEGER (nao SMALLINT): a entidade mapeia Integer e o Hibernate valida
+    -- o tipo no boot (ddl-auto: validate nos perfis dev e prod).
+    dia_semana        INTEGER      NOT NULL,
 
     hora_inicio       TIME         NOT NULL,
     hora_fim          TIME         NOT NULL,
