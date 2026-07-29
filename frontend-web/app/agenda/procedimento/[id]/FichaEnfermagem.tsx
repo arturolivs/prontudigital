@@ -15,6 +15,7 @@ import {
 } from '@/tipos/agendamento'
 import {
   BloqueadoTag,
+  CampoEscala,
   CampoNumero,
   CampoSelect,
   CampoSimNao,
@@ -390,13 +391,12 @@ export default function FichaEnfermagem({
               onChange={texto('bordas')}
               disabled={desabilitado}
             />
-            <CampoNumero
+            <CampoEscala
               label="Dor (escala 0–10)"
               valor={t('dorEscala')}
               onChange={texto('dorEscala')}
+              onLimpar={() => aoAlterar({ dorEscala: '' })}
               disabled={desabilitado}
-              max="10"
-              step="1"
             />
           </div>
 

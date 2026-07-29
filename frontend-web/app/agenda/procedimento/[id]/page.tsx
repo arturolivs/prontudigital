@@ -6,7 +6,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
 import { anamneseAPI } from '@/lib/anamnese.service'
+import { usuariosAPI } from '@/lib/usuario.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+import { mascaraCEP, mascaraCPF, mascaraTelefone } from '@/lib/mascaras'
 import {
   Agendamento,
   EvolucaoCurativoRequisicao,
@@ -46,9 +48,11 @@ import {
 import {
   BloqueadoTag,
   Campo,
+  CampoEscala,
   CampoSelect,
   CheckItem,
   LinhaObservacao,
+  MudancaCampo,
 } from './campos'
 import FichaAnamnese, {
   AnamneseForm,
@@ -62,6 +66,12 @@ import FichaEnfermagem, {
   enfermagemParaApi,
   enfermagemParaFormulario,
 } from './FichaEnfermagem'
+import CadastroPaciente, {
+  CadastroPacienteForm,
+  CADASTRO_PACIENTE_INICIAL,
+  cadastroPacienteParaApi,
+  cadastroPacienteParaFormulario,
+} from './CadastroPaciente'
 import './procedimento.css'
 
 // ── Ficha de Evolução Diária – Curativos ─────────────────────────
@@ -445,6 +455,15 @@ export default function ProcedimentoPage({
   const [finalizando, setFinalizando] = useState(false)
   const [modalAberto, setModalAberto] = useState(false)
 
+  // Cadastro do paciente (RF04). Guarda o id numérico porque o agendamento só
+  // traz o uuid, e `PATCH /api/usuarios/{id}/perfil` exige o id.
+  const [pacienteId, setPacienteId] = useState<number | null>(null)
+  const [cadastro, setCadastro] = useState<CadastroPacienteForm>(
+    CADASTRO_PACIENTE_INICIAL,
+  )
+  const [carregandoCadastro, setCarregandoCadastro] = useState(true)
+  const [salvandoCadastro, setSalvandoCadastro] = useState(false)
+
   const isAdmin = temPerfil('ROLE_ADMIN')
   const perfilLayout = isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'
 
@@ -479,6 +498,27 @@ export default function ProcedimentoPage({
       )
   }, [ehAvaliacao, pacienteUuid, exibirNotificacao])
 
+  // Cadastro do paciente: independe do tipo do agendamento — completar CPF,
+  // nascimento e endereço faz sentido tanto na avaliação quanto no tratamento.
+  useEffect(() => {
+    if (!pacienteUuid) return
+    setCarregandoCadastro(true)
+    usuariosAPI
+      .buscarUsuarioPorUuid(pacienteUuid)
+      .then(usuario => {
+        setPacienteId(usuario.id)
+        setCadastro(cadastroPacienteParaFormulario(usuario))
+      })
+      .catch(err =>
+        exibirNotificacao(
+          mensagemErro(err, MENSAGENS.erro.carregarPerfil),
+          'error',
+          5000,
+        ),
+      )
+      .finally(() => setCarregandoCadastro(false))
+  }, [pacienteUuid, exibirNotificacao])
+
   useEffect(() => {
     if (!agendamento?.avaliacaoId || agendamento.tipo !== 'TRATAMENTO') return
     setCarregandoHist(true)
@@ -507,6 +547,56 @@ export default function ProcedimentoPage({
 
   const setBool = (campo: keyof EvolucaoForm) => (valor: boolean) =>
     setEvolucao(prev => ({ ...prev, [campo]: valor }))
+
+  /**
+   * Máscara aplicada na digitação, por campo. O backend guarda só dígitos —
+   * a conversão de volta acontece em `cadastroPacienteParaApi`.
+   */
+  const MASCARAS: Partial<
+    Record<keyof CadastroPacienteForm, (v: string) => string>
+  > = {
+    cpf: mascaraCPF,
+    telefone: mascaraTelefone,
+    cep: mascaraCEP,
+    uf: v =>
+      v
+        .replace(/[^A-Za-z]/g, '')
+        .slice(0, 2)
+        .toUpperCase(),
+  }
+
+  const setCad = (campo: keyof CadastroPacienteForm) => (e: MudancaCampo) => {
+    const mascara = MASCARAS[campo]
+    const valor = mascara ? mascara(e.target.value) : e.target.value
+    setCadastro(prev => ({ ...prev, [campo]: valor }))
+  }
+
+  const salvarCadastro = async () => {
+    if (!pacienteId) return
+    if (!cadastro.nomeCompleto.trim()) {
+      exibirNotificacao(MENSAGENS.validacao.nomeObrigatorio, 'error', 5000)
+      return
+    }
+    try {
+      setSalvandoCadastro(true)
+      const atualizado = await usuariosAPI.atualizarPerfil(
+        pacienteId,
+        cadastroPacienteParaApi(cadastro),
+      )
+      // Recarrega do retorno: o backend normaliza CPF/CEP e pode ter recusado
+      // algum valor, então a tela passa a refletir o que ficou gravado.
+      setCadastro(cadastroPacienteParaFormulario(atualizado))
+      exibirNotificacao(MENSAGENS.sucesso.cadastroPacienteSalvo, 'success')
+    } catch (err) {
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.salvarCadastroPaciente),
+        'error',
+        8000,
+      )
+    } finally {
+      setSalvandoCadastro(false)
+    }
+  }
 
   const alterarAnamnese = (mudanca: Partial<AnamneseForm>) =>
     setAnamnese(prev => ({ ...prev, ...mudanca }))
@@ -834,6 +924,18 @@ export default function ProcedimentoPage({
                   )}
                 </div>
 
+                {/* Cadastro do paciente (RF04) — fora do bloqueio de "Iniciar"
+                    e do jaRealizado: são dados cadastrais, não registro
+                    clínico, e precisam poder ser corrigidos a qualquer
+                    momento, inclusive depois da consulta concluída. */}
+                <CadastroPaciente
+                  form={cadastro}
+                  onChange={setCad}
+                  onSalvar={salvarCadastro}
+                  salvando={salvandoCadastro}
+                  carregando={carregandoCadastro}
+                />
+
                 {ehTratamento ? (
                   <>
                     {/* 1. Avaliação diária da ferida */}
@@ -912,19 +1014,15 @@ export default function ProcedimentoPage({
                               placeholder="Calculada automaticamente"
                             />
                           </Campo>
-                          <Campo label="Dor (0–10)">
-                            <input
-                              className="proc-campo-input"
-                              type="number"
-                              min="0"
-                              max="10"
-                              step="1"
-                              value={evolucao.dorEscala}
-                              onChange={setEv('dorEscala')}
-                              disabled={!podeEditar}
-                              placeholder="0"
-                            />
-                          </Campo>
+                          <CampoEscala
+                            label="Dor (0–10)"
+                            valor={evolucao.dorEscala}
+                            onChange={setEv('dorEscala')}
+                            onLimpar={() =>
+                              setEvolucao(prev => ({ ...prev, dorEscala: '' }))
+                            }
+                            disabled={!podeEditar}
+                          />
                         </div>
 
                         <div className="proc-form-grid">

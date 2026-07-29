@@ -884,3 +884,138 @@
     padding: 1.25rem 1rem;
   }
 }
+/* ── Cadastro do paciente (RF04) ─────────────────────────────
+   Card que completa CPF, nascimento e endereço durante o
+   atendimento — no agendamento o paciente informa só nome e
+   telefone. Reaproveita .proc-form / .proc-form-grid das fichas.
+*/
+
+.proc-cadastro-pendente {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-warning-deeper, #92400e);
+  background: var(--color-warning-bg, #fffbeb);
+  border: 1px solid var(--color-warning-border, #fcd34d);
+  border-radius: 20px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.proc-cadastro-carregando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.proc-cadastro-acoes {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .proc-cadastro-pendente {
+    margin-left: 0;
+  }
+
+  .proc-cadastro-acoes button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Escala em slider (dor 0–10) ─────────────────────────────
+   Substitui o input numérico das fichas. O rótulo à direita
+   mostra o valor ou "Não informado" — o vazio é gravado como
+   null e significa coisa diferente de zero.
+*/
+
+.proc-escala {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.proc-escala-slider {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-border-brand);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.proc-escala-slider:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.proc-escala-slider:focus-visible {
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.18);
+}
+
+/* O polegar precisa ser estilizado por vendor — não há forma unificada. */
+.proc-escala-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.proc-escala-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.proc-escala-valor {
+  min-width: 2ch;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.proc-escala-valor--vazio {
+  min-width: auto;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-neutral-400);
+  white-space: nowrap;
+}
+
+.proc-escala-limpar {
+  background: none;
+  border: none;
+  color: var(--color-neutral-400);
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.proc-escala-limpar:hover {
+  color: var(--color-text-body);
+  background: var(--color-bg-page);
+}

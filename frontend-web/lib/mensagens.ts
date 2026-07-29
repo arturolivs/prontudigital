@@ -58,6 +58,7 @@ export const MENSAGENS = {
     carregarProcedimentos: 'Erro ao carregar os procedimentos.',
     salvarProcedimento: 'Erro ao salvar o procedimento.',
     excluirProcedimento: 'Erro ao excluir o procedimento.',
+    salvarCadastroPaciente: 'Erro ao salvar o cadastro do paciente.',
   },
   sucesso: {
     horarioRegistrado: 'Horário registrado com sucesso!',
@@ -80,6 +81,7 @@ export const MENSAGENS = {
     prescricaoExcluida: 'Prescrição excluída com sucesso!',
     anexoEnviado: 'Anexo enviado com sucesso!',
     anexoExcluido: 'Anexo excluído com sucesso!',
+    cadastroPacienteSalvo: 'Cadastro do paciente atualizado!',
     procedimentoCriado: 'Procedimento criado com sucesso!',
     procedimentoAtualizado: 'Procedimento atualizado com sucesso!',
     procedimentoExcluido: 'Procedimento excluído com sucesso!',
