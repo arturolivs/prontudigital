@@ -25,6 +25,13 @@ app:
   notificacoes:
     habilitadas: true
     url-base-confirmacao: "http://localhost:8080/api/confirmacao"
+  armazenamento:
+    # Declarado explicitamente para deixar claro que, rodando pela IDE, os
+    # anexos ficam no HOST — e não no volume do container. As duas execuções
+    # não compartilham arquivos: um anexo enviado aqui não é encontrado pelo
+    # backend em container, e vice-versa. O caminho é relativo ao diretório de
+    # trabalho da run configuration (a raiz do projeto, por padrão).
+    diretorio-base: ${ARMAZENAMENTO_DIR:dados/anexos}
 
 logging:
   level:

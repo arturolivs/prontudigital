@@ -28,6 +28,8 @@ import {
   Clock,
   User,
   Tag,
+  Stethoscope,
+  MapPin,
   Circle,
   CheckCircle,
   FileText,
@@ -609,8 +611,9 @@ export default function ProcedimentoPage({
               Voltar
             </button>
             {agendamento && (
+              // Sem badge de tipo: ela já aparece no hero e na linha "Tipo"
+              // do card de informações, logo abaixo.
               <div className="proc-topbar-info">
-                <TipoBadge tipo={agendamento.tipo} />
                 <span className="proc-topbar-nome">
                   {agendamento.nomePaciente}
                 </span>
@@ -654,16 +657,8 @@ export default function ProcedimentoPage({
                       <Pill size={14} />
                     )}
                     {ROTULO_TIPO[agendamento.tipo]}
-                    {nomeProcedimento(agendamento) && (
-                      <span className="proc-hero-procedimento">
-                        {nomeProcedimento(agendamento)}
-                      </span>
-                    )}
-                    {agendamento.localAtendimento && (
-                      <span className="proc-hero-procedimento">
-                        {ROTULO_LOCAL_ATENDIMENTO[agendamento.localAtendimento]}
-                      </span>
-                    )}
+                    {/* Procedimento e local saíram daqui para o card de
+                        informações — no hero repetiam visualmente o tipo. */}
                     {agendamento.pacienteAcamado && (
                       <span className="proc-hero-procedimento proc-hero-acamado">
                         Acamado
@@ -753,6 +748,32 @@ export default function ProcedimentoPage({
                         <TipoBadge tipo={agendamento.tipo} />
                       </div>
                     </div>
+                    {nomeProcedimento(agendamento) && (
+                      <div className="proc-info-row">
+                        <Stethoscope size={18} className="proc-info-icone" />
+                        <div className="proc-info-texto">
+                          <span className="proc-info-rotulo">Procedimento</span>
+                          <span className="proc-info-valor">
+                            {nomeProcedimento(agendamento)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {agendamento.localAtendimento && (
+                      <div className="proc-info-row">
+                        <MapPin size={18} className="proc-info-icone" />
+                        <div className="proc-info-texto">
+                          <span className="proc-info-rotulo">Local</span>
+                          <span className="proc-info-valor">
+                            {
+                              ROTULO_LOCAL_ATENDIMENTO[
+                                agendamento.localAtendimento
+                              ]
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     <div className="proc-info-row">
                       <Circle size={18} className="proc-info-icone" />
                       <div className="proc-info-texto">
