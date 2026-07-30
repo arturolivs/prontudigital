@@ -15,7 +15,7 @@
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 1.5rem;
-  background: white;
+  background: var(--color-white);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
@@ -33,7 +33,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text-secondary);
-  background: white;
+  background: var(--color-white);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -73,7 +73,7 @@
 .proc-hero {
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
   padding: 2rem 1.5rem;
-  color: white;
+  color: var(--color-white);
 }
 
 .proc-hero-inner {
@@ -89,22 +89,22 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(var(--color-white-rgb), 0.8);
   margin-bottom: 0.75rem;
 }
 
 .proc-hero-procedimento {
   padding: 2px 10px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(var(--color-white-rgb), 0.18);
+  border: 1px solid rgba(var(--color-white-rgb), 0.3);
   font-size: 0.68rem;
   letter-spacing: 0.04em;
 }
 
 .proc-hero-acamado {
-  background: rgba(194, 65, 12, 0.25);
-  border-color: rgba(194, 65, 12, 0.4);
+  background: rgba(var(--color-warning-strong-rgb), 0.25);
+  border-color: rgba(var(--color-warning-strong-rgb), 0.4);
 }
 
 .proc-hero-nome {
@@ -119,7 +119,7 @@
   flex-wrap: wrap;
   gap: 1.25rem;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(var(--color-white-rgb), 0.85);
 }
 
 .proc-hero-meta-item {
@@ -153,9 +153,9 @@
 
 /* ── Cards modernos ────────────────────────── */
 .proc-card {
-  background: white;
+  background: var(--color-white);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.04), 0 1px 2px rgba(var(--color-shadow-rgb), 0.02);
   border: 1px solid var(--color-border);
   overflow: hidden;
   height: fit-content;
@@ -340,7 +340,7 @@
   font-weight: 700;
   z-index: 1;
   position: relative;
-  background: white;
+  background: var(--color-white);
 }
 
 .proc-hist-dot--avaliacao {
@@ -357,7 +357,7 @@
 
 .proc-hist-dot--atual {
   background: var(--color-brand);
-  color: white;
+  color: var(--color-white);
   border: 2px solid var(--color-brand);
 }
 
@@ -399,7 +399,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-brand);
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-brand);
   padding: 0.2rem 0.6rem;
   border-radius: 20px;
@@ -442,7 +442,7 @@
   font-size: 0.875rem;
   font-family: inherit;
   color: var(--color-text-heading);
-  background: white;
+  background: var(--color-white);
   resize: vertical;
   line-height: 1.5;
   transition: all 0.2s ease;
@@ -451,7 +451,7 @@
 .proc-obs-textarea:focus {
   outline: none;
   border-color: var(--color-brand-light);
-  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-brand-rgb), 0.1);
 }
 
 .proc-obs-textarea:disabled {
@@ -464,7 +464,7 @@
 .proc-actions-bar {
   position: sticky;
   bottom: 0;
-  background: white;
+  background: var(--color-white);
   border-top: 1px solid var(--color-border);
   padding: 1rem 1.5rem;
   display: flex;
@@ -497,24 +497,24 @@
 
 .proc-btn-iniciar {
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
-  color: white;
-  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.3);
+  color: var(--color-white);
+  box-shadow: 0 2px 6px rgba(var(--color-brand-rgb), 0.3);
 }
 
 .proc-btn-iniciar:hover {
-  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--color-brand-rgb), 0.4);
   transform: translateY(-1px);
 }
 
 .proc-btn-finalizar {
   background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
-  color: white;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+  color: var(--color-white);
+  box-shadow: 0 2px 6px rgba(var(--color-success-rgb), 0.25);
 }
 
 .proc-btn-finalizar:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--color-success-dark) 0%, var(--color-success-deeper) 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 4px 12px rgba(var(--color-success-rgb), 0.35);
   transform: translateY(-1px);
 }
 
@@ -534,12 +534,12 @@
 
 .proc-btn-proximo {
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
-  color: white;
-  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.3);
+  color: var(--color-white);
+  box-shadow: 0 2px 6px rgba(var(--color-brand-rgb), 0.3);
 }
 
 .proc-btn-proximo:hover {
-  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--color-brand-rgb), 0.4);
   transform: translateY(-1px);
 }
 
@@ -567,18 +567,18 @@
   gap: 0.45rem;
   padding: 0.6rem 1.1rem;
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
-  color: white;
+  color: var(--color-white);
   border: none;
   border-radius: 0.6rem;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.25);
+  box-shadow: 0 2px 6px rgba(var(--color-brand-rgb), 0.25);
 }
 
 .proc-modal-btn-primario:hover {
-  box-shadow: 0 4px 10px rgba(43, 108, 176, 0.35);
+  box-shadow: 0 4px 10px rgba(var(--color-brand-rgb), 0.35);
   transform: translateY(-1px);
 }
 
@@ -633,15 +633,15 @@
   margin: 0;
   padding: 0.75rem 0.875rem;
   border-radius: 8px;
-  background: #f8f7fb;
-  border: 1px solid #ece9f3;
-  color: #6b6880;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-neutral-500);
   font-size: 0.75rem;
   line-height: 1.6;
 }
 
 .proc-legenda strong {
-  color: #4a4560;
+  color: var(--color-neutral-600);
 }
 
 .proc-form-grid {
@@ -680,7 +680,7 @@
   font-size: 0.875rem;
   font-family: inherit;
   color: var(--color-text-heading);
-  background: white;
+  background: var(--color-white);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
 }
@@ -690,7 +690,7 @@
 .proc-campo-textarea:focus {
   outline: none;
   border-color: var(--color-brand-light);
-  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-brand-rgb), 0.1);
 }
 
 .proc-campo-input:disabled,
@@ -733,24 +733,24 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.75rem;
-  background: var(--color-bg-subtle, #f9fafb);
-  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
   border-radius: 0.6rem;
   font-size: 0.85rem;
-  color: var(--color-text-heading, #1f2937);
+  color: var(--color-text-heading);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
 }
 
 .proc-check:hover {
-  background: var(--color-bg-hover, #f3f4f6);
-  border-color: var(--color-brand-light, #6b9bd2);
+  background: var(--color-bg-hover);
+  border-color: var(--color-brand-light);
 }
 
 .proc-check input[type="checkbox"] {
   width: 1.1rem;
   height: 1.1rem;
-  accent-color: var(--color-brand, #2b6cb0);
+  accent-color: var(--color-brand);
   cursor: pointer;
   flex-shrink: 0;
   margin: 0;
@@ -763,10 +763,10 @@
 
 /* Estado marcado: fundo e texto com alto contraste */
 .proc-check:has(input:checked) {
-  background: var(--color-brand, #2b6cb0);
-  border-color: var(--color-brand, #2b6cb0);
-  color: white;
-  box-shadow: 0 0 0 1px var(--color-brand, #2b6cb0);
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-brand);
 }
 
 .proc-check:has(input:disabled) {
@@ -778,12 +778,12 @@
 .proc-subsecao {
   margin: 0.5rem 0 0;
   padding-bottom: 0.4rem;
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom: 1px solid var(--color-border);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-text-heading, #1f2937);
+  color: var(--color-text-heading);
 }
 
 /* ── Perguntas Sim/Não dos modelos ──────────── */
@@ -797,24 +797,24 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.9rem;
-  background: var(--color-bg-subtle, #f9fafb);
-  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
   border-radius: 0.6rem;
   font-size: 0.85rem;
-  color: var(--color-text-heading, #1f2937);
+  color: var(--color-text-heading);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .proc-radio:hover {
-  background: var(--color-bg-hover, #f3f4f6);
-  border-color: var(--color-brand-light, #6b9bd2);
+  background: var(--color-bg-hover);
+  border-color: var(--color-brand-light);
 }
 
 .proc-radio input[type="radio"] {
   width: 1rem;
   height: 1rem;
-  accent-color: var(--color-brand, #2b6cb0);
+  accent-color: var(--color-brand);
   cursor: pointer;
   margin: 0;
 }
@@ -825,9 +825,9 @@
 }
 
 .proc-radio:has(input:checked) {
-  background: var(--color-brand, #2b6cb0);
-  border-color: var(--color-brand, #2b6cb0);
-  color: white;
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: var(--color-white);
 }
 
 .proc-radio:has(input:disabled) {
@@ -883,4 +883,139 @@
   .proc-hero {
     padding: 1.25rem 1rem;
   }
+}
+/* ── Cadastro do paciente (RF04) ─────────────────────────────
+   Card que completa CPF, nascimento e endereço durante o
+   atendimento — no agendamento o paciente informa só nome e
+   telefone. Reaproveita .proc-form / .proc-form-grid das fichas.
+*/
+
+.proc-cadastro-pendente {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-warning-deeper);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: 20px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.proc-cadastro-carregando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.proc-cadastro-acoes {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .proc-cadastro-pendente {
+    margin-left: 0;
+  }
+
+  .proc-cadastro-acoes button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Escala em slider (dor 0–10) ─────────────────────────────
+   Substitui o input numérico das fichas. O rótulo à direita
+   mostra o valor ou "Não informado" — o vazio é gravado como
+   null e significa coisa diferente de zero.
+*/
+
+.proc-escala {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.proc-escala-slider {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-border-brand);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.proc-escala-slider:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.proc-escala-slider:focus-visible {
+  box-shadow: 0 0 0 3px rgba(var(--color-brand-rgb), 0.18);
+}
+
+/* O polegar precisa ser estilizado por vendor — não há forma unificada. */
+.proc-escala-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  border: 2px solid var(--color-white);
+  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.25);
+  cursor: pointer;
+}
+
+.proc-escala-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  border: 2px solid var(--color-white);
+  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.25);
+  cursor: pointer;
+}
+
+.proc-escala-valor {
+  min-width: 2ch;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.proc-escala-valor--vazio {
+  min-width: auto;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-neutral-400);
+  white-space: nowrap;
+}
+
+.proc-escala-limpar {
+  background: none;
+  border: none;
+  color: var(--color-neutral-400);
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.proc-escala-limpar:hover {
+  color: var(--color-text-body);
+  background: var(--color-bg-page);
 }

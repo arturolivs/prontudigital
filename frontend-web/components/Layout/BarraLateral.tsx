@@ -11,6 +11,7 @@ import {
   Stethoscope,
   BarChart3,
   Settings,
+  UserCircle,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -69,7 +70,7 @@ const BarraLateral = ({
     },
     {
       rotulo: 'Prontuários',
-      caminho: '/records',
+      caminho: '/prontuarios',
       icone: FileText,
       perfis: ['ROLE_PROFISSIONAL'],
     },
@@ -93,10 +94,21 @@ const BarraLateral = ({
       perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
     {
+      // Dados e marca da clínica desta instalação (nome, CNPJ, logo, rodapé
+      // dos PDFs). Modelo silo: uma instalação por cliente.
       rotulo: 'Configurações',
-      caminho: '/settings',
+      caminho: '/dashboard/configuracoes',
       icone: Settings,
       perfis: ['ROLE_ADMIN'],
+    },
+    {
+      // Era 'Configurações' → /settings, rota que nunca existiu. A única tela
+      // de ajustes do usuário é /perfil (dados pessoais, acesso e troca de
+      // senha), que estava sem nenhum ponto de entrada no menu.
+      rotulo: 'Meu Perfil',
+      caminho: '/perfil',
+      icone: UserCircle,
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
   ]
 

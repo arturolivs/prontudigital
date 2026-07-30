@@ -19,7 +19,7 @@
   font-size: 0.875rem;
   font-family: inherit;
   color: var(--color-text-heading);
-  background: white;
+  background: var(--color-white);
   transition: border-color 0.2s, box-shadow 0.2s;
   cursor: text;
   box-sizing: border-box;
@@ -28,11 +28,11 @@
 .sac-input:focus {
   outline: none;
   border-color: var(--color-brand-light);
-  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-brand-rgb), 0.1);
 }
 
 .sac-input:disabled {
-  background: var(--color-bg-surface, #f8fafc);
+  background: var(--color-bg-surface);
   color: var(--color-text-muted);
   cursor: not-allowed;
 }
@@ -45,8 +45,8 @@
   top: 50%;
   width: 0.45rem;
   height: 0.45rem;
-  border-right: 1.5px solid var(--color-text-muted, #94a3b8);
-  border-bottom: 1.5px solid var(--color-text-muted, #94a3b8);
+  border-right: 1.5px solid var(--color-text-muted);
+  border-bottom: 1.5px solid var(--color-text-muted);
   transform: translateY(-65%) rotate(45deg);
   transition: transform 0.18s ease;
   pointer-events: none;
@@ -59,10 +59,10 @@
 /* ===== LISTA (renderizada via portal) ===== */
 
 .sac-lista {
-  background: white;
-  border: 1.5px solid var(--color-border, #e2e8f0);
+  background: var(--color-white);
+  border: 1.5px solid var(--color-border);
   border-radius: 0.55rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(var(--color-shadow-rgb), 0.12);
   max-height: 220px;
   overflow-y: auto;
   list-style: none;
@@ -89,7 +89,7 @@
 
 .sac-item:hover,
 .sac-item--ativo {
-  background: var(--color-bg-surface, #f8fafc);
+  background: var(--color-bg-surface);
 }
 
 .sac-item--selecionado {
@@ -99,11 +99,11 @@
 
 .sac-item--selecionado:hover,
 .sac-item--selecionado.sac-item--ativo {
-  background: var(--color-brand-bg, #ebf4ff);
+  background: var(--color-bg-selected);
 }
 
 .sac-item--estado {
-  color: var(--color-text-muted, #94a3b8);
+  color: var(--color-text-muted);
   font-style: italic;
   cursor: default;
 }

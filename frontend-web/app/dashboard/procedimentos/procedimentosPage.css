@@ -26,7 +26,7 @@
   font-size: 0.875rem;
   font-family: inherit;
   color: var(--color-text-heading);
-  background: white;
+  background: var(--color-white);
 }
 
 .proc-form-input:focus,
@@ -50,8 +50,8 @@
 }
 
 .proc-form-erro {
-  background: var(--color-error-bg, #fdecea);
-  color: var(--color-error, #c0392b);
+  background: var(--color-error-bg);
+  color: var(--color-error);
   border-radius: 0.5rem;
   padding: 0.6rem 0.85rem;
   font-size: 0.85rem;
@@ -70,7 +70,7 @@
 .proc-btn-salvar {
   background: var(--color-brand);
   border: none;
-  color: white;
+  color: var(--color-white);
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;

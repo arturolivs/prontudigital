@@ -6,7 +6,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { agendamentoAPI } from '@/lib/agendamento.service'
 import { anamneseAPI } from '@/lib/anamnese.service'
-import { MENSAGENS } from '@/lib/mensagens'
+import { usuariosAPI } from '@/lib/usuario.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+import { mascaraCEP, mascaraCPF, mascaraTelefone } from '@/lib/mascaras'
 import {
   Agendamento,
   EvolucaoCurativoRequisicao,
@@ -28,6 +30,8 @@ import {
   Clock,
   User,
   Tag,
+  Stethoscope,
+  MapPin,
   Circle,
   CheckCircle,
   FileText,
@@ -44,9 +48,11 @@ import {
 import {
   BloqueadoTag,
   Campo,
+  CampoEscala,
   CampoSelect,
   CheckItem,
   LinhaObservacao,
+  MudancaCampo,
 } from './campos'
 import FichaAnamnese, {
   AnamneseForm,
@@ -60,6 +66,18 @@ import FichaEnfermagem, {
   enfermagemParaApi,
   enfermagemParaFormulario,
 } from './FichaEnfermagem'
+import CadastroPaciente, {
+  CadastroPacienteForm,
+  CADASTRO_PACIENTE_INICIAL,
+  cadastroPacienteParaApi,
+  cadastroPacienteParaFormulario,
+} from './CadastroPaciente'
+import {
+  mensagemCamposObrigatorios,
+  validarAnamnese,
+  validarCurativo,
+  validarEnfermagem,
+} from './validacao'
 import './procedimento.css'
 
 // ── Ficha de Evolução Diária – Curativos ─────────────────────────
@@ -164,6 +182,61 @@ const OPCOES_EVOLUCAO: { value: AvaliacaoEvolucao; label: string }[] = [
   { value: 'ESTAVEL', label: 'Estável' },
   { value: 'PIORA', label: 'Piora' },
 ]
+
+// ── Limites da ficha ─────────────────────────────────────────────
+//
+// Espelham as restrições de EvolucaoCurativoRequestDTO no backend. Se
+// divergirem, o usuário preenche a ficha inteira e só descobre o problema
+// no 422 devolvido ao finalizar a consulta.
+
+/** `@Size(max = 5000)` — campos descritivos longos. */
+const LIMITE_TEXTO_LONGO = 5000
+/** `@Size(max = 1000)` — cobertura, plano de ações e retorno. */
+const LIMITE_TEXTO_CURTO = 1000
+/** `@Min(0) @Max(10)` — escala de dor. */
+const DOR_MIN = 0
+const DOR_MAX = 10
+
+/**
+ * Teto das medidas da ferida, em cm.
+ *
+ * O DTO não valida as dimensões: elas seguem direto para colunas
+ * `NUMERIC(6,2)` e estouram no Postgres como erro 500. O limite é 999,99 e
+ * não 9999,99 (o teto da coluna) porque `areaAproximada` = C × L vai para uma
+ * `NUMERIC(8,2)`: com 999,99 a área máxima é 999.980, que ainda cabe.
+ */
+const DIMENSAO_MAX = 999.99
+
+/**
+ * Valida o que o navegador não consegue impedir sozinho.
+ *
+ * Os `maxLength` dos campos já barram o `@Size` na digitação, mas `min`/`max`
+ * de um input `type="number"` limitam apenas as setas — não impedem digitar
+ * ou colar 15. O backend também aceitaria 4.5 arredondando para 4
+ * (ACCEPT_FLOAT_AS_INT do Jackson), o que falsearia a escala em silêncio.
+ *
+ * Retorna a mensagem do primeiro problema encontrado, ou `null` se estiver ok.
+ */
+function validarEvolucao(form: EvolucaoForm): string | null {
+  const dimensoes = [form.comprimento, form.largura, form.profundidade]
+  for (const bruto of dimensoes) {
+    const texto = bruto.trim()
+    if (!texto) continue
+    const medida = Number(texto)
+    if (!Number.isFinite(medida) || medida < 0 || medida > DIMENSAO_MAX) {
+      return MENSAGENS.validacao.medidaForaDaFaixa
+    }
+  }
+
+  const dor = form.dorEscala.trim()
+  if (!dor) return null
+
+  const valor = Number(dor)
+  if (!Number.isInteger(valor) || valor < DOR_MIN || valor > DOR_MAX) {
+    return MENSAGENS.validacao.dorForaDaEscala
+  }
+  return null
+}
 
 // ── Conversões formulário ↔ API ──────────────────────────────────
 
@@ -388,6 +461,15 @@ export default function ProcedimentoPage({
   const [finalizando, setFinalizando] = useState(false)
   const [modalAberto, setModalAberto] = useState(false)
 
+  // Cadastro do paciente (RF04). Guarda o id numérico porque o agendamento só
+  // traz o uuid, e `PATCH /api/usuarios/{id}/perfil` exige o id.
+  const [pacienteId, setPacienteId] = useState<number | null>(null)
+  const [cadastro, setCadastro] = useState<CadastroPacienteForm>(
+    CADASTRO_PACIENTE_INICIAL,
+  )
+  const [carregandoCadastro, setCarregandoCadastro] = useState(true)
+  const [salvandoCadastro, setSalvandoCadastro] = useState(false)
+
   const isAdmin = temPerfil('ROLE_ADMIN')
   const perfilLayout = isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'
 
@@ -422,6 +504,27 @@ export default function ProcedimentoPage({
       )
   }, [ehAvaliacao, pacienteUuid, exibirNotificacao])
 
+  // Cadastro do paciente: independe do tipo do agendamento — completar CPF,
+  // nascimento e endereço faz sentido tanto na avaliação quanto no tratamento.
+  useEffect(() => {
+    if (!pacienteUuid) return
+    setCarregandoCadastro(true)
+    usuariosAPI
+      .buscarUsuarioPorUuid(pacienteUuid)
+      .then(usuario => {
+        setPacienteId(usuario.id)
+        setCadastro(cadastroPacienteParaFormulario(usuario))
+      })
+      .catch(err =>
+        exibirNotificacao(
+          mensagemErro(err, MENSAGENS.erro.carregarPerfil),
+          'error',
+          5000,
+        ),
+      )
+      .finally(() => setCarregandoCadastro(false))
+  }, [pacienteUuid, exibirNotificacao])
+
   useEffect(() => {
     if (!agendamento?.avaliacaoId || agendamento.tipo !== 'TRATAMENTO') return
     setCarregandoHist(true)
@@ -451,6 +554,56 @@ export default function ProcedimentoPage({
   const setBool = (campo: keyof EvolucaoForm) => (valor: boolean) =>
     setEvolucao(prev => ({ ...prev, [campo]: valor }))
 
+  /**
+   * Máscara aplicada na digitação, por campo. O backend guarda só dígitos —
+   * a conversão de volta acontece em `cadastroPacienteParaApi`.
+   */
+  const MASCARAS: Partial<
+    Record<keyof CadastroPacienteForm, (v: string) => string>
+  > = {
+    cpf: mascaraCPF,
+    telefone: mascaraTelefone,
+    cep: mascaraCEP,
+    uf: v =>
+      v
+        .replace(/[^A-Za-z]/g, '')
+        .slice(0, 2)
+        .toUpperCase(),
+  }
+
+  const setCad = (campo: keyof CadastroPacienteForm) => (e: MudancaCampo) => {
+    const mascara = MASCARAS[campo]
+    const valor = mascara ? mascara(e.target.value) : e.target.value
+    setCadastro(prev => ({ ...prev, [campo]: valor }))
+  }
+
+  const salvarCadastro = async () => {
+    if (!pacienteId) return
+    if (!cadastro.nomeCompleto.trim()) {
+      exibirNotificacao(MENSAGENS.validacao.nomeObrigatorio, 'error', 5000)
+      return
+    }
+    try {
+      setSalvandoCadastro(true)
+      const atualizado = await usuariosAPI.atualizarPerfil(
+        pacienteId,
+        cadastroPacienteParaApi(cadastro),
+      )
+      // Recarrega do retorno: o backend normaliza CPF/CEP e pode ter recusado
+      // algum valor, então a tela passa a refletir o que ficou gravado.
+      setCadastro(cadastroPacienteParaFormulario(atualizado))
+      exibirNotificacao(MENSAGENS.sucesso.cadastroPacienteSalvo, 'success')
+    } catch (err) {
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.salvarCadastroPaciente),
+        'error',
+        8000,
+      )
+    } finally {
+      setSalvandoCadastro(false)
+    }
+  }
+
   const alterarAnamnese = (mudanca: Partial<AnamneseForm>) =>
     setAnamnese(prev => ({ ...prev, ...mudanca }))
 
@@ -459,6 +612,32 @@ export default function ProcedimentoPage({
 
   const finalizarConsulta = async () => {
     if (!agendamento) return
+
+    // Toda a validação acontece antes de qualquer chamada: o fluxo grava a
+    // ficha e só depois conclui o agendamento, então falhar no meio deixaria
+    // a consulta pela metade.
+
+    // 1. Campos obrigatórios da(s) ficha(s) do tipo. Ver validacao.ts para a
+    //    regra de quem é obrigatório e quem é isento.
+    const pendentes =
+      agendamento.tipo === 'AVALIACAO'
+        ? [...validarAnamnese(anamnese), ...validarEnfermagem(enfermagem)]
+        : validarCurativo(evolucao)
+
+    if (pendentes.length > 0) {
+      exibirNotificacao(mensagemCamposObrigatorios(pendentes), 'error', 10000)
+      return
+    }
+
+    // 2. Faixas e formatos, que o backend recusaria com 422 ou 500.
+    if (agendamento.tipo === 'TRATAMENTO') {
+      const invalido = validarEvolucao(evolucao)
+      if (invalido) {
+        exibirNotificacao(invalido, 'error', 5000)
+        return
+      }
+    }
+
     setFinalizando(true)
     try {
       // Cada tipo grava a ficha do seu modelo — o backend recusa a ficha
@@ -485,8 +664,14 @@ export default function ProcedimentoPage({
       setAgendamento(prev => (prev ? { ...prev, status: 'REALIZADO' } : prev))
       setIniciado(false)
       setModalAberto(true)
-    } catch {
-      exibirNotificacao(MENSAGENS.erro.finalizarConsulta, 'error', 5000)
+    } catch (erro) {
+      // O backend recusa a ficha campo a campo (422 + `detalhes`). Descartar o
+      // erro aqui deixava o usuário sem saber o que corrigir.
+      exibirNotificacao(
+        mensagemErro(erro, MENSAGENS.erro.finalizarConsulta),
+        'error',
+        8000,
+      )
     } finally {
       setFinalizando(false)
     }
@@ -536,8 +721,9 @@ export default function ProcedimentoPage({
               Voltar
             </button>
             {agendamento && (
+              // Sem badge de tipo: ela já aparece no hero e na linha "Tipo"
+              // do card de informações, logo abaixo.
               <div className="proc-topbar-info">
-                <TipoBadge tipo={agendamento.tipo} />
                 <span className="proc-topbar-nome">
                   {agendamento.nomePaciente}
                 </span>
@@ -581,16 +767,8 @@ export default function ProcedimentoPage({
                       <Pill size={14} />
                     )}
                     {ROTULO_TIPO[agendamento.tipo]}
-                    {nomeProcedimento(agendamento) && (
-                      <span className="proc-hero-procedimento">
-                        {nomeProcedimento(agendamento)}
-                      </span>
-                    )}
-                    {agendamento.localAtendimento && (
-                      <span className="proc-hero-procedimento">
-                        {ROTULO_LOCAL_ATENDIMENTO[agendamento.localAtendimento]}
-                      </span>
-                    )}
+                    {/* Procedimento e local saíram daqui para o card de
+                        informações — no hero repetiam visualmente o tipo. */}
                     {agendamento.pacienteAcamado && (
                       <span className="proc-hero-procedimento proc-hero-acamado">
                         Acamado
@@ -680,6 +858,32 @@ export default function ProcedimentoPage({
                         <TipoBadge tipo={agendamento.tipo} />
                       </div>
                     </div>
+                    {nomeProcedimento(agendamento) && (
+                      <div className="proc-info-row">
+                        <Stethoscope size={18} className="proc-info-icone" />
+                        <div className="proc-info-texto">
+                          <span className="proc-info-rotulo">Procedimento</span>
+                          <span className="proc-info-valor">
+                            {nomeProcedimento(agendamento)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {agendamento.localAtendimento && (
+                      <div className="proc-info-row">
+                        <MapPin size={18} className="proc-info-icone" />
+                        <div className="proc-info-texto">
+                          <span className="proc-info-rotulo">Local</span>
+                          <span className="proc-info-valor">
+                            {
+                              ROTULO_LOCAL_ATENDIMENTO[
+                                agendamento.localAtendimento
+                              ]
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     <div className="proc-info-row">
                       <Circle size={18} className="proc-info-icone" />
                       <div className="proc-info-texto">
@@ -740,6 +944,18 @@ export default function ProcedimentoPage({
                   )}
                 </div>
 
+                {/* Cadastro do paciente (RF04) — fora do bloqueio de "Iniciar"
+                    e do jaRealizado: são dados cadastrais, não registro
+                    clínico, e precisam poder ser corrigidos a qualquer
+                    momento, inclusive depois da consulta concluída. */}
+                <CadastroPaciente
+                  form={cadastro}
+                  onChange={setCad}
+                  onSalvar={salvarCadastro}
+                  salvando={salvandoCadastro}
+                  carregando={carregandoCadastro}
+                />
+
                 {ehTratamento ? (
                   <>
                     {/* 1. Avaliação diária da ferida */}
@@ -772,6 +988,7 @@ export default function ProcedimentoPage({
                               className="proc-campo-input"
                               type="number"
                               min="0"
+                              max={DIMENSAO_MAX}
                               step="0.1"
                               value={evolucao.comprimento}
                               onChange={setEv('comprimento')}
@@ -784,6 +1001,7 @@ export default function ProcedimentoPage({
                               className="proc-campo-input"
                               type="number"
                               min="0"
+                              max={DIMENSAO_MAX}
                               step="0.1"
                               value={evolucao.largura}
                               onChange={setEv('largura')}
@@ -796,6 +1014,7 @@ export default function ProcedimentoPage({
                               className="proc-campo-input"
                               type="number"
                               min="0"
+                              max={DIMENSAO_MAX}
                               step="0.1"
                               value={evolucao.profundidade}
                               onChange={setEv('profundidade')}
@@ -815,19 +1034,15 @@ export default function ProcedimentoPage({
                               placeholder="Calculada automaticamente"
                             />
                           </Campo>
-                          <Campo label="Dor (0–10)">
-                            <input
-                              className="proc-campo-input"
-                              type="number"
-                              min="0"
-                              max="10"
-                              step="1"
-                              value={evolucao.dorEscala}
-                              onChange={setEv('dorEscala')}
-                              disabled={!podeEditar}
-                              placeholder="0"
-                            />
-                          </Campo>
+                          <CampoEscala
+                            label="Dor (0–10)"
+                            valor={evolucao.dorEscala}
+                            onChange={setEv('dorEscala')}
+                            onLimpar={() =>
+                              setEvolucao(prev => ({ ...prev, dorEscala: '' }))
+                            }
+                            disabled={!podeEditar}
+                          />
                         </div>
 
                         <div className="proc-form-grid">
@@ -877,6 +1092,7 @@ export default function ProcedimentoPage({
                             onChange={setEv('pelePerilesional')}
                             disabled={!podeEditar}
                             placeholder="Ex: íntegra, macerada, hiperemiada…"
+                            maxLength={LIMITE_TEXTO_LONGO}
                           />
                         </Campo>
                       </div>
@@ -896,6 +1112,7 @@ export default function ProcedimentoPage({
                           onChange={setEv('limpezaIrrigacao')}
                           disabled={!podeEditar}
                           placeholder="Ex: SF 0,9% morno em jato"
+                          maxLength={LIMITE_TEXTO_LONGO}
                         />
                         <div className="proc-form-grid">
                           <CampoSelect<TipoDesbridamento>
@@ -911,6 +1128,7 @@ export default function ProcedimentoPage({
                             onChange={setEv('desbridamentoObs')}
                             disabled={!podeEditar}
                             placeholder="Detalhe do procedimento realizado"
+                            maxLength={LIMITE_TEXTO_LONGO}
                           />
                         </div>
                         <LinhaObservacao
@@ -919,6 +1137,7 @@ export default function ProcedimentoPage({
                           onChange={setEv('coberturaPrimaria')}
                           disabled={!podeEditar}
                           placeholder="Qual cobertura foi aplicada?"
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Orientações ao paciente"
@@ -926,6 +1145,7 @@ export default function ProcedimentoPage({
                           onChange={setEv('orientacoesPaciente')}
                           disabled={!podeEditar}
                           placeholder="Orientações fornecidas ao paciente/cuidador"
+                          maxLength={LIMITE_TEXTO_LONGO}
                         />
                       </div>
                     </div>
@@ -953,6 +1173,7 @@ export default function ProcedimentoPage({
                             disabled={!podeEditar}
                             placeholder="Observações sobre a evolução da ferida…"
                             rows={3}
+                            maxLength={LIMITE_TEXTO_LONGO}
                           />
                         </Campo>
                       </div>
@@ -974,24 +1195,28 @@ export default function ProcedimentoPage({
                           valor={evolucao.planoManterConduta}
                           onChange={setEv('planoManterConduta')}
                           disabled={!podeEditar}
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Alterar cobertura"
                           valor={evolucao.planoAlterarCobertura}
                           onChange={setEv('planoAlterarCobertura')}
                           disabled={!podeEditar}
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Solicitar exames"
                           valor={evolucao.planoSolicitarExames}
                           onChange={setEv('planoSolicitarExames')}
                           disabled={!podeEditar}
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Encaminhamento"
                           valor={evolucao.planoEncaminhamento}
                           onChange={setEv('planoEncaminhamento')}
                           disabled={!podeEditar}
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                         <LinhaObservacao
                           rotulo="Retorno previsto"
@@ -999,6 +1224,7 @@ export default function ProcedimentoPage({
                           onChange={setEv('retornoPrevisto')}
                           disabled={!podeEditar}
                           placeholder="Ex: retorno em 7 dias"
+                          maxLength={LIMITE_TEXTO_CURTO}
                         />
                       </div>
                     </div>

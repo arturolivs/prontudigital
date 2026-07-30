@@ -64,6 +64,10 @@ services:
       APP_JWT_ACCESS_EXPIRATION_MS:  ${JWT_ACCESS_EXPIRATION_MS}
       APP_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS}
       APP_JWT_SECRET:             ${JWT_SECRET}
+      # Caminho ABSOLUTO, igual a produção. O default da aplicação
+      # (`dados/anexos`) é relativo ao diretório de trabalho, o que fazia os
+      # anexos caírem em lugares diferentes conforme quem estivesse servindo.
+      ARMAZENAMENTO_DIR: /dados/anexos
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     volumes:
@@ -72,6 +76,10 @@ services:
       - ../../backend/pom.xml:/app/pom.xml
       # Cache do Maven fora do container (builds mais rápidos)
       - maven_cache:/root/.m2
+      # Anexos do prontuário — sem isto ficariam na camada gravável do
+      # container e sumiriam a cada `up --build`, deixando no banco linhas
+      # cujo arquivo não existe mais (download quebrado na tela do paciente).
+      - anexos_data_dev:/dados/anexos
     depends_on:
       postgres:
         condition: service_healthy
@@ -144,6 +152,8 @@ volumes:
     name: prontudigital_maven_cache
   frontend_node_modules:
     name: prontudigital_frontend_node_modules
+  anexos_data_dev:
+    name: prontudigital_anexos_dev
 
 # ----------------------------------------------------------
 # Rede interna isolada

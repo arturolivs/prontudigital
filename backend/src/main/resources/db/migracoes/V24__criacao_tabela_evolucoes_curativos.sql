@@ -17,7 +17,9 @@ CREATE TABLE evolucoes_curativos (
     exsudato                    VARCHAR(20),
     bordas                      VARCHAR(20),
     odor_presente               BOOLEAN,
-    dor_escala                  SMALLINT CHECK (dor_escala IS NULL OR (dor_escala BETWEEN 0 AND 10)),
+    -- INTEGER (nao SMALLINT): a entidade mapeia Integer e o Hibernate valida
+    -- o tipo no boot (ddl-auto: validate nos perfis dev e prod).
+    dor_escala                  INTEGER CHECK (dor_escala IS NULL OR (dor_escala BETWEEN 0 AND 10)),
     pele_perilesional           TEXT,
 
     -- 2. Intervencoes

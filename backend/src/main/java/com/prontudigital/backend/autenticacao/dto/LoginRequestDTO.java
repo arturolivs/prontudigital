@@ -11,9 +11,8 @@ public record LoginRequestDTO(
         @NotBlank
         String username,
 
-        @Schema(description = "Senha (mínimo 8 caracteres)", example = "senha123")
+        @Schema(description = "Senha", example = "senha123")
         @NotBlank
-        @Size(min = 8, max = 30)
         String senha
 
 ) {}

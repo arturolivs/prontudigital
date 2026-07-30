@@ -38,7 +38,7 @@
 }
 
 .ma-resumo-card {
-  background: white;
+  background: var(--color-white);
   border-radius: 10px;
   border: 1px solid var(--color-border-brand);
   border-top: 3px solid;
@@ -47,7 +47,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  box-shadow: 0 1px 3px rgba(43, 108, 176, 0.06);
+  box-shadow: 0 1px 3px rgba(var(--color-brand-rgb), 0.06);
 }
 
 .ma-resumo-valor {
@@ -70,8 +70,8 @@
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
   border-radius: 14px;
   padding: 20px 24px;
-  color: white;
-  box-shadow: 0 4px 16px rgba(43, 108, 176, 0.3);
+  color: var(--color-white);
+  box-shadow: 0 4px 16px rgba(var(--color-brand-rgb), 0.3);
 }
 
 .ma-proximo-label {
@@ -82,7 +82,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(var(--color-white-rgb), 0.75);
   margin-bottom: 12px;
 }
 
@@ -96,7 +96,7 @@
 .ma-proximo-data {
   font-size: 1rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-white);
   margin: 0 0 4px;
   text-transform: capitalize;
 }
@@ -107,22 +107,22 @@
   gap: 8px;
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-white);
   margin: 0 0 6px;
 }
 
 .ma-proximo-duracao {
   font-size: 0.8rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(var(--color-white-rgb), 0.2);
   padding: 2px 8px;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(var(--color-white-rgb), 0.9);
 }
 
 .ma-proximo-profissional {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(var(--color-white-rgb), 0.8);
   margin: 0;
 }
 
@@ -146,22 +146,22 @@
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(var(--color-white-rgb), 0.15);
+  color: rgba(var(--color-white-rgb), 0.9);
+  border: 1px solid rgba(var(--color-white-rgb), 0.25);
   white-space: nowrap;
 }
 
 .ma-tipo-avaliacao {
-  background: rgba(16, 185, 129, 0.25);
+  background: rgba(var(--color-success-rgb), 0.25);
   color: var(--color-success-border);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(var(--color-success-rgb), 0.3);
 }
 
 .ma-tipo-tratamento {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(var(--color-white-rgb), 0.2);
+  color: rgba(var(--color-white-rgb), 0.9);
+  border: 1px solid rgba(var(--color-white-rgb), 0.25);
 }
 
 /* ===== ABAS ===== */
@@ -198,7 +198,7 @@
 
 .ma-aba-badge {
   background: var(--color-brand);
-  color: white;
+  color: var(--color-white);
   font-size: 0.65rem;
   font-weight: 700;
   padding: 1px 7px;
@@ -220,22 +220,22 @@
 
 .ma-card {
   display: flex;
-  background: white;
+  background: var(--color-white);
   border-radius: 12px;
   border: 1px solid var(--color-border-brand);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(43, 108, 176, 0.06);
+  box-shadow: 0 1px 3px rgba(var(--color-brand-rgb), 0.06);
   transition: box-shadow 0.2s, transform 0.15s;
 }
 
 .ma-card:hover {
-  box-shadow: 0 4px 14px rgba(43, 108, 176, 0.12);
+  box-shadow: 0 4px 14px rgba(var(--color-brand-rgb), 0.12);
   transform: translateY(-1px);
 }
 
 .ma-card-destaque {
   border-color: var(--color-info-border);
-  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.15);
+  box-shadow: 0 2px 8px rgba(var(--color-brand-rgb), 0.15);
 }
 
 /* Barra lateral colorida por tipo */
@@ -320,9 +320,9 @@
 }
 
 .ma-card-acamado {
-  background: #fff7ed;
-  color: #c2410c;
-  border-color: #fed7aa;
+  background: var(--color-warning-bg-alt);
+  color: var(--color-warning-strong);
+  border-color: var(--color-warning-border-strong);
 }
 
 .ma-card-linha-acao {
@@ -334,18 +334,18 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border: 1.5px solid var(--color-success-border, #10b981);
+  border: 1.5px solid var(--color-success-border);
   border-radius: 20px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--color-success-deeper, #065f46);
-  background: var(--color-success-bg, #d1fae5);
+  color: var(--color-success-deeper);
+  background: var(--color-success-bg);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .ma-btn-confirmar:hover:not(:disabled) {
-  background: #a7f3d0;
+  background: var(--color-success-border);
 }
 
 .ma-btn-confirmar:disabled {
@@ -409,7 +409,7 @@
   padding: 48px 20px;
   gap: 14px;
   color: var(--color-neutral-500);
-  background: white;
+  background: var(--color-white);
   border-radius: 12px;
   border: 1px solid var(--color-border-brand);
   text-align: center;
@@ -426,7 +426,7 @@
 .ma-retry-btn {
   padding: 8px 20px;
   background: var(--color-brand);
-  color: white;
+  color: var(--color-white);
   border: none;
   border-radius: 8px;
   font-size: 0.875rem;

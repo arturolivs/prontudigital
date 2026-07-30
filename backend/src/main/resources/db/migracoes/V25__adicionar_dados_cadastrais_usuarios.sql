@@ -21,7 +21,10 @@ ALTER TABLE usuarios
     ADD COLUMN complemento     VARCHAR(100),
     ADD COLUMN bairro          VARCHAR(100),
     ADD COLUMN cidade          VARCHAR(100),
-    ADD COLUMN uf              CHAR(2),
+    -- VARCHAR (nao CHAR): a entidade Endereco mapeia String, que o Hibernate
+    -- espera como varchar — CHAR(2) falharia o ddl-auto: validate. Alem disso,
+    -- bpchar preenche com espacos a direita.
+    ADD COLUMN uf              VARCHAR(2),
 
     -- RF05 - credenciais do profissional
     ADD COLUMN coren           VARCHAR(20),

@@ -91,7 +91,13 @@ export function CampoSelect<T extends string>({
   )
 }
 
-/** Campo de texto de uma linha. */
+/**
+ * Campo de texto de uma linha.
+ *
+ * `maxLength` deve espelhar o `@Size` do DTO correspondente: sem ele o
+ * usuário só descobre que passou do limite quando o backend recusa a ficha
+ * inteira com 422, depois de já ter preenchido tudo.
+ */
 export function CampoTexto({
   label,
   valor,
@@ -99,6 +105,8 @@ export function CampoTexto({
   disabled,
   placeholder,
   tipo = 'text',
+  maxLength,
+  max,
 }: {
   label: string
   valor: string
@@ -106,6 +114,9 @@ export function CampoTexto({
   disabled?: boolean
   placeholder?: string
   tipo?: 'text' | 'date' | 'time'
+  maxLength?: number
+  /** Limite superior; em `tipo="date"` use `hojeISO()` para barrar datas futuras. */
+  max?: string
 }) {
   return (
     <Campo label={label}>
@@ -116,7 +127,83 @@ export function CampoTexto({
         onChange={onChange}
         disabled={disabled}
         placeholder={placeholder}
+        maxLength={maxLength}
+        max={max}
       />
+    </Campo>
+  )
+}
+
+/**
+ * Data de hoje no formato `yyyy-MM-dd` que `<input type="date">` exige.
+ *
+ * Usa o fuso local em vez de `toISOString()` direto: no Brasil (UTC-3) o UTC
+ * já virou o dia seguinte a partir das 21h, e o campo passaria a aceitar
+ * "amanhã" como se fosse hoje.
+ */
+export function hojeISO(): string {
+  const agora = new Date()
+  const local = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000)
+  return local.toISOString().slice(0, 10)
+}
+
+/**
+ * Escala de 0 a 10 em slider (dor, conforme os modelos das fichas).
+ *
+ * O valor vazio significa "não informado" e é gravado como null — diferente de
+ * zero, que afirma ausência de dor. Como um slider não representa ausência de
+ * valor, o estado vazio mostra o rótulo "Não informado" e a marca fica em 0
+ * até a primeira interação; o botão limpar devolve ao não informado.
+ */
+export function CampoEscala({
+  label,
+  valor,
+  onChange,
+  onLimpar,
+  disabled,
+  min = 0,
+  max = 10,
+}: {
+  label: string
+  valor: string
+  onChange: (e: MudancaCampo) => void
+  onLimpar: () => void
+  disabled?: boolean
+  min?: number
+  max?: number
+}) {
+  const informado = valor.trim() !== ''
+  return (
+    <Campo label={label}>
+      <div className="proc-escala">
+        <input
+          className="proc-escala-slider"
+          type="range"
+          min={min}
+          max={max}
+          step={1}
+          value={informado ? valor : String(min)}
+          onChange={onChange}
+          disabled={disabled}
+          aria-label={label}
+          aria-valuetext={informado ? valor : 'Não informado'}
+        />
+        <span
+          className={`proc-escala-valor${informado ? '' : ' proc-escala-valor--vazio'}`}
+        >
+          {informado ? valor : 'Não informado'}
+        </span>
+        {informado && !disabled && (
+          <button
+            type="button"
+            className="proc-escala-limpar"
+            onClick={onLimpar}
+            aria-label={`Limpar ${label}`}
+          >
+            ✕
+          </button>
+        )}
+      </div>
     </Campo>
   )
 }
@@ -166,6 +253,7 @@ export function CampoTextarea({
   disabled,
   placeholder,
   rows = 3,
+  maxLength,
 }: {
   label: string
   valor: string
@@ -173,6 +261,7 @@ export function CampoTextarea({
   disabled?: boolean
   placeholder?: string
   rows?: number
+  maxLength?: number
 }) {
   return (
     <Campo label={label}>
@@ -183,6 +272,7 @@ export function CampoTextarea({
         disabled={disabled}
         placeholder={placeholder}
         rows={rows}
+        maxLength={maxLength}
       />
     </Campo>
   )
@@ -256,12 +346,14 @@ export function LinhaObservacao({
   onChange,
   disabled,
   placeholder,
+  maxLength,
 }: {
   rotulo: string
   valor: string
   onChange: (e: MudancaCampo) => void
   disabled?: boolean
   placeholder?: string
+  maxLength?: number
 }) {
   return (
     <Campo label={rotulo}>
@@ -271,6 +363,7 @@ export function LinhaObservacao({
         onChange={onChange}
         disabled={disabled}
         placeholder={placeholder}
+        maxLength={maxLength}
       />
     </Campo>
   )

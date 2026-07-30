@@ -21,11 +21,30 @@ const ABAS: { id: Aba; rotulo: string }[] = [
   { id: 'atestados', rotulo: 'Atestados' },
 ]
 
+/**
+ * Listas que levam ao prontuário. O `?de=` diz de qual delas o usuário veio,
+ * para o breadcrumb devolvê-lo ao mesmo lugar — a rota é a mesma nos dois
+ * casos, então sem isso quem entra por /prontuarios volta para /pacientes.
+ */
+const ORIGENS = {
+  prontuarios: { href: '/prontuarios', rotulo: 'Prontuários' },
+  pacientes: { href: '/pacientes', rotulo: 'Pacientes' },
+} as const
+
 export default function ProntuarioPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const pacienteUuid = String(params.pacienteUuid)
   const nomeQuery = searchParams.get('nome')
+
+  // `pacientes` é o padrão: cobre links antigos e URLs salvas sem o parâmetro.
+  // `hasOwn` em vez de indexar direto porque o valor vem da URL — `?de=constructor`
+  // acharia algo na cadeia de protótipos e passaria um href indefinido ao Link.
+  const de = searchParams.get('de')
+  const origem =
+    de && Object.hasOwn(ORIGENS, de)
+      ? ORIGENS[de as keyof typeof ORIGENS]
+      : ORIGENS.pacientes
 
   const { usuario, temPerfil } = useAuth()
 
@@ -51,8 +70,8 @@ export default function ProntuarioPage() {
       <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
         <div className="pront-page">
           <div className="pront-breadcrumb">
-            <Link href="/pacientes" className="pront-voltar">
-              ← Pacientes
+            <Link href={origem.href} className="pront-voltar">
+              ← {origem.rotulo}
             </Link>
           </div>
 

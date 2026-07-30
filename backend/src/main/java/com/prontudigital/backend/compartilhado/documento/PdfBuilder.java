@@ -26,7 +26,9 @@ import java.util.List;
  */
 public class PdfBuilder {
 
-    private static final String NOME_CLINICA = "ProntuDigital";
+    /** Altura da logo no cabecalho, em pontos. A largura acompanha a proporcao. */
+    private static final float ALTURA_LOGO = 38f;
+
     private static final DateTimeFormatter DATA_HORA =
             DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");
 
@@ -51,25 +53,72 @@ public class PdfBuilder {
 
     private final Document documento;
     private final ByteArrayOutputStream saida = new ByteArrayOutputStream();
+    private final MarcaDocumento marca;
 
-    public PdfBuilder(String titulo) {
-        this(titulo, false);
+    public PdfBuilder(MarcaDocumento marca, String titulo) {
+        this(marca, titulo, false);
     }
 
     /** {@code paisagem} vale a pena para tabelas com muitas colunas. */
-    public PdfBuilder(String titulo, boolean paisagem) {
+    public PdfBuilder(MarcaDocumento marca, String titulo, boolean paisagem) {
+        this.marca = marca;
         Rectangle pagina = paisagem ? PageSize.A4.rotate() : PageSize.A4;
         this.documento = new Document(pagina, 42, 42, 42, 36);
         PdfWriter.getInstance(documento, saida);
         documento.open();
 
-        Paragraph cabecalho = new Paragraph(NOME_CLINICA, FONTE_SECAO);
-        cabecalho.setSpacingAfter(2);
-        adicionar(cabecalho);
+        montarCabecalho();
 
         Paragraph paragrafoTitulo = new Paragraph(titulo, FONTE_TITULO);
         paragrafoTitulo.setSpacingAfter(4);
         adicionar(paragrafoTitulo);
+    }
+
+    /**
+     * Logo a esquerda e identificacao a direita. Sem logo, cai para so texto —
+     * uma instalacao recem-configurada ainda gera documento apresentavel.
+     */
+    private void montarCabecalho() {
+        Paragraph identificacao = new Paragraph(marca.nome(), FONTE_SECAO);
+
+        if (marca.linhaContato() != null && !marca.linhaContato().isBlank()) {
+            identificacao.add(new Chunk("\n" + marca.linhaContato(), FONTE_SUBTITULO));
+        }
+
+        if (!marca.temLogo()) {
+            identificacao.setSpacingAfter(2);
+            adicionar(identificacao);
+            return;
+        }
+
+        try {
+            Image logo = Image.getInstance(marca.logo());
+            logo.scaleToFit(ALTURA_LOGO * 3, ALTURA_LOGO);
+
+            PdfPTable cabecalho = new PdfPTable(new float[]{1f, 4f});
+            cabecalho.setWidthPercentage(100);
+            cabecalho.setSpacingAfter(6);
+
+            cabecalho.addCell(celulaSemBorda(new PdfPCell(logo, false)));
+
+            PdfPCell texto = new PdfPCell(identificacao);
+            texto.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            cabecalho.addCell(celulaSemBorda(texto));
+
+            documento.add(cabecalho);
+        } catch (Exception e) {
+            // Logo corrompida ou em formato que o OpenPDF nao le: o documento
+            // e o que importa, entao segue sem imagem em vez de falhar a
+            // emissao de um atestado ou relatorio.
+            identificacao.setSpacingAfter(2);
+            adicionar(identificacao);
+        }
+    }
+
+    private PdfPCell celulaSemBorda(PdfPCell celula) {
+        celula.setBorder(Rectangle.NO_BORDER);
+        celula.setPaddingBottom(4);
+        return celula;
     }
 
     public PdfBuilder subtitulo(String texto) {
@@ -156,10 +205,18 @@ public class PdfBuilder {
     }
 
     public byte[] gerar() {
+        // Rodape configurado pela clinica (ex.: responsavel tecnico e COREN),
+        // acima da linha automatica de emissao.
+        if (marca.rodape() != null && !marca.rodape().isBlank()) {
+            Paragraph personalizado = new Paragraph(marca.rodape(), FONTE_RODAPE);
+            personalizado.setSpacingBefore(24);
+            adicionar(personalizado);
+        }
+
         Paragraph rodape = new Paragraph(
-                "Emitido em " + LocalDateTime.now().format(DATA_HORA) + " por " + NOME_CLINICA,
+                "Emitido em " + LocalDateTime.now().format(DATA_HORA) + " por " + marca.nome(),
                 FONTE_RODAPE);
-        rodape.setSpacingBefore(24);
+        rodape.setSpacingBefore(marca.rodape() == null || marca.rodape().isBlank() ? 24 : 4);
         rodape.setAlignment(Element.ALIGN_RIGHT);
         adicionar(rodape);
 

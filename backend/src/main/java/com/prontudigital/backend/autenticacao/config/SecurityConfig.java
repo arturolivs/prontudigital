@@ -56,7 +56,14 @@ public class SecurityConfig {
             "/api/confirmacao/**",
             // RF06: catalogo de procedimentos (necessario no agendamento publico)
             "/api/procedimentos",
-            "/api/procedimentos/*"
+            "/api/procedimentos/*",
+            // Marca da clinica: nome e logo compoem a tela de login e o
+            // agendamento publico, ambos anteriores a autenticacao. Sao dados
+            // institucionais — os mesmos que a clinica publica no proprio site
+            // — e nao expoem nada de paciente. A ESCRITA continua restrita ao
+            // ADMIN, via @PreAuthorize no controller.
+            "/api/configuracao",
+            "/api/configuracao/logo"
     };
 
     @Bean

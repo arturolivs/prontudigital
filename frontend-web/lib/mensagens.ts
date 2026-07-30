@@ -58,6 +58,14 @@ export const MENSAGENS = {
     carregarProcedimentos: 'Erro ao carregar os procedimentos.',
     salvarProcedimento: 'Erro ao salvar o procedimento.',
     excluirProcedimento: 'Erro ao excluir o procedimento.',
+    salvarCadastroPaciente: 'Erro ao salvar o cadastro do paciente.',
+    carregarConfiguracao: 'Erro ao carregar a configuração da clínica.',
+    salvarConfiguracao: 'Erro ao salvar a configuração da clínica.',
+    enviarLogo: 'Erro ao enviar a logo.',
+    removerLogo: 'Erro ao remover a logo.',
+    logoTipoInvalido:
+      'Formato não permitido para a logo. Envie JPG, PNG ou WEBP.',
+    logoTamanho: 'Logo muito grande. O tamanho máximo é 2 MB.',
   },
   sucesso: {
     horarioRegistrado: 'Horário registrado com sucesso!',
@@ -80,6 +88,10 @@ export const MENSAGENS = {
     prescricaoExcluida: 'Prescrição excluída com sucesso!',
     anexoEnviado: 'Anexo enviado com sucesso!',
     anexoExcluido: 'Anexo excluído com sucesso!',
+    cadastroPacienteSalvo: 'Cadastro do paciente atualizado!',
+    configuracaoSalva: 'Configurações da clínica salvas!',
+    logoEnviada: 'Logo atualizada!',
+    logoRemovida: 'Logo removida.',
     procedimentoCriado: 'Procedimento criado com sucesso!',
     procedimentoAtualizado: 'Procedimento atualizado com sucesso!',
     procedimentoExcluido: 'Procedimento excluído com sucesso!',
@@ -102,20 +114,33 @@ export const MENSAGENS = {
       'Informe a quantidade de dias para o atestado de afastamento.',
     diasJaComRegra:
       'Todos os dias selecionados já possuem regras recorrentes. Selecione um novo dia para adicionar.',
+    dorForaDaEscala: 'A escala de dor deve ser um número inteiro de 0 a 10.',
+    medidaForaDaFaixa:
+      'As medidas da ferida devem ser números entre 0 e 999,99 cm.',
   },
 } as const
 
 /**
- * Extrai a mensagem de erro priorizando o que o backend retornou
- * (`response.data.message`), depois `err.message`, e por fim um fallback local.
+ * Extrai a mensagem de erro priorizando o que o backend retornou, depois
+ * `err.message`, e por fim um fallback local.
+ *
+ * O corpo de erro é o `ErroRespostaDTO` do backend, cujos campos são em
+ * PORTUGUÊS (`mensagem`, `detalhes`) — não `message`. O `detalhes` só vem
+ * preenchido em falha de validação (422), com um item por campo recusado
+ * (`"dorEscala: deve ser menor que ou igual à 10"`); sem ele o usuário recebe
+ * só "Verifique os campos enviados", que não diz o que corrigir.
  */
 export function mensagemErro(
   err: unknown,
   fallback: string = MENSAGENS.erro.generico,
 ): string {
   const e = err as {
-    response?: { data?: { message?: string } }
+    response?: { data?: { mensagem?: string; detalhes?: string[] } }
     message?: string
   }
-  return e?.response?.data?.message || e?.message || fallback
+
+  const dados = e?.response?.data
+  const base = dados?.mensagem || e?.message || fallback
+
+  return dados?.detalhes?.length ? `${base} ${dados.detalhes.join('; ')}` : base
 }

@@ -7,6 +7,7 @@ import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import com.prontudigital.backend.compartilhado.documento.ArquivoGerado;
 import com.prontudigital.backend.compartilhado.documento.FormatoExportacao;
 import com.prontudigital.backend.compartilhado.documento.PdfBuilder;
+import com.prontudigital.backend.configuracao.servicos.MarcaDocumentoProvider;
 import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import com.prontudigital.backend.prontuario.dto.AtestadoRequestDTO;
 import com.prontudigital.backend.prontuario.dto.AtestadoResponseDTO;
@@ -43,6 +44,7 @@ public class AtestadoServiceImpl implements AtestadoService {
     private final UsuarioService usuarioService;
     private final UsuarioContexto usuarioContexto;
     private final ProntuarioPermissaoPolicy permissaoPolicy;
+    private final MarcaDocumentoProvider marcaProvider;
 
     @Override
     @Transactional(readOnly = true)
@@ -150,7 +152,7 @@ public class AtestadoServiceImpl implements AtestadoService {
                 ? "Atestado de afastamento"
                 : "Atestado de comparecimento";
 
-        PdfBuilder pdf = new PdfBuilder(titulo)
+        PdfBuilder pdf = new PdfBuilder(marcaProvider.obter(), titulo)
                 .subtitulo("Emitido em " + atestado.getCriadoEm().format(DATA_HORA));
 
         pdf.secao("Paciente");

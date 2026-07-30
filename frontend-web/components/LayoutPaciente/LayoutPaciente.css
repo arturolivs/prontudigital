@@ -11,7 +11,7 @@
 
 .lp-header {
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
-  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.25);
+  box-shadow: 0 2px 8px rgba(var(--color-brand-rgb), 0.25);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -31,7 +31,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: white;
+  color: var(--color-white);
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -41,16 +41,16 @@
 
 .lp-header-right { display: flex; align-items: center; gap: 16px; }
 
-.lp-saudacao { font-size: 0.875rem; color: rgba(255, 255, 255, 0.85); }
-.lp-saudacao strong { color: white; font-weight: 600; }
+.lp-saudacao { font-size: 0.875rem; color: rgba(var(--color-white-rgb), 0.85); }
+.lp-saudacao strong { color: var(--color-white); font-weight: 600; }
 
 .lp-logout-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(var(--color-white-rgb), 0.15);
+  color: var(--color-white);
+  border: 1px solid rgba(var(--color-white-rgb), 0.2);
   border-radius: 8px;
   padding: 6px 14px;
   font-size: 0.85rem;
@@ -59,7 +59,7 @@
   transition: background 0.2s;
 }
 
-.lp-logout-btn:hover { background: rgba(255, 255, 255, 0.25); }
+.lp-logout-btn:hover { background: rgba(var(--color-white-rgb), 0.25); }
 
 /* ===== MAIN ===== */
 

@@ -76,6 +76,17 @@
   --color-warning-border:   #fde68a;
   --color-warning-border-light: #fef08a;
 
+  /* ── Status: Âmbar forte (texto de badge) ────────────────────────
+     Contraste maior que --color-warning-dark, para texto sobre fundo
+     âmbar claro em badges de REMARCADO / AFASTAMENTO.                 */
+  --color-warning-strong:        #b45309;
+  --color-warning-border-strong: #fed7aa;
+
+  /* ── Status: Falta / NAO_COMPARECEU ──────────────────────────────
+     Rosa próprio, distinto de erro: falta não é falha do sistema.     */
+  --color-status-falta:    #be185d;
+  --color-status-falta-bg: #fdf2f8;
+
   /* ── Status: Informação / Azul ───────────────────────────────────── */
   --color-info:        #3b82f6;
   --color-info-hover:  #60a5fa;
@@ -118,6 +129,23 @@
   --color-block-manutencao-deeper:   #3730a3;
   --color-block-manutencao-bg:       #eef2ff;
   --color-block-manutencao-border:   #c7d2fe;
+
+  /* ── Superfície branca ───────────────────────────────────────────── */
+  --color-white: #ffffff;
+
+  /* ── Componentes RGB, para cor com transparência ─────────────────
+     `rgba()` não aceita um hex de variável, então sombras e overlays
+     tingidos de marca precisam dos componentes soltos. Mantenha em
+     sincronia com --color-brand / --color-brand-light acima.
+     Uso: rgba(var(--color-brand-rgb), 0.3)                             */
+  --color-brand-rgb:       43, 108, 176;   /* #2b6cb0 */
+  --color-brand-light-rgb: 121, 145, 188;  /* #7991bc */
+  --color-shadow-rgb:      0, 0, 0;        /* sombra neutra */
+  --color-white-rgb:       255, 255, 255;  /* véu sobre fundo escuro */
+  --color-success-rgb:     16, 185, 129;   /* #10b981 */
+  --color-warning-strong-rgb: 180, 83, 9;  /* #b45309 */
+  --color-error-rgb:       220, 38, 38;    /* #dc2626 */
+  --color-info-rgb:        59, 130, 246;   /* #3b82f6 */
 
   /* ── Neutros ─────────────────────────────────────────────────────── */
   --color-neutral-50:  #f9fafb;

@@ -5,6 +5,7 @@ import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
 import com.prontudigital.backend.compartilhado.documento.ArquivoGerado;
 import com.prontudigital.backend.compartilhado.documento.FormatoExportacao;
 import com.prontudigital.backend.compartilhado.documento.PdfBuilder;
+import com.prontudigital.backend.configuracao.servicos.MarcaDocumentoProvider;
 import com.prontudigital.backend.compartilhado.documento.PlanilhaBuilder;
 import com.prontudigital.backend.relatorio.dto.RelatorioAtendimentoItemDTO;
 import com.prontudigital.backend.relatorio.dto.RelatorioAtendimentosDTO;
@@ -41,6 +42,7 @@ public class RelatorioExportacaoServiceImpl implements RelatorioExportacaoServic
             "Tipo", "Procedimento", "Local", "Status", "Concluído em");
 
     private final RelatorioService relatorioService;
+    private final MarcaDocumentoProvider marcaProvider;
 
     @Override
     @Transactional(readOnly = true)
@@ -86,7 +88,7 @@ public class RelatorioExportacaoServiceImpl implements RelatorioExportacaoServic
 
     private byte[] pdfAtendimentos(RelatorioAtendimentosDTO r, List<List<String>> linhas) {
         // Nove colunas nao cabem em retrato.
-        PdfBuilder pdf = new PdfBuilder("Relatório de atendimentos", true)
+        PdfBuilder pdf = new PdfBuilder(marcaProvider.obter(), "Relatório de atendimentos", true)
                 .subtitulo(escopo(r.inicio(), r.fim(), r.nomeProfissional()));
 
         pdf.secao("Resumo");
@@ -137,7 +139,7 @@ public class RelatorioExportacaoServiceImpl implements RelatorioExportacaoServic
     // ── RF20 em PDF/XLSX ─────────────────────────────────────────
 
     private byte[] pdfOcupacao(RelatorioOcupacaoDTO r) {
-        PdfBuilder pdf = new PdfBuilder("Relatório de ocupação")
+        PdfBuilder pdf = new PdfBuilder(marcaProvider.obter(), "Relatório de ocupação")
                 .subtitulo(escopo(r.inicio(), r.fim(), r.nomeProfissional()));
 
         pdf.secao("Indicadores");

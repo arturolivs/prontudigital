@@ -9,6 +9,7 @@ import {
   CampoTexto,
   CampoTextarea,
   CheckItem,
+  hojeISO,
   SubSecao,
 } from './campos'
 
@@ -136,6 +137,10 @@ export default function FichaAnamnese({
             valor={t('dataInicioAproximada')}
             onChange={texto('dataInicioAproximada')}
             disabled={desabilitado}
+            // A ferida já existe: não pode ter começado no futuro. O
+            // AnamneseRequestDTO não valida este campo, então o `max` é a
+            // única barreira — e o seletor nativo respeita.
+            max={hojeISO()}
           />
         </div>
         <CampoTextarea

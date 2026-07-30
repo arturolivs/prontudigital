@@ -9,7 +9,7 @@
   padding: 0.6rem 1.25rem;
   border: 1.5px solid var(--color-border);
   border-radius: 0.55rem;
-  background: white;
+  background: var(--color-white);
   color: var(--color-text-muted);
   font-size: 0.875rem;
   font-weight: 500;
@@ -34,23 +34,23 @@
 }
 
 .confirmacao-btn-confirmar--perigo {
-  background: #dc2626;
-  color: white;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  background: var(--color-error);
+  color: var(--color-white);
+  box-shadow: 0 2px 8px rgba(var(--color-error-rgb), 0.3);
 }
 
 .confirmacao-btn-confirmar--perigo:hover {
-  background: #b91c1c;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  background: var(--color-error-dark);
+  box-shadow: 0 4px 12px rgba(var(--color-error-rgb), 0.4);
 }
 
 .confirmacao-btn-confirmar--aviso {
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.3);
+  color: var(--color-white);
+  box-shadow: 0 2px 8px rgba(var(--color-brand-rgb), 0.3);
 }
 
 .confirmacao-btn-confirmar--aviso:hover {
   background: linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand-muted) 100%);
-  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--color-brand-rgb), 0.4);
 }

@@ -106,6 +106,7 @@ export default function AbaAnexos({
   const inputRef = useRef<HTMLInputElement>(null)
   const urlsRef = useRef<string[]>([])
   const carregadasRef = useRef<Set<string>>(new Set())
+  const montadoRef = useRef(true)
 
   const fetchAnexos = useCallback(async () => {
     try {
@@ -126,34 +127,46 @@ export default function AbaAnexos({
   }, [fetchAnexos])
 
   // Carrega as miniaturas das imagens sob demanda (dedup via carregadasRef).
+  //
+  // O descarte de um download em andamento é decidido por `montadoRef`, e não
+  // por uma flag do próprio efeito. Este efeito re-executa sempre que `anexos`
+  // troca de identidade (StrictMode em dev roda o fetch duas vezes; enviar ou
+  // excluir um anexo chama fetchAnexos de novo), e usar uma flag por execução
+  // fazia o download em voo ser abandonado sem limpar `carregadasRef` — o uuid
+  // ficava marcado como carregado, a execução seguinte o pulava e a miniatura
+  // travava no spinner para sempre.
   useEffect(() => {
-    let cancelado = false
     anexos.forEach(async anexo => {
       if (!ehImagem(anexo.tipoConteudo)) return
       if (carregadasRef.current.has(anexo.uuid)) return
       carregadasRef.current.add(anexo.uuid)
       try {
         const blob = await anexoAPI.baixarConteudo(pacienteUuid, anexo.uuid)
-        if (cancelado) return
         const url = URL.createObjectURL(blob)
+        if (!montadoRef.current) {
+          // Chegou depois de sair da tela: ninguém vai exibir, e o cleanup de
+          // desmontagem já passou por urlsRef. Revoga na hora para não vazar.
+          URL.revokeObjectURL(url)
+          return
+        }
         urlsRef.current.push(url)
         setMiniaturas(prev => ({ ...prev, [anexo.uuid]: url }))
       } catch {
+        // Libera o uuid para que uma nova tentativa seja possível.
         carregadasRef.current.delete(anexo.uuid)
       }
     })
-    return () => {
-      cancelado = true
-    }
   }, [anexos, pacienteUuid])
 
-  // Revoga os object URLs ao desmontar.
-  useEffect(
-    () => () => {
+  // Ciclo de vida do componente + revogação dos object URLs.
+  useEffect(() => {
+    montadoRef.current = true
+    return () => {
+      montadoRef.current = false
       urlsRef.current.forEach(URL.revokeObjectURL)
-    },
-    [],
-  )
+      urlsRef.current = []
+    }
+  }, [])
 
   const abrirSeletor = () => inputRef.current?.click()
 
