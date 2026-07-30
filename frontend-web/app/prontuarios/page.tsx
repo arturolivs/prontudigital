@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { FileText, Search, X } from 'lucide-react'
+import { FileText, Search, X, Calendar, ArrowRight, Clipboard, Syringe } from 'lucide-react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
@@ -40,8 +40,11 @@ function gerarPaginas(total: number, atual: number): (number | string)[] {
 
 function LinhaProntuario({ paciente }: { paciente: PacienteAgendamentosDTO }) {
   const total = paciente.agendamentos.length
-  // A lista já vem ordenada do mais recente para o mais antigo.
   const ultimo = paciente.agendamentos[0]
+
+  // Determina o tipo do último atendimento
+  const tipoUltimo = ultimo?.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'
+  const classeTipo = ultimo?.tipo === 'AVALIACAO' ? 'pront-lista-meta-tipo--avaliacao' : 'pront-lista-meta-tipo--tratamento'
 
   return (
     <Link
@@ -57,13 +60,25 @@ function LinhaProntuario({ paciente }: { paciente: PacienteAgendamentosDTO }) {
 
       <div className="pront-lista-info">
         <span className="pront-lista-nome">{paciente.nomePaciente}</span>
-        <span className="pront-lista-meta">
-          {total} atendimento{total !== 1 ? 's' : ''}
-          {ultimo && ` · último em ${formatarDataCurta(ultimo.inicioEm)}`}
-        </span>
+        <div className="pront-lista-meta">
+          <Calendar className="pront-lista-meta-icon" size={14} />
+          <span>{total} atendimento{total !== 1 ? 's' : ''}</span>
+          {ultimo && (
+            <>
+              <span>·</span>
+              <span>{formatarDataCurta(ultimo.inicioEm)}</span>
+              <span className={`pront-lista-meta-tipo ${classeTipo}`}>
+                {tipoUltimo}
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
-      <span className="pront-lista-abrir">Abrir prontuário →</span>
+      <span className="pront-lista-abrir">
+        Abrir prontuário
+        <ArrowRight className="pront-lista-abrir-icon" size={16} />
+      </span>
     </Link>
   )
 }
