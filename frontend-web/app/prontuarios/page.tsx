@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { FileText, Search, X, Calendar, ArrowRight, Clipboard, Syringe } from 'lucide-react'
+import {
+  FileText,
+  Search,
+  X,
+  Calendar,
+  ArrowRight,
+  Clipboard,
+  Syringe,
+} from 'lucide-react'
 import { RotaProtegida } from '../../components/RotaProtegida'
 import { useAuth } from '../../contexts/AuthContext'
 import { agendamentoAPI } from '../../lib/agendamento.service'
@@ -44,7 +52,10 @@ function LinhaProntuario({ paciente }: { paciente: PacienteAgendamentosDTO }) {
 
   // Determina o tipo do último atendimento
   const tipoUltimo = ultimo?.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'
-  const classeTipo = ultimo?.tipo === 'AVALIACAO' ? 'pront-lista-meta-tipo--avaliacao' : 'pront-lista-meta-tipo--tratamento'
+  const classeTipo =
+    ultimo?.tipo === 'AVALIACAO'
+      ? 'pront-lista-meta-tipo--avaliacao'
+      : 'pront-lista-meta-tipo--tratamento'
 
   return (
     <Link
@@ -62,7 +73,9 @@ function LinhaProntuario({ paciente }: { paciente: PacienteAgendamentosDTO }) {
         <span className="pront-lista-nome">{paciente.nomePaciente}</span>
         <div className="pront-lista-meta">
           <Calendar className="pront-lista-meta-icon" size={14} />
-          <span>{total} atendimento{total !== 1 ? 's' : ''}</span>
+          <span>
+            {total} atendimento{total !== 1 ? 's' : ''}
+          </span>
           {ultimo && (
             <>
               <span>·</span>
@@ -201,7 +214,11 @@ export default function ProntuariosPage() {
 
           {!loading && !erro && pacientes.length === 0 && (
             <div className="pront-lista-estado">
-              <FileText size={48} strokeWidth={1.5} color="#d1d5db" />
+              <FileText
+                size={48}
+                strokeWidth={1.5}
+                color="var(--color-neutral-300)"
+              />
               <p>
                 {busca
                   ? 'Nenhum paciente encontrado para esta busca.'

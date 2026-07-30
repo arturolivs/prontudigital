@@ -59,6 +59,13 @@ export const MENSAGENS = {
     salvarProcedimento: 'Erro ao salvar o procedimento.',
     excluirProcedimento: 'Erro ao excluir o procedimento.',
     salvarCadastroPaciente: 'Erro ao salvar o cadastro do paciente.',
+    carregarConfiguracao: 'Erro ao carregar a configuração da clínica.',
+    salvarConfiguracao: 'Erro ao salvar a configuração da clínica.',
+    enviarLogo: 'Erro ao enviar a logo.',
+    removerLogo: 'Erro ao remover a logo.',
+    logoTipoInvalido:
+      'Formato não permitido para a logo. Envie JPG, PNG ou WEBP.',
+    logoTamanho: 'Logo muito grande. O tamanho máximo é 2 MB.',
   },
   sucesso: {
     horarioRegistrado: 'Horário registrado com sucesso!',
@@ -82,6 +89,9 @@ export const MENSAGENS = {
     anexoEnviado: 'Anexo enviado com sucesso!',
     anexoExcluido: 'Anexo excluído com sucesso!',
     cadastroPacienteSalvo: 'Cadastro do paciente atualizado!',
+    configuracaoSalva: 'Configurações da clínica salvas!',
+    logoEnviada: 'Logo atualizada!',
+    logoRemovida: 'Logo removida.',
     procedimentoCriado: 'Procedimento criado com sucesso!',
     procedimentoAtualizado: 'Procedimento atualizado com sucesso!',
     procedimentoExcluido: 'Procedimento excluído com sucesso!',

@@ -1,5 +1,7 @@
 package com.prontudigital.backend.relatorio.servicos.impl;
 
+import com.prontudigital.backend.compartilhado.documento.MarcaDocumento;
+import com.prontudigital.backend.configuracao.servicos.MarcaDocumentoProvider;
 import com.prontudigital.backend.agendamento.enums.LocalAtendimento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
@@ -37,12 +39,19 @@ class RelatorioExportacaoServiceImplTest {
     private static final LocalDate FIM = LocalDate.of(2026, 7, 31);
 
     @Mock private RelatorioService relatorioService;
+    @Mock private MarcaDocumentoProvider marcaProvider;
 
     private RelatorioExportacaoServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new RelatorioExportacaoServiceImpl(relatorioService);
+        service = new RelatorioExportacaoServiceImpl(relatorioService, marcaProvider);
+
+        // Marca minima: o cabecalho agora vem da configuracao da clinica.
+        // `lenient` porque so os testes de PDF a consomem — os de XLSX nao
+        // passam pelo PdfBuilder e acusariam stub desnecessario.
+        lenient().when(marcaProvider.obter())
+                .thenReturn(MarcaDocumento.padrao("Clinica de Teste"));
     }
 
     private RelatorioAtendimentosDTO relatorioAtendimentos(int quantidade) {

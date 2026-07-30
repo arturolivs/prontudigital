@@ -2,8 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  Clock, CheckCircle2, XCircle, RefreshCw, AlertTriangle,
-  Calendar, AlertCircle,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  RefreshCw,
+  AlertTriangle,
+  Calendar,
+  AlertCircle,
 } from 'lucide-react'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import { useAuth } from '@/contexts/AuthContext'
@@ -36,11 +41,11 @@ const CLASSE_STATUS: Record<string, string> = {
 }
 
 const ICONE_STATUS: Record<string, React.ElementType> = {
-  AGENDADO:       Clock,
-  CONFIRMADO:     CheckCircle2,
-  CANCELADO:      XCircle,
-  REMARCADO:      RefreshCw,
-  REALIZADO:      CheckCircle2,
+  AGENDADO: Clock,
+  CONFIRMADO: CheckCircle2,
+  CANCELADO: XCircle,
+  REMARCADO: RefreshCw,
+  REALIZADO: CheckCircle2,
   NAO_COMPARECEU: AlertTriangle,
 }
 
@@ -115,7 +120,10 @@ const CardAgendamento = ({
         <span
           className={`ma-card-status ${CLASSE_STATUS[agendamento.status] || ''}`}
         >
-          {(() => { const I = ICONE_STATUS[agendamento.status]; return I ? <I size={11} strokeWidth={2.5} /> : null })()}
+          {(() => {
+            const I = ICONE_STATUS[agendamento.status]
+            return I ? <I size={11} strokeWidth={2.5} /> : null
+          })()}
           {ROTULO_STATUS[agendamento.status] ?? agendamento.status}
         </span>
       </div>
@@ -196,7 +204,9 @@ export default function MinhaAgendaPage() {
     try {
       await agendamentoAPI.confirmarAgendamento(id)
       setAgendamentos(prev =>
-        prev.map(a => (a.id === id ? { ...a, status: 'CONFIRMADO' as const } : a)),
+        prev.map(a =>
+          a.id === id ? { ...a, status: 'CONFIRMADO' as const } : a,
+        ),
       )
     } catch {
       // silently ignore — user sees no change
@@ -270,21 +280,25 @@ export default function MinhaAgendaPage() {
 
           {!loading && !error && agendamentos.length > 0 && (
             <div className="ma-resumo">
-              <ResumoCard label="Total" valor={resumo.total} cor="#2b6cb0" />
+              <ResumoCard
+                label="Total"
+                valor={resumo.total}
+                cor="var(--color-brand)"
+              />
               <ResumoCard
                 label="Próximos"
                 valor={resumo.proximos}
-                cor="#f59e0b"
+                cor="var(--color-warning)"
               />
               <ResumoCard
                 label="Realizados"
                 valor={resumo.realizados}
-                cor="#10b981"
+                cor="var(--color-success)"
               />
               <ResumoCard
                 label="Cancelados"
                 valor={resumo.cancelados}
-                cor="#ef4444"
+                cor="var(--color-error-alt)"
               />
             </div>
           )}
@@ -318,7 +332,9 @@ export default function MinhaAgendaPage() {
                   <span
                     className={`ma-proximo-tipo ${proximoAgendamento.tipo === 'AVALIACAO' ? 'ma-tipo-avaliacao' : 'ma-tipo-tratamento'}`}
                   >
-                    {proximoAgendamento.tipo === 'AVALIACAO' ? 'Avaliação' : 'Tratamento'}
+                    {proximoAgendamento.tipo === 'AVALIACAO'
+                      ? 'Avaliação'
+                      : 'Tratamento'}
                   </span>
                   {nomeProcedimento(proximoAgendamento) && (
                     <span className="ma-proximo-procedimento">
@@ -373,7 +389,11 @@ export default function MinhaAgendaPage() {
               {aba === 'proximos' &&
                 (proximos.length === 0 ? (
                   <div className="ma-estado">
-                    <Calendar size={48} strokeWidth={1} style={{ color: 'var(--color-neutral-300)' }} />
+                    <Calendar
+                      size={48}
+                      strokeWidth={1}
+                      style={{ color: 'var(--color-neutral-300)' }}
+                    />
                     <p>Nenhum agendamento próximo.</p>
                   </div>
                 ) : (
@@ -391,7 +411,11 @@ export default function MinhaAgendaPage() {
               {aba === 'historico' &&
                 (historico.length === 0 ? (
                   <div className="ma-estado">
-                    <Clock size={48} strokeWidth={1} style={{ color: 'var(--color-neutral-300)' }} />
+                    <Clock
+                      size={48}
+                      strokeWidth={1}
+                      style={{ color: 'var(--color-neutral-300)' }}
+                    />
                     <p>Nenhum agendamento no histórico.</p>
                   </div>
                 ) : (

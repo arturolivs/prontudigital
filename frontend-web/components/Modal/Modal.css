@@ -3,7 +3,7 @@
 .modal-gen-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(var(--color-shadow-rgb), 0.45);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
@@ -21,13 +21,13 @@
 /* ===== CARD ===== */
 
 .modal-gen {
-  background: white;
+  background: var(--color-white);
   border-radius: 1rem;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 60px rgba(var(--color-shadow-rgb), 0.2);
   overflow: hidden;
   animation: modal-gen-slideUp 0.2s ease;
 }
@@ -56,7 +56,7 @@
 .modal-gen-titulo {
   font-size: 1.1rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-white);
   margin: 0;
   display: flex;
   align-items: center;
@@ -64,10 +64,10 @@
 }
 
 .modal-gen-fechar {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(var(--color-white-rgb), 0.15);
   border: none;
   border-radius: 0.4rem;
-  color: white;
+  color: var(--color-white);
   width: 2rem;
   height: 2rem;
   display: flex;
@@ -80,7 +80,7 @@
   flex-shrink: 0;
 }
 
-.modal-gen-fechar:hover { background: rgba(255, 255, 255, 0.28); }
+.modal-gen-fechar:hover { background: rgba(var(--color-white-rgb), 0.28); }
 
 /* ===== CORPO (scrollável) ===== */
 

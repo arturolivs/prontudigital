@@ -10,6 +10,7 @@ import {
   FileText,
   Stethoscope,
   BarChart3,
+  Settings,
   UserCircle,
   LogOut,
   ChevronLeft,
@@ -91,6 +92,14 @@ const BarraLateral = ({
       caminho: '/relatorios',
       icone: BarChart3,
       perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
+    },
+    {
+      // Dados e marca da clínica desta instalação (nome, CNPJ, logo, rodapé
+      // dos PDFs). Modelo silo: uma instalação por cliente.
+      rotulo: 'Configurações',
+      caminho: '/dashboard/configuracoes',
+      icone: Settings,
+      perfis: ['ROLE_ADMIN'],
     },
     {
       // Era 'Configurações' → /settings, rota que nunca existiu. A única tela

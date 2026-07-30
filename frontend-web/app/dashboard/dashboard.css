@@ -14,10 +14,10 @@
 }
 
 .info-card {
-  background: white;
+  background: var(--color-white);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.05);
   margin-bottom: 2rem;
   border: 1px solid var(--color-bg-alt);
 }
@@ -70,10 +70,10 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--color-white);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.05);
   border: 1px solid var(--color-bg-alt);
   transition:
     transform 0.2s,
@@ -82,7 +82,7 @@
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(43, 108, 176, 0.1);
+  box-shadow: 0 8px 20px rgba(var(--color-brand-rgb), 0.1);
 }
 
 .stat-card h3 {

@@ -112,11 +112,11 @@
 .anx-card {
   display: flex;
   flex-direction: column;
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-border-brand);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(30, 41, 59, 0.04);
+  box-shadow: 0 1px 2px rgba(var(--color-shadow-rgb), 0.04);
 }
 
 .anx-preview {
@@ -191,11 +191,11 @@
 }
 
 .presc-card {
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-border-brand);
   border-radius: 12px;
   padding: 1rem 1.25rem;
-  box-shadow: 0 1px 2px rgba(30, 41, 59, 0.04);
+  box-shadow: 0 1px 2px rgba(var(--color-shadow-rgb), 0.04);
 }
 
 .presc-card-topo {
@@ -310,7 +310,7 @@
   cursor: not-allowed;
 }
 .presc-btn-primario {
-  color: white;
+  color: var(--color-white);
   background: var(--color-brand);
   border-color: var(--color-brand);
 }
@@ -319,7 +319,7 @@
 }
 .presc-btn-secundario {
   color: var(--color-brand-light);
-  background: white;
+  background: var(--color-white);
   border-color: var(--color-border-light);
 }
 .presc-btn-secundario:hover:not(:disabled) {
@@ -327,7 +327,7 @@
   background: var(--color-bg-page);
 }
 .presc-btn-perigo {
-  color: white;
+  color: var(--color-white);
   background: var(--color-error);
   border-color: var(--color-error);
 }
@@ -366,7 +366,7 @@
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--color-border-light);
   border-radius: 8px;
-  background: white;
+  background: var(--color-white);
   font-family: inherit;
   resize: vertical;
 }
@@ -385,7 +385,7 @@
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--color-brand-light);
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-border-light);
   border-radius: 8px;
   padding: 0.5rem;
@@ -393,7 +393,7 @@
   transition: all 0.15s;
 }
 .presc-tipo-ativo {
-  color: white;
+  color: var(--color-white);
   background: var(--color-brand);
   border-color: var(--color-brand);
 }
@@ -446,7 +446,7 @@
   color: var(--color-brand);
 }
 .hist-filtro-ativo {
-  color: white;
+  color: var(--color-white);
   background: var(--color-brand);
   border-color: var(--color-brand);
 }
@@ -483,7 +483,7 @@
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 2px solid var(--color-white);
   box-shadow: 0 0 0 1px var(--color-border-light);
 }
 .hist-marker-agendamento {
@@ -500,11 +500,11 @@
 }
 
 .hist-card {
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-border-brand);
   border-radius: 12px;
   padding: 0.75rem 1rem;
-  box-shadow: 0 1px 2px rgba(30, 41, 59, 0.04);
+  box-shadow: 0 1px 2px rgba(var(--color-shadow-rgb), 0.04);
 }
 
 .hist-card-topo {
@@ -596,8 +596,8 @@
   font-weight: 600;
 }
 
-.atst-badge--COMPARECIMENTO { background: #eff6ff; color: #1d4ed8; }
-.atst-badge--AFASTAMENTO    { background: #fffbeb; color: #b45309; }
+.atst-badge--COMPARECIMENTO { background: var(--color-bg-tint); color: var(--color-info-dark); }
+.atst-badge--AFASTAMENTO    { background: var(--color-warning-bg-alt); color: var(--color-warning-strong); }
 
 .atst-dias,
 .atst-cid {
@@ -609,7 +609,7 @@
 .atst-observacoes {
   margin: 0;
   font-size: 0.85rem;
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
   white-space: pre-wrap;
 }
 

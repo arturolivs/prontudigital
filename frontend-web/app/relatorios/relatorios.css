@@ -26,7 +26,7 @@
   margin: 0;
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
 }
 
 .rel-titulo p {
@@ -68,7 +68,7 @@
   border: 1px solid var(--color-border);
   border-radius: 0.45rem;
   font-size: 0.875rem;
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
   background: var(--color-bg-page);
   min-width: 9rem;
 }
@@ -78,7 +78,7 @@
   border: none;
   border-radius: 0.45rem;
   background: var(--color-brand);
-  color: #fff;
+  color: var(--color-white);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -118,20 +118,20 @@
 }
 
 .rel-indicador--ok .rel-indicador-icone {
-  background: var(--color-success-bg, #ecfdf5);
-  color: var(--color-success, #059669);
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .rel-indicador--alerta .rel-indicador-icone {
-  background: var(--color-error-bg, #fef2f2);
-  color: var(--color-error, #dc2626);
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 
 .rel-indicador-valor {
   display: block;
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
 }
@@ -172,7 +172,7 @@
 }
 
 .rel-resumo-linha strong {
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
   font-variant-numeric: tabular-nums;
 }
 
@@ -210,7 +210,7 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
 }
 
 .rel-contagem {
@@ -246,19 +246,19 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-secondary);
-  background: var(--color-bg-soft, #f8fafc);
+  background: var(--color-bg-soft);
   white-space: nowrap;
 }
 
 .rel-tabela td {
   padding: 0.6rem 1rem;
   border-top: 1px solid var(--color-border-light);
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
   white-space: nowrap;
 }
 
 .rel-tabela tbody tr:hover {
-  background: var(--color-bg-soft, #f8fafc);
+  background: var(--color-bg-soft);
 }
 
 .rel-badge {
@@ -269,12 +269,12 @@
   font-weight: 600;
 }
 
-.rel-badge--REALIZADO      { background: #ecfdf5; color: #047857; }
-.rel-badge--CONFIRMADO     { background: #eff6ff; color: #1d4ed8; }
-.rel-badge--AGENDADO       { background: #f1f5f9; color: #475569; }
-.rel-badge--CANCELADO      { background: #fef2f2; color: #b91c1c; }
-.rel-badge--REMARCADO      { background: #fffbeb; color: #b45309; }
-.rel-badge--NAO_COMPARECEU { background: #fdf2f8; color: #be185d; }
+.rel-badge--REALIZADO      { background: var(--color-success-bg-green); color: var(--color-success-deeper); }
+.rel-badge--CONFIRMADO     { background: var(--color-bg-tint); color: var(--color-info-dark); }
+.rel-badge--AGENDADO       { background: var(--color-neutral-100); color: var(--color-neutral-600); }
+.rel-badge--CANCELADO      { background: var(--color-error-bg); color: var(--color-error-dark); }
+.rel-badge--REMARCADO      { background: var(--color-warning-bg-alt); color: var(--color-warning-strong); }
+.rel-badge--NAO_COMPARECEU { background: var(--color-status-falta-bg); color: var(--color-status-falta); }
 
 .rel-vazio {
   margin: 0;
@@ -321,7 +321,7 @@
   border: 1px solid var(--color-border);
   border-radius: 0.45rem;
   background: var(--color-bg-surface);
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;

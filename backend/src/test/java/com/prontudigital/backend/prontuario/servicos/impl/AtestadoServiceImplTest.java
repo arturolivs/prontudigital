@@ -13,6 +13,8 @@ import com.prontudigital.backend.prontuario.excecoes.AtestadoInvalidoException;
 import com.prontudigital.backend.prontuario.excecoes.AtestadoNaoEncontradoException;
 import com.prontudigital.backend.prontuario.repositorios.AtestadoRepository;
 import com.prontudigital.backend.prontuario.seguranca.ProntuarioPermissaoPolicy;
+import com.prontudigital.backend.compartilhado.documento.MarcaDocumento;
+import com.prontudigital.backend.configuracao.servicos.MarcaDocumentoProvider;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -43,13 +45,20 @@ class AtestadoServiceImplTest {
     @Mock private UsuarioService usuarioService;
     @Mock private UsuarioContexto usuarioContexto;
     @Mock private ProntuarioPermissaoPolicy permissaoPolicy;
+    @Mock private MarcaDocumentoProvider marcaProvider;
 
     private AtestadoServiceImpl service;
 
     @BeforeEach
     void setUp() {
         service = new AtestadoServiceImpl(
-                atestadoRepository, usuarioService, usuarioContexto, permissaoPolicy);
+                atestadoRepository, usuarioService, usuarioContexto, permissaoPolicy,
+                marcaProvider);
+
+        // O cabecalho do PDF passou a vir da configuracao da clinica; aqui basta
+        // uma marca minima para o builder montar o documento.
+        when(marcaProvider.obter())
+                .thenReturn(MarcaDocumento.padrao("Clinica de Teste"));
 
         when(usuarioContexto.getUsuarioAtual()).thenReturn(profissional());
         when(usuarioService.buscarPorUuid(PACIENTE_UUID))

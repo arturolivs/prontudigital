@@ -43,15 +43,15 @@
 }
 
 .day-container {
-  background: white;
+  background: var(--color-white);
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.05);
   transition: box-shadow 0.2s;
 }
 
 .day-container:hover {
-  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.08);
+  box-shadow: 0 4px 12px rgba(var(--color-brand-rgb), 0.08);
 }
 
 /* ===== CABEÇALHO DA DATA ===== */
@@ -107,7 +107,7 @@
 
 /* ===== CARD DE AGENDAMENTO ===== */
 .appointment-card {
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-border-brand);
   border-left-width: 5px;
   border-radius: 0.75rem;
@@ -123,7 +123,7 @@
 
 .appointment-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(43, 108, 176, 0.12);
+  box-shadow: 0 8px 20px rgba(var(--color-brand-rgb), 0.12);
 }
 
 /* Bordas laterais por status */
@@ -256,9 +256,9 @@
 }
 
 .status-acamado {
-  background-color: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
+  background-color: var(--color-warning-bg-alt);
+  color: var(--color-warning-strong);
+  border: 1px solid var(--color-warning-border-strong);
   font-size: 0.68rem;
 }
 
@@ -270,7 +270,7 @@
   justify-content: center;
   padding: 4rem 2rem;
   gap: 1rem;
-  background: white;
+  background: var(--color-white);
   border-radius: 1rem;
 }
 
@@ -318,7 +318,7 @@
 
 .retry-btn {
   background: var(--color-brand);
-  color: white;
+  color: var(--color-white);
   border: none;
   padding: 0.4rem 1rem;
   border-radius: 2rem;
@@ -335,9 +335,9 @@
 .no-appointments {
   text-align: center;
   padding: 4rem 2rem;
-  background: white;
+  background: var(--color-white);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.05);
 }
 
 .no-appointments svg {

@@ -1,47 +1,10 @@
 /* agenda.css - versão responsiva moderna */
 
-/* VARIÁVEIS (já devem existir no seu tema global – adicione se necessário) */
-:root {
-  --color-brand: #2b6cb0;
-  --color-brand-hover: #1e4f82;
-  --color-brand-light: #7991bc;
-  --color-border-brand: #e2e8f0;
-  --color-bg-page: #f4f9ff;
-  --color-bg-soft: #eef2f9;
-  --color-text-navy: #1a365d;
-  --color-text-dark: #2d3748;
-  --color-text-body: #4a5568;
-  --color-neutral-50: #f9fafb;
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-200: #e5e7eb;
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #4b5563;
-  --color-success-bg: #e6f7e6;
-  --color-success-border: #b2e0b2;
-  --color-success-deeper: #2c6e2c;
-  --color-success-bg-alt: #e0f2e9;
-  --color-success-border-alt: #b8dec5;
-  --color-warning: #f59e0b;
-  --color-warning-bg: #fef3c7;
-  --color-warning-border: #fde68a;
-  --color-warning-deeper: #b45309;
-  --color-error: #e53e3e;
-  --color-error-bg: #fff5f5;
-  --color-error-border: #fed7d7;
-  --color-error-deeper: #9b2c2c;
-  --color-error-bg-alt: #fee2e2;
-  --color-error-alt: #f56565;
-  --color-info-bg: #e0f2fe;
-  --color-info-border: #bae6fd;
-  --color-info-deeper: #0369a1;
-  --color-type-avaliacao: #38a169;
-  --color-type-tratamento: #3182ce;
-  --color-type-retorno: #805ad5;
-  --color-type-retorno-light: #a78bfa;
-  --color-block-manutencao: #d69e2e;
-}
+/* As cores vêm da paleta única em app/globals.css.
+   Este arquivo tinha um :root próprio redefinindo 42 tokens — 20 deles
+   com valores diferentes do global. Como o Next carrega CSS de página
+   no escopo do documento, o último a carregar vencia e o tema variava
+   conforme a rota visitada. */
 
 /* LAYOUT BASE */
 .appointments-page {
@@ -62,7 +25,7 @@
 
 .agenda-btn-novo {
   background: var(--color-brand);
-  color: white;
+  color: var(--color-white);
   border: none;
   border-radius: 2rem;
   padding: 0.6rem 1.2rem;
@@ -73,7 +36,7 @@
   gap: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(var(--color-shadow-rgb),0.05);
 }
 
 .agenda-btn-novo:hover {
@@ -83,7 +46,7 @@
 
 .agenda-view-switcher {
   display: flex;
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-border-brand);
   border-radius: 2rem;
   overflow: hidden;
@@ -105,7 +68,7 @@
 
 .agenda-view-btn-ativo {
   background: var(--color-brand);
-  color: white;
+  color: var(--color-white);
 }
 
 /* NAVEGAÇÃO */
@@ -124,7 +87,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-border-brand);
   border-radius: 1rem;
   font-size: 1.4rem;
@@ -154,7 +117,7 @@
 }
 
 .agenda-nav-hoje {
-  background: white;
+  background: var(--color-white);
   border: 1px solid var(--color-border-brand);
   border-radius: 2rem;
   padding: 0.5rem 1rem;
@@ -167,12 +130,12 @@
 
 /* CARD DE AGENDAMENTO */
 .appointment-card {
-  background: white;
+  background: var(--color-white);
   border-radius: 1rem;
   padding: 1rem;
   border-left-width: 5px;
   border-left-style: solid;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 6px rgba(var(--color-shadow-rgb),0.04);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -184,7 +147,7 @@
 
 .appointment-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 20px rgba(var(--color-shadow-rgb),0.08);
   cursor: pointer;
 }
 
@@ -253,9 +216,9 @@
 .no-appointments {
   text-align: center;
   padding: 3rem 1rem;
-  background: white;
+  background: var(--color-white);
   border-radius: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(var(--color-shadow-rgb),0.05);
 }
 
 .loading-state {
@@ -290,7 +253,7 @@
     border-radius: 50%;
     padding: 0;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(var(--color-shadow-rgb), 0.2);
   }
 
   .agenda-btn-novo-label {

@@ -33,10 +33,10 @@ export default function Login() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f9ff]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-page)]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2b6cb0] mx-auto"></div>
-          <p className="mt-3 text-sm text-[#2b6cb0] font-medium">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-brand)] mx-auto"></div>
+          <p className="mt-3 text-sm text-[var(--color-brand)] font-medium">
             Verificando sessão...
           </p>
         </div>
@@ -46,10 +46,10 @@ export default function Login() {
 
   if (usuario) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f9ff]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-page)]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2b6cb0] mx-auto"></div>
-          <p className="mt-3 text-sm text-[#2b6cb0] font-medium">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-brand)] mx-auto"></div>
+          <p className="mt-3 text-sm text-[var(--color-brand)] font-medium">
             Redirecionando...
           </p>
         </div>
@@ -58,9 +58,9 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#f4f9ff] to-[#e6f4f1] p-4 md:p-8">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[var(--color-bg-page)] to-[var(--color-bg-alt)] p-4 md:p-8">
       <div className="flex flex-col md:flex-row w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#2b6cb0] to-[#7991bc] p-8 md:p-12 flex-col justify-center items-center text-center md:text-left">
+        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-light)] p-8 md:p-12 flex-col justify-center items-center text-center md:text-left">
           <div className="max-w-md mx-auto">
             {/* Logo / Ícone Principal */}
             <div className="mb-6 flex justify-center md:justify-start">
@@ -89,7 +89,7 @@ export default function Login() {
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Prontu<span className="text-[#e6f4f1]">Digital</span>
+              Prontu<span className="text-[var(--color-bg-alt)]">Digital</span>
             </h1>
             <p className="text-white/90 text-lg mb-6 leading-relaxed">
               Sistema inteligente para agendamento de tratamentos de enfermagem
@@ -97,7 +97,7 @@ export default function Login() {
             <div className="space-y-3 text-white/80 text-sm">
               <div className="flex items-center gap-3 justify-center md:justify-start">
                 <svg
-                  className="w-5 h-5 text-[#e6f4f1]"
+                  className="w-5 h-5 text-[var(--color-bg-alt)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -113,7 +113,7 @@ export default function Login() {
               </div>
               <div className="flex items-center gap-3 justify-center md:justify-start">
                 <svg
-                  className="w-5 h-5 text-[#e6f4f1]"
+                  className="w-5 h-5 text-[var(--color-bg-alt)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -129,7 +129,7 @@ export default function Login() {
               </div>
               <div className="flex items-center gap-3 justify-center md:justify-start">
                 <svg
-                  className="w-5 h-5 text-[#e6f4f1]"
+                  className="w-5 h-5 text-[var(--color-bg-alt)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -151,7 +151,7 @@ export default function Login() {
         <div className="w-full md:w-1/2 p-8 md:p-12 flex items-center justify-center bg-white">
           <div className="w-full max-w-md">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-[#2b6cb0]">
+              <h2 className="text-3xl font-bold text-[var(--color-brand)]">
                 Bem-vindo(a)
               </h2>
               <p className="text-gray-500 mt-2">
@@ -171,7 +171,7 @@ export default function Login() {
                   id="username"
                   type="text"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7991bc] focus:border-[#7991bc] transition-all outline-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
                   placeholder="Digite seu usuário"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
@@ -190,7 +190,7 @@ export default function Login() {
                   id="senha"
                   type="password"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#7991bc] focus:border-[#7991bc] transition-all outline-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
                   placeholder="Digite sua senha"
                   value={senha}
                   onChange={e => setSenha(e.target.value)}
@@ -201,7 +201,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-[#2b6cb0] hover:bg-[#1e4f82] text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-[var(--color-brand)] hover:bg-[var(--color-brand-dark)] text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

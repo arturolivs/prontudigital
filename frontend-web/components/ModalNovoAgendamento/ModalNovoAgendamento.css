@@ -43,7 +43,7 @@
   font-size: 0.875rem;
   font-family: inherit;
   color: var(--color-text-heading);
-  background: white;
+  background: var(--color-white);
   transition: border-color 0.2s;
 }
 
@@ -51,7 +51,7 @@
 .mna-textarea:focus {
   outline: none;
   border-color: var(--color-brand-light);
-  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-brand-rgb), 0.1);
 }
 
 .mna-textarea {
@@ -90,7 +90,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text-slate);
-  background: white;
+  background: var(--color-white);
   cursor: pointer;
   transition: all 0.15s;
   text-align: center;
@@ -106,14 +106,14 @@
 .mna-opcao-btn.ativo {
   background: var(--color-brand);
   border-color: var(--color-brand);
-  color: white;
+  color: var(--color-white);
   font-weight: 600;
 }
 
 /* Botões do rodapé */
 .mna-btn-cancelar {
   padding: 0.6rem 1.1rem;
-  background: white;
+  background: var(--color-white);
   color: var(--color-text-secondary);
   border: 1.5px solid var(--color-border);
   border-radius: 0.6rem;
@@ -133,18 +133,18 @@
 .mna-btn-salvar {
   padding: 0.6rem 1.25rem;
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
-  color: white;
+  color: var(--color-white);
   border: none;
   border-radius: 0.6rem;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 6px rgba(43, 108, 176, 0.25);
+  box-shadow: 0 2px 6px rgba(var(--color-brand-rgb), 0.25);
 }
 
 .mna-btn-salvar:hover:not(:disabled) {
-  box-shadow: 0 4px 10px rgba(43, 108, 176, 0.35);
+  box-shadow: 0 4px 10px rgba(var(--color-brand-rgb), 0.35);
   transform: translateY(-1px);
 }
 
