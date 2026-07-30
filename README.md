@@ -8,22 +8,59 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2F16-336791?logo=postgresql)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
+![Testes](https://img.shields.io/badge/testes-316-blue)
+![Licença](https://img.shields.io/badge/licença-proprietária-lightgrey)
 
 Sistema de prontuário eletrônico e agendamento para clínicas de enfermagem especializadas em **podologia** e **tratamento de feridas**. Permite o cadastro de pacientes, agendamento de consultas, registro de evoluções clínicas e envio automatizado de notificações via WhatsApp.
+
+**Público-alvo:** clínicas de enfermagem de pequeno porte (2 a 5 profissionais). O sistema é distribuído em **modelo silo** — uma instalação por cliente, com banco próprio — e cada instalação é personalizada pela própria interface (nome, CNPJ, logo e rodapé dos documentos), sem recompilação.
 
 ---
 
 ## 📋 Índice
 
+- [Funcionalidades](#-funcionalidades)
 - [Arquitetura](#-arquitetura)
 - [Tecnologias](#-tecnologias)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Banco de Dados](#-banco-de-dados)
 - [API REST](#-api-rest)
 - [Autenticação & Segurança](#-autenticação--segurança)
+- [Identidade Visual](#-identidade-visual)
 - [Variáveis de Ambiente](#-variáveis-de-ambiente)
 - [Executando o Projeto](#-executando-o-projeto)
 - [Testes](#-testes)
+- [Implantação](#-implantação)
+- [Como Contribuir](#-como-contribuir)
+- [Licença](#-licença)
+- [Créditos e Referências](#-créditos-e-referências)
+
+---
+
+## ✨ Funcionalidades
+
+**Autenticação e acesso**
+- Login com JWT + refresh token, três perfis (Administrador, Profissional, Paciente)
+- Recuperação de senha por código
+
+**Agenda**
+- Agendamento com validação contra o expediente cadastrado do profissional
+- Visualização por dia, semana e mês
+- Bloqueios pontuais e recorrentes; lista de espera para remarcação
+- Confirmação por **WhatsApp** com link tokenizado; cancelamento automático de não confirmados
+
+**Prontuário eletrônico**
+- Anamnese completa (histórico, comorbidades, medicamentos, mobilidade)
+- Ficha de Evolução de Enfermagem e Ficha de Evolução Diária de Curativos, com validação de campos obrigatórios ao finalizar a consulta
+- Anexos de exames e documentos (imagem/PDF), prescrições e histórico clínico
+- Atestados de comparecimento e afastamento em PDF
+
+**Relatórios**
+- Atendimentos e taxa de ocupação, exportáveis em PDF e XLSX
+
+**Administração**
+- Cadastro de usuários e de procedimentos
+- **Configuração da clínica**: identificação, endereço, logo e rodapé aplicados aos documentos e à tela de login
 
 ---
 
@@ -46,20 +83,26 @@ graph TB
 
     subgraph Backend["Backend — Spring Boot  (porta 8080)"]
         direction TB
-        AUTH[Módulo de Autenticação\nJWT · BCrypt · Refresh Tokens]
-        SCHED[Módulo de Agendamentos\nCRUD · Evoluções · Fila de Espera]
-        NOTIF[Scheduler de Notificações\nWhatsApp · Lembrete 48h / Confirmação 24h]
-        SHARED[Compartilhado\nSwagger · Exceções · Clock]
+        AUTH[autenticacao<br/>JWT · BCrypt · Refresh Tokens]
+        SCHED[agendamento<br/>Agenda · Fichas clínicas · Fila de espera]
+        PRONT[prontuario<br/>Anamnese · Anexos · Prescrições · Atestados]
+        REL[relatorio<br/>Atendimentos · Ocupação · PDF e XLSX]
+        NOTIF[notificacao<br/>WhatsApp · Lembrete 48h / Confirmação 24h]
+        CFG[configuracao<br/>Marca da clínica]
+        SHARED[compartilhado<br/>Armazenamento · Documento · Mensagens]
         AUTH --> SHARED
         SCHED --> SHARED
+        PRONT --> SHARED
+        REL --> SHARED
+        CFG --> SHARED
         NOTIF --> SCHED
     end
 
     subgraph Frontend["Frontend Web — Next.js 16  (porta 3000)"]
         direction LR
-        PAGES[Páginas\nlogin · dashboard · agenda\npacientes · perfil · bloqueios]
-        CTX[Contextos\nAuthContext · ToastContext]
-        SVC[Serviços\nauth · agendamento · usuario · bloqueio]
+        PAGES[Páginas<br/>login · agenda · procedimento · prontuários<br/>pacientes · relatórios · dashboard]
+        CTX[Contextos<br/>AuthContext · ToastContext]
+        SVC[Serviços<br/>auth · agendamento · prontuário · configuração]
         PAGES --> CTX
         PAGES --> SVC
     end
@@ -68,9 +111,10 @@ graph TB
         T1[(usuarios / perfis)]
         T2[(agendamentos)]
         T3[(bloqueios_horario)]
-        T4[(evolucoes_clinicas)]
-        T5[(log_notificacoes_whatsapp)]
+        T4[(anamneses / evolucoes_*)]
+        T5[(anexos / prescricoes / atestados)]
         T6[(fila_espera)]
+        T7[(configuracao_clinica)]
     end
 
     W -->|HTTP| Frontend
@@ -82,7 +126,8 @@ graph TB
     SCHED --> T3
     SCHED --> T4
     SCHED --> T6
-    NOTIF --> T5
+    PRONT --> T5
+    CFG --> T7
 ```
 
 ### Fluxo de Agendamento e Notificações WhatsApp
@@ -187,79 +232,81 @@ stateDiagram-v2
 ```
 prontudigital/
 │
-├── backend/                                 # API Java Spring Boot
+├── backend/                                 # API Java Spring Boot (monolito modular)
 │   ├── src/main/java/com/prontudigital/backend/
-│   │   ├── autenticacao/                    # Módulo de autenticação
-│   │   │   ├── config/                      # SecurityConfig
+│   │   ├── autenticacao/                    # Login, JWT, usuários e perfis
+│   │   │   ├── config/                      # SecurityConfig (rotas públicas x autenticadas)
 │   │   │   ├── controladores/               # AutenticacaoController, UsuarioController
-│   │   │   ├── dto/                         # LoginRequestDTO, JwtResponseDTO, etc.
-│   │   │   ├── entidades/                   # Usuario, Perfil, RefreshToken
-│   │   │   ├── filtros/                     # JWTFilter (interceptor de requisições)
-│   │   │   ├── repositorios/
-│   │   │   ├── seguranca/                   # JwtTokenProvider, UserDetailsServiceImpl
-│   │   │   └── servicos/
-│   │   ├── agendamento/                     # Módulo de agendamentos
-│   │   │   ├── agendador/                   # Cron jobs (execução a cada 15 min)
-│   │   │   ├── controladores/               # AgendamentoController, BloqueioController
-│   │   │   ├── dto/
-│   │   │   ├── entidades/                   # Agendamento, BloqueioHorario, FilaEspera
-│   │   │   ├── enums/                       # StatusAgendamento, TipoAgendamento, etc.
-│   │   │   ├── eventos/                     # Spring Events
-│   │   │   ├── repositorios/
-│   │   │   └── servicos/
-│   │   └── compartilhado/                   # Exceções globais, Swagger, Clock
+│   │   │   ├── entidades/                   # Usuario, Perfil, RefreshToken, Endereco
+│   │   │   ├── filtros/                     # JWTFilter
+│   │   │   └── seguranca/                   # JwtTokenProvider, UsuarioContexto
+│   │   ├── agendamento/                     # Agenda, bloqueios, fila de espera
+│   │   │   ├── entidades/                   # Agendamento, EvolucaoCurativo, HorarioTrabalho…
+│   │   │   ├── seguranca/                   # AgendamentoPermissaoPolicy
+│   │   │   └── utils/                       # AgendamentoUtil (montagem de DTOs)
+│   │   ├── prontuario/                      # PEP: anamnese, anexos, prescrições, atestados
+│   │   │   └── seguranca/                   # ProntuarioPermissaoPolicy (RN03)
+│   │   ├── relatorio/                       # RF19/RF20 + exportação PDF/XLSX
+│   │   ├── notificacao/                     # Scheduler e integração WhatsApp Cloud API
+│   │   ├── configuracao/                    # Dados e marca da clínica (white-label)
+│   │   └── compartilhado/
+│   │       ├── armazenamento/               # ArmazenamentoService (filesystem/volume)
+│   │       ├── documento/                   # PdfBuilder, PlanilhaBuilder, MarcaDocumento
+│   │       ├── excecoes/                    # GlobalExceptionHandler
+│   │       └── mensagens/                   # Mensagens.get() + messages.properties
 │   ├── src/main/resources/
-│   │   ├── application.yaml                 # Configuração base (porta 8080)
-│   │   ├── application-dev.yaml
+│   │   ├── application.yaml                 # Base (porta 8080)
+│   │   ├── application-local.yaml           # Backend rodando na IDE
+│   │   ├── application-dev.yaml             # Container de desenvolvimento
 │   │   ├── application-prod.yaml
-│   │   └── db/migracoes/                    # Flyway V1–V17
-│   ├── src/test/                            # Testes unitários e de integração
-│   ├── Dockerfile.dev
-│   ├── Dockerfile.prod
+│   │   ├── messages.properties              # Mensagens centralizadas (i18n)
+│   │   └── db/migracoes/                    # Flyway V1–V28
+│   ├── src/test/java/                       # 16 classes com Mockito + 1 @SpringBootTest
+│   ├── Dockerfile.dev  ·  Dockerfile.prod
 │   └── pom.xml
 │
-├── gateway/                                 # LEGADO — substituído pelo Caddy; mantido no repositório, mas não sobe em nenhum ambiente
-│   ├── src/main/java/com/prontudigital/gateway/
-│   ├── src/main/resources/
-│   │   ├── application.yml
-│   │   ├── application-dev.yml
-│   │   └── application-docker.yml
-│   ├── Dockerfile
-│   └── pom.xml
-│
-├── frontend-web/                            # Next.js 16 + React 19
-│   ├── app/                                 # App Router do Next.js
-│   │   ├── layout.tsx                       # Root layout (AuthProvider, Toast)
-│   │   ├── page.tsx                         # Redirect por perfil de acesso
-│   │   ├── login/
-│   │   ├── dashboard/                       # Painel administrativo
+├── frontend-web/                            # Next.js 16 + React 19 (App Router)
+│   ├── app/
+│   │   ├── globals.css                      # PALETA DE CORES — fonte única
+│   │   ├── login/                           # Entrada (exibe a marca da clínica)
+│   │   ├── agendar/                         # Agendamento público
 │   │   ├── agenda/                          # Agenda do profissional
-│   │   ├── agendar/                         # Criar novo agendamento
+│   │   │   └── procedimento/[id]/           # Atendimento: fichas clínicas + cadastro
 │   │   ├── minha-agenda/                    # Agenda do paciente
-│   │   ├── pacientes/                       # Gestão de pacientes
-│   │   ├── perfil/                          # Perfil e senha do usuário
-│   │   └── bloqueios/                       # Gerenciar bloqueios de horário
-│   ├── components/                          # Componentes React reutilizáveis
+│   │   ├── pacientes/                       # Lista de pacientes
+│   │   │   └── [pacienteUuid]/prontuario/   # PEP com abas
+│   │   ├── prontuarios/                     # Acesso direto ao prontuário
+│   │   ├── bloqueios/  ·  relatorios/  ·  perfil/
+│   │   ├── dashboard/                       # Área administrativa
+│   │   │   ├── usuarios/  ·  procedimentos/
+│   │   │   └── configuracoes/               # Marca e dados da clínica
+│   │   └── api/auth/                        # Route Handlers (session, refresh)
+│   ├── components/                          # Layout, Modal, Toast, SelectAutocomplete…
 │   ├── contexts/                            # AuthContext, ToastContext
-│   ├── hooks/                               # Custom hooks
-│   ├── lib/                                 # Serviços de chamadas à API
-│   │   ├── auth.service.ts
-│   │   ├── agendamento.service.ts
-│   │   ├── usuario.service.ts
-│   │   └── bloqueio.service.ts
-│   ├── tipos/                               # Definições de tipos TypeScript
-│   ├── Dockerfile.dev
-│   ├── Dockerfile.prod
-│   ├── nginx.conf
+│   ├── lib/                                 # Serviços de API, máscaras, mensagens
+│   ├── tipos/                               # Tipos TypeScript espelhando os DTOs
+│   ├── Dockerfile.dev  ·  Dockerfile.prod
 │   └── package.json
 │
-├── docker/
-│   └── dev/
-│       ├── docker-compose.yml               # Stack de desenvolvimento com hot-reload
-│       └── .env.dev.example
+├── gateway/                                 # LEGADO — substituído pelo Caddy; não sobe
 │
-├── docker-compose.yml                       # Stack de produção
-├── .env.example
+├── docker/
+│   ├── dev/
+│   │   ├── docker-compose.yml               # Stack de desenvolvimento com hot reload
+│   │   ├── docker-compose.debug.yml         # Override: backend fora do container (IDE)
+│   │   ├── Caddyfile
+│   │   └── .env.dev.example
+│   └── prod/
+│       ├── docker-compose.prod.yml
+│       ├── Caddyfile                        # TLS automático
+│       ├── scripts/backup.sh                # RNF02 — banco + anexos
+│       ├── scripts/restore.sh
+│       └── .env.prod.example
+│
+├── ajustar_campos/                          # PDFs-modelo das fichas clínicas
+├── ANALISE_DEPLOY.md                        # Comparativo de plataformas de hospedagem
+├── PLANO_PROXIMOS_PASSOS.md
+├── Requisitos.md                            # RFs e RNFs
 └── README.md
 ```
 
@@ -267,7 +314,7 @@ prontudigital/
 
 ## 🗄 Banco de Dados
 
-O esquema é gerenciado pelo **Flyway** com 17 migrações versionadas localizadas em `backend/src/main/resources/db/migracoes/`.
+O esquema é gerenciado pelo **Flyway** com 28 migrações versionadas localizadas em `backend/src/main/resources/db/migracoes/`.
 
 | Migration | Tabela / Alteração | Descrição |
 |---|---|---|
@@ -532,6 +579,23 @@ comparação.
 
 ---
 
+### Configuração da Clínica — `/api/configuracao`
+
+| Método | Rota | Acesso | Descrição |
+|---|---|---|---|
+| `GET` | `/api/configuracao` | **Público** | Nome, CNPJ, endereço e rodapé da clínica |
+| `PUT` | `/api/configuracao` | ADMIN | Atualiza os dados |
+| `GET` | `/api/configuracao/logo` | **Público** | Binário da logo (`inline`) |
+| `POST` | `/api/configuracao/logo` | ADMIN | Envia a logo (JPG/PNG/WEBP, até 2 MB) |
+| `DELETE` | `/api/configuracao/logo` | ADMIN | Remove a logo |
+
+> A **leitura é pública** de propósito: a tela de login e o agendamento público
+> exibem a marca antes da autenticação, e um `<img src>` não envia o header
+> `Authorization`. São dados institucionais — os mesmos que a clínica publica no
+> próprio site. A escrita permanece restrita ao ADMIN via `@PreAuthorize`.
+
+---
+
 ## 🔐 Autenticação & Segurança
 
 - **Algoritmo JWT**: HS512 (HMAC com SHA-512)
@@ -550,6 +614,41 @@ comparação.
 | `ADMIN` | Gestão completa de usuários, acesso a todos os dados |
 | `PROFISSIONAL` | Agenda, agendamentos, bloqueios, evoluções clínicas |
 | `PACIENTE` | Visualiza próprios agendamentos, confirma presença |
+
+---
+
+## 🎨 Identidade Visual
+
+Todas as cores do frontend vêm de **uma fonte única**: o bloco `:root` de
+`frontend-web/app/globals.css`, com **118 tokens** organizados por função
+(marca, superfícies, texto, bordas, status, tipos de agendamento, neutros).
+
+```css
+/* uso em qualquer arquivo CSS */
+background: var(--color-bg-page);
+color: var(--color-text-heading);
+
+/* transparência precisa dos componentes RGB soltos —
+   rgba() não aceita um hex vindo de variável */
+box-shadow: 0 2px 6px rgba(var(--color-brand-rgb), 0.06);
+```
+
+**Regras**
+
+- Nenhum hex literal, `rgb()` com número cru ou classe Tailwind `bg-[#xxxxxx]`
+- Nenhum `var(--token, #fallback)`: o fallback duplica o valor e diverge com o tempo
+- Cor nova só entra virando **token nomeado** em `globals.css`
+
+Verificação rápida — o resultado esperado é vazio:
+
+```bash
+cd frontend-web
+grep -rnE "#[0-9a-fA-F]{3,8}" --include=*.css --include=*.tsx app components   | grep -v "app/globals.css"
+```
+
+> A personalização por cliente (logo, nome, CNPJ, rodapé) é **dado**, não código:
+> fica em `configuracao_clinica` e é editada em `/dashboard/configuracoes`. A
+> paleta é a identidade do produto; a marca é a do cliente.
 
 ---
 
@@ -710,24 +809,151 @@ npm run dev
 
 ## 🧪 Testes
 
-O backend possui testes unitários e de integração que utilizam banco H2 em memória (perfil `test`).
+**316 testes** no backend: 16 classes unitárias com Mockito cobrindo os *service
+impls*, mais um `@SpringBootTest` que valida a subida do contexto. Os testes usam
+**H2 em memória** com `MODE=PostgreSQL` (perfil `test`), com Flyway desativado e
+`ddl-auto: create-drop` — não tocam o banco de desenvolvimento.
 
 ```bash
 cd backend
-./mvnw test
+./mvnw test                       # suíte completa
+./mvnw test -Dtest=NomeDoTeste    # uma classe
+./mvnw test jacoco:report         # relatório em target/site/jacoco/index.html
 ```
 
-Para executar um teste específico:
+Cobertura atual (JaCoCo): **78,7% das instruções**, sendo **94,7% na camada
+`servicos.impl`**. Os controllers aparecem baixos porque a estratégia é testar a
+camada de serviço — não há testes de `@WebMvcTest`.
+
+> ⚠️ **Falha conhecida:** `MensagensTest.bundleNaoTemCaractereDeSubstituicao`
+> acusa `erro.validacao.titulo` com um byte Latin-1 (`á` = `0xE1`) em
+> `messages.properties`, lido como UTF-8. O teste está certo e o arquivo errado;
+> o efeito chega ao usuário como *"Dados inv�lidos"*.
+
+### Frontend
 
 ```bash
-./mvnw test -Dtest=NomeDoTeste
+cd frontend-web
+npx tsc --noEmit    # verificação de tipos
+npx eslint app components lib tipos
+npx next build      # build de produção (valida também o CSS)
 ```
+
+---
+
+## 🚢 Implantação
+
+O comparativo de plataformas de hospedagem — silo vs. schema vs. pool, custos,
+latência e implicações de LGPD — está em **[`ANALISE_DEPLOY.md`](ANALISE_DEPLOY.md)**.
+
+**Resumo:** para uma clínica com poucos profissionais, uma **VPS única em São
+Paulo rodando o `docker-compose.prod.yml`** entrega o melhor custo-benefício. A
+conteinerização já resolve rede interna isolada, TLS automático, healthcheck e
+limites de recurso; um PaaS cobraria mais para desmontar esse arranjo.
+
+```mermaid
+graph LR
+    subgraph VPS["VPS única — São Paulo"]
+        direction TB
+        CADDY["Caddy<br/>80 / 443<br/>TLS automático"]
+        FE["frontend<br/>Next.js standalone"]
+        BE["backend<br/>Spring Boot"]
+        PG[("postgres<br/>volume postgres_data")]
+        AN[("volume anexos_data")]
+        CADDY --> FE
+        CADDY --> BE
+        BE --> PG
+        BE --> AN
+    end
+    NET([Internet]) -->|HTTPS| CADDY
+    BACKUP["backup.sh (cron)<br/>banco + anexos"] -.-> PG
+    BACKUP -.-> AN
+    BACKUP -->|cópia externa| OFF[(Object storage)]
+```
+
+**Dois cuidados operacionais:**
+
+1. **Não construa as imagens no servidor.** O `--build` compila Maven *e* roda
+   `next build`, consumindo bem mais RAM que o runtime. Construa em CI, publique
+   num registry e deixe a VPS apenas puxar — com isso 2 GB bastam.
+2. **Backup fora da máquina.** O `scripts/backup.sh` já exporta banco e anexos na
+   ordem correta (banco primeiro: o pior caso vira arquivo órfão, não download
+   quebrado). Falta apenas o destino externo.
+
+---
+
+## 🤝 Como Contribuir
+
+1. Crie um branch a partir de `develop`: `git checkout -b feat/nome-da-feature`
+2. Siga as convenções abaixo
+3. Garanta que `./mvnw test`, `npx tsc --noEmit` e `npx eslint` passam
+4. Abra um Pull Request descrevendo **o que** mudou e **por quê**
+
+**Convenções do projeto**
+
+| Área | Regra |
+|---|---|
+| Idioma do código | Português para domínio (`Agendamento`, `buscarPorUuid`); inglês só onde o framework impõe |
+| Mensagens ao usuário | Nunca literais no código — use `Mensagens.get()` (backend) e `MENSAGENS` (frontend) |
+| Cores | Nunca hex literal — sempre `var(--color-*)` de `app/globals.css` |
+| Migrações | **Nunca edite uma migração já aplicada** em ambiente compartilhado; crie a próxima versão |
+| Commits | Mensagem no imperativo, descrevendo o efeito (`Valida campos obrigatórios ao finalizar consulta`) |
+| Testes | Todo `ServiceImpl` novo nasce com classe de teste correspondente |
+
+---
+
+## 📄 Licença
+
+Software **proprietário**. Todos os direitos reservados.
+Uso, cópia ou distribuição requerem autorização expressa dos autores.
+
+---
+
+## 🙏 Créditos e Referências
+
+**Bibliotecas de terceiros**
+
+| Projeto | Uso |
+|---|---|
+| [Spring Boot](https://spring.io/projects/spring-boot) | Framework do backend |
+| [Next.js](https://nextjs.org/) · [React](https://react.dev/) | Frontend |
+| [Caddy](https://caddyserver.com/) | Proxy reverso e TLS automático |
+| [Flyway](https://flywaydb.org/) | Versionamento do schema |
+| [OpenPDF](https://github.com/LibrePDF/OpenPDF) · [Apache POI](https://poi.apache.org/) | Geração de PDF e XLSX |
+| [JJWT](https://github.com/jwtk/jjwt) | Tokens JWT |
+| [Lucide](https://lucide.dev/) | Ícones |
+
+**Fichas clínicas**
+
+Os modelos de Anamnese, Evolução de Enfermagem e Evolução Diária de Curativos
+seguem os PDFs de referência em `ajustar_campos/modelos/`. A avaliação de ferida
+adota a legenda **TIME** (*Tissue, Infection/inflammation, Moisture, Edge*),
+padrão consolidado na literatura de cuidado com feridas.
+
+**Conformidade**
+
+O sistema trata **dados de saúde**, classificados como sensíveis pelo Art. 11 da
+[LGPD](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm).
+As decisões de arquitetura e hospedagem levam isso em conta — ver
+[`ANALISE_DEPLOY.md`](ANALISE_DEPLOY.md).
 
 ---
 
 ## 📌 Notas de Desenvolvimento
 
-- As migrações Flyway em `backend/src/main/resources/db/migracoes/` **nunca devem ser editadas após aplicadas** — crie sempre uma nova migration.
-- O scheduler de notificações WhatsApp executa a cada **15 minutos**, verificando agendamentos nas próximas 48h (lembrete) e 24h (link de confirmação). Agendamentos não confirmados são cancelados automaticamente 2h antes.
-- Bloqueios recorrentes (`V17`) permitem bloquear dias fixos da semana, útil para folgas regulares dos profissionais.
-- A tabela `fila_espera` é populada automaticamente quando um paciente recusa um agendamento via WhatsApp.
+- **Migrações Flyway nunca devem ser editadas depois de aplicadas** em ambiente
+  compartilhado — crie a próxima versão. (Enquanto o projeto não tem produção, a
+  equipe optou por corrigir as migrações de criação e recriar o banco local.)
+- O `application-local.yaml` (IDE) **não define `ddl-auto`**, então não valida o
+  schema; `dev` e `prod` usam `validate` e recusam subir com divergência. Um tipo
+  errado só aparece no container — vale rodar o backend em Docker antes de subir.
+- O segredo JWT precisa de **64 caracteres**: HS512 exige 512 bits (RFC 7518
+  §3.2). Abaixo disso a aplicação sobe e só falha no login — por isso o
+  `JwtTokenProvider` agora derruba o boot com mensagem explícita.
+- O scheduler de WhatsApp roda a cada **15 minutos**, verificando as próximas 48h
+  (lembrete) e 24h (confirmação). Não confirmados são cancelados 2h antes.
+- Anexos ficam em **volume**, não no banco: o `ArmazenamentoService` grava o
+  arquivo e a tabela guarda só a chave. Backup de banco sem os anexos produz
+  prontuário com download quebrado — o `backup.sh` cobre os dois.
+- No Windows, criar uma **rota nova** exige reiniciar o container do frontend: o
+  watcher do Turbopack não recebe eventos de criação de diretório pelo bind mount.
