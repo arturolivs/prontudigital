@@ -19,7 +19,14 @@ server:
 
 app:
   jwt:
-    secret: "prontudigital-jwt-secret-key-for-hs512-authentication-2026-change-in-prod"
+    # Igual ao JWT_SECRET de docker/dev/.env — de propósito. Com segredos
+    # diferentes, o token emitido pela IDE não é aceito pelo backend em
+    # container (e vice-versa), obrigando a relogar a cada troca entre
+    # `docker compose up` e o modo debug.
+    #
+    # HS512 exige 512 bits (RFC 7518 §3.2) = 64 caracteres no mínimo; abaixo
+    # disso o JwtTokenProvider derruba o boot.
+    secret: "dev-secret-hs512-prontudigital-chave-de-desenvolvimento-com-64-bytes-no-minimo"
     access-expiration-ms: 600000000
     refresh-expiration-ms: 600000000
   notificacoes:

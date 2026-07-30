@@ -1,5 +1,6 @@
 package com.prontudigital.backend.autenticacao.seguranca;
 
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -38,9 +39,28 @@ public class JwtTokenProvider {
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Tamanho minimo do segredo, em bytes.
+     *
+     * HS512 exige chave de 512 bits pela RFC 7518, secao 3.2. O
+     * {@code Keys.hmacShaKeyFor} aceita qualquer chave a partir de 256 bits,
+     * entao um segredo curto passa aqui e so estoura la no {@code signWith} —
+     * a aplicacao sobe inteira e falha apenas no primeiro login, com um erro
+     * que nao aponta para a configuracao. Falhar no boot torna a causa obvia.
+     */
+    private static final int TAMANHO_MINIMO_SEGREDO_BYTES = 64;
+
     @PostConstruct
     public void init() {
-        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        byte[] bytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+
+        if (bytes.length < TAMANHO_MINIMO_SEGREDO_BYTES) {
+            throw new IllegalStateException(Mensagens.get(
+                    "jwt.segredo-curto", bytes.length * 8,
+                    TAMANHO_MINIMO_SEGREDO_BYTES));
+        }
+
+        this.secretKey = Keys.hmacShaKeyFor(bytes);
     }
 
     public String generateAccessToken(Authentication authentication) {
