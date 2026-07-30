@@ -72,6 +72,12 @@ import CadastroPaciente, {
   cadastroPacienteParaApi,
   cadastroPacienteParaFormulario,
 } from './CadastroPaciente'
+import {
+  mensagemCamposObrigatorios,
+  validarAnamnese,
+  validarCurativo,
+  validarEnfermagem,
+} from './validacao'
 import './procedimento.css'
 
 // ── Ficha de Evolução Diária – Curativos ─────────────────────────
@@ -607,9 +613,23 @@ export default function ProcedimentoPage({
   const finalizarConsulta = async () => {
     if (!agendamento) return
 
-    // Barra o que o backend recusaria antes de gravar qualquer coisa — o
-    // fluxo grava a ficha e só depois conclui, então falhar na segunda
-    // chamada deixaria a consulta pela metade.
+    // Toda a validação acontece antes de qualquer chamada: o fluxo grava a
+    // ficha e só depois conclui o agendamento, então falhar no meio deixaria
+    // a consulta pela metade.
+
+    // 1. Campos obrigatórios da(s) ficha(s) do tipo. Ver validacao.ts para a
+    //    regra de quem é obrigatório e quem é isento.
+    const pendentes =
+      agendamento.tipo === 'AVALIACAO'
+        ? [...validarAnamnese(anamnese), ...validarEnfermagem(enfermagem)]
+        : validarCurativo(evolucao)
+
+    if (pendentes.length > 0) {
+      exibirNotificacao(mensagemCamposObrigatorios(pendentes), 'error', 10000)
+      return
+    }
+
+    // 2. Faixas e formatos, que o backend recusaria com 422 ou 500.
     if (agendamento.tipo === 'TRATAMENTO') {
       const invalido = validarEvolucao(evolucao)
       if (invalido) {
