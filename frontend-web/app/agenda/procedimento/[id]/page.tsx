@@ -44,7 +44,12 @@ import {
   Scissors,
   MessageSquare,
   BookOpen,
+  Paperclip,
+  FileSignature,
 } from 'lucide-react'
+import PainelAnexos from '@/components/PainelProntuario/PainelAnexos'
+import PainelPrescricoes from '@/components/PainelProntuario/PainelPrescricoes'
+import PainelAtestados from '@/components/PainelProntuario/PainelAtestados'
 import {
   BloqueadoTag,
   Campo,
@@ -1246,6 +1251,50 @@ export default function ProcedimentoPage({
                     />
                   </>
                 )}
+
+                {/* Documentos do prontuário (RF15/RF16/RF17). Gravam na hora,
+                    fora do "Finalizar consulta": cada painel fala direto com o
+                    seu endpoint, por paciente e não por agendamento. Seguem o
+                    bloqueio das fichas — só com a consulta iniciada — para que
+                    o registro clínico continue amarrado ao atendimento. */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Paperclip size={16} />
+                    Anexos e exames
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <PainelAnexos
+                    pacienteUuid={agendamento.pacienteUuid}
+                    desabilitado={!podeEditar}
+                    variante="card"
+                  />
+                </div>
+
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Pill size={16} />
+                    Prescrições
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <PainelPrescricoes
+                    pacienteUuid={agendamento.pacienteUuid}
+                    desabilitado={!podeEditar}
+                    variante="card"
+                  />
+                </div>
+
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <FileSignature size={16} />
+                    Atestados
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <PainelAtestados
+                    pacienteUuid={agendamento.pacienteUuid}
+                    desabilitado={!podeEditar}
+                    variante="card"
+                  />
+                </div>
               </div>
 
               {/* Barra de ações */}

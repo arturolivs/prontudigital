@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { historicoAPI } from '../../../../lib/historico.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+// A timeline reaproveita a barra de topo, os estados vazios e os botões dos
+// painéis de anexos/prescrições/atestados, que moram no CSS compartilhado.
+import '@/components/PainelProntuario/PainelProntuario.css'
 import {
   HistoricoItem,
   TipoHistorico,
@@ -84,7 +87,7 @@ export default function AbaHistorico({
 
       {loading && (
         <div className="pront-estado">
-          <div className="pac-spinner" />
+          <div className="pnl-spinner" />
           <p>Carregando histórico...</p>
         </div>
       )}
