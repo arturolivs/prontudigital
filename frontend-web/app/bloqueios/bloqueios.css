@@ -442,14 +442,6 @@
 
 .campo-textarea { resize: vertical; min-height: 4.5rem; line-height: 1.5; }
 
-.campo-erro {
-  font-size: 0.75rem;
-  color: var(--color-error);
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
 .modal-rodape {
   display: flex;
   justify-content: flex-end;
