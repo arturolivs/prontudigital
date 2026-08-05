@@ -4,12 +4,14 @@ import com.prontudigital.backend.agendamento.dto.BloqueioHorarioDTO;
 import com.prontudigital.backend.agendamento.dto.BloqueioRecorrenteDTO;
 import com.prontudigital.backend.agendamento.entidades.BloqueioHorario;
 import com.prontudigital.backend.agendamento.entidades.BloqueioRecorrente;
+import com.prontudigital.backend.agendamento.entidades.HorarioTrabalho;
 import com.prontudigital.backend.agendamento.enums.TipoBloqueio;
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoInvalidoException;
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoNaoEncontradoException;
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioRecorrenteRepository;
+import com.prontudigital.backend.agendamento.repositorios.HorarioTrabalhoRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
@@ -39,6 +41,7 @@ class BloqueioHorarioServiceImplTest {
 
     @Mock private BloqueioHorarioRepository repository;
     @Mock private BloqueioRecorrenteRepository recorrenteRepository;
+    @Mock private HorarioTrabalhoRepository horarioTrabalhoRepository;
     @Mock private AgendamentoRepository agendamentoRepository;
     @Mock private UsuarioContexto usuarioContexto;
 
@@ -49,7 +52,8 @@ class BloqueioHorarioServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new BloqueioHorarioServiceImpl(
-                repository, recorrenteRepository, agendamentoRepository, usuarioContexto, permissaoPolicy);
+                repository, recorrenteRepository, horarioTrabalhoRepository,
+                agendamentoRepository, usuarioContexto, permissaoPolicy);
     }
 
     // =========================================================
@@ -323,6 +327,69 @@ class BloqueioHorarioServiceImplTest {
             assertThrows(AgendamentoInvalidoException.class, () -> service.criarRecorrente(request));
             verify(recorrenteRepository, never()).save(any());
         }
+
+        @Test
+        @DisplayName("rejeita regra que cobre todo o expediente do dia")
+        void deveRejeitarRegraQueAnulaExpediente() {
+            BloqueioRecorrenteDTO request =
+                    requestRecorrente(PROFISSIONAL_UUID, LocalTime.of(8, 0), LocalTime.of(18, 0));
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(horarioTrabalhoRepository.findByProfissionalUuidAndDiaSemanaAndAtivoTrue(
+                    PROFISSIONAL_UUID, 1))
+                    .thenReturn(List.of(expediente(LocalTime.of(8, 0), LocalTime.of(18, 0))));
+
+            assertThrows(AgendamentoInvalidoException.class, () -> service.criarRecorrente(request));
+            verify(recorrenteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("aceita regra que cobre so parte do expediente")
+        void deveAceitarRegraParcial() {
+            BloqueioRecorrenteDTO request =
+                    requestRecorrente(PROFISSIONAL_UUID, LocalTime.of(12, 0), LocalTime.of(13, 0));
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(horarioTrabalhoRepository.findByProfissionalUuidAndDiaSemanaAndAtivoTrue(
+                    PROFISSIONAL_UUID, 1))
+                    .thenReturn(List.of(expediente(LocalTime.of(8, 0), LocalTime.of(18, 0))));
+            when(recorrenteRepository.save(any())).thenReturn(regraRecorrente(1));
+
+            assertDoesNotThrow(() -> service.criarRecorrente(request));
+            verify(recorrenteRepository).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita regra que zera o dia somada as regras ja existentes")
+        void deveRejeitarQuandoSomaDasRegrasAnulaExpediente() {
+            BloqueioRecorrenteDTO request =
+                    requestRecorrente(PROFISSIONAL_UUID, LocalTime.of(13, 0), LocalTime.of(18, 0));
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(horarioTrabalhoRepository.findByProfissionalUuidAndDiaSemanaAndAtivoTrue(
+                    PROFISSIONAL_UUID, 1))
+                    .thenReturn(List.of(expediente(LocalTime.of(8, 0), LocalTime.of(18, 0))));
+            when(recorrenteRepository.findByProfissionalUuidAndAtivoTrue(PROFISSIONAL_UUID))
+                    .thenReturn(List.of(regraRecorrenteEm(1, LocalTime.of(8, 0), LocalTime.of(13, 0))));
+
+            assertThrows(AgendamentoInvalidoException.class, () -> service.criarRecorrente(request));
+            verify(recorrenteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("aceita regra em dia sem expediente cadastrado")
+        void deveAceitarDiaSemExpediente() {
+            BloqueioRecorrenteDTO request =
+                    requestRecorrente(PROFISSIONAL_UUID, LocalTime.of(8, 0), LocalTime.of(18, 0));
+
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(horarioTrabalhoRepository.findByProfissionalUuidAndDiaSemanaAndAtivoTrue(
+                    PROFISSIONAL_UUID, 1)).thenReturn(List.of());
+            when(recorrenteRepository.save(any())).thenReturn(regraRecorrente(1));
+
+            assertDoesNotThrow(() -> service.criarRecorrente(request));
+            verify(recorrenteRepository).save(any());
+        }
     }
 
     // =========================================================
@@ -409,15 +476,31 @@ class BloqueioHorarioServiceImplTest {
     }
 
     private static BloqueioRecorrente regraRecorrente(int diaSemana) {
+        return regraRecorrenteEm(diaSemana, LocalTime.of(12, 0), LocalTime.of(13, 0));
+    }
+
+    private static BloqueioRecorrente regraRecorrenteEm(int diaSemana,
+                                                        LocalTime horaInicio, LocalTime horaFim) {
         return BloqueioRecorrente.builder()
                 .id(1L)
                 .uuid(UUID.randomUUID())
                 .profissionalUuid(PROFISSIONAL_UUID)
                 .diaSemana(diaSemana)
-                .horaInicio(LocalTime.of(12, 0))
-                .horaFim(LocalTime.of(13, 0))
+                .horaInicio(horaInicio)
+                .horaFim(horaFim)
                 .motivo("Almoco")
                 .tipo(TipoBloqueio.INDISPONIVEL)
+                .ativo(true)
+                .build();
+    }
+
+    private static HorarioTrabalho expediente(LocalTime horaInicio, LocalTime horaFim) {
+        return HorarioTrabalho.builder()
+                .id(1L)
+                .profissionalUuid(PROFISSIONAL_UUID)
+                .diaSemana(1)
+                .horaInicio(horaInicio)
+                .horaFim(horaFim)
                 .ativo(true)
                 .build();
     }

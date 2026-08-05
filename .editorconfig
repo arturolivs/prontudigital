@@ -1,0 +1,35 @@
+# Convencoes de arquivo do repositorio. VS Code (com a extensao EditorConfig),
+# IntelliJ e Eclipse leem este arquivo automaticamente.
+#
+# O motivo principal e o `charset`: os arquivos do projeto sao UTF-8 sem BOM e,
+# sem esta declaracao, editores no Windows adivinham Windows-1252 e mostram os
+# acentos quebrados (`ç` vira `Ã§`). O caso mais visivel e o
+# backend/src/main/resources/messages.properties, que concentra as mensagens
+# em pt-BR exibidas ao usuario.
+
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# `end_of_line` fica de fora de proposito: o repositorio guarda LF e o
+# core.autocrlf=true entrega CRLF na copia de trabalho no Windows. Declarar o
+# fim de linha aqui brigaria com essa conversao e sujaria o diff de arquivos
+# que ninguem tocou. Quem precisa de EOL fixo ja esta nos .gitattributes
+# (backend/.gitattributes e gateway/.gitattributes, para mvnw e *.cmd).
+
+[*.{java,xml,sql}]
+indent_size = 4
+
+# Duas linhas terminadas em espaco sao uma quebra de linha em Markdown;
+# aparar o espaco final juntaria os paragrafos.
+[*.md]
+trim_trailing_whitespace = false
+
+# Chave=valor, sem indentacao — nada a declarar alem do charset herdado de [*].
+[*.properties]
+indent_size = unset

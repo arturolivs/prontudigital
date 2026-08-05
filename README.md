@@ -8,7 +8,8 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2F16-336791?logo=postgresql)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
-![Testes](https://img.shields.io/badge/testes-316-blue)
+![Testes](https://img.shields.io/badge/testes-331-blue)
+![Cobertura](https://img.shields.io/badge/cobertura-74.8%25-yellow)
 ![Licença](https://img.shields.io/badge/licença-proprietária-lightgrey)
 
 Sistema de prontuário eletrônico e agendamento para clínicas de enfermagem especializadas em **podologia** e **tratamento de feridas**. Permite o cadastro de pacientes, agendamento de consultas, registro de evoluções clínicas e envio automatizado de notificações via WhatsApp.
@@ -47,6 +48,7 @@ Sistema de prontuário eletrônico e agendamento para clínicas de enfermagem es
 - Agendamento com validação contra o expediente cadastrado do profissional
 - Visualização por dia, semana e mês
 - Bloqueios pontuais e recorrentes; lista de espera para remarcação
+- Expediente e bloqueio recorrente são validados um contra o outro: o sistema recusa a combinação que zeraria o dia (intervalo de almoço e demais coberturas parciais continuam válidos)
 - Confirmação por **WhatsApp** com link tokenizado; cancelamento automático de não confirmados
 
 **Prontuário eletrônico**
@@ -54,6 +56,7 @@ Sistema de prontuário eletrônico e agendamento para clínicas de enfermagem es
 - Ficha de Evolução de Enfermagem e Ficha de Evolução Diária de Curativos, com validação de campos obrigatórios ao finalizar a consulta
 - Anexos de exames e documentos (imagem/PDF), prescrições e histórico clínico
 - Atestados de comparecimento e afastamento em PDF
+- Anexos, prescrições e atestados ficam disponíveis **nos dois pontos de uso**: nas abas do prontuário do paciente e como seções da tela de atendimento, para serem registrados durante a própria consulta
 
 **Relatórios**
 - Atendimentos e taxa de ocupação, exportáveis em PDF e XLSX
@@ -244,6 +247,7 @@ prontudigital/
 │   │   │   ├── entidades/                   # Agendamento, EvolucaoCurativo, HorarioTrabalho…
 │   │   │   ├── seguranca/                   # AgendamentoPermissaoPolicy
 │   │   │   └── utils/                       # AgendamentoUtil (montagem de DTOs)
+│   │   │                                    # ExpedienteEfetivo (expediente − bloqueios)
 │   │   ├── prontuario/                      # PEP: anamnese, anexos, prescrições, atestados
 │   │   │   └── seguranca/                   # ProntuarioPermissaoPolicy (RN03)
 │   │   ├── relatorio/                       # RF19/RF20 + exportação PDF/XLSX
@@ -271,10 +275,11 @@ prontudigital/
 │   │   ├── login/                           # Entrada (exibe a marca da clínica)
 │   │   ├── agendar/                         # Agendamento público
 │   │   ├── agenda/                          # Agenda do profissional
-│   │   │   └── procedimento/[id]/           # Atendimento: fichas clínicas + cadastro
+│   │   │   └── procedimento/[id]/           # Atendimento: fichas clínicas, cadastro,
+│   │   │                                    # anexos, prescrições e atestados
 │   │   ├── minha-agenda/                    # Agenda do paciente
 │   │   ├── pacientes/                       # Lista de pacientes
-│   │   │   └── [pacienteUuid]/prontuario/   # PEP com abas
+│   │   │   └── [pacienteUuid]/prontuario/   # PEP com abas (Histórico é exclusivo daqui)
 │   │   ├── prontuarios/                     # Acesso direto ao prontuário
 │   │   ├── bloqueios/  ·  relatorios/  ·  perfil/
 │   │   ├── dashboard/                       # Área administrativa
@@ -282,6 +287,9 @@ prontudigital/
 │   │   │   └── configuracoes/               # Marca e dados da clínica
 │   │   └── api/auth/                        # Route Handlers (session, refresh)
 │   ├── components/                          # Layout, Modal, Toast, SelectAutocomplete…
+│   │   └── PainelProntuario/                # Anexos, prescrições e atestados —
+│   │                                        # compartilhados entre o prontuário e
+│   │                                        # a tela de atendimento (prop `variante`)
 │   ├── contexts/                            # AuthContext, ToastContext
 │   ├── lib/                                 # Serviços de API, máscaras, mensagens
 │   ├── tipos/                               # Tipos TypeScript espelhando os DTOs
@@ -304,6 +312,7 @@ prontudigital/
 │       └── .env.prod.example
 │
 ├── ajustar_campos/                          # PDFs-modelo das fichas clínicas
+├── .editorconfig                            # UTF-8 e indentação — ver nota em Testes
 ├── ANALISE_DEPLOY.md                        # Comparativo de plataformas de hospedagem
 ├── PLANO_PROXIMOS_PASSOS.md
 ├── Requisitos.md                            # RFs e RNFs
@@ -314,7 +323,10 @@ prontudigital/
 
 ## 🗄 Banco de Dados
 
-O esquema é gerenciado pelo **Flyway** com 28 migrações versionadas localizadas em `backend/src/main/resources/db/migracoes/`.
+O esquema é gerenciado pelo **Flyway**: são **25 migrações**, numeradas de `V1` a `V28`,
+em `backend/src/main/resources/db/migracoes/`. As versões **V14, V15 e V21 não existem** —
+foram descartadas durante o desenvolvimento e as lacunas ficaram, porque renumerar
+migração já aplicada quebraria o checksum do Flyway.
 
 | Migration | Tabela / Alteração | Descrição |
 |---|---|---|
@@ -327,14 +339,22 @@ O esquema é gerenciado pelo **Flyway** com 28 migrações versionadas localizad
 | V7 | `fila_espera` | Fila para reagendamento automático |
 | V8 | — | Dados de exemplo |
 | V9 | `historico_agendamentos` | Audit log de mudanças de status |
-| V10 | — | Agendamentos de exemplo |
-| V11 | `log_notificacoes_whatsapp` | Log de notificações enviadas |
-| V12 | `acesso_ativado` | Flag de ativação de credenciais de paciente |
-| V13 | `tipo_procedimento` | Tipo do procedimento (PODIATRIA, TRATAMENTO_FERIDAS) |
-| V14 | `local_atendimento / paciente_acamado` | Local e status de mobilidade |
-| V15 | — | Campos de evolução clínica (dimensões, exsudato, etc.) |
-| V16 | `evolucoes_clinicas` | Separação da evolução clínica em tabela própria |
-| V17 | `bloqueios_recorrentes` | Regras de bloqueio por dia da semana |
+| V10 | `log_notificacoes_whatsapp` | Log de notificações enviadas |
+| V11 | `usuarios.acesso_ativado` | Flag de ativação de credenciais de paciente |
+| V12 | `agendamentos.tipo_procedimento` | Tipo do procedimento (depois migrado para tabela) |
+| V13 | `agendamentos.local_atendimento / paciente_acamado` | Local e status de mobilidade |
+| V16 | `bloqueios_recorrentes` | Regras de bloqueio por dia da semana |
+| V17 | `codigos_recuperacao_senha` | Códigos de recuperação de senha |
+| V18 | `anamneses` | Anamnese do paciente (1:1) |
+| V19 | `prescricoes` | Prescrições de medicamentos e cuidados |
+| V20 | `anexos` | Metadados dos anexos (o binário fica em volume) |
+| V22 | `procedimentos` | Procedimentos em tabela, substituindo o enum (RF06) |
+| V23 | `evolucoes_enfermagem` | Ficha de Evolução de Enfermagem (avaliação) |
+| V24 | `evolucoes_curativos` | Ficha de Evolução Diária – Curativos (tratamento) |
+| V25 | `usuarios` (colunas) | CPF, endereço e COREN (RF04) |
+| V26 | `horarios_trabalho` | Expediente semanal do profissional (RF05) |
+| V27 | `atestados` | Atestados emitidos (RF17) |
+| V28 | `configuracao_clinica` | Marca e dados da clínica (white-label) |
 
 ```mermaid
 erDiagram
@@ -375,13 +395,66 @@ erDiagram
         boolean paciente_acamado
         string observacoes
     }
-    EVOLUCOES_CLINICAS {
+    EVOLUCOES_ENFERMAGEM {
         uuid id PK
         uuid agendamento_id FK
-        string descricao
-        string dimensoes_ferida
+        date data_avaliacao
+        string localizacao_anatomica
+        string tipo_ferida
+        numeric comprimento
+        numeric largura
+        string tecido_leito
+    }
+    EVOLUCOES_CURATIVOS {
+        uuid id PK
+        uuid agendamento_id FK
+        numeric comprimento
+        numeric largura
+        numeric area_aproximada
+        string tecido
         string exsudato
+        int dor_escala
+        string evolucao
+    }
+    ANAMNESES {
+        uuid id PK
+        uuid paciente_uuid FK
+        string motivo_consulta
+        boolean diabetes_mellitus
+        boolean hipertensao_arterial
+        date data_inicio_aproximada
+    }
+    PRESCRICOES {
+        uuid id PK
+        uuid paciente_uuid FK
+        string tipo
+        string descricao
+        string posologia
         timestamp criado_em
+    }
+    ANEXOS {
+        uuid id PK
+        uuid paciente_uuid FK
+        string nome_original
+        string tipo_conteudo
+        bigint tamanho_bytes
+        string chave_armazenamento
+    }
+    ATESTADOS {
+        uuid id PK
+        uuid paciente_uuid FK
+        string tipo
+        int dias_afastamento
+        string cid
+        timestamp criado_em
+    }
+    HORARIOS_TRABALHO {
+        uuid id PK
+        uuid profissional_uuid FK
+        int dia_semana
+        time hora_inicio
+        time hora_fim
+        boolean ativo
     }
     BLOQUEIOS_HORARIO {
         uuid id PK
@@ -424,13 +497,28 @@ erDiagram
     USUARIOS ||--o{ REFRESH_TOKENS : "tem"
     USUARIOS ||--o{ AGENDAMENTOS : "paciente"
     USUARIOS ||--o{ AGENDAMENTOS : "profissional"
-    AGENDAMENTOS ||--o| EVOLUCOES_CLINICAS : "tem"
+    AGENDAMENTOS ||--o| EVOLUCOES_ENFERMAGEM : "avaliação"
+    AGENDAMENTOS ||--o| EVOLUCOES_CURATIVOS : "tratamento"
     AGENDAMENTOS ||--o{ HISTORICO_AGENDAMENTOS : "registra"
     AGENDAMENTOS ||--o{ LOG_NOTIFICACOES_WHATSAPP : "gera"
+    USUARIOS ||--o| ANAMNESES : "possui"
+    USUARIOS ||--o{ PRESCRICOES : "recebe"
+    USUARIOS ||--o{ ANEXOS : "possui"
+    USUARIOS ||--o{ ATESTADOS : "recebe"
     USUARIOS ||--o{ BLOQUEIOS_HORARIO : "define"
     USUARIOS ||--o{ BLOQUEIOS_RECORRENTES : "define"
+    USUARIOS ||--o{ HORARIOS_TRABALHO : "define"
     USUARIOS ||--o{ FILA_ESPERA : "entra em"
 ```
+
+> As duas fichas clínicas são **1:1 com o agendamento e mutuamente exclusivas**: o
+> tipo `AVALIACAO` grava em `evolucoes_enfermagem`, o `TRATAMENTO` em
+> `evolucoes_curativos`, e o backend recusa a ficha que não corresponde ao tipo.
+> Já a anamnese é **1:1 com o paciente**, não com a consulta — acompanha a pessoa
+> e é editada a cada nova avaliação.
+>
+> As tabelas `procedimentos`, `configuracao_clinica` e `codigos_recuperacao_senha`
+> ficaram fora do diagrama por não terem relacionamento com as demais.
 
 ---
 
@@ -549,7 +637,7 @@ depois que o expediente é definido.
 
 | Método | Endpoint | Descrição | Acesso |
 |---|---|---|---|
-| `POST` | `/` | Cria janela de atendimento | ADMIN / PROFISSIONAL (própria agenda) |
+| `POST` | `/` | Cria janela de atendimento (422 se um bloqueio recorrente já cobrir o intervalo inteiro) | ADMIN / PROFISSIONAL (própria agenda) |
 | `GET` | `/?profissionalUuid=` | Lista janelas do profissional | Autenticado |
 | `GET` | `/public?profissionalUuid=` | Idem, para a tela pública de agendamento | Público |
 | `DELETE` | `/{id}` | Remove janela | ADMIN / PROFISSIONAL (própria agenda) |
@@ -566,9 +654,28 @@ comparação.
 | `GET` | `/` | Lista bloqueios por profissional/período | PROFISSIONAL |
 | `DELETE` | `/{id}` | Remove bloqueio | PROFISSIONAL |
 | `GET` | `/public` | Lista pública (sem autenticação) | Público |
-| `POST` | `/recorrentes` | Cria regra recorrente por dia da semana | PROFISSIONAL |
+| `POST` | `/recorrentes` | Cria regra recorrente por dia da semana (422 se zerar o expediente) | PROFISSIONAL |
 | `GET` | `/recorrentes` | Lista regras recorrentes | PROFISSIONAL |
 | `DELETE` | `/recorrentes/{id}` | Remove regra recorrente | PROFISSIONAL |
+
+#### Coerência entre expediente e bloqueio
+
+As duas tabelas são cadastradas por telas diferentes e, ao agendar, são aplicadas
+em **AND**: o atendimento precisa caber no expediente **e** não colidir com bloqueio.
+Nada impedia, porém, gravar um par que se autoanula — expediente de sábado
+08:00–18:00 com folga recorrente de sábado 08:00–18:00. O agendamento não quebrava
+(o bloqueio vence), mas o sábado ficava inteiro inagendável enquanto a tela seguia
+anunciando expediente.
+
+`ExpedienteEfetivo` (em `agendamento/utils/`) subtrai os bloqueios das janelas de
+expediente, e os dois serviços recusam a operação que não deixa **nenhum minuto útil**
+no dia. A verificação considera as regras já existentes, porque duas folgas de meio
+período são legítimas isoladamente e anulam o dia quando somadas.
+
+Duas coisas continuam permitidas de propósito: **cobertura parcial** — o intervalo
+de almoço é o caso de uso do bloqueio recorrente — e **regra em dia sem expediente
+cadastrado**, já que aí não há o que anular e o bloqueio é a única proteção do
+profissional que nunca definiu expediente.
 
 ### Confirmação WhatsApp — `/api/confirmacao` (Público)
 
@@ -809,10 +916,15 @@ npm run dev
 
 ## 🧪 Testes
 
-**316 testes** no backend: 16 classes unitárias com Mockito cobrindo os *service
-impls*, mais um `@SpringBootTest` que valida a subida do contexto. Os testes usam
-**H2 em memória** com `MODE=PostgreSQL` (perfil `test`), com Flyway desativado e
-`ddl-auto: create-drop` — não tocam o banco de desenvolvimento.
+**331 testes** no backend, em 19 classes:
+
+- **16 classes unitárias com Mockito** cobrindo os *service impls*
+- `ExpedienteEfetivoTest` — subtração de janelas entre expediente e bloqueios
+- `MensagensTest` — guarda o encoding do `messages.properties` (ver nota abaixo)
+- `ProntudigitalApplicationTests` — `@SpringBootTest`, valida a subida do contexto
+
+Os testes usam **H2 em memória** com `MODE=PostgreSQL` (perfil `test`), com Flyway
+desativado e `ddl-auto: create-drop` — não tocam o banco de desenvolvimento.
 
 ```bash
 cd backend
@@ -821,14 +933,22 @@ cd backend
 ./mvnw test jacoco:report         # relatório em target/site/jacoco/index.html
 ```
 
-Cobertura atual (JaCoCo): **78,7% das instruções**, sendo **94,7% na camada
+Cobertura atual (JaCoCo): **74,8% das instruções**, sendo **91,5% na camada
 `servicos.impl`**. Os controllers aparecem baixos porque a estratégia é testar a
-camada de serviço — não há testes de `@WebMvcTest`.
+camada de serviço — não há testes de `@WebMvcTest`. O `AgendamentoUtil`
+(`agendamento/utils/`) é o maior ponto descoberto do projeto, com ~2% das
+instruções cobertas: ele monta DTOs e só é exercitado indiretamente.
 
-> ⚠️ **Falha conhecida:** `MensagensTest.bundleNaoTemCaractereDeSubstituicao`
-> acusa `erro.validacao.titulo` com um byte Latin-1 (`á` = `0xE1`) em
-> `messages.properties`, lido como UTF-8. O teste está certo e o arquivo errado;
-> o efeito chega ao usuário como *"Dados inv�lidos"*.
+> A suíte imprime linhas `ERROR` do logger durante a execução (*"API fora do ar"*,
+> *"disco cheio"*). São esperadas: os testes de caminho de falha provocam essas
+> condições de propósito. O que importa é o `BUILD SUCCESS` ao final.
+
+**Sobre o `MensagensTest`:** o `messages.properties` concentra as mensagens em
+pt-BR exibidas ao usuário e já teve dezenas de acentos corrompidos em U+FFFD. O
+teste lê o arquivo como UTF-8 e falha se o caractere de substituição reaparecer.
+Se você editar esse arquivo com um editor configurado em ANSI/Windows-1252, a
+suíte vai acusar — é o comportamento desejado. O `.editorconfig` na raiz existe
+justamente para evitar isso.
 
 ### Frontend
 
@@ -897,6 +1017,7 @@ graph LR
 | Mensagens ao usuário | Nunca literais no código — use `Mensagens.get()` (backend) e `MENSAGENS` (frontend) |
 | Cores | Nunca hex literal — sempre `var(--color-*)` de `app/globals.css` |
 | Migrações | **Nunca edite uma migração já aplicada** em ambiente compartilhado; crie a próxima versão |
+| Encoding | UTF-8 em todos os arquivos. O `.editorconfig` da raiz declara isso — no VS Code, exige a extensão *EditorConfig for VS Code*; IntelliJ e Eclipse leem sem plugin |
 | Commits | Mensagem no imperativo, descrevendo o efeito (`Valida campos obrigatórios ao finalizar consulta`) |
 | Testes | Todo `ServiceImpl` novo nasce com classe de teste correspondente |
 
@@ -957,3 +1078,10 @@ As decisões de arquitetura e hospedagem levam isso em conta — ver
   prontuário com download quebrado — o `backup.sh` cobre os dois.
 - No Windows, criar uma **rota nova** exige reiniciar o container do frontend: o
   watcher do Turbopack não recebe eventos de criação de diretório pelo bind mount.
+- O `messages.properties` é UTF-8 **sem BOM**. Não adicione BOM para "consertar" a
+  exibição em editores: o `java.util.Properties` não trata o BOM como espaço em
+  branco e ele viraria parte da primeira chave. O caminho é configurar o editor —
+  ver a linha *Encoding* em [Como Contribuir](#-como-contribuir).
+- As migrações pulam **V14, V15 e V21**. É intencional; não reaproveite esses
+  números, porque um ambiente que já rodou as versões seguintes não aplicaria uma
+  migração anterior sem `outOfOrder`.
