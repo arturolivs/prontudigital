@@ -616,6 +616,15 @@
 }
 
 
+/* Dia da semana sem nenhuma janela de expediente do profissional (RF05) */
+.slots-aviso {
+  margin: 0;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
 /* ── Loading state ── */
 .agendar-loading {
   display: flex;

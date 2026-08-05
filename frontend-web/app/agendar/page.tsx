@@ -9,6 +9,8 @@ import {
   ProfissionalPublico,
 } from '../../lib/agendamento-publico.service'
 import { BloqueioHorario } from '../../tipos/bloqueio'
+import { HorarioTrabalho } from '../../tipos/horarioTrabalho'
+import { horarioTrabalhoAPI } from '../../lib/horarioTrabalho.service'
 import { Agendamento } from '../../tipos/agendamento'
 import { Procedimento } from '../../tipos/procedimento'
 import { procedimentoAPI } from '../../lib/procedimento.service'
@@ -70,6 +72,49 @@ const adicionarHora = (slot: string): string => {
   return `${String(total).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
+/** Minutos desde a meia-noite. Aceita "HH:mm" e o "HH:mm:ss" que a API devolve. */
+const emMinutos = (hora: string): number => {
+  const [h, m] = hora.split(':').map(Number)
+  return h * 60 + m
+}
+
+/** ISO-8601: 1=Segunda … 7=Domingo. `Date.getDay()` devolve 0 para domingo. */
+const diaSemanaISO = (data: string): number => {
+  const dia = new Date(`${data}T00:00:00`).getDay()
+  return dia === 0 ? 7 : dia
+}
+
+/** Janelas de expediente do profissional no dia da semana daquela data. */
+const expedienteDoDia = (
+  data: string,
+  horarios: HorarioTrabalho[],
+): HorarioTrabalho[] => horarios.filter(h => h.diaSemana === diaSemanaISO(data))
+
+/**
+ * O atendimento precisa caber inteiro numa janela de expediente (RF05) — a
+ * mesma regra que `AgendamentoServiceImpl.validarHorarioTrabalho` aplica no
+ * backend. Sem isto a tela oferecia horarios que o backend recusava só na
+ * confirmação, no fim do fluxo de quatro etapas.
+ *
+ * Profissional sem *nenhuma* janela cadastrada nao e restringido, espelhando o
+ * `existsByProfissionalUuidAndAtivoTrue` do backend: a regra so passa a valer
+ * depois que alguem define o expediente.
+ */
+const foraDoExpediente = (
+  slot: string,
+  data: string,
+  horarios: HorarioTrabalho[],
+): boolean => {
+  if (horarios.length === 0) return false
+
+  const inicio = emMinutos(slot)
+  const fim = emMinutos(adicionarHora(slot))
+
+  return !expedienteDoDia(data, horarios).some(
+    h => inicio >= emMinutos(h.horaInicio) && fim <= emMinutos(h.horaFim),
+  )
+}
+
 const formatarDataExibicao = (data: string): string => {
   const d = new Date(data + 'T00:00:00')
   return d.toLocaleDateString('pt-BR', {
@@ -114,6 +159,9 @@ export default function AgendarPage() {
   const [profissionais, setProfissionais] = useState<ProfissionalPublico[]>([])
   const [procedimentos, setProcedimentos] = useState<Procedimento[]>([])
   const [bloqueios, setBloqueios] = useState<BloqueioHorario[]>([])
+  const [horariosTrabalho, setHorariosTrabalho] = useState<HorarioTrabalho[]>(
+    [],
+  )
 
   /* loading / erro */
   const [carregandoProf, setCarregandoProf] = useState(true)
@@ -150,30 +198,55 @@ export default function AgendarPage() {
       )
   }, [])
 
-  /* ── carregar bloqueios ao avançar para etapa 2 ── */
-  const carregarBloqueios = async (prof: ProfissionalPublico, d: string) => {
+  /* ── carregar disponibilidade ao avançar para etapa 2 ── */
+  //
+  // Bloqueios e expediente vêm juntos porque os dois decidem se um slot pode
+  // ser oferecido; buscá-los em chamadas separadas deixaria a grade renderizar
+  // com metade da informação. O expediente não depende da data, mas recarregá-lo
+  // na troca de dia custa pouco e evita ter de sincronizar dois estados de
+  // carregamento.
+  const carregarDisponibilidade = async (
+    prof: ProfissionalPublico,
+    d: string,
+  ) => {
     setCarregandoSlots(true)
     setSlot(null)
-    try {
-      const lista = await agendamentoPublicoAPI.listarBloqueios(prof.uuid, d)
-      setBloqueios(lista)
-    } catch {
-      setBloqueios([])
-    } finally {
-      setCarregandoSlots(false)
+    const [bloqueiosResp, expedienteResp] = await Promise.allSettled([
+      agendamentoPublicoAPI.listarBloqueios(prof.uuid, d),
+      horarioTrabalhoAPI.listarPublico(prof.uuid),
+    ])
+
+    setBloqueios(
+      bloqueiosResp.status === 'fulfilled' ? bloqueiosResp.value : [],
+    )
+    // Lista vazia significa "sem restrição de expediente", então uma falha de
+    // rede aqui não pode virar lista vazia em silêncio: seria oferecer horário
+    // que o backend recusa. Avisa e mantém o que já havia.
+    if (expedienteResp.status === 'fulfilled') {
+      setHorariosTrabalho(expedienteResp.value)
+    } else {
+      exibirNotificacao(MENSAGENS.erro.carregarHorariosTrabalho, 'error', 6000)
     }
+
+    setCarregandoSlots(false)
   }
 
   const irParaEtapa2 = () => {
     if (!profissional) return
-    carregarBloqueios(profissional, data)
+    carregarDisponibilidade(profissional, data)
     setEtapa(2)
   }
 
   const handleDataChange = (novaData: string) => {
     setData(novaData)
-    if (profissional) carregarBloqueios(profissional, novaData)
+    if (profissional) carregarDisponibilidade(profissional, novaData)
   }
+
+  // Com expediente cadastrado mas nenhuma janela no dia escolhido, todos os
+  // slots ficariam desabilitados sem explicação. Vale dizer o motivo.
+  const semExpedienteNoDia =
+    horariosTrabalho.length > 0 &&
+    expedienteDoDia(data, horariosTrabalho).length === 0
 
   /* ── autenticação na etapa 3 ── */
   const handleLogin = async (e: React.FormEvent) => {
@@ -269,6 +342,7 @@ export default function AgendarPage() {
     setPacienteUuid(null)
     setAgendamento(null)
     setBloqueios([])
+    setHorariosTrabalho([])
     setLoginForm({ username: '', senha: '' })
     setCadastroForm({
       nomeCompleto: '',
@@ -453,7 +527,7 @@ export default function AgendarPage() {
                   </span>
                   <span className="legenda-item">
                     <span className="legenda-cor legenda-cor--bloqueado" />
-                    Bloqueado
+                    Indisponível
                   </span>
                 </div>
               </div>
@@ -463,18 +537,33 @@ export default function AgendarPage() {
                   <div className="spinner-sm" />
                   Verificando disponibilidade…
                 </div>
+              ) : semExpedienteNoDia ? (
+                <p className="slots-aviso">
+                  O profissional não atende neste dia da semana. Escolha outra
+                  data.
+                </p>
               ) : (
                 <div className="slots-grid">
                   {SLOTS_HORA.map(s => {
                     const bloqueado = slotBloqueado(s, data, bloqueios)
+                    const foraExpediente = foraDoExpediente(
+                      s,
+                      data,
+                      horariosTrabalho,
+                    )
+                    const indisponivel = bloqueado || foraExpediente
                     return (
                       <button
                         key={s}
                         className={`slot-btn${slot === s ? ' selecionado' : ''}`}
-                        disabled={bloqueado}
+                        disabled={indisponivel}
                         onClick={() => setSlot(s)}
                         title={
-                          bloqueado ? 'Horário indisponível' : `Agendar às ${s}`
+                          foraExpediente
+                            ? 'Fora do horário de atendimento do profissional'
+                            : bloqueado
+                              ? 'Horário indisponível'
+                              : `Agendar às ${s}`
                         }
                       >
                         {s}
