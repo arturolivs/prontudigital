@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNotificacao } from '../../contexts/ToastContext'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
@@ -10,6 +11,7 @@ import { LoginRequisicao } from '@/tipos/autenticacao'
 export default function Login() {
   const [username, setUsername] = useState('')
   const [senha, setSenha] = useState('')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { login, usuario, isLoading: authLoading } = useAuth()
   const { exibirNotificacao } = useNotificacao()
@@ -186,16 +188,32 @@ export default function Login() {
                 >
                   Senha
                 </label>
-                <input
-                  id="senha"
-                  type="password"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
-                  placeholder="Digite sua senha"
-                  value={senha}
-                  onChange={e => setSenha(e.target.value)}
-                  autoComplete="current-password"
-                />
+                <div className="relative">
+                  <input
+                    id="senha"
+                    type={mostrarSenha ? 'text' : 'password'}
+                    required
+                    className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
+                    placeholder="Digite sua senha"
+                    value={senha}
+                    onChange={e => setSenha(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                  {/* Fora da ordem de tabulação, como em /perfil: o Tab deve ir
+                      do campo de senha direto para "Entrar no sistema". */}
+                  <button
+                    type="button"
+                    onClick={() => setMostrarSenha(v => !v)}
+                    tabIndex={-1}
+                    aria-label={
+                      mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'
+                    }
+                    aria-pressed={mostrarSenha}
+                    className="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 hover:text-[var(--color-brand)] transition-colors"
+                  >
+                    {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <button

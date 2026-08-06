@@ -35,6 +35,34 @@ const PERFIS_ROTULO: Record<string, string> = {
   USUARIO: 'Usuário',
 }
 
+// Ordem em que os campos aparecem na tela — é ela que define qual erro recebe
+// o foco. Não dá para usar `Object.keys(erros)`: essa ordem é a de inserção,
+// ou seja, a da função de validação, que não precisa coincidir com a visual.
+// Os valores são os `id` dos inputs.
+const CAMPOS_PERFIL = ['nomeCompleto', 'email']
+const CAMPOS_SENHA = ['senhaAtual', 'novaSenha', 'confirmarSenha']
+
+/**
+ * Leva o usuário ao primeiro campo com erro, depois de um submit recusado.
+ *
+ * Sem isto, num formulário longo como o do perfil, a mensagem podia ficar
+ * inteiramente fora da área visível: o clique em "Salvar" não parecia fazer
+ * nada.
+ */
+function focarPrimeiroErro(erros: Record<string, string>, ordem: string[]) {
+  const campo = ordem.find(id => erros[id])
+  if (!campo) return
+
+  const elemento = document.getElementById(campo)
+  if (!elemento) return
+
+  // `focus()` sozinho já rola a página, mas de forma abrupta e deixando o campo
+  // colado na borda. `preventScroll` desliga esse salto para o scrollIntoView
+  // logo abaixo centralizar o campo com animação.
+  elemento.focus({ preventScroll: true })
+  elemento.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
 export default function PerfilPage() {
   const { temPerfil } = useAuth()
   const { exibirNotificacao } = useNotificacao()
@@ -106,17 +134,20 @@ export default function PerfilPage() {
     }
   }
 
-  const validarPerfil = (): boolean => {
+  // Devolvem os erros em vez de um booleano: `setErros` é assíncrono, então
+  // quem chama não conseguiria ler o estado logo depois para saber em qual
+  // campo dar foco.
+  const validarPerfil = (): Record<string, string> => {
     const novosErros: Record<string, string> = {}
     if (!nomeCompleto.trim())
       novosErros.nomeCompleto = MENSAGENS.validacao.nomeObrigatorio
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       novosErros.email = MENSAGENS.validacao.emailInvalido
     setErros(novosErros)
-    return Object.keys(novosErros).length === 0
+    return novosErros
   }
 
-  const validarSenha = (): boolean => {
+  const validarSenha = (): Record<string, string> => {
     const novosErros: Record<string, string> = {}
     if (!senhaAtual)
       novosErros.senhaAtual = MENSAGENS.validacao.senhaAtualObrigatoria
@@ -129,11 +160,16 @@ export default function PerfilPage() {
     else if (novaSenha !== confirmarSenha)
       novosErros.confirmarSenha = MENSAGENS.validacao.senhasNaoCoincidem
     setErrosSenha(novosErros)
-    return Object.keys(novosErros).length === 0
+    return novosErros
   }
 
   const handleSalvarPerfil = async () => {
-    if (!validarPerfil() || !dadosUsuario) return
+    const errosValidacao = validarPerfil()
+    if (Object.keys(errosValidacao).length > 0) {
+      focarPrimeiroErro(errosValidacao, CAMPOS_PERFIL)
+      return
+    }
+    if (!dadosUsuario) return
     try {
       setSalvando(true)
       const enderecoLimpo = {
@@ -176,7 +212,12 @@ export default function PerfilPage() {
   }
 
   const handleAlterarSenha = async () => {
-    if (!validarSenha() || !dadosUsuario) return
+    const errosValidacao = validarSenha()
+    if (Object.keys(errosValidacao).length > 0) {
+      focarPrimeiroErro(errosValidacao, CAMPOS_SENHA)
+      return
+    }
+    if (!dadosUsuario) return
     try {
       setSalvandoSenha(true)
       await usuariosAPI.alterarSenha(dadosUsuario.id, senhaAtual, novaSenha)
@@ -188,7 +229,10 @@ export default function PerfilPage() {
     } catch (err: any) {
       const mensagem = mensagemErro(err, MENSAGENS.erro.alterarSenha)
       if (err.response?.status === 422) {
+        // Senha atual incorreta: o backend só descobre no submit, mas o erro
+        // pertence a um campo — leva o usuário até ele como na validação local.
         setErrosSenha(prev => ({ ...prev, senhaAtual: mensagem }))
+        focarPrimeiroErro({ senhaAtual: mensagem }, CAMPOS_SENHA)
       } else {
         exibirNotificacao(mensagem, 'error')
       }
