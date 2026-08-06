@@ -25,6 +25,7 @@ public class UsuarioUtil {
                 .endereco(converterEnderecoParaDTO(usuario.getEndereco()))
                 .coren(usuario.getCoren())
                 .especialidade(usuario.getEspecialidade())
+                .temAvatar(usuario.temAvatar())
                 .ativo(usuario.getAtivo())
                 .acessoAtivado(usuario.getAcessoAtivado())
                 .perfis(usuario.getPerfis().stream()

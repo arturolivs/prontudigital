@@ -62,6 +62,18 @@ public class Usuario {
     @Column(name = "especialidade", length = 100)
     private String especialidade;
 
+    // ── Avatar ───────────────────────────────────────────────────
+    //
+    // So a referencia fica aqui; o binario vive no ArmazenamentoService.
+    // As duas colunas andam juntas — ver o CHECK da migracao V29.
+
+    /** Chave do arquivo no armazenamento (ex.: {@code avatares/<uuid>.png}). */
+    @Column(name = "avatar_chave", length = 255)
+    private String avatarChave;
+
+    @Column(name = "avatar_tipo_conteudo", length = 100)
+    private String avatarTipoConteudo;
+
     @Column(name = "ativo", nullable = false)
     @Builder.Default
     private Boolean ativo = true;
@@ -85,6 +97,11 @@ public class Usuario {
     @PreUpdate
     protected void onUpdate() {
         atualizadoEm = Instant.now();
+    }
+
+    /** Verdadeiro quando ha imagem de avatar gravada no armazenamento. */
+    public boolean temAvatar() {
+        return avatarChave != null && !avatarChave.isBlank();
     }
 
     public void adicionarPerfil(Perfil perfil) {

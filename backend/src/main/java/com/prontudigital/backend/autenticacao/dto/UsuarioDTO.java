@@ -54,6 +54,10 @@ public record UsuarioDTO(
         @Size(max = 100, message = "Especialidade deve ter no máximo 100 caracteres")
         String especialidade,
 
+        @Schema(description = "Indica se o usuário possui avatar cadastrado. "
+                + "O binario e obtido em GET /api/usuarios/me/avatar")
+        Boolean temAvatar,
+
         @Schema(description = "Indica se o usuário esta ativo")
         Boolean ativo,
 

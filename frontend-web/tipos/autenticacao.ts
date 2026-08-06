@@ -25,6 +25,8 @@ export interface Usuario {
   coren?: string
   /** Especialidade do profissional (RF05). */
   especialidade?: string
+  /** Há avatar gravado; o binário vem de `GET /api/usuarios/me/avatar`. */
+  temAvatar?: boolean
   ativo: boolean
   acessoAtivado: boolean
   perfis: string[]
