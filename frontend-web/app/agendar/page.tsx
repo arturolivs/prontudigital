@@ -9,12 +9,18 @@ import {
   ProfissionalPublico,
 } from '../../lib/agendamento-publico.service'
 import { BloqueioHorario } from '../../tipos/bloqueio'
+import { HorarioTrabalho } from '../../tipos/horarioTrabalho'
+import { horarioTrabalhoAPI } from '../../lib/horarioTrabalho.service'
 import { Agendamento } from '../../tipos/agendamento'
 import { Procedimento } from '../../tipos/procedimento'
 import { procedimentoAPI } from '../../lib/procedimento.service'
-import { LocalAtendimento, ROTULO_LOCAL_ATENDIMENTO } from '../../tipos/LocalAtendimento'
+import {
+  LocalAtendimento,
+  ROTULO_LOCAL_ATENDIMENTO,
+} from '../../tipos/LocalAtendimento'
 import { mascaraTelefone } from '../../lib/mascaras'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+import { useNotificacao } from '@/contexts/ToastContext'
 import './agendar.css'
 
 /* ── helpers ── */
@@ -66,6 +72,49 @@ const adicionarHora = (slot: string): string => {
   return `${String(total).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
+/** Minutos desde a meia-noite. Aceita "HH:mm" e o "HH:mm:ss" que a API devolve. */
+const emMinutos = (hora: string): number => {
+  const [h, m] = hora.split(':').map(Number)
+  return h * 60 + m
+}
+
+/** ISO-8601: 1=Segunda … 7=Domingo. `Date.getDay()` devolve 0 para domingo. */
+const diaSemanaISO = (data: string): number => {
+  const dia = new Date(`${data}T00:00:00`).getDay()
+  return dia === 0 ? 7 : dia
+}
+
+/** Janelas de expediente do profissional no dia da semana daquela data. */
+const expedienteDoDia = (
+  data: string,
+  horarios: HorarioTrabalho[],
+): HorarioTrabalho[] => horarios.filter(h => h.diaSemana === diaSemanaISO(data))
+
+/**
+ * O atendimento precisa caber inteiro numa janela de expediente (RF05) — a
+ * mesma regra que `AgendamentoServiceImpl.validarHorarioTrabalho` aplica no
+ * backend. Sem isto a tela oferecia horarios que o backend recusava só na
+ * confirmação, no fim do fluxo de quatro etapas.
+ *
+ * Profissional sem *nenhuma* janela cadastrada nao e restringido, espelhando o
+ * `existsByProfissionalUuidAndAtivoTrue` do backend: a regra so passa a valer
+ * depois que alguem define o expediente.
+ */
+const foraDoExpediente = (
+  slot: string,
+  data: string,
+  horarios: HorarioTrabalho[],
+): boolean => {
+  if (horarios.length === 0) return false
+
+  const inicio = emMinutos(slot)
+  const fim = emMinutos(adicionarHora(slot))
+
+  return !expedienteDoDia(data, horarios).some(
+    h => inicio >= emMinutos(h.horaInicio) && fim <= emMinutos(h.horaFim),
+  )
+}
+
 const formatarDataExibicao = (data: string): string => {
   const d = new Date(data + 'T00:00:00')
   return d.toLocaleDateString('pt-BR', {
@@ -90,6 +139,7 @@ const ETAPAS = [
 
 /* ══════════════════════════════════════════════ */
 export default function AgendarPage() {
+  const { exibirNotificacao } = useNotificacao()
   const [etapa, setEtapa] = useState<Etapa>(1)
 
   /* dados do fluxo */
@@ -99,24 +149,25 @@ export default function AgendarPage() {
   const [data, setData] = useState(amanha)
   const [slot, setSlot] = useState<string | null>(null)
   const [procedimento, setProcedimento] = useState<Procedimento | null>(null)
-  const [localAtendimento, setLocalAtendimento] = useState<LocalAtendimento | null>(null)
+  const [localAtendimento, setLocalAtendimento] =
+    useState<LocalAtendimento | null>(null)
   const [pacienteAcamado, setPacienteAcamado] = useState<boolean | null>(null)
   const [pacienteUuid, setPacienteUuid] = useState<string | null>(null)
-  const [agendamento, setAgendamento] = useState<Agendamento | null>(
-    null,
-  )
+  const [agendamento, setAgendamento] = useState<Agendamento | null>(null)
 
   /* listas */
   const [profissionais, setProfissionais] = useState<ProfissionalPublico[]>([])
   const [procedimentos, setProcedimentos] = useState<Procedimento[]>([])
   const [bloqueios, setBloqueios] = useState<BloqueioHorario[]>([])
+  const [horariosTrabalho, setHorariosTrabalho] = useState<HorarioTrabalho[]>(
+    [],
+  )
 
   /* loading / erro */
   const [carregandoProf, setCarregandoProf] = useState(true)
   const [carregandoSlots, setCarregandoSlots] = useState(false)
   const [carregandoAuth, setCarregandoAuth] = useState(false)
   const [carregandoConfirmar, setCarregandoConfirmar] = useState(false)
-  const [erro, setErro] = useState('')
 
   /* auth */
   const [modoAuth, setModoAuth] = useState<ModoAuth>('login')
@@ -131,7 +182,9 @@ export default function AgendarPage() {
     agendamentoPublicoAPI
       .listarProfissionais()
       .then(setProfissionais)
-      .catch(() => setErro(MENSAGENS.erro.carregarProfissionais))
+      .catch(() =>
+        exibirNotificacao(MENSAGENS.erro.carregarProfissionais, 'error', 6000),
+      )
       .finally(() => setCarregandoProf(false))
   }, [])
 
@@ -140,39 +193,64 @@ export default function AgendarPage() {
     procedimentoAPI
       .listar()
       .then(setProcedimentos)
-      .catch(() => setErro(MENSAGENS.erro.carregarProcedimentos))
+      .catch(() =>
+        exibirNotificacao(MENSAGENS.erro.carregarProcedimentos, 'error', 6000),
+      )
   }, [])
 
-  /* ── carregar bloqueios ao avançar para etapa 2 ── */
-  const carregarBloqueios = async (prof: ProfissionalPublico, d: string) => {
+  /* ── carregar disponibilidade ao avançar para etapa 2 ── */
+  //
+  // Bloqueios e expediente vêm juntos porque os dois decidem se um slot pode
+  // ser oferecido; buscá-los em chamadas separadas deixaria a grade renderizar
+  // com metade da informação. O expediente não depende da data, mas recarregá-lo
+  // na troca de dia custa pouco e evita ter de sincronizar dois estados de
+  // carregamento.
+  const carregarDisponibilidade = async (
+    prof: ProfissionalPublico,
+    d: string,
+  ) => {
     setCarregandoSlots(true)
     setSlot(null)
-    try {
-      const lista = await agendamentoPublicoAPI.listarBloqueios(prof.uuid, d)
-      setBloqueios(lista)
-    } catch {
-      setBloqueios([])
-    } finally {
-      setCarregandoSlots(false)
+    const [bloqueiosResp, expedienteResp] = await Promise.allSettled([
+      agendamentoPublicoAPI.listarBloqueios(prof.uuid, d),
+      horarioTrabalhoAPI.listarPublico(prof.uuid),
+    ])
+
+    setBloqueios(
+      bloqueiosResp.status === 'fulfilled' ? bloqueiosResp.value : [],
+    )
+    // Lista vazia significa "sem restrição de expediente", então uma falha de
+    // rede aqui não pode virar lista vazia em silêncio: seria oferecer horário
+    // que o backend recusa. Avisa e mantém o que já havia.
+    if (expedienteResp.status === 'fulfilled') {
+      setHorariosTrabalho(expedienteResp.value)
+    } else {
+      exibirNotificacao(MENSAGENS.erro.carregarHorariosTrabalho, 'error', 6000)
     }
+
+    setCarregandoSlots(false)
   }
 
   const irParaEtapa2 = () => {
     if (!profissional) return
-    carregarBloqueios(profissional, data)
+    carregarDisponibilidade(profissional, data)
     setEtapa(2)
-    setErro('')
   }
 
   const handleDataChange = (novaData: string) => {
     setData(novaData)
-    if (profissional) carregarBloqueios(profissional, novaData)
+    if (profissional) carregarDisponibilidade(profissional, novaData)
   }
+
+  // Com expediente cadastrado mas nenhuma janela no dia escolhido, todos os
+  // slots ficariam desabilitados sem explicação. Vale dizer o motivo.
+  const semExpedienteNoDia =
+    horariosTrabalho.length > 0 &&
+    expedienteDoDia(data, horariosTrabalho).length === 0
 
   /* ── autenticação na etapa 3 ── */
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErro('')
     setCarregandoAuth(true)
     try {
       const resp = await autenticacaoAPI.login({
@@ -184,7 +262,11 @@ export default function AgendarPage() {
       setPacienteUuid(usuarioAtual.uuid)
       setEtapa(4)
     } catch (err: any) {
-      setErro(mensagemErro(err, MENSAGENS.erro.credenciaisInvalidas))
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.credenciaisInvalidas),
+        'error',
+        6000,
+      )
     } finally {
       setCarregandoAuth(false)
     }
@@ -192,7 +274,6 @@ export default function AgendarPage() {
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErro('')
     setCarregandoAuth(true)
     try {
       const resp = await usuariosAPI.cadastrarPaciente({
@@ -204,7 +285,11 @@ export default function AgendarPage() {
       setPacienteUuid(usuarioAtual.uuid)
       setEtapa(4)
     } catch (err: any) {
-      setErro(mensagemErro(err, MENSAGENS.erro.criarCadastro))
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.criarCadastro),
+        'error',
+        6000,
+      )
     } finally {
       setCarregandoAuth(false)
     }
@@ -212,8 +297,15 @@ export default function AgendarPage() {
 
   /* ── confirmar agendamento ── */
   const handleConfirmar = async () => {
-    if (!profissional || !slot || !pacienteUuid || !procedimento || !localAtendimento || pacienteAcamado === null) return
-    setErro('')
+    if (
+      !profissional ||
+      !slot ||
+      !pacienteUuid ||
+      !procedimento ||
+      !localAtendimento ||
+      pacienteAcamado === null
+    )
+      return
     setCarregandoConfirmar(true)
     try {
       const criado = await agendamentoAPI.criarAgendamento({
@@ -229,7 +321,11 @@ export default function AgendarPage() {
       setAgendamento(criado)
       setEtapa('sucesso')
     } catch (err: any) {
-      setErro(mensagemErro(err, MENSAGENS.erro.confirmarAgendamento))
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.confirmarAgendamento),
+        'error',
+        6000,
+      )
     } finally {
       setCarregandoConfirmar(false)
     }
@@ -246,7 +342,7 @@ export default function AgendarPage() {
     setPacienteUuid(null)
     setAgendamento(null)
     setBloqueios([])
-    setErro('')
+    setHorariosTrabalho([])
     setLoginForm({ username: '', senha: '' })
     setCadastroForm({
       nomeCompleto: '',
@@ -327,8 +423,6 @@ export default function AgendarPage() {
             </div>
 
             <div className="card-corpo">
-              {erro && <div className="alerta-erro">⚠ {erro}</div>}
-
               {carregandoProf ? (
                 <div className="agendar-loading">
                   <div className="spinner-sm" />
@@ -411,8 +505,6 @@ export default function AgendarPage() {
             </div>
 
             <div className="card-corpo">
-              {erro && <div className="alerta-erro">⚠ {erro}</div>}
-
               <div className="slots-header">
                 <div className="campo" style={{ flex: 1, marginBottom: 0 }}>
                   <label>Data</label>
@@ -435,7 +527,7 @@ export default function AgendarPage() {
                   </span>
                   <span className="legenda-item">
                     <span className="legenda-cor legenda-cor--bloqueado" />
-                    Bloqueado
+                    Indisponível
                   </span>
                 </div>
               </div>
@@ -445,18 +537,33 @@ export default function AgendarPage() {
                   <div className="spinner-sm" />
                   Verificando disponibilidade…
                 </div>
+              ) : semExpedienteNoDia ? (
+                <p className="slots-aviso">
+                  O profissional não atende neste dia da semana. Escolha outra
+                  data.
+                </p>
               ) : (
                 <div className="slots-grid">
                   {SLOTS_HORA.map(s => {
                     const bloqueado = slotBloqueado(s, data, bloqueios)
+                    const foraExpediente = foraDoExpediente(
+                      s,
+                      data,
+                      horariosTrabalho,
+                    )
+                    const indisponivel = bloqueado || foraExpediente
                     return (
                       <button
                         key={s}
                         className={`slot-btn${slot === s ? ' selecionado' : ''}`}
-                        disabled={bloqueado}
+                        disabled={indisponivel}
                         onClick={() => setSlot(s)}
                         title={
-                          bloqueado ? 'Horário indisponível' : `Agendar às ${s}`
+                          foraExpediente
+                            ? 'Fora do horário de atendimento do profissional'
+                            : bloqueado
+                              ? 'Horário indisponível'
+                              : `Agendar às ${s}`
                         }
                       >
                         {s}
@@ -480,7 +587,12 @@ export default function AgendarPage() {
                   ))}
                 </div>
 
-                <p className="tipo-procedimento-titulo" style={{ marginTop: '1rem' }}>Local de atendimento</p>
+                <p
+                  className="tipo-procedimento-titulo"
+                  style={{ marginTop: '1rem' }}
+                >
+                  Local de atendimento
+                </p>
                 <div className="tipo-procedimento-opcoes">
                   {(['CLINICA', 'RESIDENCIAL'] as LocalAtendimento[]).map(l => (
                     <button
@@ -493,7 +605,12 @@ export default function AgendarPage() {
                   ))}
                 </div>
 
-                <p className="tipo-procedimento-titulo" style={{ marginTop: '1rem' }}>Paciente acamado?</p>
+                <p
+                  className="tipo-procedimento-titulo"
+                  style={{ marginTop: '1rem' }}
+                >
+                  Paciente acamado?
+                </p>
                 <div className="tipo-procedimento-opcoes">
                   {([true, false] as boolean[]).map(v => (
                     <button
@@ -509,13 +626,7 @@ export default function AgendarPage() {
             </div>
 
             <div className="card-rodape">
-              <button
-                className="btn-voltar"
-                onClick={() => {
-                  setEtapa(1)
-                  setErro('')
-                }}
-              >
+              <button className="btn-voltar" onClick={() => setEtapa(1)}>
                 <svg
                   width="14"
                   height="14"
@@ -530,11 +641,13 @@ export default function AgendarPage() {
               </button>
               <button
                 className="btn-continuar"
-                disabled={!slot || !procedimento || !localAtendimento || pacienteAcamado === null}
-                onClick={() => {
-                  setEtapa(3)
-                  setErro('')
-                }}
+                disabled={
+                  !slot ||
+                  !procedimento ||
+                  !localAtendimento ||
+                  pacienteAcamado === null
+                }
+                onClick={() => setEtapa(3)}
               >
                 Continuar
                 <svg
@@ -564,25 +677,17 @@ export default function AgendarPage() {
               <div className="auth-tabs">
                 <button
                   className={`auth-tab${modoAuth === 'login' ? ' ativo' : ''}`}
-                  onClick={() => {
-                    setModoAuth('login')
-                    setErro('')
-                  }}
+                  onClick={() => setModoAuth('login')}
                 >
                   Já tenho conta
                 </button>
                 <button
                   className={`auth-tab${modoAuth === 'cadastro' ? ' ativo' : ''}`}
-                  onClick={() => {
-                    setModoAuth('cadastro')
-                    setErro('')
-                  }}
+                  onClick={() => setModoAuth('cadastro')}
                 >
                   Primeiro acesso
                 </button>
               </div>
-
-              {erro && <div className="alerta-erro">⚠ {erro}</div>}
 
               {/* ── Login ── */}
               {modoAuth === 'login' && (
@@ -664,13 +769,7 @@ export default function AgendarPage() {
             </div>
 
             <div className="card-rodape">
-              <button
-                className="btn-voltar"
-                onClick={() => {
-                  setEtapa(2)
-                  setErro('')
-                }}
-              >
+              <button className="btn-voltar" onClick={() => setEtapa(2)}>
                 <svg
                   width="14"
                   height="14"
@@ -720,8 +819,6 @@ export default function AgendarPage() {
             </div>
 
             <div className="card-corpo">
-              {erro && <div className="alerta-erro">⚠ {erro}</div>}
-
               <div className="resumo-confirmacao">
                 <div className="resumo-cabecalho">
                   <svg
@@ -801,7 +898,12 @@ export default function AgendarPage() {
                   </div>
                   <div className="resumo-linha">
                     <div className="resumo-icone-wrapper">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
                         <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
@@ -814,27 +916,45 @@ export default function AgendarPage() {
                   </div>
                   <div className="resumo-linha">
                     <div className="resumo-icone-wrapper">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
                         <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                       </svg>
                     </div>
                     <div className="resumo-linha-info">
                       <div className="resumo-linha-rotulo">Local</div>
                       <div className="resumo-linha-valor">
-                        {localAtendimento ? ROTULO_LOCAL_ATENDIMENTO[localAtendimento] : '—'}
+                        {localAtendimento
+                          ? ROTULO_LOCAL_ATENDIMENTO[localAtendimento]
+                          : '—'}
                       </div>
                     </div>
                   </div>
                   <div className="resumo-linha">
                     <div className="resumo-icone-wrapper">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
                         <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
                     </div>
                     <div className="resumo-linha-info">
-                      <div className="resumo-linha-rotulo">Paciente acamado</div>
+                      <div className="resumo-linha-rotulo">
+                        Paciente acamado
+                      </div>
                       <div className="resumo-linha-valor">
-                        {pacienteAcamado === null ? '—' : pacienteAcamado ? 'Sim' : 'Não'}
+                        {pacienteAcamado === null
+                          ? '—'
+                          : pacienteAcamado
+                            ? 'Sim'
+                            : 'Não'}
                       </div>
                     </div>
                   </div>
@@ -843,13 +963,7 @@ export default function AgendarPage() {
             </div>
 
             <div className="card-rodape">
-              <button
-                className="btn-voltar"
-                onClick={() => {
-                  setEtapa(3)
-                  setErro('')
-                }}
-              >
+              <button className="btn-voltar" onClick={() => setEtapa(3)}>
                 <svg
                   width="14"
                   height="14"
@@ -946,11 +1060,21 @@ export default function AgendarPage() {
                 </div>
                 <div className="sucesso-detalhe-linha">
                   <span>Local</span>
-                  <span>{localAtendimento ? ROTULO_LOCAL_ATENDIMENTO[localAtendimento] : '—'}</span>
+                  <span>
+                    {localAtendimento
+                      ? ROTULO_LOCAL_ATENDIMENTO[localAtendimento]
+                      : '—'}
+                  </span>
                 </div>
                 <div className="sucesso-detalhe-linha">
                   <span>Paciente acamado</span>
-                  <span>{pacienteAcamado === null ? '—' : pacienteAcamado ? 'Sim' : 'Não'}</span>
+                  <span>
+                    {pacienteAcamado === null
+                      ? '—'
+                      : pacienteAcamado
+                        ? 'Sim'
+                        : 'Não'}
+                  </span>
                 </div>
               </div>
 

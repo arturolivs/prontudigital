@@ -15,10 +15,10 @@ interface PropsNotificacao {
 }
 
 const ICONES: Record<TipoNotificacao, React.ElementType> = {
-  error:   AlertTriangle,
+  error: AlertTriangle,
   success: CheckCircle2,
   warning: AlertTriangle,
-  info:    Info,
+  info: Info,
 }
 
 export default function Notificacao({

@@ -32,7 +32,6 @@ export default function ProcedimentosPage() {
   const [editando, setEditando] = useState<Procedimento | null>(null)
   const [form, setForm] = useState<FormularioProcedimento>(formVazio)
   const [salvando, setSalvando] = useState(false)
-  const [erroForm, setErroForm] = useState('')
   const [confirmacao, setConfirmacao] = useState<{
     mensagem: string
     acao: () => void
@@ -53,13 +52,11 @@ export default function ProcedimentosPage() {
 
   useEffect(() => {
     fetchProcedimentos()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const abrirCriacao = () => {
     setEditando(null)
     setForm(formVazio)
-    setErroForm('')
     setModalOpen(true)
   }
 
@@ -71,7 +68,6 @@ export default function ProcedimentosPage() {
       duracaoPadraoMinutos: p.duracaoPadraoMinutos?.toString() ?? '',
       ativo: p.ativo,
     })
-    setErroForm('')
     setModalOpen(true)
   }
 
@@ -82,7 +78,6 @@ export default function ProcedimentosPage() {
 
   const handleSalvar = async () => {
     if (!form.nome.trim()) return
-    setErroForm('')
     setSalvando(true)
     try {
       const dados: ProcedimentoRequisicao = {
@@ -95,7 +90,11 @@ export default function ProcedimentosPage() {
       }
       if (editando) {
         await procedimentoAPI.atualizar(editando.id, dados)
-        exibirNotificacao(MENSAGENS.sucesso.procedimentoAtualizado, 'success', 6000)
+        exibirNotificacao(
+          MENSAGENS.sucesso.procedimentoAtualizado,
+          'success',
+          6000,
+        )
       } else {
         await procedimentoAPI.criar(dados)
         exibirNotificacao(MENSAGENS.sucesso.procedimentoCriado, 'success', 6000)
@@ -103,7 +102,11 @@ export default function ProcedimentosPage() {
       fecharModal()
       await fetchProcedimentos()
     } catch (err: any) {
-      setErroForm(mensagemErro(err, MENSAGENS.erro.salvarProcedimento))
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.salvarProcedimento),
+        'error',
+        6000,
+      )
     } finally {
       setSalvando(false)
     }
@@ -136,7 +139,11 @@ export default function ProcedimentosPage() {
         setConfirmacao(null)
         try {
           await procedimentoAPI.excluir(p.id)
-          exibirNotificacao(MENSAGENS.sucesso.procedimentoExcluido, 'success', 6000)
+          exibirNotificacao(
+            MENSAGENS.sucesso.procedimentoExcluido,
+            'success',
+            6000,
+          )
           await fetchProcedimentos()
         } catch (err: any) {
           exibirNotificacao(
@@ -184,7 +191,9 @@ export default function ProcedimentosPage() {
                 <td>{p.nome}</td>
                 <td>{p.descricao || '—'}</td>
                 <td>
-                  {p.duracaoPadraoMinutos ? `${p.duracaoPadraoMinutos} min` : '—'}
+                  {p.duracaoPadraoMinutos
+                    ? `${p.duracaoPadraoMinutos} min`
+                    : '—'}
                 </td>
                 <td>
                   <button
@@ -251,8 +260,6 @@ export default function ProcedimentosPage() {
           }
         >
           <div className="proc-form">
-            {erroForm && <div className="proc-form-erro">{erroForm}</div>}
-
             <div className="proc-form-grupo">
               <label className="proc-form-rotulo" htmlFor="proc-nome">
                 Nome

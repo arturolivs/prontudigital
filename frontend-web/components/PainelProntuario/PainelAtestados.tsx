@@ -8,14 +8,10 @@ import { atestadoAPI } from '@/lib/atestado.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { useNotificacao } from '@/contexts/ToastContext'
 import { Atestado, ROTULO_TIPO_ATESTADO, TipoAtestado } from '@/tipos/atestado'
+import { BarraPainel, EstadoCarregando, PainelProps, Secao } from './secao'
 
 // RF17 — emissão de atestados. O PDF não é guardado: o backend regera a partir
 // do registro toda vez, então baixar duas vezes dá o mesmo documento.
-
-interface AbaAtestadosProps {
-  pacienteUuid: string
-  onNomePaciente?: (nome: string) => void
-}
 
 const formatarDataHora = (iso: string) =>
   new Date(iso).toLocaleString('pt-BR', {
@@ -26,10 +22,12 @@ const formatarDataHora = (iso: string) =>
     minute: '2-digit',
   })
 
-export default function AbaAtestados({
+export default function PainelAtestados({
   pacienteUuid,
   onNomePaciente,
-}: AbaAtestadosProps) {
+  desabilitado = false,
+  variante = 'aba',
+}: PainelProps) {
   const { exibirNotificacao } = useNotificacao()
 
   const [atestados, setAtestados] = useState<Atestado[]>([])
@@ -135,22 +133,24 @@ export default function AbaAtestados({
 
   if (carregando) {
     return (
-      <div className="pront-estado">
-        <div className="pac-spinner" />
-        <p>Carregando atestados...</p>
-      </div>
+      <Secao variante={variante}>
+        <EstadoCarregando texto="Carregando atestados..." />
+      </Secao>
     )
   }
 
   return (
-    <div className="pront-aba">
-      <div className="anx-toolbar">
-        <span className="anx-titulo">Atestados</span>
-        <button className="presc-btn presc-btn-primario" onClick={abrirModal}>
+    <Secao variante={variante}>
+      <BarraPainel titulo="Atestados" variante={variante}>
+        <button
+          className="presc-btn presc-btn-primario"
+          onClick={abrirModal}
+          disabled={desabilitado}
+        >
           <Plus size={16} strokeWidth={2} />
           Emitir atestado
         </button>
-      </div>
+      </BarraPainel>
 
       {atestados.length === 0 ? (
         <div className="pront-estado">
@@ -194,6 +194,7 @@ export default function AbaAtestados({
                 <button
                   className="presc-icon-btn"
                   onClick={() => setParaExcluir(atestado)}
+                  disabled={desabilitado}
                   title="Remover atestado"
                 >
                   <Trash2 size={16} strokeWidth={1.75} />
@@ -296,6 +297,6 @@ export default function AbaAtestados({
           onCancelar={() => setParaExcluir(null)}
         />
       )}
-    </div>
+    </Secao>
   )
 }

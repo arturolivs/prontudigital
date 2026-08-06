@@ -4,9 +4,12 @@ import com.prontudigital.backend.agendamento.dto.HorarioTrabalhoDTO;
 import com.prontudigital.backend.agendamento.entidades.HorarioTrabalho;
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoInvalidoException;
 import com.prontudigital.backend.agendamento.excecoes.AgendamentoNaoEncontradoException;
+import com.prontudigital.backend.agendamento.repositorios.BloqueioRecorrenteRepository;
 import com.prontudigital.backend.agendamento.repositorios.HorarioTrabalhoRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.HorarioTrabalhoService;
+import com.prontudigital.backend.agendamento.utils.ExpedienteEfetivo;
+import com.prontudigital.backend.agendamento.utils.ExpedienteEfetivo.Janela;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
@@ -29,6 +32,7 @@ import java.util.UUID;
 public class HorarioTrabalhoServiceImpl implements HorarioTrabalhoService {
 
     private final HorarioTrabalhoRepository repository;
+    private final BloqueioRecorrenteRepository bloqueioRecorrenteRepository;
     private final UsuarioContexto usuarioContexto;
     private final AgendamentoPermissaoPolicy permissaoPolicy;
 
@@ -53,6 +57,8 @@ public class HorarioTrabalhoServiceImpl implements HorarioTrabalhoService {
             throw new AgendamentoInvalidoException(
                     Mensagens.get("horario-trabalho.sobreposto"));
         }
+
+        validarNaoAnuladoPorBloqueio(request);
 
         HorarioTrabalho horario = HorarioTrabalho.builder()
                 .profissionalUuid(request.profissionalUuid())
@@ -88,6 +94,34 @@ public class HorarioTrabalhoServiceImpl implements HorarioTrabalhoService {
         validarAutorizacao(horario.getProfissionalUuid());
 
         repository.delete(horario);
+    }
+
+    /**
+     * Recusa a janela que ja nasce inteiramente coberta pelos bloqueios
+     * recorrentes daquele dia da semana.
+     *
+     * <p>Sem isso a janela e gravada e aparece na tela como expediente, mas
+     * nenhum agendamento cabe nela: {@code AgendamentoServiceImpl} aplica
+     * expediente e bloqueio em AND, e o bloqueio vence. Cobertura parcial
+     * (intervalo de almoco, por exemplo) continua valendo.
+     */
+    private void validarNaoAnuladoPorBloqueio(HorarioTrabalhoDTO request) {
+        List<Janela> bloqueios = bloqueioRecorrenteRepository
+                .findByProfissionalUuidAndAtivoTrue(request.profissionalUuid())
+                .stream()
+                .filter(regra -> request.diaSemana().equals(regra.getDiaSemana()))
+                .map(regra -> new Janela(regra.getHoraInicio(), regra.getHoraFim()))
+                .toList();
+
+        if (bloqueios.isEmpty()) {
+            return;
+        }
+
+        List<Janela> nova = List.of(new Janela(request.horaInicio(), request.horaFim()));
+        if (ExpedienteEfetivo.cobreTudo(nova, bloqueios)) {
+            throw new AgendamentoInvalidoException(
+                    Mensagens.get("horario-trabalho.anulado-por-bloqueio"));
+        }
     }
 
     private void validarAutorizacao(UUID profissionalUuid) {

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, ChangeEvent } from 'react'
-import { useNotificacao } from '../../../../contexts/ToastContext'
-import { anexoAPI } from '../../../../lib/anexo.service'
+import { useNotificacao } from '@/contexts/ToastContext'
+import { anexoAPI } from '@/lib/anexo.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import Modal from '@/components/Modal'
 import {
@@ -12,6 +12,7 @@ import {
   ehImagem,
   formatarTamanho,
 } from '@/tipos/anexo'
+import { BarraPainel, EstadoCarregando, PainelProps, Secao } from './secao'
 
 const formatarDataHora = (dataString: string): string =>
   new Date(dataString).toLocaleString('pt-BR', {
@@ -27,11 +28,13 @@ function CardAnexo({
   miniatura,
   onAbrir,
   onExcluir,
+  podeExcluir,
 }: {
   anexo: Anexo
   miniatura?: string
   onAbrir: () => void
   onExcluir: () => void
+  podeExcluir: boolean
 }) {
   const imagem = ehImagem(anexo.tipoConteudo)
   return (
@@ -51,7 +54,7 @@ function CardAnexo({
             />
           ) : (
             <div className="anx-thumb-placeholder">
-              <div className="pac-spinner" />
+              <div className="pnl-spinner" />
             </div>
           )
         ) : (
@@ -78,6 +81,7 @@ function CardAnexo({
         <button
           className="presc-icon-btn presc-icon-btn-perigo"
           onClick={onExcluir}
+          disabled={!podeExcluir}
           aria-label="Excluir anexo"
         >
           Excluir
@@ -87,13 +91,12 @@ function CardAnexo({
   )
 }
 
-export default function AbaAnexos({
+export default function PainelAnexos({
   pacienteUuid,
   onNomePaciente,
-}: {
-  pacienteUuid: string
-  onNomePaciente: (nome: string) => void
-}) {
+  desabilitado = false,
+  variante = 'aba',
+}: PainelProps) {
   const { exibirNotificacao } = useNotificacao()
 
   const [anexos, setAnexos] = useState<Anexo[]>([])
@@ -114,7 +117,7 @@ export default function AbaAnexos({
       setError(null)
       const data = await anexoAPI.listar(pacienteUuid)
       setAnexos(data)
-      if (data[0]?.pacienteNome) onNomePaciente(data[0].pacienteNome)
+      if (data[0]?.pacienteNome) onNomePaciente?.(data[0].pacienteNome)
     } catch (err) {
       setError(mensagemErro(err, MENSAGENS.erro.carregarAnexos))
     } finally {
@@ -225,36 +228,29 @@ export default function AbaAnexos({
   }
 
   return (
-    <div className="pront-aba">
-      <div className="anx-toolbar">
-        <div>
-          <h2 className="anx-titulo">Exames e documentos</h2>
-          <span className="anx-hint">
-            Imagens (JPG, PNG, WEBP) ou PDF · até 10 MB
-          </span>
-        </div>
+    <Secao variante={variante}>
+      <BarraPainel
+        titulo="Exames e documentos"
+        hint="Imagens (JPG, PNG, WEBP) ou PDF · até 10 MB"
+        variante={variante}
+      >
         <button
           className="presc-btn presc-btn-primario"
           onClick={abrirSeletor}
-          disabled={enviando}
+          disabled={enviando || desabilitado}
         >
           {enviando ? 'Enviando...' : '+ Enviar anexo'}
         </button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,application/pdf"
-          onChange={aoEscolherArquivo}
-          hidden
-        />
-      </div>
+      </BarraPainel>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        onChange={aoEscolherArquivo}
+        hidden
+      />
 
-      {loading && (
-        <div className="pront-estado">
-          <div className="pac-spinner" />
-          <p>Carregando anexos...</p>
-        </div>
-      )}
+      {loading && <EstadoCarregando texto="Carregando anexos..." />}
 
       {error && !loading && (
         <div className="pront-estado pront-estado-erro">
@@ -274,7 +270,7 @@ export default function AbaAnexos({
           <button
             className="presc-btn presc-btn-primario"
             onClick={abrirSeletor}
-            disabled={enviando}
+            disabled={enviando || desabilitado}
           >
             Enviar primeiro anexo
           </button>
@@ -290,6 +286,7 @@ export default function AbaAnexos({
               miniatura={miniaturas[a.uuid]}
               onAbrir={() => abrir(a)}
               onExcluir={() => setExcluindo(a)}
+              podeExcluir={!desabilitado}
             />
           ))}
         </div>
@@ -325,6 +322,6 @@ export default function AbaAnexos({
           </p>
         </Modal>
       )}
-    </div>
+    </Secao>
   )
 }

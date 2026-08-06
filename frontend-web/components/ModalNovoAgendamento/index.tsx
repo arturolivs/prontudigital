@@ -6,6 +6,7 @@ import SelectAutocomplete, { OpcaoSAC } from '@/components/SelectAutocomplete'
 import { usuariosAPI } from '@/lib/usuario.service'
 import { procedimentoAPI } from '@/lib/procedimento.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+import { useNotificacao } from '@/contexts/ToastContext'
 import { AgendamentoRequisicao } from '@/tipos/agendamento'
 import { Procedimento } from '@/tipos/procedimento'
 import { TipoProcedimento } from '@/tipos/TipoProcedimento'
@@ -44,8 +45,8 @@ export default function ModalNovoAgendamento({
   isAdmin,
   prefill,
 }: Props) {
+  const { exibirNotificacao } = useNotificacao()
   const [salvando, setSalvando] = useState(false)
-  const [erro, setErro] = useState('')
 
   const [pacienteUuid, setPacienteUuid] = useState(prefill?.pacienteUuid ?? '')
   const [profissionalUuid, setProfissionalUuid] = useState(
@@ -82,8 +83,9 @@ export default function ModalNovoAgendamento({
           if (legado) setProcedimentoId(legado.id)
         }
       })
-      .catch(() => setErro(MENSAGENS.erro.carregarProcedimentos))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      .catch(() =>
+        exibirNotificacao(MENSAGENS.erro.carregarProcedimentos, 'error', 6000),
+      )
   }, [])
 
   const carregarPacientes = useCallback(async (): Promise<OpcaoSAC[]> => {
@@ -113,7 +115,6 @@ export default function ModalNovoAgendamento({
 
   const handleSubmit = async () => {
     if (!podeSubmeter) return
-    setErro('')
     setSalvando(true)
     try {
       const dados: AgendamentoRequisicao = {
@@ -132,7 +133,11 @@ export default function ModalNovoAgendamento({
       }
       await onSalvar(dados)
     } catch (err: any) {
-      setErro(mensagemErro(err, MENSAGENS.erro.criarAgendamento))
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.criarAgendamento),
+        'error',
+        6000,
+      )
     } finally {
       setSalvando(false)
     }
@@ -165,8 +170,6 @@ export default function ModalNovoAgendamento({
       rodape={rodape}
     >
       <div className="mna-form">
-        {erro && <div className="mna-erro">{erro}</div>}
-
         {/* Tipo de agendamento */}
         <div className="mna-grupo">
           <label className="mna-rotulo">Tipo de agendamento</label>

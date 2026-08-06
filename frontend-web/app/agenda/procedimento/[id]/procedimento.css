@@ -328,6 +328,122 @@
   background: var(--color-bg-tint);
 }
 
+/* Item que abre o detalhe da consulta. Vira <button>, entao precisa desfazer
+   o estilo proprio do botao para continuar parecendo uma linha da timeline. */
+.proc-hist-item--clicavel {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.proc-hist-seta {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.proc-hist-item--clicavel:hover .proc-hist-seta,
+.proc-hist-item--clicavel:focus-visible .proc-hist-seta {
+  opacity: 1;
+}
+
+/* ── Detalhe da consulta anterior (modal) ──── */
+.proc-detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.proc-detalhe-resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.85rem 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.proc-detalhe-par {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+}
+
+.proc-detalhe-rotulo {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.proc-detalhe-valor {
+  font-size: 0.875rem;
+  color: var(--color-text-heading);
+}
+
+.proc-detalhe-titulo {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-brand);
+}
+
+.proc-detalhe-lista {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.proc-detalhe-linha {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.proc-detalhe-linha:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.proc-detalhe-linha dt {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.proc-detalhe-linha dd {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-heading);
+  white-space: pre-wrap;
+}
+
+.proc-detalhe-vazio {
+  margin: 0;
+  padding: 1.5rem 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 640px) {
+  .proc-detalhe-linha {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}
+
 .proc-hist-dot {
   width: 2rem;
   height: 2rem;

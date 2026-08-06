@@ -10,7 +10,6 @@ import {
   Clock,
   Trash2,
   Calendar,
-  AlertTriangle,
   RefreshCw,
   Repeat,
 } from 'lucide-react'
@@ -136,7 +135,6 @@ export default function BloqueiosPage() {
   const [filtroTipo, setFiltroTipo] = useState<TipoBloqueio | ''>('')
   const [dataInicio, setDataInicio] = useState(inicioDoMes)
   const [dataFim, setDataFim] = useState(fimDoMes)
-  const [erroForm, setErroForm] = useState('')
   const [confirmacao, setConfirmacao] = useState<{
     mensagem: string
     titulo: string
@@ -224,10 +222,9 @@ export default function BloqueiosPage() {
   /* ── criar bloqueio único ── */
   const handleSubmitUnico = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErroForm('')
 
     if (!profissionalUuid) {
-      setErroForm(MENSAGENS.erro.identificarProfissional)
+      exibirNotificacao(MENSAGENS.erro.identificarProfissional, 'error', 6000)
       return
     }
 
@@ -235,7 +232,11 @@ export default function BloqueiosPage() {
     const fim = new Date(form.fimEm)
 
     if (fim <= inicio) {
-      setErroForm(MENSAGENS.validacao.horarioTerminoInvalido)
+      exibirNotificacao(
+        MENSAGENS.validacao.horarioTerminoInvalido,
+        'error',
+        6000,
+      )
       return
     }
 
@@ -259,7 +260,11 @@ export default function BloqueiosPage() {
       fecharModal()
       exibirNotificacao(MENSAGENS.sucesso.horarioRegistrado, 'success', 4000)
     } catch (err: any) {
-      setErroForm(mensagemErro(err, MENSAGENS.erro.registrarHorario))
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.registrarHorario),
+        'error',
+        6000,
+      )
     } finally {
       setSalvando(false)
     }
@@ -268,18 +273,21 @@ export default function BloqueiosPage() {
   /* ── criar bloqueio recorrente ── */
   const handleSubmitRecorrente = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErroForm('')
 
     if (!profissionalUuid) {
-      setErroForm(MENSAGENS.erro.identificarProfissional)
+      exibirNotificacao(MENSAGENS.erro.identificarProfissional, 'error', 6000)
       return
     }
     if (formRecorrente.diasSemana.length === 0) {
-      setErroForm(MENSAGENS.validacao.selecioneDiaSemana)
+      exibirNotificacao(MENSAGENS.validacao.selecioneDiaSemana, 'error', 6000)
       return
     }
     if (formRecorrente.horaFim <= formRecorrente.horaInicio) {
-      setErroForm(MENSAGENS.validacao.horarioTerminoInvalido)
+      exibirNotificacao(
+        MENSAGENS.validacao.horarioTerminoInvalido,
+        'error',
+        6000,
+      )
       return
     }
 
@@ -289,7 +297,7 @@ export default function BloqueiosPage() {
     )
 
     if (diasNovos.length === 0) {
-      setErroForm(MENSAGENS.validacao.diasJaComRegra)
+      exibirNotificacao(MENSAGENS.validacao.diasJaComRegra, 'error', 6000)
       return
     }
 
@@ -318,7 +326,11 @@ export default function BloqueiosPage() {
         4000,
       )
     } catch (err: any) {
-      setErroForm(mensagemErro(err, MENSAGENS.erro.criarRegraRecorrente))
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.criarRegraRecorrente),
+        'error',
+        6000,
+      )
     } finally {
       setSalvando(false)
     }
@@ -334,7 +346,11 @@ export default function BloqueiosPage() {
       setBloqueios(prev => prev.filter(b => b.uuid !== bloqueio.uuid))
       exibirNotificacao(MENSAGENS.sucesso.bloqueioRemovido, 'success', 4000)
     } catch (err: any) {
-      exibirNotificacao(mensagemErro(err, MENSAGENS.erro.removerBloqueio), 'error', 6000)
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.removerBloqueio),
+        'error',
+        6000,
+      )
     }
   }
 
@@ -353,7 +369,11 @@ export default function BloqueiosPage() {
           setRecorrentes(prev => prev.filter(r => r.uuid !== regra.uuid))
           exibirNotificacao(MENSAGENS.sucesso.regraRemovida, 'success', 4000)
         } catch (err: any) {
-          exibirNotificacao(mensagemErro(err, MENSAGENS.erro.removerRegra), 'error', 6000)
+          exibirNotificacao(
+            mensagemErro(err, MENSAGENS.erro.removerRegra),
+            'error',
+            6000,
+          )
         }
       },
     })
@@ -380,13 +400,11 @@ export default function BloqueiosPage() {
       motivo: '',
     })
     setModoModal('UNICO')
-    setErroForm('')
     setModalAberto(true)
   }
 
   const fecharModal = () => {
     setModalAberto(false)
-    setErroForm('')
   }
 
   const toggleDia = (dia: DiaSemana) => {
@@ -687,7 +705,6 @@ export default function BloqueiosPage() {
                 className={`modo-btn${modoModal === 'UNICO' ? ' ativo' : ''}`}
                 onClick={() => {
                   setModoModal('UNICO')
-                  setErroForm('')
                 }}
               >
                 <Calendar size={14} strokeWidth={2} />
@@ -698,7 +715,6 @@ export default function BloqueiosPage() {
                 className={`modo-btn${modoModal === 'RECORRENTE' ? ' ativo' : ''}`}
                 onClick={() => {
                   setModoModal('RECORRENTE')
-                  setErroForm('')
                 }}
               >
                 <RefreshCw size={14} strokeWidth={2} />
@@ -783,13 +799,6 @@ export default function BloqueiosPage() {
                       maxLength={255}
                     />
                   </div>
-
-                  {erroForm && (
-                    <p className="campo-erro">
-                      <AlertTriangle size={13} strokeWidth={2} />
-                      {erroForm}
-                    </p>
-                  )}
                 </div>
 
                 <div className="modal-rodape">
@@ -914,13 +923,6 @@ export default function BloqueiosPage() {
                       maxLength={255}
                     />
                   </div>
-
-                  {erroForm && (
-                    <p className="campo-erro">
-                      <AlertTriangle size={13} strokeWidth={2} />
-                      {erroForm}
-                    </p>
-                  )}
                 </div>
 
                 <div className="modal-rodape">

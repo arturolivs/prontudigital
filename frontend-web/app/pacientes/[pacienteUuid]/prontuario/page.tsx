@@ -6,10 +6,10 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { RotaProtegida } from '../../../../components/RotaProtegida'
 import { useAuth } from '../../../../contexts/AuthContext'
 import Layout from '@/components/Layout/Layout'
-import AbaPrescricoes from './AbaPrescricoes'
-import AbaAnexos from './AbaAnexos'
+import PainelPrescricoes from '@/components/PainelProntuario/PainelPrescricoes'
+import PainelAnexos from '@/components/PainelProntuario/PainelAnexos'
+import PainelAtestados from '@/components/PainelProntuario/PainelAtestados'
 import AbaHistorico from './AbaHistorico'
-import AbaAtestados from './AbaAtestados'
 import './prontuario.css'
 
 type Aba = 'historico' | 'prescricoes' | 'anexos' | 'atestados'
@@ -102,19 +102,19 @@ export default function ProntuarioPage() {
 
           {aba === 'historico' && <AbaHistorico pacienteUuid={pacienteUuid} />}
           {aba === 'prescricoes' && (
-            <AbaPrescricoes
+            <PainelPrescricoes
               pacienteUuid={pacienteUuid}
               onNomePaciente={setNomePaciente}
             />
           )}
           {aba === 'anexos' && (
-            <AbaAnexos
+            <PainelAnexos
               pacienteUuid={pacienteUuid}
               onNomePaciente={setNomePaciente}
             />
           )}
           {aba === 'atestados' && (
-            <AbaAtestados
+            <PainelAtestados
               pacienteUuid={pacienteUuid}
               onNomePaciente={setNomePaciente}
             />

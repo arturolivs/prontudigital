@@ -11,8 +11,11 @@ import com.prontudigital.backend.agendamento.excecoes.AgendamentoNaoEncontradoEx
 import com.prontudigital.backend.agendamento.repositorios.AgendamentoRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioHorarioRepository;
 import com.prontudigital.backend.agendamento.repositorios.BloqueioRecorrenteRepository;
+import com.prontudigital.backend.agendamento.repositorios.HorarioTrabalhoRepository;
 import com.prontudigital.backend.agendamento.seguranca.AgendamentoPermissaoPolicy;
 import com.prontudigital.backend.agendamento.servicos.BloqueioHorarioService;
+import com.prontudigital.backend.agendamento.utils.ExpedienteEfetivo;
+import com.prontudigital.backend.agendamento.utils.ExpedienteEfetivo.Janela;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioSemAutorizacaoException;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
@@ -34,6 +37,7 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
 
     private final BloqueioHorarioRepository repository;
     private final BloqueioRecorrenteRepository recorrenteRepository;
+    private final HorarioTrabalhoRepository horarioTrabalhoRepository;
     private final AgendamentoRepository agendamentoRepository;
     private final UsuarioContexto usuarioContexto;
     private final AgendamentoPermissaoPolicy permissaoPolicy;
@@ -157,6 +161,8 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
             throw new AgendamentoInvalidoException(Mensagens.get("bloqueio.horario-fim-antes-inicio"));
         }
 
+        validarNaoAnulaExpediente(request);
+
         BloqueioRecorrente regra = BloqueioRecorrente.builder()
                 .profissionalUuid(request.profissionalUuid())
                 .diaSemana(request.diaSemana())
@@ -167,6 +173,46 @@ public class BloqueioHorarioServiceImpl implements BloqueioHorarioService {
                 .build();
 
         return toRecorrenteDTO(recorrenteRepository.save(regra));
+    }
+
+    /**
+     * Recusa a regra que zera o expediente do dia.
+     *
+     * <p>Considera as regras ja cadastradas junto com a nova: duas folgas de
+     * meio periodo cada uma sao legitimas isoladamente e anulam o dia quando
+     * somadas. Cobertura parcial continua permitida — e o caso do intervalo de
+     * almoco, motivo pelo qual a regra recorrente existe.
+     *
+     * <p>Dia sem expediente cadastrado nao e validado: nao ha o que anular, e o
+     * bloqueio ainda tem efeito para o profissional que nunca definiu
+     * expediente (nesse caso {@code AgendamentoServiceImpl} dispensa a
+     * validacao de horario de trabalho, mas nao a de bloqueio).
+     */
+    private void validarNaoAnulaExpediente(BloqueioRecorrenteDTO request) {
+        List<Janela> expediente = horarioTrabalhoRepository
+                .findByProfissionalUuidAndDiaSemanaAndAtivoTrue(
+                        request.profissionalUuid(), request.diaSemana())
+                .stream()
+                .map(h -> new Janela(h.getHoraInicio(), h.getHoraFim()))
+                .toList();
+
+        if (expediente.isEmpty()) {
+            return;
+        }
+
+        List<Janela> bloqueios = new ArrayList<>(
+                recorrenteRepository
+                        .findByProfissionalUuidAndAtivoTrue(request.profissionalUuid())
+                        .stream()
+                        .filter(regra -> request.diaSemana().equals(regra.getDiaSemana()))
+                        .map(regra -> new Janela(regra.getHoraInicio(), regra.getHoraFim()))
+                        .toList());
+        bloqueios.add(new Janela(request.horaInicio(), request.horaFim()));
+
+        if (ExpedienteEfetivo.cobreTudo(expediente, bloqueios)) {
+            throw new AgendamentoInvalidoException(
+                    Mensagens.get("bloqueio.recorrente-anula-expediente"));
+        }
     }
 
     @Override

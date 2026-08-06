@@ -11,6 +11,7 @@ import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { mascaraCEP, mascaraCPF, mascaraTelefone } from '@/lib/mascaras'
 import {
   Agendamento,
+  EvolucaoCurativo,
   EvolucaoCurativoRequisicao,
   TecidoLeito,
   InfeccaoInflamacaoCurativo,
@@ -44,7 +45,14 @@ import {
   Scissors,
   MessageSquare,
   BookOpen,
+  Paperclip,
+  FileSignature,
+  ChevronRight,
+  ExternalLink,
 } from 'lucide-react'
+import PainelAnexos from '@/components/PainelProntuario/PainelAnexos'
+import PainelPrescricoes from '@/components/PainelProntuario/PainelPrescricoes'
+import PainelAtestados from '@/components/PainelProntuario/PainelAtestados'
 import {
   BloqueadoTag,
   Campo,
@@ -391,14 +399,80 @@ function TipoBadge({ tipo }: { tipo: string }) {
   )
 }
 
+// ── Detalhe de uma consulta anterior ─────────────────────────────
+//
+// A linha do tempo do histórico vem de `getTratamentosPorAvaliacao`, que
+// devolve AgendamentoViewDTO — sem as fichas clínicas. Por isso o modal busca
+// a consulta por id ao abrir: só `GET /api/agendamentos/{id}` traz
+// evolucaoCurativo/evolucaoEnfermagem.
+
+type LinhaFicha = { rotulo: string; valor: string }
+
+/** Converte o valor do enum no rótulo que a ficha exibe. */
+function rotuloOpcao<T extends string>(
+  opcoes: { value: T; label: string }[],
+  valor?: T,
+): string | undefined {
+  if (!valor) return undefined
+  return opcoes.find(o => o.value === valor)?.label ?? valor
+}
+
+/**
+ * Campos preenchidos da Ficha de Evolução Diária – Curativos.
+ *
+ * Quase tudo na ficha é opcional, então os vazios são descartados: listar
+ * "não informado" vinte vezes esconderia o que de fato foi registrado.
+ */
+function linhasCurativo(ec: EvolucaoCurativo): LinhaFicha[] {
+  const medida = (n?: number) => (n == null ? undefined : `${n} cm`)
+
+  const campos: [string, string | undefined][] = [
+    ['Comprimento', medida(ec.comprimento)],
+    ['Largura', medida(ec.largura)],
+    ['Profundidade', medida(ec.profundidade)],
+    [
+      'Área aproximada',
+      ec.areaAproximada == null ? undefined : `${ec.areaAproximada} cm²`,
+    ],
+    ['Tecido (T)', rotuloOpcao(OPCOES_TECIDO, ec.tecido)],
+    [
+      'Infecção/Inflamação (I)',
+      rotuloOpcao(OPCOES_INFECCAO, ec.infeccaoInflamacao),
+    ],
+    ['Exsudato (M)', rotuloOpcao(OPCOES_EXSUDATO, ec.exsudato)],
+    ['Bordas (E)', rotuloOpcao(OPCOES_BORDAS, ec.bordas)],
+    ['Odor', ec.odorPresente ? 'Presente' : 'Ausente'],
+    ['Dor', ec.dorEscala == null ? undefined : `${ec.dorEscala}/10`],
+    ['Pele perilesional', ec.pelePerilesional],
+    ['Limpeza/Irrigação', ec.limpezaIrrigacao],
+    ['Desbridamento', rotuloOpcao(OPCOES_DESBRIDAMENTO, ec.desbridamento)],
+    ['Observação do desbridamento', ec.desbridamentoObs],
+    ['Cobertura primária', ec.coberturaPrimaria],
+    ['Orientações ao paciente', ec.orientacoesPaciente],
+    ['Evolução', rotuloOpcao(OPCOES_EVOLUCAO, ec.evolucao)],
+    ['Observações', ec.observacoes],
+    ['Manter conduta', ec.planoManterConduta],
+    ['Alterar cobertura', ec.planoAlterarCobertura],
+    ['Solicitar exames', ec.planoSolicitarExames],
+    ['Encaminhamento', ec.planoEncaminhamento],
+    ['Retorno previsto', ec.retornoPrevisto],
+  ]
+
+  return campos
+    .filter((par): par is [string, string] => !!par[1]?.trim())
+    .map(([rotulo, valor]) => ({ rotulo, valor }))
+}
+
 function HistoricoItem({
   item,
   isAtual,
   index,
+  onAbrir,
 }: {
   item: Agendamento
   isAtual: boolean
   index: number
+  onAbrir: () => void
 }) {
   const isRealizado = item.status === 'REALIZADO'
   const dotClasse = isAtual
@@ -409,8 +483,8 @@ function HistoricoItem({
         ? 'proc-hist-dot--avaliacao'
         : 'proc-hist-dot--tratamento'
 
-  return (
-    <div className={`proc-hist-item${isAtual ? ' proc-hist-item--atual' : ''}`}>
+  const conteudo = (
+    <>
       <div className={`proc-hist-dot ${dotClasse}`}>
         {isRealizado && !isAtual ? <CheckCircle size={14} /> : index + 1}
       </div>
@@ -428,7 +502,167 @@ function HistoricoItem({
           <StatusBadge status={item.status} />
         )}
       </div>
-    </div>
+    </>
+  )
+
+  // A consulta atual não abre modal: ela já é a tela que está sendo exibida.
+  if (isAtual) {
+    return (
+      <div className="proc-hist-item proc-hist-item--atual">{conteudo}</div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      className="proc-hist-item proc-hist-item--clicavel"
+      onClick={onAbrir}
+      title={`Ver ${ROTULO_TIPO[item.tipo] ?? item.tipo} de ${fmt.dataCurta(item.inicioEm)}`}
+    >
+      {conteudo}
+      <ChevronRight size={15} className="proc-hist-seta" />
+    </button>
+  )
+}
+
+function ModalConsultaAnterior({
+  consulta,
+  carregando,
+  onFechar,
+  onAbrirCompleta,
+}: {
+  consulta: Agendamento | null
+  carregando: boolean
+  onFechar: () => void
+  onAbrirCompleta: () => void
+}) {
+  const linhas = consulta?.evolucaoCurativo
+    ? linhasCurativo(consulta.evolucaoCurativo)
+    : []
+
+  return (
+    <Modal
+      titulo={
+        consulta
+          ? `${ROTULO_TIPO[consulta.tipo] ?? consulta.tipo} — ${fmt.data(consulta.inicioEm)}`
+          : 'Consulta anterior'
+      }
+      tamanho="lg"
+      onClose={onFechar}
+      rodape={
+        <>
+          <button className="proc-modal-btn-secundario" onClick={onFechar}>
+            Fechar
+          </button>
+          <button
+            className="proc-modal-btn-primario"
+            onClick={onAbrirCompleta}
+            disabled={!consulta}
+          >
+            <ExternalLink size={15} />
+            Abrir consulta completa
+          </button>
+        </>
+      }
+    >
+      {carregando && (
+        <div className="proc-estado">
+          <div className="proc-spinner" />
+          <p>Carregando consulta…</p>
+        </div>
+      )}
+
+      {!carregando && !consulta && (
+        <p className="proc-detalhe-vazio">
+          Não foi possível carregar esta consulta.
+        </p>
+      )}
+
+      {!carregando && consulta && (
+        <div className="proc-detalhe">
+          <div className="proc-detalhe-resumo">
+            <div className="proc-detalhe-par">
+              <span className="proc-detalhe-rotulo">Horário</span>
+              <span className="proc-detalhe-valor">
+                {fmt.hora(consulta.inicioEm)} – {fmt.hora(consulta.fimEm)}
+              </span>
+            </div>
+            <div className="proc-detalhe-par">
+              <span className="proc-detalhe-rotulo">Status</span>
+              <StatusBadge status={consulta.status} />
+            </div>
+            {consulta.nomeProfissional && (
+              <div className="proc-detalhe-par">
+                <span className="proc-detalhe-rotulo">Profissional</span>
+                <span className="proc-detalhe-valor">
+                  {consulta.nomeProfissional}
+                </span>
+              </div>
+            )}
+            {nomeProcedimento(consulta) && (
+              <div className="proc-detalhe-par">
+                <span className="proc-detalhe-rotulo">Procedimento</span>
+                <span className="proc-detalhe-valor">
+                  {nomeProcedimento(consulta)}
+                </span>
+              </div>
+            )}
+            {consulta.localAtendimento && (
+              <div className="proc-detalhe-par">
+                <span className="proc-detalhe-rotulo">Local</span>
+                <span className="proc-detalhe-valor">
+                  {ROTULO_LOCAL_ATENDIMENTO[consulta.localAtendimento]}
+                </span>
+              </div>
+            )}
+            {consulta.concluidoEm && (
+              <div className="proc-detalhe-par">
+                <span className="proc-detalhe-rotulo">Concluída em</span>
+                <span className="proc-detalhe-valor">
+                  {fmt.data(consulta.concluidoEm)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* A avaliação reaproveita a própria ficha em modo leitura: ela já
+              conhece os 60+ rótulos, que não vale a pena duplicar aqui. */}
+          {consulta.tipo === 'AVALIACAO' && consulta.evolucaoEnfermagem && (
+            <FichaEnfermagem
+              valor={enfermagemParaFormulario(
+                consulta.evolucaoEnfermagem,
+                consulta.inicioEm,
+              )}
+              aoAlterar={() => {}}
+              desabilitado
+              mostrarBloqueio={false}
+            />
+          )}
+
+          {consulta.tipo === 'TRATAMENTO' && linhas.length > 0 && (
+            <div className="proc-detalhe-ficha">
+              <h3 className="proc-detalhe-titulo">
+                Ficha de Evolução Diária – Curativos
+              </h3>
+              <dl className="proc-detalhe-lista">
+                {linhas.map(({ rotulo, valor }) => (
+                  <div key={rotulo} className="proc-detalhe-linha">
+                    <dt>{rotulo}</dt>
+                    <dd>{valor}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
+          {!consulta.evolucaoEnfermagem && !consulta.evolucaoCurativo && (
+            <p className="proc-detalhe-vazio">
+              Esta consulta não tem ficha clínica registrada.
+            </p>
+          )}
+        </div>
+      )}
+    </Modal>
   )
 }
 
@@ -450,6 +684,13 @@ export default function ProcedimentoPage({
 
   const [historico, setHistorico] = useState<Agendamento[]>([])
   const [carregandoHist, setCarregandoHist] = useState(false)
+
+  // Consulta anterior aberta a partir da linha do tempo. `detalheAberto`
+  // controla o modal separadamente de `detalhe` para que ele já apareça com o
+  // spinner enquanto a busca por id acontece.
+  const [detalheAberto, setDetalheAberto] = useState(false)
+  const [detalhe, setDetalhe] = useState<Agendamento | null>(null)
+  const [carregandoDetalhe, setCarregandoDetalhe] = useState(false)
 
   const [evolucao, setEvolucao] = useState<EvolucaoForm>(EVOLUCAO_INICIAL)
   // Fichas da Avaliação: anamnese (1:1 com o paciente) + evolução de enfermagem
@@ -474,6 +715,20 @@ export default function ProcedimentoPage({
   const perfilLayout = isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'
 
   useEffect(() => {
+    // O modal do histórico navega para outra consulta pela mesma rota, trocando
+    // só o `[id]`. O App Router reaproveita o componente nesse caso — ele não
+    // remonta —, então o estado da consulta anterior sobreviveria à navegação:
+    // a nova abriria já "iniciada" e com o modal aberto por cima.
+    setCarregando(true)
+    setErro(null)
+    setIniciado(false)
+    setModalAberto(false)
+    setDetalheAberto(false)
+    setDetalhe(null)
+    setAnamnese(ANAMNESE_INICIAL)
+    setAnamneseExistente(false)
+    setHistorico([])
+
     agendamentoAPI
       .buscarPorId(Number(id))
       .then(data => {
@@ -541,6 +796,28 @@ export default function ProcedimentoPage({
       .catch(() => {})
       .finally(() => setCarregandoHist(false))
   }, [agendamento])
+
+  const abrirDetalhe = async (consultaId: number) => {
+    setDetalheAberto(true)
+    setDetalhe(null)
+    setCarregandoDetalhe(true)
+    try {
+      setDetalhe(await agendamentoAPI.buscarPorId(consultaId))
+    } catch (err) {
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.carregarAgendamento),
+        'error',
+        6000,
+      )
+    } finally {
+      setCarregandoDetalhe(false)
+    }
+  }
+
+  const fecharDetalhe = () => {
+    setDetalheAberto(false)
+    setDetalhe(null)
+  }
 
   const setEv =
     (campo: keyof EvolucaoForm) =>
@@ -938,6 +1215,7 @@ export default function ProcedimentoPage({
                           item={item}
                           isAtual={item.id === agendamento.id}
                           index={idx}
+                          onAbrir={() => abrirDetalhe(item.id)}
                         />
                       ))}
                     </div>
@@ -1246,6 +1524,50 @@ export default function ProcedimentoPage({
                     />
                   </>
                 )}
+
+                {/* Documentos do prontuário (RF15/RF16/RF17). Gravam na hora,
+                    fora do "Finalizar consulta": cada painel fala direto com o
+                    seu endpoint, por paciente e não por agendamento. Seguem o
+                    bloqueio das fichas — só com a consulta iniciada — para que
+                    o registro clínico continue amarrado ao atendimento. */}
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Paperclip size={16} />
+                    Anexos e exames
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <PainelAnexos
+                    pacienteUuid={agendamento.pacienteUuid}
+                    desabilitado={!podeEditar}
+                    variante="card"
+                  />
+                </div>
+
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <Pill size={16} />
+                    Prescrições
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <PainelPrescricoes
+                    pacienteUuid={agendamento.pacienteUuid}
+                    desabilitado={!podeEditar}
+                    variante="card"
+                  />
+                </div>
+
+                <div className="proc-card proc-full">
+                  <div className="proc-card-header">
+                    <FileSignature size={16} />
+                    Atestados
+                    {!podeEditar && !jaRealizado && <BloqueadoTag />}
+                  </div>
+                  <PainelAtestados
+                    pacienteUuid={agendamento.pacienteUuid}
+                    desabilitado={!podeEditar}
+                    variante="card"
+                  />
+                </div>
               </div>
 
               {/* Barra de ações */}
@@ -1288,6 +1610,17 @@ export default function ProcedimentoPage({
             </>
           )}
         </div>
+
+        {detalheAberto && (
+          <ModalConsultaAnterior
+            consulta={detalhe}
+            carregando={carregandoDetalhe}
+            onFechar={fecharDetalhe}
+            onAbrirCompleta={() =>
+              detalhe && router.push(`/agenda/procedimento/${detalhe.id}`)
+            }
+          />
+        )}
 
         {modalAberto && (
           <Modal

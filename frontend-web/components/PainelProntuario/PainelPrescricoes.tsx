@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback, FormEvent } from 'react'
-import { useNotificacao } from '../../../../contexts/ToastContext'
-import { prescricaoAPI } from '../../../../lib/prescricao.service'
+import { useNotificacao } from '@/contexts/ToastContext'
+import { prescricaoAPI } from '@/lib/prescricao.service'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import Modal from '@/components/Modal'
 import {
@@ -11,6 +11,7 @@ import {
   TipoPrescricao,
   ROTULO_TIPO_PRESCRICAO,
 } from '@/tipos/prescricao'
+import { BarraPainel, EstadoCarregando, PainelProps, Secao } from './secao'
 
 const formatarDataHora = (dataString: string): string =>
   new Date(dataString).toLocaleString('pt-BR', {
@@ -178,10 +179,12 @@ function CardPrescricao({
   prescricao,
   onEditar,
   onExcluir,
+  podeEditar,
 }: {
   prescricao: Prescricao
   onEditar: () => void
   onExcluir: () => void
+  podeEditar: boolean
 }) {
   return (
     <div className="presc-card">
@@ -195,6 +198,7 @@ function CardPrescricao({
           <button
             className="presc-icon-btn"
             onClick={onEditar}
+            disabled={!podeEditar}
             aria-label="Editar prescrição"
           >
             Editar
@@ -202,6 +206,7 @@ function CardPrescricao({
           <button
             className="presc-icon-btn presc-icon-btn-perigo"
             onClick={onExcluir}
+            disabled={!podeEditar}
             aria-label="Excluir prescrição"
           >
             Excluir
@@ -236,13 +241,12 @@ function CardPrescricao({
   )
 }
 
-export default function AbaPrescricoes({
+export default function PainelPrescricoes({
   pacienteUuid,
   onNomePaciente,
-}: {
-  pacienteUuid: string
-  onNomePaciente: (nome: string) => void
-}) {
+  desabilitado = false,
+  variante = 'aba',
+}: PainelProps) {
   const { exibirNotificacao } = useNotificacao()
 
   const [prescricoes, setPrescricoes] = useState<Prescricao[]>([])
@@ -260,7 +264,7 @@ export default function AbaPrescricoes({
       setError(null)
       const data = await prescricaoAPI.listar(pacienteUuid)
       setPrescricoes(data)
-      if (data[0]?.pacienteNome) onNomePaciente(data[0].pacienteNome)
+      if (data[0]?.pacienteNome) onNomePaciente?.(data[0].pacienteNome)
     } catch (err) {
       setError(mensagemErro(err, MENSAGENS.erro.carregarPrescricoes))
     } finally {
@@ -324,25 +328,22 @@ export default function AbaPrescricoes({
   }
 
   return (
-    <div className="pront-aba">
-      <div className="anx-toolbar">
-        <div>
-          <h2 className="anx-titulo">Prescrições</h2>
-          <span className="anx-hint">
-            Medicamentos e cuidados de enfermagem
-          </span>
-        </div>
-        <button className="presc-btn presc-btn-primario" onClick={abrirNova}>
+    <Secao variante={variante}>
+      <BarraPainel
+        titulo="Prescrições"
+        hint="Medicamentos e cuidados de enfermagem"
+        variante={variante}
+      >
+        <button
+          className="presc-btn presc-btn-primario"
+          onClick={abrirNova}
+          disabled={desabilitado}
+        >
           + Nova prescrição
         </button>
-      </div>
+      </BarraPainel>
 
-      {loading && (
-        <div className="pront-estado">
-          <div className="pac-spinner" />
-          <p>Carregando prescrições...</p>
-        </div>
-      )}
+      {loading && <EstadoCarregando texto="Carregando prescrições..." />}
 
       {error && !loading && (
         <div className="pront-estado pront-estado-erro">
@@ -359,7 +360,11 @@ export default function AbaPrescricoes({
       {!loading && !error && prescricoes.length === 0 && (
         <div className="pront-estado">
           <p>Nenhuma prescrição registrada para este paciente.</p>
-          <button className="presc-btn presc-btn-primario" onClick={abrirNova}>
+          <button
+            className="presc-btn presc-btn-primario"
+            onClick={abrirNova}
+            disabled={desabilitado}
+          >
             Registrar primeira prescrição
           </button>
         </div>
@@ -373,6 +378,7 @@ export default function AbaPrescricoes({
               prescricao={p}
               onEditar={() => abrirEdicao(p)}
               onExcluir={() => setExcluindo(p)}
+              podeEditar={!desabilitado}
             />
           ))}
         </div>
@@ -434,6 +440,6 @@ export default function AbaPrescricoes({
           </p>
         </Modal>
       )}
-    </div>
+    </Secao>
   )
 }

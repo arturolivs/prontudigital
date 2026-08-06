@@ -49,14 +49,6 @@
   cursor: pointer;
 }
 
-.proc-form-erro {
-  background: var(--color-error-bg);
-  color: var(--color-error);
-  border-radius: 0.5rem;
-  padding: 0.6rem 0.85rem;
-  font-size: 0.85rem;
-}
-
 .proc-btn-cancelar {
   background: none;
   border: 1px solid var(--color-border-brand);
