@@ -38,4 +38,12 @@ public interface UsuarioService {
     UsuarioDTO enviarAvatar(MultipartFile arquivo);
     AvatarDownloadDTO baixarAvatar();
     UsuarioDTO removerAvatar();
+
+    /**
+     * Avatar de um profissional, para a tela publica de agendamento.
+     *
+     * <p>Diferente de {@link #baixarAvatar()}, aceita o uuid de outra pessoa —
+     * e por isso restringe a profissionais ativos. Ver a implementacao.
+     */
+    AvatarDownloadDTO baixarAvatarProfissional(UUID profissionalUuid);
 }

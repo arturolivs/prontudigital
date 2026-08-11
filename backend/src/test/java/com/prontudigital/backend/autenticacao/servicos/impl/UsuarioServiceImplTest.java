@@ -9,6 +9,8 @@ import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.entidades.Endereco;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
+import com.prontudigital.backend.autenticacao.entidades.UsuarioPerfil;
+import com.prontudigital.backend.autenticacao.entidades.UsuarioPerfilId;
 import com.prontudigital.backend.autenticacao.excecoes.*;
 import com.prontudigital.backend.autenticacao.repositorios.PerfilRepository;
 import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
@@ -30,6 +32,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -979,6 +982,94 @@ class UsuarioServiceImplTest {
 
             assertDoesNotThrow(() -> service.removerAvatar());
             verify(armazenamentoService, never()).remover(anyString());
+        }
+    }
+
+    // =========================================================
+    // Avatar publico (tela de agendamento)
+    // =========================================================
+    @Nested
+    @DisplayName("baixarAvatarProfissional() — endpoint publico")
+    class AvatarProfissional {
+
+        /** Usuario com o perfil informado, avatar cadastrado e ativo por padrao. */
+        private Usuario usuarioCom(String nomePerfil, boolean ativo, boolean comAvatar) {
+            Usuario u = Usuario.builder()
+                    .id(USUARIO_ID)
+                    .uuid(USUARIO_UUID)
+                    .username(USERNAME)
+                    .nomeCompleto(NOME)
+                    .senhaHash(SENHA_HASH)
+                    .ativo(ativo)
+                    .usuarioPerfis(new HashSet<>())
+                    .build();
+            Perfil perfil = Perfil.builder().id(9L).uuid(UUID.randomUUID())
+                    .nome(nomePerfil).build();
+            u.getUsuarioPerfis().add(UsuarioPerfil.builder()
+                    .id(new UsuarioPerfilId(USUARIO_ID, perfil.getId()))
+                    .usuario(u).perfil(perfil).build());
+            if (comAvatar) {
+                u.setAvatarChave("avatares/foto.png");
+                u.setAvatarTipoConteudo("image/png");
+            }
+            return u;
+        }
+
+        @Test
+        @DisplayName("entrega a foto de profissional ativo")
+        void deveEntregarAvatarDeProfissional() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID))
+                    .thenReturn(Optional.of(usuarioCom("PROFISSIONAL", true, true)));
+            Resource recurso = new ByteArrayResource(new byte[] { 9 });
+            when(armazenamentoService.carregar("avatares/foto.png")).thenReturn(recurso);
+
+            var download = service.baixarAvatarProfissional(USUARIO_UUID);
+
+            assertSame(recurso, download.recurso());
+            assertEquals("image/png", download.tipoConteudo());
+        }
+
+        @Test
+        @DisplayName("recusa a foto de paciente — nao vaza dado pessoal sem autenticacao")
+        void deveRecusarAvatarDePaciente() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID))
+                    .thenReturn(Optional.of(usuarioCom("PACIENTE", true, true)));
+
+            assertThrows(AvatarInvalidoException.class,
+                    () -> service.baixarAvatarProfissional(USUARIO_UUID));
+            verify(armazenamentoService, never()).carregar(anyString());
+        }
+
+        @Test
+        @DisplayName("recusa profissional inativo")
+        void deveRecusarProfissionalInativo() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID))
+                    .thenReturn(Optional.of(usuarioCom("PROFISSIONAL", false, true)));
+
+            assertThrows(AvatarInvalidoException.class,
+                    () -> service.baixarAvatarProfissional(USUARIO_UUID));
+            verify(armazenamentoService, never()).carregar(anyString());
+        }
+
+        @Test
+        @DisplayName("recusa profissional sem foto cadastrada")
+        void deveRecusarProfissionalSemAvatar() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID))
+                    .thenReturn(Optional.of(usuarioCom("PROFISSIONAL", true, false)));
+
+            assertThrows(AvatarInvalidoException.class,
+                    () -> service.baixarAvatarProfissional(USUARIO_UUID));
+        }
+
+        @Test
+        @DisplayName("uuid inexistente devolve o mesmo erro dos demais casos")
+        void deveRecusarUuidInexistente() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID)).thenReturn(Optional.empty());
+
+            // Mesma excecao dos casos acima de proposito: variar a resposta
+            // permitiria enumerar uuids e descobrir quem e usuario do sistema.
+            assertThrows(AvatarInvalidoException.class,
+                    () -> service.baixarAvatarProfissional(USUARIO_UUID));
         }
     }
 }

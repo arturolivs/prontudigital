@@ -7,6 +7,7 @@ import { agendamentoAPI } from '../../lib/agendamento.service'
 import {
   agendamentoPublicoAPI,
   ProfissionalPublico,
+  urlAvatarProfissional,
 } from '../../lib/agendamento-publico.service'
 import { BloqueioHorario } from '../../tipos/bloqueio'
 import { HorarioTrabalho } from '../../tipos/horarioTrabalho'
@@ -123,6 +124,36 @@ const formatarDataExibicao = (data: string): string => {
     month: 'long',
     year: 'numeric',
   })
+}
+
+/**
+ * Foto do profissional, com as iniciais como alternativa.
+ *
+ * `temAvatar` evita pedir a imagem de quem não tem — seria um 422 e um ícone
+ * quebrado. O `onError` cobre o resto: foto removida entre a listagem e a
+ * exibição, ou falha de rede. Em ambos os casos a inicial volta a aparecer,
+ * porque um cartão sem nada seria pior que um cartão sem foto.
+ */
+function AvatarProfissional({
+  profissional,
+}: {
+  profissional: ProfissionalPublico
+}) {
+  const [falhou, setFalhou] = useState(false)
+  const mostrarFoto = profissional.temAvatar && !falhou
+
+  if (!mostrarFoto) {
+    return <>{iniciais(profissional.nomeCompleto)}</>
+  }
+
+  return (
+    <img
+      src={urlAvatarProfissional(profissional.uuid)}
+      alt=""
+      className="profissional-avatar-img"
+      onError={() => setFalhou(true)}
+    />
+  )
 }
 
 /* ── tipos internos ── */
@@ -441,7 +472,7 @@ export default function AgendarPage() {
                       onClick={() => setProfissional(p)}
                     >
                       <div className="profissional-avatar">
-                        {iniciais(p.nomeCompleto)}
+                        <AvatarProfissional profissional={p} />
                       </div>
                       <div className="profissional-info">
                         <div className="profissional-nome">

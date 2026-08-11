@@ -356,6 +356,35 @@ public class UsuarioServiceImpl implements UsuarioService {
         return converterUsuarioParaDTO(salvo);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public AvatarDownloadDTO baixarAvatarProfissional(UUID profissionalUuid) {
+        Usuario usuario = usuarioRepository.findByUuid(profissionalUuid)
+                .filter(UsuarioServiceImpl::ehProfissionalAtivo)
+                .filter(Usuario::temAvatar)
+                // Uma unica mensagem para "nao existe", "nao e profissional",
+                // "esta inativo" e "nao tem foto". O endpoint e publico: variar
+                // a resposta permitiria descobrir, so pelo uuid, quem e usuario
+                // do sistema e em que papel.
+                .orElseThrow(() -> new AvatarInvalidoException(
+                        Mensagens.get("usuario.avatar.nao-cadastrado")));
+
+        return new AvatarDownloadDTO(
+                armazenamentoService.carregar(usuario.getAvatarChave()),
+                usuario.getAvatarTipoConteudo());
+    }
+
+    /**
+     * Sem este filtro o endpoint publico entregaria a foto de qualquer usuario
+     * a quem tivesse o uuid — inclusive a de pacientes, que nunca deveriam ser
+     * expostos fora da autenticacao.
+     */
+    private static boolean ehProfissionalAtivo(Usuario usuario) {
+        return Boolean.TRUE.equals(usuario.getAtivo())
+                && usuario.getPerfis().stream()
+                        .anyMatch(p -> "PROFISSIONAL".equals(p.getNome()));
+    }
+
     /**
      * O avatar e sempre o do usuario da sessao — nunca vem id no caminho, o que
      * elimina a necessidade de checar posse.
