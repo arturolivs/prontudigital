@@ -2,6 +2,7 @@ package com.prontudigital.backend.autenticacao.controladores;
 
 import com.prontudigital.backend.autenticacao.dto.AlterarSenhaRequestDTO;
 import com.prontudigital.backend.autenticacao.dto.AtualizarPerfilRequestDTO;
+import com.prontudigital.backend.autenticacao.dto.AvatarDownloadDTO;
 import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
 import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
@@ -14,10 +15,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.core.io.Resource;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -107,6 +112,52 @@ public class UsuarioController {
             @Valid @RequestBody AlterarSenhaRequestDTO dto) {
         usuarioService.alterarSenha(id, dto);
         return ResponseEntity.noContent().build();
+    }
+
+    // ── Avatar do usuario autenticado ────────────────────────────────
+    //
+    // Sem id no caminho de proposito: o avatar e editado em "Meu perfil" e
+    // vale sempre para quem esta na sessao. Isso dispensa checagem de posse,
+    // que o PATCH /{id}/perfil deixa a cargo de quem chama.
+
+    @Operation(summary = "Enviar avatar do usuario autenticado",
+            description = "Imagem JPG, PNG ou WEBP de ate 2 MB. Substitui a anterior.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Avatar atualizado"),
+            @ApiResponse(responseCode = "401", description = "Nao autenticado"),
+            @ApiResponse(responseCode = "422",
+                    description = "Arquivo vazio, tipo nao permitido ou acima do limite")
+    })
+    @PostMapping(path = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UsuarioDTO> enviarAvatar(
+            @RequestParam("arquivo") MultipartFile arquivo) {
+        return ResponseEntity.ok(usuarioService.enviarAvatar(arquivo));
+    }
+
+    @Operation(summary = "Obter o avatar do usuario autenticado",
+            description = "Retorna o binario inline, para uso em <img>.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Binario do avatar"),
+            @ApiResponse(responseCode = "401", description = "Nao autenticado"),
+            @ApiResponse(responseCode = "422", description = "Nenhum avatar cadastrado")
+    })
+    @GetMapping("/me/avatar")
+    public ResponseEntity<Resource> baixarAvatar() {
+        AvatarDownloadDTO avatar = usuarioService.baixarAvatar();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(avatar.tipoConteudo()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"avatar\"")
+                .body(avatar.recurso());
+    }
+
+    @Operation(summary = "Remover o avatar do usuario autenticado")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Avatar removido"),
+            @ApiResponse(responseCode = "401", description = "Nao autenticado")
+    })
+    @DeleteMapping("/me/avatar")
+    public ResponseEntity<UsuarioDTO> removerAvatar() {
+        return ResponseEntity.ok(usuarioService.removerAvatar());
     }
 
     @Operation(summary = "Deletar usuario")

@@ -45,9 +45,27 @@ const BarraLateral = ({
 
   const itensMenu: ItemMenu[] = [
     {
+      rotulo: 'Meu Perfil',
+      caminho: '/perfil',
+      icone: UserCircle,
+      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
+    },
+    {
       rotulo: 'Dashboard',
       caminho: '/dashboard',
       icone: LayoutDashboard,
+      perfis: ['ROLE_ADMIN'],
+    },
+    {
+      rotulo: 'Usuários',
+      caminho: '/dashboard/usuarios',
+      icone: Users,
+      perfis: ['ROLE_ADMIN'],
+    },
+    {
+      rotulo: 'Procedimentos',
+      caminho: '/dashboard/procedimentos',
+      icone: Stethoscope,
       perfis: ['ROLE_ADMIN'],
     },
     {
@@ -74,18 +92,7 @@ const BarraLateral = ({
       icone: FileText,
       perfis: ['ROLE_PROFISSIONAL'],
     },
-    {
-      rotulo: 'Usuários',
-      caminho: '/dashboard/usuarios',
-      icone: Users,
-      perfis: ['ROLE_ADMIN'],
-    },
-    {
-      rotulo: 'Procedimentos',
-      caminho: '/dashboard/procedimentos',
-      icone: Stethoscope,
-      perfis: ['ROLE_ADMIN'],
-    },
+
     {
       // O profissional também acessa, mas só enxerga a própria agenda (RF19/RF20).
       rotulo: 'Relatórios',
@@ -100,15 +107,6 @@ const BarraLateral = ({
       caminho: '/dashboard/configuracoes',
       icone: Settings,
       perfis: ['ROLE_ADMIN'],
-    },
-    {
-      // Era 'Configurações' → /settings, rota que nunca existiu. A única tela
-      // de ajustes do usuário é /perfil (dados pessoais, acesso e troca de
-      // senha), que estava sem nenhum ponto de entrada no menu.
-      rotulo: 'Meu Perfil',
-      caminho: '/perfil',
-      icone: UserCircle,
-      perfis: ['ROLE_ADMIN', 'ROLE_PROFISSIONAL'],
     },
   ]
 

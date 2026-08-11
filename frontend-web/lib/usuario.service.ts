@@ -94,4 +94,33 @@ export const usuariosAPI = {
   excluirUsuario: async (id: number): Promise<void> => {
     await api.delete(`/${id}`)
   },
+
+  // ── Avatar do usuário autenticado ──────────────────────────────
+  // Sem id na rota: o backend resolve pelo token da sessão.
+
+  enviarAvatar: async (arquivo: File): Promise<Usuario> => {
+    const form = new FormData()
+    form.append('arquivo', arquivo)
+    const response = await api.post<Usuario>('/me/avatar', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
+
+  /**
+   * Baixa o avatar como Blob para virar object URL.
+   *
+   * Não dá para apontar um `<img src>` direto ao endpoint: o navegador não
+   * manda o header `Authorization` numa requisição de imagem, e o avatar é
+   * dado pessoal — diferente da logo da clínica, cuja leitura é pública.
+   */
+  baixarAvatar: async (): Promise<Blob> => {
+    const response = await api.get('/me/avatar', { responseType: 'blob' })
+    return response.data as Blob
+  },
+
+  removerAvatar: async (): Promise<Usuario> => {
+    const response = await api.delete<Usuario>('/me/avatar')
+    return response.data
+  },
 }

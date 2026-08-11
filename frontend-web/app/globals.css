@@ -182,3 +182,29 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CURSOR DE ELEMENTOS CLICÁVEIS
+
+   O padrão do navegador para <button> é `cursor: default`, e o preflight do
+   Tailwind não altera isso — só recebia o pointer quem declarasse na própria
+   classe. A regra abaixo cobre tudo que é clicável de uma vez, em vez de
+   depender de cada folha de estilo lembrar de fazê-lo.
+
+   Vale para <a href>, e não para <a> sem href: âncora sem destino não é link.
+   `[role="button"]` cobre os clicáveis que não são <button>: as células da
+   agenda mensal/semanal e o card da lista de agendamentos.
+   ═══════════════════════════════════════════════════════════════════════ */
+button,
+a[href],
+[role='button'] {
+  cursor: pointer;
+}
+
+/* Desabilitado vence o pointer: a seletividade destes é maior que a de uma
+   classe simples (`.btn { cursor: pointer }`), então não precisam repetir a
+   regra em cada arquivo. */
+button:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}

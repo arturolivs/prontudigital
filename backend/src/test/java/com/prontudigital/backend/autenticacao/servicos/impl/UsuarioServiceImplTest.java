@@ -9,21 +9,30 @@ import com.prontudigital.backend.autenticacao.dto.UsuarioDTO;
 import com.prontudigital.backend.autenticacao.entidades.Endereco;
 import com.prontudigital.backend.autenticacao.entidades.Perfil;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
+import com.prontudigital.backend.autenticacao.entidades.UsuarioPerfil;
+import com.prontudigital.backend.autenticacao.entidades.UsuarioPerfilId;
 import com.prontudigital.backend.autenticacao.excecoes.*;
 import com.prontudigital.backend.autenticacao.repositorios.PerfilRepository;
 import com.prontudigital.backend.autenticacao.repositorios.UsuarioRepository;
+import com.prontudigital.backend.autenticacao.seguranca.UsuarioContexto;
+import com.prontudigital.backend.compartilhado.armazenamento.ArmazenamentoService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +50,8 @@ class UsuarioServiceImplTest {
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private PerfilRepository perfilRepository;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private ArmazenamentoService armazenamentoService;
+    @Mock private UsuarioContexto usuarioContexto;
 
     @InjectMocks
     private UsuarioServiceImpl service;
@@ -822,6 +833,243 @@ class UsuarioServiceImplTest {
             assertThrows(EmailExistenteException.class,
                     () -> service.ativarAcesso(dto));
             verify(usuarioRepository, never()).save(any());
+        }
+    }
+
+    // =========================================================
+    // Avatar
+    // =========================================================
+    @Nested
+    @DisplayName("avatar")
+    class Avatar {
+
+        private MockMultipartFile imagem(String tipo, int bytes) {
+            return new MockMultipartFile("arquivo", "foto.png", tipo, new byte[bytes]);
+        }
+
+        /** Só as validacoes de arquivo rodam antes de resolver o usuario. */
+        private void comUsuarioAutenticado(Usuario usuario) {
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioDTO());
+            when(usuarioRepository.findById(USUARIO_ID)).thenReturn(Optional.of(usuario));
+        }
+
+        @Test
+        @DisplayName("grava chave e tipo de conteudo do avatar enviado")
+        void deveEnviarAvatar() {
+            Usuario usuario = usuarioComPerfil();
+            comUsuarioAutenticado(usuario);
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            UsuarioDTO resultado = service.enviarAvatar(imagem("image/png", 100));
+
+            assertTrue(resultado.temAvatar());
+            assertEquals("image/png", usuario.getAvatarTipoConteudo());
+            assertTrue(usuario.getAvatarChave().startsWith("avatares/"));
+            assertTrue(usuario.getAvatarChave().endsWith(".png"));
+            verify(armazenamentoService).salvar(eq(usuario.getAvatarChave()), any(), eq(100L));
+        }
+
+        @Test
+        @DisplayName("remove o arquivo anterior depois de gravar o novo")
+        void deveRemoverAvatarAnterior() {
+            Usuario usuario = usuarioComPerfil();
+            usuario.setAvatarChave("avatares/antigo.png");
+            usuario.setAvatarTipoConteudo("image/png");
+            comUsuarioAutenticado(usuario);
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            service.enviarAvatar(imagem("image/jpeg", 50));
+
+            // A ordem importa: gravar o novo antes de apagar o antigo garante
+            // que uma falha no meio nao deixe o usuario sem avatar nenhum.
+            InOrder ordem = inOrder(armazenamentoService, usuarioRepository);
+            ordem.verify(armazenamentoService).salvar(any(), any(), anyLong());
+            ordem.verify(usuarioRepository).save(any());
+            ordem.verify(armazenamentoService).remover("avatares/antigo.png");
+        }
+
+        @Test
+        @DisplayName("falha ao apagar o arquivo antigo nao desfaz a troca")
+        void deveIgnorarFalhaAoRemoverAnterior() {
+            Usuario usuario = usuarioComPerfil();
+            usuario.setAvatarChave("avatares/antigo.png");
+            usuario.setAvatarTipoConteudo("image/png");
+            comUsuarioAutenticado(usuario);
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            doThrow(new RuntimeException("disco indisponivel"))
+                    .when(armazenamentoService).remover(anyString());
+
+            assertDoesNotThrow(() -> service.enviarAvatar(imagem("image/png", 10)));
+            assertNotEquals("avatares/antigo.png", usuario.getAvatarChave());
+        }
+
+        @Test
+        @DisplayName("rejeita tipo de arquivo nao suportado")
+        void deveRejeitarTipoInvalido() {
+            MockMultipartFile pdf = imagem("application/pdf", 100);
+
+            assertThrows(AvatarInvalidoException.class, () -> service.enviarAvatar(pdf));
+            verify(armazenamentoService, never()).salvar(any(), any(), anyLong());
+            verify(usuarioRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("rejeita arquivo acima de 2 MB")
+        void deveRejeitarTamanhoExcedido() {
+            MockMultipartFile grande = imagem("image/png", 2 * 1024 * 1024 + 1);
+
+            assertThrows(AvatarInvalidoException.class, () -> service.enviarAvatar(grande));
+            verify(armazenamentoService, never()).salvar(any(), any(), anyLong());
+        }
+
+        @Test
+        @DisplayName("rejeita arquivo vazio")
+        void deveRejeitarArquivoVazio() {
+            MockMultipartFile vazio = imagem("image/png", 0);
+
+            assertThrows(AvatarInvalidoException.class, () -> service.enviarAvatar(vazio));
+            verify(armazenamentoService, never()).salvar(any(), any(), anyLong());
+        }
+
+        @Test
+        @DisplayName("baixar sem avatar cadastrado e recusado")
+        void deveRecusarDownloadSemAvatar() {
+            comUsuarioAutenticado(usuarioComPerfil());
+
+            assertThrows(AvatarInvalidoException.class, () -> service.baixarAvatar());
+            verify(armazenamentoService, never()).carregar(anyString());
+        }
+
+        @Test
+        @DisplayName("baixar devolve o recurso com o tipo de conteudo gravado")
+        void deveBaixarAvatar() {
+            Usuario usuario = usuarioComPerfil();
+            usuario.setAvatarChave("avatares/foto.webp");
+            usuario.setAvatarTipoConteudo("image/webp");
+            comUsuarioAutenticado(usuario);
+            Resource recurso = new ByteArrayResource(new byte[] { 1, 2, 3 });
+            when(armazenamentoService.carregar("avatares/foto.webp")).thenReturn(recurso);
+
+            var download = service.baixarAvatar();
+
+            assertSame(recurso, download.recurso());
+            assertEquals("image/webp", download.tipoConteudo());
+        }
+
+        @Test
+        @DisplayName("remover limpa as duas colunas e apaga o arquivo")
+        void deveRemoverAvatar() {
+            Usuario usuario = usuarioComPerfil();
+            usuario.setAvatarChave("avatares/foto.png");
+            usuario.setAvatarTipoConteudo("image/png");
+            comUsuarioAutenticado(usuario);
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            UsuarioDTO resultado = service.removerAvatar();
+
+            // As duas colunas andam juntas — o CHECK da V29 recusaria o meio-termo.
+            assertNull(usuario.getAvatarChave());
+            assertNull(usuario.getAvatarTipoConteudo());
+            assertFalse(resultado.temAvatar());
+            verify(armazenamentoService).remover("avatares/foto.png");
+        }
+
+        @Test
+        @DisplayName("remover sem avatar nao chama o armazenamento")
+        void deveRemoverSemAvatarCadastrado() {
+            comUsuarioAutenticado(usuarioComPerfil());
+            when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            assertDoesNotThrow(() -> service.removerAvatar());
+            verify(armazenamentoService, never()).remover(anyString());
+        }
+    }
+
+    // =========================================================
+    // Avatar publico (tela de agendamento)
+    // =========================================================
+    @Nested
+    @DisplayName("baixarAvatarProfissional() — endpoint publico")
+    class AvatarProfissional {
+
+        /** Usuario com o perfil informado, avatar cadastrado e ativo por padrao. */
+        private Usuario usuarioCom(String nomePerfil, boolean ativo, boolean comAvatar) {
+            Usuario u = Usuario.builder()
+                    .id(USUARIO_ID)
+                    .uuid(USUARIO_UUID)
+                    .username(USERNAME)
+                    .nomeCompleto(NOME)
+                    .senhaHash(SENHA_HASH)
+                    .ativo(ativo)
+                    .usuarioPerfis(new HashSet<>())
+                    .build();
+            Perfil perfil = Perfil.builder().id(9L).uuid(UUID.randomUUID())
+                    .nome(nomePerfil).build();
+            u.getUsuarioPerfis().add(UsuarioPerfil.builder()
+                    .id(new UsuarioPerfilId(USUARIO_ID, perfil.getId()))
+                    .usuario(u).perfil(perfil).build());
+            if (comAvatar) {
+                u.setAvatarChave("avatares/foto.png");
+                u.setAvatarTipoConteudo("image/png");
+            }
+            return u;
+        }
+
+        @Test
+        @DisplayName("entrega a foto de profissional ativo")
+        void deveEntregarAvatarDeProfissional() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID))
+                    .thenReturn(Optional.of(usuarioCom("PROFISSIONAL", true, true)));
+            Resource recurso = new ByteArrayResource(new byte[] { 9 });
+            when(armazenamentoService.carregar("avatares/foto.png")).thenReturn(recurso);
+
+            var download = service.baixarAvatarProfissional(USUARIO_UUID);
+
+            assertSame(recurso, download.recurso());
+            assertEquals("image/png", download.tipoConteudo());
+        }
+
+        @Test
+        @DisplayName("recusa a foto de paciente — nao vaza dado pessoal sem autenticacao")
+        void deveRecusarAvatarDePaciente() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID))
+                    .thenReturn(Optional.of(usuarioCom("PACIENTE", true, true)));
+
+            assertThrows(AvatarInvalidoException.class,
+                    () -> service.baixarAvatarProfissional(USUARIO_UUID));
+            verify(armazenamentoService, never()).carregar(anyString());
+        }
+
+        @Test
+        @DisplayName("recusa profissional inativo")
+        void deveRecusarProfissionalInativo() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID))
+                    .thenReturn(Optional.of(usuarioCom("PROFISSIONAL", false, true)));
+
+            assertThrows(AvatarInvalidoException.class,
+                    () -> service.baixarAvatarProfissional(USUARIO_UUID));
+            verify(armazenamentoService, never()).carregar(anyString());
+        }
+
+        @Test
+        @DisplayName("recusa profissional sem foto cadastrada")
+        void deveRecusarProfissionalSemAvatar() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID))
+                    .thenReturn(Optional.of(usuarioCom("PROFISSIONAL", true, false)));
+
+            assertThrows(AvatarInvalidoException.class,
+                    () -> service.baixarAvatarProfissional(USUARIO_UUID));
+        }
+
+        @Test
+        @DisplayName("uuid inexistente devolve o mesmo erro dos demais casos")
+        void deveRecusarUuidInexistente() {
+            when(usuarioRepository.findByUuid(USUARIO_UUID)).thenReturn(Optional.empty());
+
+            // Mesma excecao dos casos acima de proposito: variar a resposta
+            // permitiria enumerar uuids e descobrir quem e usuario do sistema.
+            assertThrows(AvatarInvalidoException.class,
+                    () -> service.baixarAvatarProfissional(USUARIO_UUID));
         }
     }
 }

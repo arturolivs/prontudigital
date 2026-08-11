@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import {
   User,
   Mail,
@@ -11,6 +11,7 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Camera,
 } from 'lucide-react'
 import Layout from '@/components/Layout/Layout'
 import { RotaProtegida } from '@/components/RotaProtegida'
@@ -34,6 +35,12 @@ const PERFIS_ROTULO: Record<string, string> = {
   ROLE_PACIENTE: 'Paciente',
   USUARIO: 'Usuário',
 }
+
+// Espelham TIPOS_AVATAR e TAMANHO_MAXIMO_AVATAR do UsuarioServiceImpl. A
+// checagem no cliente é conveniência — evita subir 5 MB para receber 422 —,
+// e não substitui a do backend.
+const TIPOS_AVATAR = ['image/jpeg', 'image/png', 'image/webp']
+const TAMANHO_MAXIMO_AVATAR = 2 * 1024 * 1024
 
 // Ordem em que os campos aparecem na tela — é ela que define qual erro recebe
 // o foco. Não dá para usar `Object.keys(erros)`: essa ordem é a de inserção,
@@ -104,9 +111,22 @@ export default function PerfilPage() {
     confirmar: false,
   })
 
+  // Avatar. `avatarUrl` é um object URL criado a partir do blob baixado — um
+  // `<img src>` apontando direto ao endpoint não passaria o token.
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [enviandoAvatar, setEnviandoAvatar] = useState(false)
+  const inputAvatarRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     carregarDados()
   }, [])
+
+  // Revoga o object URL anterior sempre que ele é trocado, e o último ao
+  // desmontar. Sem isto, cada troca de foto vazaria o blob da anterior.
+  useEffect(() => {
+    if (!avatarUrl) return
+    return () => URL.revokeObjectURL(avatarUrl)
+  }, [avatarUrl])
 
   const carregarDados = async () => {
     try {
@@ -127,10 +147,73 @@ export default function PerfilPage() {
         cidade: dados.endereco?.cidade || '',
         uf: dados.endereco?.uf || '',
       })
+      if (dados.temAvatar) await carregarAvatar()
     } catch {
       exibirNotificacao(MENSAGENS.erro.carregarPerfil, 'error')
     } finally {
       setCarregando(false)
+    }
+  }
+
+  /**
+   * Falha ao baixar a imagem não vira notificação de erro: o perfil continua
+   * utilizável sem a foto, e o fallback de iniciais já comunica o estado.
+   */
+  const carregarAvatar = async () => {
+    try {
+      const blob = await usuariosAPI.baixarAvatar()
+      setAvatarUrl(URL.createObjectURL(blob))
+    } catch {
+      setAvatarUrl(null)
+    }
+  }
+
+  const aoEscolherAvatar = async (e: ChangeEvent<HTMLInputElement>) => {
+    const arquivo = e.target.files?.[0]
+    e.target.value = '' // permite reenviar o mesmo arquivo depois
+    if (!arquivo) return
+
+    if (!TIPOS_AVATAR.includes(arquivo.type)) {
+      exibirNotificacao(MENSAGENS.erro.avatarTipoInvalido, 'error', 6000)
+      return
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_AVATAR) {
+      exibirNotificacao(MENSAGENS.erro.avatarTamanho, 'error', 6000)
+      return
+    }
+
+    try {
+      setEnviandoAvatar(true)
+      const atualizado = await usuariosAPI.enviarAvatar(arquivo)
+      setDadosUsuario(atualizado)
+      // Mostra o arquivo escolhido em vez de rebaixar o que acabou de subir.
+      setAvatarUrl(URL.createObjectURL(arquivo))
+      exibirNotificacao(MENSAGENS.sucesso.avatarAtualizado, 'success')
+    } catch (err: any) {
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.enviarAvatar),
+        'error',
+        6000,
+      )
+    } finally {
+      setEnviandoAvatar(false)
+    }
+  }
+
+  const removerAvatar = async () => {
+    try {
+      setEnviandoAvatar(true)
+      setDadosUsuario(await usuariosAPI.removerAvatar())
+      setAvatarUrl(null)
+      exibirNotificacao(MENSAGENS.sucesso.avatarRemovido, 'success')
+    } catch (err: any) {
+      exibirNotificacao(
+        mensagemErro(err, MENSAGENS.erro.removerAvatar),
+        'error',
+        6000,
+      )
+    } finally {
+      setEnviandoAvatar(false)
     }
   }
 
@@ -297,7 +380,49 @@ export default function PerfilPage() {
           <div className="perfil-conteudo">
             {/* Avatar + identidade */}
             <div className="perfil-identidade">
-              <div className="perfil-avatar">{iniciais || '?'}</div>
+              <div className="perfil-avatar-bloco">
+                <button
+                  type="button"
+                  className="perfil-avatar"
+                  onClick={() => inputAvatarRef.current?.click()}
+                  disabled={enviandoAvatar}
+                  title="Alterar foto de perfil"
+                  aria-label="Alterar foto de perfil"
+                >
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="perfil-avatar-img" />
+                  ) : (
+                    <span className="perfil-avatar-iniciais">
+                      {iniciais || '?'}
+                    </span>
+                  )}
+                  <span className="perfil-avatar-overlay">
+                    {enviandoAvatar ? (
+                      <RefreshCw size={18} className="perfil-avatar-girando" />
+                    ) : (
+                      <Camera size={18} />
+                    )}
+                  </span>
+                </button>
+
+                <input
+                  ref={inputAvatarRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={aoEscolherAvatar}
+                  hidden
+                />
+
+                {avatarUrl && !enviandoAvatar && (
+                  <button
+                    type="button"
+                    className="perfil-avatar-remover"
+                    onClick={removerAvatar}
+                  >
+                    Remover foto
+                  </button>
+                )}
+              </div>
               <div className="perfil-identidade-info">
                 <span className="perfil-nome-exibido">
                   {nomeCompleto || 'Sem nome'}

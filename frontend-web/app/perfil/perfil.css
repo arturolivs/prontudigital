@@ -47,10 +47,24 @@
   box-shadow: 0 1px 4px rgba(var(--color-shadow-rgb), 0.04);
 }
 
+.perfil-avatar-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* É um <button>: clicar abre o seletor de arquivo. Daí o reset das
+   propriedades próprias de botão, para continuar sendo um círculo. */
 .perfil-avatar {
+  position: relative;
   width: 4rem;
   height: 4rem;
+  padding: 0;
+  border: none;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-medium) 100%);
   color: var(--color-white);
   font-size: 1.35rem;
@@ -61,6 +75,60 @@
   flex-shrink: 0;
   letter-spacing: 0.5px;
   box-shadow: 0 2px 8px rgba(var(--color-brand-rgb), 0.35);
+}
+
+.perfil-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.perfil-avatar-iniciais {
+  line-height: 1;
+}
+
+/* Camada com o ícone de câmera. Só aparece no hover/foco — no estado normal
+   o avatar deve parecer um avatar, não um campo de formulário. */
+.perfil-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--color-shadow-rgb), 0.5);
+  color: var(--color-white);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.perfil-avatar:hover .perfil-avatar-overlay,
+.perfil-avatar:focus-visible .perfil-avatar-overlay,
+.perfil-avatar:disabled .perfil-avatar-overlay {
+  opacity: 1;
+}
+
+.perfil-avatar-girando {
+  animation: perfil-girar 0.8s linear infinite;
+}
+
+@keyframes perfil-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.perfil-avatar-remover {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+}
+
+.perfil-avatar-remover:hover {
+  color: var(--color-error);
 }
 
 .perfil-identidade-info {
