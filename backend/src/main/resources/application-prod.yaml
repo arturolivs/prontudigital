@@ -45,6 +45,8 @@ app:
     secret:                ${APP_JWT_SECRET}
     access-expiration-ms:  ${APP_JWT_ACCESS_EXPIRATION_MS}
     refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS}
+  notificacoes:
+    url-base-confirmacao: ${APP_URL_BASE_CONFIRMACAO}
   whatsapp:
     cloud-api:
       base-url:        "https://graph.facebook.com"
