@@ -50,7 +50,7 @@ app:
   whatsapp:
     cloud-api:
       base-url:        "https://graph.facebook.com"
-      api-version:     "v21.0"
+      api-version:     "v25.0"
       phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID}
       access-token:    ${WHATSAPP_ACCESS_TOKEN}
 

@@ -68,6 +68,12 @@ services:
       # (`dados/anexos`) é relativo ao diretório de trabalho, o que fazia os
       # anexos caírem em lugares diferentes conforme quem estivesse servindo.
       ARMAZENAMENTO_DIR: /dados/anexos
+      # Credenciais do número de TESTE da Meta (developers.facebook.com →
+      # app → WhatsApp → Início rápido). Vazias = cliente desligado: o envio
+      # lança IllegalStateException e o log grava FALHA, sem afetar o
+      # agendamento.
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN:    ${WHATSAPP_ACCESS_TOKEN:-}
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     volumes:

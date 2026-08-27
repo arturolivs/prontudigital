@@ -23,7 +23,6 @@ services:
       POSTGRES_DB:       ${POSTGRES_DB}
       POSTGRES_USER:     ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    # Porta NÃO exposta no host — acesso apenas pela rede interna
     expose:
       - "5432"
     volumes:
@@ -42,7 +41,7 @@ services:
           memory: 512M
 
   # ----------------------------------------------------------
-  # Backend (monolito Spring Boot)
+  # Backend
   # ----------------------------------------------------------
   backend:
     build:

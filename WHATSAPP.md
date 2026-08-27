@@ -83,24 +83,44 @@ WABAs delas via *Embedded Signup* dentro do ProntuDigital.
 
 Isso é para o seu ambiente de desenvolvimento. Não repete por cliente.
 
-1. Acesse `developers.facebook.com` → **Meus Apps** → **Criar App** → tipo **Empresa/Business**.
-2. No painel do App, adicione o produto **WhatsApp**.
-3. A Meta cria automaticamente uma WABA de teste e um **número de teste** (norte-americano,
+1. Acesse `developers.facebook.com` → **Meus Apps** → **Criar App**.
+2. Na tela **"Casos de uso"**, escolha **`Outro`** — a opção solta embaixo de
+   *"Procurando outra coisa?"*, marcada com o aviso *"This option is going away soon"*.
+   Depois, tipo de app **Empresa/Business**.
+
+   > ⚠️ **NÃO escolha o caso de uso "Conectar-se com os clientes pelo WhatsApp"**
+   > (filtro *Business Messaging*), por mais que o nome pareça o certo. Esse caso de uso
+   > monta o app para o fluxo de **Tech Provider / Embedded Signup** — o [Modelo B](#modelo-b--você-como-tech-provider--não-vale-a-pena-agora)
+   > que este documento descarta. Ele adiciona **Login do Facebook para Empresas** no lugar
+   > do produto WhatsApp, e o painel resultante **não tem número de teste, Phone Number ID
+   > nem token**. Só a "experiência antiga" (`Outro`) dá acesso à lista
+   > *"Adicionar produtos ao seu app"*.
+   >
+   > Se você já criou o app pelo caminho errado, não tente consertar: crie outro.
+
+3. No painel do App, em **"Adicionar produtos ao seu app"**, escolha **WhatsApp** → **Configurar**.
+4. A Meta cria automaticamente uma WABA de teste e um **número de teste** (norte-americano,
    gratuito, mensagens ilimitadas para destinatários cadastrados).
-4. Em *WhatsApp → Configuração da API*, cadastre **seu celular** na lista "Para" (até 5
-   números). Você recebe um código de verificação no WhatsApp.
-5. Copie o **Phone Number ID** e o **token temporário** (validade de 24h — serve para dev).
-6. Coloque no seu `.env` local:
+5. Em *WhatsApp → **Etapa 1. Experimente*** (o nome atual da antiga "Configuração da API"),
+   cadastre **seu celular** no campo `Para:` → *"Gerenciar lista de números de telefone"*
+   (até 5 números). Você recebe um código de verificação no WhatsApp.
+   Mantenha o app em **Modo: desenvolvimento** — é ele que garante o número de teste gratuito.
+6. Copie o **Phone Number ID** e gere o **token temporário** (validade de 24h — serve para dev).
+7. Coloque no `docker/dev/.env`:
 
    ```env
    WHATSAPP_PHONE_NUMBER_ID=123456789012345
    WHATSAPP_ACCESS_TOKEN=EAAG...
    ```
 
-7. Rode o backend e dispare um envio. Note que **com o número de teste você consegue
+8. Rode o backend e dispare um envio. Note que **com o número de teste você consegue
    mandar texto livre** para os destinatários cadastrados — o que mascara o problema
    descrito na [seção 7](#7-a-regra-das-24h--o-ponto-mais-importante-deste-documento).
    Não confunda "funcionou em dev" com "vai funcionar em produção".
+
+> 📘 O roteiro detalhado de validação — com os comandos, as consultas ao
+> `log_notificacoes_whatsapp` e a tabela de erros comuns — está em
+> [`TESTE_WHATSAPP_DEV.md`](./TESTE_WHATSAPP_DEV.md).
 
 > ⚠️ O token temporário expira em 24h. Se o envio parar de funcionar do nada em dev, é isso.
 > Para um token de dev que dura, crie um **usuário do sistema** (seção 5, passo 7) na sua
@@ -321,25 +341,31 @@ do módulo `notificacao` não sabe qual provedor está por baixo. Se um cliente 
 Levantadas ao escrever este documento. Nenhuma impede o desenvolvimento, todas impedem o
 primeiro cliente real.
 
-- [ ] **`docker-compose.prod.yml` não repassa as variáveis de WhatsApp ao backend.** O
-      bloco `environment` do serviço `backend` (linhas 54-67) não tem `WHATSAPP_PHONE_NUMBER_ID`
-      nem `WHATSAPP_ACCESS_TOKEN`, e `application-prod.yaml:52-53` referencia os placeholders
-      **sem valor padrão**. Resultado: em produção o Spring não resolve o placeholder e **a
-      aplicação não sobe**. Corrigir nos dois lados (repassar no compose + documentar no
-      `.env.prod.example`).
-- [ ] **`app.notificacoes.url-base-confirmacao` não é sobrescrito em produção.**
-      `application-prod.yaml` não redefine a chave, então vale o valor de `application.yaml:38`
-      — `http://localhost:8080/api/confirmacao`. **Os links enviados ao paciente apontariam
-      para o localhost dele.** Precisa virar `https://${DOMINIO}/api/confirmacao`.
+### Resolvidas (branch `config-whatsapp`, 26/08/2026)
+
+- [x] **`docker-compose.prod.yml` repassa as variáveis de WhatsApp ao backend**
+      (`docker/prod/docker-compose.prod.yml:64-65`). Antes o Spring não resolvia o
+      placeholder de `application-prod.yaml` e a aplicação **não subia** em produção.
+- [x] **`app.notificacoes.url-base-confirmacao` sobrescrito em produção.**
+      `application-prod.yaml:49` lê `${APP_URL_BASE_CONFIRMACAO}`, derivada de `DOMINIO`
+      no compose (`docker-compose.prod.yml:66`). Antes os links enviados ao paciente
+      apontariam para o `localhost` **dele**.
+- [x] **`.env.prod.example` com a seção de WhatsApp** (`docker/prod/.env.prod.example:22-23`).
+- [x] **Ambiente de dev repassa as credenciais.** `docker/dev/docker-compose.yml:75-76` e
+      `docker/dev/.env.dev.example`. Sem isso, preencher o `.env` não tinha efeito nenhum.
+
+### Abertas
+
 - [ ] **Envio por template em vez de texto livre.** Ver [seção 7](#7-a-regra-das-24h--o-ponto-mais-importante-deste-documento).
       Adicionar um `enviarTemplate(telefone, nomeTemplate, parametros)` ao
       `WhatsappCloudApiClient` e trocar as duas chamadas em `NotificacaoWhatsappServiceImpl`
-      (linhas 77 e 132).
+      (linhas 77 e 132). **É a única pendência que bloqueia o primeiro cliente real.**
 - [ ] **Retentativa.** O campo `tentativas` existe na entidade `LogNotificacaoWhatsapp` e é
       sempre gravado como `1`. Nada relê registros com status `FALHA`. Uma instabilidade
       momentânea da Meta hoje significa lembrete perdido em definitivo.
-- [ ] **`.env.prod.example` sem a seção de WhatsApp.** Quem for implantar não tem como saber
-      que essas variáveis existem.
+- [ ] **Versão da Graph API fixa no `.yaml`.** Hoje `v25.0`
+      (`application.yaml:44`, `application-prod.yaml:53`). A Meta suporta cada versão por
+      ~2 anos — vale revisar periodicamente, senão o envio quebra sem aviso.
 
 ---
 
