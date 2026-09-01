@@ -36,6 +36,13 @@ app:
   notificacoes:
     habilitadas: true
     url-base-confirmacao: "http://localhost:8080/api/confirmacao"
+    confirmacao:
+      # Minutos de espera, apos a criacao do agendamento, para disparar a
+      # solicitacao de confirmacao no WhatsApp.
+      atraso-minutos: 1
+      # Janela retroativa varrida a cada execucao do scheduler (tolerancia a
+      # indisponibilidade da aplicacao).
+      janela-minutos: 60
   recuperacao-senha:
     expiracao-minutos: 10
   whatsapp:
@@ -59,6 +66,9 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.security: DEBUG
     org.springdoc: DEBUG
+    # Fluxo de mensagens do WhatsApp (schedulers, envio e respostas dos links)
+    com.prontudigital.backend.notificacao: DEBUG
+    com.prontudigital.backend.compartilhado.clientes: DEBUG
 
 springdoc:
   api-docs:

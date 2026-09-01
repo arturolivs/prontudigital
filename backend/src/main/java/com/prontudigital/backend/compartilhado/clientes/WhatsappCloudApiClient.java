@@ -7,6 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.Map;
 
@@ -29,6 +31,14 @@ public class WhatsappCloudApiClient {
                 .baseUrl(baseUrl + "/" + apiVersion)
                 .defaultHeader("Authorization", "Bearer " + accessToken)
                 .build();
+
+        if (configurado) {
+            log.info("[WHATSAPP] Cliente Cloud API pronto: endpoint={}/{}, phoneNumberId={}",
+                    baseUrl, apiVersion, phoneNumberId);
+        } else {
+            log.warn("[WHATSAPP] Cliente Cloud API NAO configurado (phone-number-id e/ou access-token ausentes). "
+                    + "Todos os envios serao recusados ate que as credenciais sejam informadas.");
+        }
     }
 
     /**
@@ -37,24 +47,62 @@ public class WhatsappCloudApiClient {
      * ou que a mensagem corresponda a um template aprovado.
      */
     public void enviarMensagemTexto(String telefone, String mensagem) {
+        String destino = normalizarTelefone(telefone);
+        String destinoLog = mascararTelefone(destino);
+
         if (!configurado) {
+            log.error("[WHATSAPP] Envio para {} abortado: credenciais da Cloud API ausentes", destinoLog);
             throw new IllegalStateException(Mensagens.get("whatsapp.nao-configurado"));
         }
 
+        log.info("[WHATSAPP] Enviando mensagem de texto para {} ({} caracteres)", destinoLog, mensagem.length());
+        log.debug("[WHATSAPP] Conteudo da mensagem destinada a {}: {}", destinoLog, mensagem);
+
         Map<String, Object> corpo = Map.of(
                 "messaging_product", "whatsapp",
-                "to", normalizarTelefone(telefone),
+                "to", destino,
                 "type", "text",
                 "text", Map.of("body", mensagem, "preview_url", false));
 
-        ResponseEntity<String> resposta = restClient.post()
-                .uri("/{phoneNumberId}/messages", phoneNumberId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(corpo)
-                .retrieve()
-                .toEntity(String.class);
+        long inicio = System.currentTimeMillis();
+        try {
+            ResponseEntity<String> resposta = restClient.post()
+                    .uri("/{phoneNumberId}/messages", phoneNumberId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(corpo)
+                    .retrieve()
+                    .toEntity(String.class);
 
-        log.debug("WhatsApp Cloud API respondeu {}: {}", resposta.getStatusCode(), resposta.getBody());
+            log.info("[WHATSAPP] Cloud API aceitou a mensagem para {}: HTTP {} em {} ms",
+                    destinoLog, resposta.getStatusCode().value(), System.currentTimeMillis() - inicio);
+            log.debug("[WHATSAPP] Resposta da Cloud API para {}: {}", destinoLog, resposta.getBody());
+        } catch (RestClientResponseException e) {
+            log.error("[WHATSAPP] Cloud API recusou a mensagem para {}: HTTP {} em {} ms. Corpo: {}",
+                    destinoLog, e.getStatusCode().value(), System.currentTimeMillis() - inicio,
+                    e.getResponseBodyAsString());
+            throw e;
+        } catch (RestClientException e) {
+            log.error("[WHATSAPP] Falha de comunicacao com a Cloud API ao enviar para {} apos {} ms: {}",
+                    destinoLog, System.currentTimeMillis() - inicio, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * Oculta o miolo do telefone para que os logs nao exponham o numero completo
+     * do paciente. Ex.: {@code 5561999998888} vira {@code 55*******8888}.
+     */
+    public static String mascararTelefone(String telefone) {
+        if (telefone == null || telefone.isBlank()) {
+            return "<sem telefone>";
+        }
+        String digitos = telefone.replaceAll("\\D", "");
+        if (digitos.length() <= 6) {
+            return "*".repeat(digitos.length());
+        }
+        return digitos.substring(0, 2)
+                + "*".repeat(digitos.length() - 6)
+                + digitos.substring(digitos.length() - 4);
     }
 
     private String normalizarTelefone(String telefone) {

@@ -142,19 +142,32 @@ Crie um agendamento com início **~48h à frente** (status `AGENDADO` ou `REMARC
 Acompanhe:
 
 ```bash
-docker logs -f prontudigital-backend-dev | grep -iE "Scheduler 48h|WhatsApp Cloud API respondeu|Falha ao enviar"
+docker logs -f prontudigital-backend-dev | grep -iE "SCHEDULER 48h|LEMBRETE_48H|Cloud API"
 ```
 
-**Esperado:** `Scheduler 48h: 1 agendamento(s) encontrado(s) para lembrete`, seguido de
-`WhatsApp Cloud API respondeu 200 OK: {...}`, e a mensagem no celular.
+**Esperado:** `[WHATSAPP][SCHEDULER 48h] 1 agendamento(s) encontrado(s) para lembrete`,
+seguido de `[WHATSAPP] Cloud API aceitou a mensagem para 55*******8888: HTTP 200 em … ms`
+e `[WHATSAPP][LEMBRETE_48H] Lembrete enviado para o agendamento …`, e a mensagem no celular.
 
-### 4.3 Solicitação de confirmação de 24h
+### 4.3 Solicitação de confirmação
 
-Crie um segundo agendamento com início **~24h à frente**.
+Crie um segundo agendamento com qualquer horário **no futuro** e espere ~1 minuto.
 
-- Janela: **22h a 26h** (`AgendamentoNotificacaoScheduler:57-60`)
+- Gatilho: **1 minuto após a criação** do agendamento — configurável em
+  `app.notificacoes.confirmacao.atraso-minutos` (`application.yaml`)
+- Frequência: **a cada minuto** (`cron = "0 * * * * *"`)
+- Cada execução varre os agendamentos criados na última hora
+  (`app.notificacoes.confirmacao.janela-minutos`), o que cobre o período em que a
+  aplicação esteve fora do ar
 - A mensagem traz dois links, montados a partir de `app.notificacoes.url-base-confirmacao`
-- O token expira **2h antes** do horário da consulta (`NotificacaoWhatsappServiceImpl:102`)
+- O token expira **2h antes** do horário da consulta; se o agendamento for criado com
+  menos de 2h de antecedência, o link vale até o horário da consulta
+
+Acompanhe:
+
+```bash
+docker logs -f prontudigital-backend-dev | grep -iE "SCHEDULER CONFIRMACAO|\[CONFIRMACAO\]|Cloud API"
+```
 
 > ⚠️ Em dev os links apontam para `http://localhost:8080/api/confirmacao/...`
 > (`application.yaml:38`), que **não abre no celular**. É esperado. Para testar o fluxo,
@@ -191,6 +204,34 @@ São endpoints **públicos**, sem autenticação (`ConfirmacaoAgendamentoControl
 | Token usado 2x | erro `TokenConfirmacaoInvalidoException` | inalterado |
 | Após `token_expira_em` | `EXPIRADO` + erro | inalterado |
 
+### 4.5 Acompanhar os logs do fluxo
+
+Todo o caminho da mensagem é logado com o prefixo `[WHATSAPP]`, então um único grep
+mostra o fluxo inteiro:
+
+```bash
+docker logs -f prontudigital-backend-dev | grep "\[WHATSAPP\]"
+```
+
+| Prefixo | Etapa |
+|---|---|
+| `[WHATSAPP][SCHEDULER …]` | varredura periódica: janela consultada, quantos agendamentos, quantos com erro |
+| `[WHATSAPP][LEMBRETE_48H]` | montagem e envio do lembrete |
+| `[WHATSAPP][CONFIRMACAO]` | geração do token, validade do link e envio da solicitação |
+| `[WHATSAPP]` (cliente) | chamada HTTP à Cloud API: status, tempo de resposta e corpo do erro |
+| `[WHATSAPP][LINK]` / `[WHATSAPP][RESPOSTA]` | clique do paciente no link e efeito no agendamento |
+| `[WHATSAPP][EXPIRACAO]` | cancelamento por falta de confirmação e volta para a fila de espera |
+| `[WHATSAPP][RECUPERACAO-SENHA]` | código de recuperação de senha enviado por WhatsApp |
+
+Em dev o nível `DEBUG` já vem ligado para esses pacotes (`application.yaml`), o que
+acrescenta o conteúdo da mensagem, a resposta crua da Meta e os motivos de cada
+agendamento ter sido ignorado. Em produção o padrão é `INFO`; para depurar, suba
+`LOG_LEVEL_WHATSAPP=DEBUG`.
+
+> 🔒 Telefones aparecem mascarados (`55*******8888`) e os tokens de confirmação
+> só nos 8 primeiros caracteres — os logs não expõem o número do paciente nem o
+> link clicável.
+
 ---
 
 ## 5. Conferir o resultado no banco
@@ -209,10 +250,10 @@ docker exec -it prontudigital-db-dev psql -U user_admin -d prontudigital -c \
 | `CONFIRMADO` / `RECUSADO` | paciente respondeu pelo link |
 | `EXPIRADO` | link acessado depois de `token_expira_em` |
 
-> 🔇 **`FALHA` é silenciosa por design.** O `try/catch`
-> (`NotificacaoWhatsappServiceImpl:81-86` e `136-141`) grava o status e segue — o
-> agendamento não é afetado e a API não devolve erro nenhum. Sem olhar esta tabela ou
-> os logs, **o sistema parece estar funcionando e nenhuma mensagem chega.**
+> 🔇 **`FALHA` não interrompe nada.** O `try/catch`
+> (`NotificacaoWhatsappServiceImpl:87` e `171`) grava o status e segue — o agendamento
+> não é afetado e a API não devolve erro nenhum. O motivo, porém, sempre aparece como
+> `log.error` com o `[WHATSAPP]` correspondente (inclusive o corpo da resposta da Meta).
 
 Para repetir um teste, apague o registro (a guarda de idempotência bloqueia o reenvio):
 

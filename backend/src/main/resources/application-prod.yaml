@@ -47,6 +47,9 @@ app:
     refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS}
   notificacoes:
     url-base-confirmacao: ${APP_URL_BASE_CONFIRMACAO}
+    confirmacao:
+      atraso-minutos: ${APP_CONFIRMACAO_ATRASO_MINUTOS:1}
+      janela-minutos: ${APP_CONFIRMACAO_JANELA_MINUTOS:60}
   whatsapp:
     cloud-api:
       base-url:        "https://graph.facebook.com"
@@ -58,6 +61,9 @@ logging:
   level:
     root:              WARN
     com.prontudigital: INFO   # logs de negócio mantidos
+    # Fluxo do WhatsApp: suba para DEBUG (LOG_LEVEL_WHATSAPP=DEBUG) para depurar envios
+    com.prontudigital.backend.notificacao:            ${LOG_LEVEL_WHATSAPP:INFO}
+    com.prontudigital.backend.compartilhado.clientes: ${LOG_LEVEL_WHATSAPP:INFO}
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

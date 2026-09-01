@@ -23,6 +23,10 @@ services:
       POSTGRES_DB:       ${POSTGRES_DB}
       POSTGRES_USER:     ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Mesmo fuso do backend: as colunas são TIMESTAMP (sem fuso) e vários
+      # DEFAULT CURRENT_TIMESTAMP gravam pelo relógio do banco.
+      TZ:   America/Sao_Paulo
+      PGTZ: America/Sao_Paulo
     expose:
       - "5432"
     volumes:
@@ -51,6 +55,10 @@ services:
     container_name: prontudigital-backend
     restart: always
     environment:
+      # Sem isto a JVM roda em UTC e o @CreationTimestamp grava 3h à frente do
+      # que o Clock da aplicação (America/Sao_Paulo) calcula — as janelas dos
+      # schedulers nunca casam com o criado_em.
+      TZ: America/Sao_Paulo
       SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
