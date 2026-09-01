@@ -51,6 +51,13 @@ app:
       api-version: "v25.0"
       phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
       access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    webhook:
+      # Texto livre, escolhido por você; o mesmo valor vai no painel da Meta
+      # (App > WhatsApp > Configuração > Webhook > Verificar token).
+      verify-token: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:}
+      # App secret (Meta > Configurações do app > Básico). Vazio = assinatura
+      # NÃO conferida — aceitável só em dev, atrás de um túnel.
+      app-secret: ${WHATSAPP_APP_SECRET:}
   armazenamento:
     diretorio-base: ${ARMAZENAMENTO_DIR:dados/anexos}
     tamanho-maximo-bytes: 10485760

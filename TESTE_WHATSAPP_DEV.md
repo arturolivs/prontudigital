@@ -238,17 +238,21 @@ agendamento ter sido ignorado. Em produção o padrão é `INFO`; para depurar, 
 
 ```bash
 docker exec -it prontudigital-db-dev psql -U user_admin -d prontudigital -c \
-"SELECT id, agendamento_id, tipo, status, telefone, tentativas, enviado_em, respondido_em
+"SELECT id, agendamento_id, tipo, status, telefone, enviado_em, entregue_em, lido_em,
+        erro_codigo, respondido_em
  FROM log_notificacoes_whatsapp ORDER BY id DESC LIMIT 10;"
 ```
 
 | `status` | Significado |
 |---|---|
 | `PENDENTE` | registro criado, envio ainda não tentado |
-| `ENVIADO` | a Meta aceitou (HTTP 200) |
-| `FALHA` | exceção no envio — **veja o `log.error` no container** |
+| `ENVIADO` | a Meta **aceitou** (HTTP 200) — ainda não é entrega |
+| `FALHA` | exceção no envio, ou a Meta reportou `failed` no webhook (veja `erro_codigo`) |
 | `CONFIRMADO` / `RECUSADO` | paciente respondeu pelo link |
 | `EXPIRADO` | link acessado depois de `token_expira_em` |
+
+`entregue_em` e `lido_em` só são preenchidos com o webhook configurado (seção 7).
+**`ENVIADO` com `entregue_em` nulo é exatamente o sintoma de mensagem que não chegou.**
 
 > 🔇 **`FALHA` não interrompe nada.** O `try/catch`
 > (`NotificacaoWhatsappServiceImpl:87` e `171`) grava o status e segue — o agendamento
@@ -271,13 +275,85 @@ DELETE FROM log_notificacoes_whatsapp WHERE agendamento_id = <ID>;
 | HTTP 401, código **190** | **Token expirou (24h)** | Gerar outro na *Etapa 1* |
 | Código **131047** | Fora da janela de 24h e sem template aprovado | Em dev: responda à mensagem pelo celular para abrir a janela. Em produção: exige template (`WHATSAPP.md` §7) |
 | Código **131030** | Destinatário fora da allow-list | Cadastrar em *Etapa 1 → Gerenciar lista de números* |
-| HTTP 200 mas nada chega | Número errado, ou celular sem WhatsApp ativo | Conferir o `wa_id` da resposta |
+| HTTP 200 mas nada chega | Aceito pela Meta e descartado depois — quase sempre a janela de 24h (131047) | Configurar o webhook (seção 7); é ele que revela o motivo real |
 | Nenhum log de scheduler | `app.notificacoes.habilitadas=false`, ou agendamento fora da janela | Conferir o horário do agendamento |
 | Scheduler roda mas não envia | Já existe registro para agendamento+tipo | `DELETE` do log |
 
 ---
 
-## 7. O que este teste **não** cobre
+## 7. Webhook de status de entrega
+
+Sem ele, `HTTP 200` é tudo o que se sabe — e 200 significa apenas que a Meta
+**aceitou** a mensagem. A entrega, e principalmente a falha, chegam depois por
+callback em `POST /api/whatsapp/webhook`.
+
+### 7.1 Expor a URL
+
+A Meta precisa alcançar a aplicação pela internet, com HTTPS. Em dev, um túnel:
+
+```bash
+ngrok http 9090          # ou: cloudflared tunnel --url http://localhost:9090
+```
+
+### 7.2 Configurar
+
+No `.env` (`docker/dev/.env`):
+
+```bash
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=qualquer-texto-que-voce-escolher
+WHATSAPP_APP_SECRET=            # Meta → Configurações do app → Básico
+```
+
+`WHATSAPP_APP_SECRET` vazio faz o backend **aceitar callbacks sem conferir a
+assinatura** (e avisar no log). Serve para destravar o teste em dev; em produção
+as duas variáveis são obrigatórias e a aplicação não sobe sem elas.
+
+Reinicie o backend e cadastre no painel da Meta — *App → WhatsApp → Configuração
+→ Webhook → Editar*:
+
+| Campo | Valor |
+|---|---|
+| URL de callback | `https://<seu-tunel>/api/whatsapp/webhook` |
+| Verificar token | o mesmo `WHATSAPP_WEBHOOK_VERIFY_TOKEN` |
+| Campos | assinar **`messages`** |
+
+Ao salvar, a Meta faz um `GET` de handshake. No log:
+`[WHATSAPP][WEBHOOK] Handshake de verificacao aceito`.
+
+Para testar o handshake sem o painel:
+
+```bash
+curl -i "http://localhost:9090/api/whatsapp/webhook?hub.mode=subscribe\
+&hub.verify_token=qualquer-texto-que-voce-escolher&hub.challenge=12345"
+# 200 e o corpo "12345" = ok; 403 = token divergente
+```
+
+### 7.3 O que passa a aparecer
+
+```bash
+docker logs -f prontudigital-backend-dev | grep "\[WHATSAPP\]\[WEBHOOK\]"
+```
+
+| Log | Significado |
+|---|---|
+| `mensagem ENTREGUE no aparelho de 55*******5323` | chegou; grava `entregue_em` |
+| `mensagem LIDA por …` | o paciente abriu; grava `lido_em` |
+| `a Meta NAO entregou a mensagem … codigo 131047` | **não chegou**; grava `FALHA` + `erro_codigo`/`erro_detalhe` |
+| `Mensagem recebida de … janela de 24h aberta` | o paciente escreveu para a clínica |
+
+A correlação é feita pelo `wamid` que a Meta devolve no envio e que agora fica em
+`log_notificacoes_whatsapp.mensagem_id`.
+
+> Um `failed` que chegue depois de o paciente já ter confirmado ou recusado
+> registra o erro mas **não** sobrescreve `CONFIRMADO`/`RECUSADO`.
+
+> ⚠️ Registros gravados antes desta versão não têm `mensagem_id`; os callbacks
+> deles caem em `Status '…' para o wamid …, que nao esta no log` (DEBUG) e são
+> ignorados. Só vale para mensagens enviadas daqui em diante.
+
+---
+
+## 8. O que este teste **não** cobre
 
 Passar aqui **não** significa que vai funcionar com paciente real. As diferenças:
 
@@ -290,4 +366,5 @@ Passar aqui **não** significa que vai funcionar com paciente real. As diferenç
 - **Forma de pagamento.** Número de teste é grátis. Em produção, sem cartão cadastrado na
   WABA o envio simplesmente para. → `WHATSAPP.md` §8.
 - **Retentativa.** Não existe. Uma instabilidade momentânea da Meta = lembrete perdido em
-  definitivo. → `WHATSAPP.md` §11.
+  definitivo. O webhook agora **registra** a falha (`FALHA` + `erro_codigo`), mas ninguém
+  reenvia. → `WHATSAPP.md` §11.

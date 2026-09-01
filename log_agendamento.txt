@@ -1,0 +1,1657 @@
+2026-09-01T00:25:59.994654265Z 2026-09-01T00:25:59.994Z DEBUG 195 --- [prontudigital] [   scheduling-1] .p.b.n.a.AgendamentoNotificacaoScheduler : [WHATSAPP][SCHEDULER CONFIRMACAO] Buscando agendamentos criados entre 2026-08-31T20:24:59.994231632 e 2026-08-31T21:24:59.994231632 (atraso=1 min, janela=60 min)
+2026-09-01T00:25:59.995758551Z 2026-09-01T00:25:59.995Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:25:59.995791554Z     select
+2026-09-01T00:25:59.995796054Z         a1_0.id,
+2026-09-01T00:25:59.995797554Z         a1_0.atualizado_em,
+2026-09-01T00:25:59.995798655Z         a1_0.avaliacao_id,
+2026-09-01T00:25:59.995799755Z         a1_0.concluido_em,
+2026-09-01T00:25:59.995800855Z         a1_0.criado_em,
+2026-09-01T00:25:59.995802055Z         a1_0.fim_em,
+2026-09-01T00:25:59.995803155Z         a1_0.inicio_em,
+2026-09-01T00:25:59.995804255Z         a1_0.local_atendimento,
+2026-09-01T00:25:59.995805355Z         a1_0.paciente_acamado,
+2026-09-01T00:25:59.995806455Z         a1_0.paciente_uuid,
+2026-09-01T00:25:59.995807555Z         a1_0.procedimento_id,
+2026-09-01T00:25:59.995808655Z         a1_0.profissional_uuid,
+2026-09-01T00:25:59.995809655Z         a1_0.status,
+2026-09-01T00:25:59.995824857Z         a1_0.tipo,
+2026-09-01T00:25:59.995826357Z         a1_0.tipo_procedimento,
+2026-09-01T00:25:59.995827457Z         a1_0.uuid 
+2026-09-01T00:25:59.995828557Z     from
+2026-09-01T00:25:59.995829657Z         agendamentos a1_0 
+2026-09-01T00:25:59.995830757Z     where
+2026-09-01T00:25:59.995831857Z         a1_0.status in (?, ?)
+2026-09-01T00:25:59.995832857Z Hibernate: 
+2026-09-01T00:25:59.995833957Z     select
+2026-09-01T00:25:59.995835457Z         a1_0.id,
+2026-09-01T00:25:59.995836558Z         a1_0.atualizado_em,
+2026-09-01T00:25:59.995837658Z         a1_0.avaliacao_id,
+2026-09-01T00:25:59.995838758Z         a1_0.concluido_em,
+2026-09-01T00:25:59.995839858Z         a1_0.criado_em,
+2026-09-01T00:25:59.995840958Z         a1_0.fim_em,
+2026-09-01T00:25:59.995842058Z         a1_0.inicio_em,
+2026-09-01T00:25:59.995843158Z         a1_0.local_atendimento,
+2026-09-01T00:25:59.995844258Z         a1_0.paciente_acamado,
+2026-09-01T00:25:59.995845358Z         a1_0.paciente_uuid,
+2026-09-01T00:25:59.995846558Z         a1_0.procedimento_id,
+2026-09-01T00:25:59.995847658Z         a1_0.profissional_uuid,
+2026-09-01T00:25:59.995848758Z         a1_0.status,
+2026-09-01T00:25:59.995849759Z         a1_0.tipo,
+2026-09-01T00:25:59.995850859Z         a1_0.tipo_procedimento,
+2026-09-01T00:25:59.995851959Z         a1_0.uuid 
+2026-09-01T00:25:59.995853059Z     from
+2026-09-01T00:25:59.995854159Z         agendamentos a1_0 
+2026-09-01T00:25:59.995855259Z     where
+2026-09-01T00:25:59.995856359Z         a1_0.status in (?, ?)
+2026-09-01T00:25:59.996227788Z 2026-09-01T00:25:59.996Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:VARCHAR) <- [AGENDADO]
+2026-09-01T00:25:59.996253190Z 2026-09-01T00:25:59.996Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:VARCHAR) <- [REMARCADO]
+2026-09-01T00:25:59.997297972Z 2026-09-01T00:25:59.997Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:25:59.997329775Z     select
+2026-09-01T00:25:59.997334475Z         ec1_0.id,
+2026-09-01T00:25:59.997335975Z         ec1_0.agendamento_id,
+2026-09-01T00:25:59.997337075Z         ec1_0.area_aproximada,
+2026-09-01T00:25:59.997338075Z         ec1_0.atualizado_em,
+2026-09-01T00:25:59.997339176Z         ec1_0.bordas,
+2026-09-01T00:25:59.997340376Z         ec1_0.cobertura_primaria,
+2026-09-01T00:25:59.997341576Z         ec1_0.comprimento,
+2026-09-01T00:25:59.997353577Z         ec1_0.criado_em,
+2026-09-01T00:25:59.997354977Z         ec1_0.desbridamento,
+2026-09-01T00:25:59.997356077Z         ec1_0.desbridamento_obs,
+2026-09-01T00:25:59.997357177Z         ec1_0.dor_escala,
+2026-09-01T00:25:59.997358277Z         ec1_0.evolucao,
+2026-09-01T00:25:59.997359377Z         ec1_0.exsudato,
+2026-09-01T00:25:59.997360477Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:25:59.997361677Z         ec1_0.largura,
+2026-09-01T00:25:59.997363277Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:25:59.997364377Z         ec1_0.observacoes,
+2026-09-01T00:25:59.997365478Z         ec1_0.odor_presente,
+2026-09-01T00:25:59.997366578Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:25:59.997367678Z         ec1_0.pele_perilesional,
+2026-09-01T00:25:59.997368778Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:25:59.997369978Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:25:59.997371078Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:25:59.997372278Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:25:59.997373378Z         ec1_0.profundidade,
+2026-09-01T00:25:59.997374378Z         ec1_0.retorno_previsto,
+2026-09-01T00:25:59.997375478Z         ec1_0.tecido 
+2026-09-01T00:25:59.997376578Z     from
+2026-09-01T00:25:59.997377679Z         evolucoes_curativos ec1_0 
+2026-09-01T00:25:59.997378779Z     where
+2026-09-01T00:25:59.997379879Z         ec1_0.agendamento_id=?
+2026-09-01T00:25:59.997381079Z Hibernate: 
+2026-09-01T00:25:59.997382179Z     select
+2026-09-01T00:25:59.997383279Z         ec1_0.id,
+2026-09-01T00:25:59.997384279Z         ec1_0.agendamento_id,
+2026-09-01T00:25:59.997385379Z         ec1_0.area_aproximada,
+2026-09-01T00:25:59.997386479Z         ec1_0.atualizado_em,
+2026-09-01T00:25:59.997387579Z         ec1_0.bordas,
+2026-09-01T00:25:59.997388779Z         ec1_0.cobertura_primaria,
+2026-09-01T00:25:59.997389979Z         ec1_0.comprimento,
+2026-09-01T00:25:59.997391080Z         ec1_0.criado_em,
+2026-09-01T00:25:59.997392180Z         ec1_0.desbridamento,
+2026-09-01T00:25:59.997393280Z         ec1_0.desbridamento_obs,
+2026-09-01T00:25:59.997394380Z         ec1_0.dor_escala,
+2026-09-01T00:25:59.997395480Z         ec1_0.evolucao,
+2026-09-01T00:25:59.997396580Z         ec1_0.exsudato,
+2026-09-01T00:25:59.997397680Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:25:59.997398880Z         ec1_0.largura,
+2026-09-01T00:25:59.997400080Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:25:59.997403281Z         ec1_0.observacoes,
+2026-09-01T00:25:59.997404481Z         ec1_0.odor_presente,
+2026-09-01T00:25:59.997405581Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:25:59.997406681Z         ec1_0.pele_perilesional,
+2026-09-01T00:25:59.997407781Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:25:59.997408981Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:25:59.997410081Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:25:59.997411981Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:25:59.997453985Z         ec1_0.profundidade,
+2026-09-01T00:25:59.997549792Z         ec1_0.retorno_previsto,
+2026-09-01T00:25:59.997576294Z         ec1_0.tecido 
+2026-09-01T00:25:59.997616097Z     from
+2026-09-01T00:25:59.997644199Z         evolucoes_curativos ec1_0 
+2026-09-01T00:25:59.997675002Z     where
+2026-09-01T00:25:59.997696604Z         ec1_0.agendamento_id=?
+2026-09-01T00:25:59.997748808Z 2026-09-01T00:25:59.997Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [1]
+2026-09-01T00:25:59.998417060Z 2026-09-01T00:25:59.998Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:25:59.998448663Z     select
+2026-09-01T00:25:59.998453663Z         ee1_0.id,
+2026-09-01T00:25:59.998455163Z         ee1_0.agendamento_id,
+2026-09-01T00:25:59.998456363Z         ee1_0.atualizado_em,
+2026-09-01T00:25:59.998457463Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:25:59.998458563Z         ee1_0.bordas,
+2026-09-01T00:25:59.998461564Z         ee1_0.cobertura_primaria,
+2026-09-01T00:25:59.998462764Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:25:59.998464164Z         ee1_0.comorb_diabetes,
+2026-09-01T00:25:59.998465264Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:25:59.998466464Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:25:59.998467464Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:25:59.998468564Z         ee1_0.comorb_outras,
+2026-09-01T00:25:59.998469664Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:25:59.998470764Z         ee1_0.comprimento,
+2026-09-01T00:25:59.998471964Z         ee1_0.criado_em,
+2026-09-01T00:25:59.998473065Z         ee1_0.data_avaliacao,
+2026-09-01T00:25:59.998474265Z         ee1_0.desbridamento,
+2026-09-01T00:25:59.998475365Z         ee1_0.descolamento,
+2026-09-01T00:25:59.998476465Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:25:59.998477665Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:25:59.998478765Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:25:59.998490066Z         ee1_0.diag_outros,
+2026-09-01T00:25:59.998491566Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:25:59.998492766Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:25:59.998493866Z         ee1_0.diagnostico_medico,
+2026-09-01T00:25:59.998495066Z         ee1_0.dimensoes,
+2026-09-01T00:25:59.998496466Z         ee1_0.dor_escala,
+2026-09-01T00:25:59.998497466Z         ee1_0.exsudato,
+2026-09-01T00:25:59.998498667Z         ee1_0.exsudato_tipo,
+2026-09-01T00:25:59.998499767Z         ee1_0.fc,
+2026-09-01T00:25:59.998500967Z         ee1_0.fixacao,
+2026-09-01T00:25:59.998502167Z         ee1_0.fr,
+2026-09-01T00:25:59.998503267Z         ee1_0.hora_avaliacao,
+2026-09-01T00:25:59.998504367Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:25:59.998505467Z         ee1_0.largura,
+2026-09-01T00:25:59.998506567Z         ee1_0.limpeza,
+2026-09-01T00:25:59.998507567Z         ee1_0.limpeza_outro,
+2026-09-01T00:25:59.998508667Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:25:59.998509867Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:25:59.998511068Z         ee1_0.observacoes,
+2026-09-01T00:25:59.998512168Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:25:59.998513368Z         ee1_0.pa,
+2026-09-01T00:25:59.998514368Z         ee1_0.pele_perilesional,
+2026-09-01T00:25:59.998515468Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:25:59.998516568Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:25:59.998517668Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:25:59.998518868Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:25:59.998552271Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:25:59.998596674Z         ee1_0.profundidade,
+2026-09-01T00:25:59.998607375Z         ee1_0.reducao_area,
+2026-09-01T00:25:59.998626977Z         ee1_0.retorno_dias,
+2026-09-01T00:25:59.998647178Z         ee1_0.sinais_vitais,
+2026-09-01T00:25:59.998661379Z         ee1_0.tecido_leito,
+2026-09-01T00:25:59.998682981Z         ee1_0.temp,
+2026-09-01T00:25:59.998729485Z         ee1_0.tipo_ferida,
+2026-09-01T00:25:59.998758587Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:25:59.998781389Z         ee1_0.tunelizacao 
+2026-09-01T00:25:59.998806791Z     from
+2026-09-01T00:25:59.998829593Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:25:59.998872096Z     where
+2026-09-01T00:25:59.998890697Z         ee1_0.agendamento_id=?
+2026-09-01T00:25:59.998923800Z Hibernate: 
+2026-09-01T00:25:59.998958803Z     select
+2026-09-01T00:25:59.999036509Z         ee1_0.id,
+2026-09-01T00:25:59.999065211Z         ee1_0.agendamento_id,
+2026-09-01T00:25:59.999097714Z         ee1_0.atualizado_em,
+2026-09-01T00:25:59.999129116Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:25:59.999163719Z         ee1_0.bordas,
+2026-09-01T00:25:59.999195621Z         ee1_0.cobertura_primaria,
+2026-09-01T00:25:59.999223523Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:25:59.999251326Z         ee1_0.comorb_diabetes,
+2026-09-01T00:25:59.999279328Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:25:59.999342833Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:25:59.999363934Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:25:59.999383436Z         ee1_0.comorb_outras,
+2026-09-01T00:25:59.999418939Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:25:59.999479644Z         ee1_0.comprimento,
+2026-09-01T00:25:59.999520847Z         ee1_0.criado_em,
+2026-09-01T00:25:59.999553049Z         ee1_0.data_avaliacao,
+2026-09-01T00:25:59.999581852Z         ee1_0.desbridamento,
+2026-09-01T00:25:59.999617554Z         ee1_0.descolamento,
+2026-09-01T00:25:59.999645657Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:25:59.999675759Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:25:59.999753965Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:25:59.999777867Z         ee1_0.diag_outros,
+2026-09-01T00:25:59.999795468Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:25:59.999821970Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:25:59.999852173Z         ee1_0.diagnostico_medico,
+2026-09-01T00:25:59.999894676Z         ee1_0.dimensoes,
+2026-09-01T00:25:59.999947080Z         ee1_0.dor_escala,
+2026-09-01T00:25:59.999975583Z         ee1_0.exsudato,
+2026-09-01T00:26:00.000009085Z         ee1_0.exsudato_tipo,
+2026-09-01T00:26:00.000046288Z         ee1_0.fc,
+2026-09-01T00:26:00.000067690Z         ee1_0.fixacao,
+2026-09-01T00:26:00.000091492Z         ee1_0.fr,
+2026-09-01T00:26:00.000143196Z         ee1_0.hora_avaliacao,
+2026-09-01T00:26:00.000167598Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.000186499Z         ee1_0.largura,
+2026-09-01T00:26:00.000210901Z         ee1_0.limpeza,
+2026-09-01T00:26:00.000227002Z         ee1_0.limpeza_outro,
+2026-09-01T00:26:00.000237803Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:26:00.000257605Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:26:00.000286107Z         ee1_0.observacoes,
+2026-09-01T00:26:00.000322910Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:26:00.000368713Z         ee1_0.pa,
+2026-09-01T00:26:00.000396916Z         ee1_0.pele_perilesional,
+2026-09-01T00:26:00.000453920Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:26:00.000494223Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:26:00.000518725Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:26:00.000539927Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:26:00.000569229Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.000605032Z         ee1_0.profundidade,
+2026-09-01T00:26:00.000647535Z         ee1_0.reducao_area,
+2026-09-01T00:26:00.000707440Z         ee1_0.retorno_dias,
+2026-09-01T00:26:00.000744043Z         ee1_0.sinais_vitais,
+2026-09-01T00:26:00.000791847Z         ee1_0.tecido_leito,
+2026-09-01T00:26:00.000845451Z         ee1_0.temp,
+2026-09-01T00:26:00.000889654Z         ee1_0.tipo_ferida,
+2026-09-01T00:26:00.000990862Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:26:00.000995663Z         ee1_0.tunelizacao 
+2026-09-01T00:26:00.000997263Z     from
+2026-09-01T00:26:00.000998363Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:26:00.000999563Z     where
+2026-09-01T00:26:00.001000663Z         ee1_0.agendamento_id=?
+2026-09-01T00:26:00.001001963Z 2026-09-01T00:25:59.998Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [1]
+2026-09-01T00:26:00.001006663Z 2026-09-01T00:25:59.999Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.001008064Z     select
+2026-09-01T00:26:00.001009064Z         ec1_0.id,
+2026-09-01T00:26:00.001010164Z         ec1_0.agendamento_id,
+2026-09-01T00:26:00.001011264Z         ec1_0.area_aproximada,
+2026-09-01T00:26:00.001012364Z         ec1_0.atualizado_em,
+2026-09-01T00:26:00.001013464Z         ec1_0.bordas,
+2026-09-01T00:26:00.001014664Z         ec1_0.cobertura_primaria,
+2026-09-01T00:26:00.001015764Z         ec1_0.comprimento,
+2026-09-01T00:26:00.001016864Z         ec1_0.criado_em,
+2026-09-01T00:26:00.001017964Z         ec1_0.desbridamento,
+2026-09-01T00:26:00.001019064Z         ec1_0.desbridamento_obs,
+2026-09-01T00:26:00.001020165Z         ec1_0.dor_escala,
+2026-09-01T00:26:00.001021165Z         ec1_0.evolucao,
+2026-09-01T00:26:00.001022365Z         ec1_0.exsudato,
+2026-09-01T00:26:00.001023465Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.001024565Z         ec1_0.largura,
+2026-09-01T00:26:00.001025665Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:26:00.001026765Z         ec1_0.observacoes,
+2026-09-01T00:26:00.001036266Z         ec1_0.odor_presente,
+2026-09-01T00:26:00.001037566Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:26:00.001038666Z         ec1_0.pele_perilesional,
+2026-09-01T00:26:00.001039866Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:26:00.001040966Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:26:00.001042066Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:26:00.001043166Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.001044266Z         ec1_0.profundidade,
+2026-09-01T00:26:00.001045366Z         ec1_0.retorno_previsto,
+2026-09-01T00:26:00.001046467Z         ec1_0.tecido 
+2026-09-01T00:26:00.001047567Z     from
+2026-09-01T00:26:00.001048667Z         evolucoes_curativos ec1_0 
+2026-09-01T00:26:00.001049767Z     where
+2026-09-01T00:26:00.001050867Z         ec1_0.agendamento_id=?
+2026-09-01T00:26:00.001052067Z Hibernate: 
+2026-09-01T00:26:00.001053067Z     select
+2026-09-01T00:26:00.001054167Z         ec1_0.id,
+2026-09-01T00:26:00.001055367Z         ec1_0.agendamento_id,
+2026-09-01T00:26:00.001056467Z         ec1_0.area_aproximada,
+2026-09-01T00:26:00.001057567Z         ec1_0.atualizado_em,
+2026-09-01T00:26:00.001058668Z         ec1_0.bordas,
+2026-09-01T00:26:00.001059768Z         ec1_0.cobertura_primaria,
+2026-09-01T00:26:00.001060868Z         ec1_0.comprimento,
+2026-09-01T00:26:00.001061968Z         ec1_0.criado_em,
+2026-09-01T00:26:00.001063168Z         ec1_0.desbridamento,
+2026-09-01T00:26:00.001064168Z         ec1_0.desbridamento_obs,
+2026-09-01T00:26:00.001065268Z         ec1_0.dor_escala,
+2026-09-01T00:26:00.001066368Z         ec1_0.evolucao,
+2026-09-01T00:26:00.001067468Z         ec1_0.exsudato,
+2026-09-01T00:26:00.001068568Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.001069668Z         ec1_0.largura,
+2026-09-01T00:26:00.001070768Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:26:00.001071869Z         ec1_0.observacoes,
+2026-09-01T00:26:00.001072869Z         ec1_0.odor_presente,
+2026-09-01T00:26:00.001073969Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:26:00.001075169Z         ec1_0.pele_perilesional,
+2026-09-01T00:26:00.001076269Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:26:00.001077369Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:26:00.001078569Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:26:00.001079569Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.001080769Z         ec1_0.profundidade,
+2026-09-01T00:26:00.001083569Z         ec1_0.retorno_previsto,
+2026-09-01T00:26:00.001084770Z         ec1_0.tecido 
+2026-09-01T00:26:00.001085970Z     from
+2026-09-01T00:26:00.001087070Z         evolucoes_curativos ec1_0 
+2026-09-01T00:26:00.001088170Z     where
+2026-09-01T00:26:00.001089270Z         ec1_0.agendamento_id=?
+2026-09-01T00:26:00.001090670Z 2026-09-01T00:25:59.999Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [2]
+2026-09-01T00:26:00.001940737Z 2026-09-01T00:26:00.000Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.001970939Z     select
+2026-09-01T00:26:00.001975640Z         ee1_0.id,
+2026-09-01T00:26:00.001977140Z         ee1_0.agendamento_id,
+2026-09-01T00:26:00.001978340Z         ee1_0.atualizado_em,
+2026-09-01T00:26:00.001979440Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:26:00.001980540Z         ee1_0.bordas,
+2026-09-01T00:26:00.001981740Z         ee1_0.cobertura_primaria,
+2026-09-01T00:26:00.001982940Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:26:00.001984040Z         ee1_0.comorb_diabetes,
+2026-09-01T00:26:00.001985140Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:26:00.001986240Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:26:00.001987340Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:26:00.001988441Z         ee1_0.comorb_outras,
+2026-09-01T00:26:00.001989541Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:26:00.001990741Z         ee1_0.comprimento,
+2026-09-01T00:26:00.001991941Z         ee1_0.criado_em,
+2026-09-01T00:26:00.001993041Z         ee1_0.data_avaliacao,
+2026-09-01T00:26:00.001994141Z         ee1_0.desbridamento,
+2026-09-01T00:26:00.001995241Z         ee1_0.descolamento,
+2026-09-01T00:26:00.001996341Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:26:00.001997441Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:26:00.001998541Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:26:00.001999741Z         ee1_0.diag_outros,
+2026-09-01T00:26:00.002000942Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:26:00.002002042Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:26:00.002003242Z         ee1_0.diagnostico_medico,
+2026-09-01T00:26:00.002004442Z         ee1_0.dimensoes,
+2026-09-01T00:26:00.002005542Z         ee1_0.dor_escala,
+2026-09-01T00:26:00.002006542Z         ee1_0.exsudato,
+2026-09-01T00:26:00.002007742Z         ee1_0.exsudato_tipo,
+2026-09-01T00:26:00.002008842Z         ee1_0.fc,
+2026-09-01T00:26:00.002010142Z         ee1_0.fixacao,
+2026-09-01T00:26:00.002022143Z         ee1_0.fr,
+2026-09-01T00:26:00.002023643Z         ee1_0.hora_avaliacao,
+2026-09-01T00:26:00.002024743Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.002025843Z         ee1_0.largura,
+2026-09-01T00:26:00.002026844Z         ee1_0.limpeza,
+2026-09-01T00:26:00.002027944Z         ee1_0.limpeza_outro,
+2026-09-01T00:26:00.002029144Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:26:00.002030344Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:26:00.002032144Z         ee1_0.observacoes,
+2026-09-01T00:26:00.002033344Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:26:00.002034444Z         ee1_0.pa,
+2026-09-01T00:26:00.002035444Z         ee1_0.pele_perilesional,
+2026-09-01T00:26:00.002036544Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:26:00.002037644Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:26:00.002038744Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:26:00.002039945Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:26:00.002041045Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.002042145Z         ee1_0.profundidade,
+2026-09-01T00:26:00.002043245Z         ee1_0.reducao_area,
+2026-09-01T00:26:00.002044345Z         ee1_0.retorno_dias,
+2026-09-01T00:26:00.002045445Z         ee1_0.sinais_vitais,
+2026-09-01T00:26:00.002046445Z         ee1_0.tecido_leito,
+2026-09-01T00:26:00.002047545Z         ee1_0.temp,
+2026-09-01T00:26:00.002048645Z         ee1_0.tipo_ferida,
+2026-09-01T00:26:00.002050045Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:26:00.002051145Z         ee1_0.tunelizacao 
+2026-09-01T00:26:00.002052246Z     from
+2026-09-01T00:26:00.002053246Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:26:00.002054546Z     where
+2026-09-01T00:26:00.002055646Z         ee1_0.agendamento_id=?
+2026-09-01T00:26:00.002059646Z Hibernate: 
+2026-09-01T00:26:00.002061046Z     select
+2026-09-01T00:26:00.002062146Z         ee1_0.id,
+2026-09-01T00:26:00.002063246Z         ee1_0.agendamento_id,
+2026-09-01T00:26:00.002064347Z         ee1_0.atualizado_em,
+2026-09-01T00:26:00.002065447Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:26:00.002066547Z         ee1_0.bordas,
+2026-09-01T00:26:00.002067647Z         ee1_0.cobertura_primaria,
+2026-09-01T00:26:00.002068847Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:26:00.002069947Z         ee1_0.comorb_diabetes,
+2026-09-01T00:26:00.002071147Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:26:00.002074247Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:26:00.002075547Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:26:00.002076647Z         ee1_0.comorb_outras,
+2026-09-01T00:26:00.002077848Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:26:00.002078848Z         ee1_0.comprimento,
+2026-09-01T00:26:00.002079948Z         ee1_0.criado_em,
+2026-09-01T00:26:00.002081148Z         ee1_0.data_avaliacao,
+2026-09-01T00:26:00.002082248Z         ee1_0.desbridamento,
+2026-09-01T00:26:00.002083348Z         ee1_0.descolamento,
+2026-09-01T00:26:00.002084448Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:26:00.002085548Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:26:00.002086648Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:26:00.002087648Z         ee1_0.diag_outros,
+2026-09-01T00:26:00.002088748Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:26:00.002089949Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:26:00.002091049Z         ee1_0.diagnostico_medico,
+2026-09-01T00:26:00.002092249Z         ee1_0.dimensoes,
+2026-09-01T00:26:00.002093349Z         ee1_0.dor_escala,
+2026-09-01T00:26:00.002094349Z         ee1_0.exsudato,
+2026-09-01T00:26:00.002095449Z         ee1_0.exsudato_tipo,
+2026-09-01T00:26:00.002096549Z         ee1_0.fc,
+2026-09-01T00:26:00.002097549Z         ee1_0.fixacao,
+2026-09-01T00:26:00.002098749Z         ee1_0.fr,
+2026-09-01T00:26:00.002099849Z         ee1_0.hora_avaliacao,
+2026-09-01T00:26:00.002100949Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.002102049Z         ee1_0.largura,
+2026-09-01T00:26:00.002103150Z         ee1_0.limpeza,
+2026-09-01T00:26:00.002104250Z         ee1_0.limpeza_outro,
+2026-09-01T00:26:00.002105250Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:26:00.002106350Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:26:00.002107550Z         ee1_0.observacoes,
+2026-09-01T00:26:00.002108650Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:26:00.002109850Z         ee1_0.pa,
+2026-09-01T00:26:00.002110950Z         ee1_0.pele_perilesional,
+2026-09-01T00:26:00.002112050Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:26:00.002113150Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:26:00.002114150Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:26:00.002115251Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:26:00.002118551Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.002119851Z         ee1_0.profundidade,
+2026-09-01T00:26:00.002120951Z         ee1_0.reducao_area,
+2026-09-01T00:26:00.002123851Z         ee1_0.retorno_dias,
+2026-09-01T00:26:00.002125051Z         ee1_0.sinais_vitais,
+2026-09-01T00:26:00.002126051Z         ee1_0.tecido_leito,
+2026-09-01T00:26:00.002127151Z         ee1_0.temp,
+2026-09-01T00:26:00.002128252Z         ee1_0.tipo_ferida,
+2026-09-01T00:26:00.002129452Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:26:00.002130552Z         ee1_0.tunelizacao 
+2026-09-01T00:26:00.002131652Z     from
+2026-09-01T00:26:00.002132852Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:26:00.002133952Z     where
+2026-09-01T00:26:00.002134952Z         ee1_0.agendamento_id=?
+2026-09-01T00:26:00.002346369Z 2026-09-01T00:26:00.002Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [2]
+2026-09-01T00:26:00.003981397Z 2026-09-01T00:26:00.003Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.004058103Z     select
+2026-09-01T00:26:00.004064304Z         ec1_0.id,
+2026-09-01T00:26:00.004065804Z         ec1_0.agendamento_id,
+2026-09-01T00:26:00.004066904Z         ec1_0.area_aproximada,
+2026-09-01T00:26:00.004068004Z         ec1_0.atualizado_em,
+2026-09-01T00:26:00.004069204Z         ec1_0.bordas,
+2026-09-01T00:26:00.004070304Z         ec1_0.cobertura_primaria,
+2026-09-01T00:26:00.004071504Z         ec1_0.comprimento,
+2026-09-01T00:26:00.004072604Z         ec1_0.criado_em,
+2026-09-01T00:26:00.004073704Z         ec1_0.desbridamento,
+2026-09-01T00:26:00.004074804Z         ec1_0.desbridamento_obs,
+2026-09-01T00:26:00.004075904Z         ec1_0.dor_escala,
+2026-09-01T00:26:00.004092506Z         ec1_0.evolucao,
+2026-09-01T00:26:00.004101506Z         ec1_0.exsudato,
+2026-09-01T00:26:00.004103207Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.004104407Z         ec1_0.largura,
+2026-09-01T00:26:00.004105507Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:26:00.004106607Z         ec1_0.observacoes,
+2026-09-01T00:26:00.004107707Z         ec1_0.odor_presente,
+2026-09-01T00:26:00.004108807Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:26:00.004110007Z         ec1_0.pele_perilesional,
+2026-09-01T00:26:00.004111107Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:26:00.004112307Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:26:00.004113307Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:26:00.004114407Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.004115508Z         ec1_0.profundidade,
+2026-09-01T00:26:00.004116608Z         ec1_0.retorno_previsto,
+2026-09-01T00:26:00.004126808Z         ec1_0.tecido 
+2026-09-01T00:26:00.004128209Z     from
+2026-09-01T00:26:00.004129409Z         evolucoes_curativos ec1_0 
+2026-09-01T00:26:00.004130509Z     where
+2026-09-01T00:26:00.004131609Z         ec1_0.agendamento_id=?
+2026-09-01T00:26:00.004132809Z Hibernate: 
+2026-09-01T00:26:00.004133809Z     select
+2026-09-01T00:26:00.004134909Z         ec1_0.id,
+2026-09-01T00:26:00.004135909Z         ec1_0.agendamento_id,
+2026-09-01T00:26:00.004137409Z         ec1_0.area_aproximada,
+2026-09-01T00:26:00.004138509Z         ec1_0.atualizado_em,
+2026-09-01T00:26:00.004139709Z         ec1_0.bordas,
+2026-09-01T00:26:00.004140910Z         ec1_0.cobertura_primaria,
+2026-09-01T00:26:00.004142110Z         ec1_0.comprimento,
+2026-09-01T00:26:00.004143110Z         ec1_0.criado_em,
+2026-09-01T00:26:00.004144310Z         ec1_0.desbridamento,
+2026-09-01T00:26:00.004145410Z         ec1_0.desbridamento_obs,
+2026-09-01T00:26:00.004146710Z         ec1_0.dor_escala,
+2026-09-01T00:26:00.004147910Z         ec1_0.evolucao,
+2026-09-01T00:26:00.004149010Z         ec1_0.exsudato,
+2026-09-01T00:26:00.004150110Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.004151310Z         ec1_0.largura,
+2026-09-01T00:26:00.004152410Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:26:00.004153511Z         ec1_0.observacoes,
+2026-09-01T00:26:00.004154711Z         ec1_0.odor_presente,
+2026-09-01T00:26:00.004155811Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:26:00.004186413Z         ec1_0.pele_perilesional,
+2026-09-01T00:26:00.004188113Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:26:00.004189313Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:26:00.004190513Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:26:00.004191614Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.004192714Z         ec1_0.profundidade,
+2026-09-01T00:26:00.004193814Z         ec1_0.retorno_previsto,
+2026-09-01T00:26:00.004194914Z         ec1_0.tecido 
+2026-09-01T00:26:00.004196114Z     from
+2026-09-01T00:26:00.004197214Z         evolucoes_curativos ec1_0 
+2026-09-01T00:26:00.004198414Z     where
+2026-09-01T00:26:00.004199514Z         ec1_0.agendamento_id=?
+2026-09-01T00:26:00.004203214Z 2026-09-01T00:26:00.003Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:26:00.005237296Z 2026-09-01T00:26:00.004Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.005283999Z     select
+2026-09-01T00:26:00.005289000Z         ee1_0.id,
+2026-09-01T00:26:00.005290500Z         ee1_0.agendamento_id,
+2026-09-01T00:26:00.005291700Z         ee1_0.atualizado_em,
+2026-09-01T00:26:00.005292800Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:26:00.005293900Z         ee1_0.bordas,
+2026-09-01T00:26:00.005295000Z         ee1_0.cobertura_primaria,
+2026-09-01T00:26:00.005296200Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:26:00.005297300Z         ee1_0.comorb_diabetes,
+2026-09-01T00:26:00.005298500Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:26:00.005299601Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:26:00.005300701Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:26:00.005301801Z         ee1_0.comorb_outras,
+2026-09-01T00:26:00.005302901Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:26:00.005304001Z         ee1_0.comprimento,
+2026-09-01T00:26:00.005305201Z         ee1_0.criado_em,
+2026-09-01T00:26:00.005306301Z         ee1_0.data_avaliacao,
+2026-09-01T00:26:00.005307401Z         ee1_0.desbridamento,
+2026-09-01T00:26:00.005308501Z         ee1_0.descolamento,
+2026-09-01T00:26:00.005309601Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:26:00.005310701Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:26:00.005311801Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:26:00.005312902Z         ee1_0.diag_outros,
+2026-09-01T00:26:00.005314102Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:26:00.005315202Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:26:00.005316302Z         ee1_0.diagnostico_medico,
+2026-09-01T00:26:00.005317502Z         ee1_0.dimensoes,
+2026-09-01T00:26:00.005318602Z         ee1_0.dor_escala,
+2026-09-01T00:26:00.005319602Z         ee1_0.exsudato,
+2026-09-01T00:26:00.005320702Z         ee1_0.exsudato_tipo,
+2026-09-01T00:26:00.005321802Z         ee1_0.fc,
+2026-09-01T00:26:00.005323002Z         ee1_0.fixacao,
+2026-09-01T00:26:00.005324502Z         ee1_0.fr,
+2026-09-01T00:26:00.005325803Z         ee1_0.hora_avaliacao,
+2026-09-01T00:26:00.005327003Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.005328103Z         ee1_0.largura,
+2026-09-01T00:26:00.005329103Z         ee1_0.limpeza,
+2026-09-01T00:26:00.005330203Z         ee1_0.limpeza_outro,
+2026-09-01T00:26:00.005331303Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:26:00.005332503Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:26:00.005333603Z         ee1_0.observacoes,
+2026-09-01T00:26:00.005342904Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:26:00.005344304Z         ee1_0.pa,
+2026-09-01T00:26:00.005345504Z         ee1_0.pele_perilesional,
+2026-09-01T00:26:00.005346604Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:26:00.005347704Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:26:00.005348804Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:26:00.005350004Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:26:00.005351105Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.005352305Z         ee1_0.profundidade,
+2026-09-01T00:26:00.005353405Z         ee1_0.reducao_area,
+2026-09-01T00:26:00.005354505Z         ee1_0.retorno_dias,
+2026-09-01T00:26:00.005355505Z         ee1_0.sinais_vitais,
+2026-09-01T00:26:00.005356605Z         ee1_0.tecido_leito,
+2026-09-01T00:26:00.005357705Z         ee1_0.temp,
+2026-09-01T00:26:00.005358805Z         ee1_0.tipo_ferida,
+2026-09-01T00:26:00.005359905Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:26:00.005361105Z         ee1_0.tunelizacao 
+2026-09-01T00:26:00.005362205Z     from
+2026-09-01T00:26:00.005363306Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:26:00.005364406Z     where
+2026-09-01T00:26:00.005365406Z         ee1_0.agendamento_id=?
+2026-09-01T00:26:00.005366506Z Hibernate: 
+2026-09-01T00:26:00.005367706Z     select
+2026-09-01T00:26:00.005368806Z         ee1_0.id,
+2026-09-01T00:26:00.005369906Z         ee1_0.agendamento_id,
+2026-09-01T00:26:00.005371006Z         ee1_0.atualizado_em,
+2026-09-01T00:26:00.005373006Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:26:00.005374206Z         ee1_0.bordas,
+2026-09-01T00:26:00.005375306Z         ee1_0.cobertura_primaria,
+2026-09-01T00:26:00.005376307Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:26:00.005377607Z         ee1_0.comorb_diabetes,
+2026-09-01T00:26:00.005378707Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:26:00.005380007Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:26:00.005381107Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:26:00.005382207Z         ee1_0.comorb_outras,
+2026-09-01T00:26:00.005383307Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:26:00.005384407Z         ee1_0.comprimento,
+2026-09-01T00:26:00.005385407Z         ee1_0.criado_em,
+2026-09-01T00:26:00.005386607Z         ee1_0.data_avaliacao,
+2026-09-01T00:26:00.005387707Z         ee1_0.desbridamento,
+2026-09-01T00:26:00.005388808Z         ee1_0.descolamento,
+2026-09-01T00:26:00.005389908Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:26:00.005393008Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:26:00.005394208Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:26:00.005395408Z         ee1_0.diag_outros,
+2026-09-01T00:26:00.005396508Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:26:00.005397608Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:26:00.005398808Z         ee1_0.diagnostico_medico,
+2026-09-01T00:26:00.005400008Z         ee1_0.dimensoes,
+2026-09-01T00:26:00.005401108Z         ee1_0.dor_escala,
+2026-09-01T00:26:00.005402109Z         ee1_0.exsudato,
+2026-09-01T00:26:00.005403309Z         ee1_0.exsudato_tipo,
+2026-09-01T00:26:00.005404409Z         ee1_0.fc,
+2026-09-01T00:26:00.005405409Z         ee1_0.fixacao,
+2026-09-01T00:26:00.005406609Z         ee1_0.fr,
+2026-09-01T00:26:00.005407709Z         ee1_0.hora_avaliacao,
+2026-09-01T00:26:00.005409009Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:26:00.005410109Z         ee1_0.largura,
+2026-09-01T00:26:00.005411209Z         ee1_0.limpeza,
+2026-09-01T00:26:00.005412309Z         ee1_0.limpeza_outro,
+2026-09-01T00:26:00.005413309Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:26:00.005414410Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:26:00.005415710Z         ee1_0.observacoes,
+2026-09-01T00:26:00.005416810Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:26:00.005417910Z         ee1_0.pa,
+2026-09-01T00:26:00.005419110Z         ee1_0.pele_perilesional,
+2026-09-01T00:26:00.005420210Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:26:00.005421310Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:26:00.005422410Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:26:00.005423510Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:26:00.005424610Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:26:00.005425710Z         ee1_0.profundidade,
+2026-09-01T00:26:00.005426911Z         ee1_0.reducao_area,
+2026-09-01T00:26:00.005428011Z         ee1_0.retorno_dias,
+2026-09-01T00:26:00.005429111Z         ee1_0.sinais_vitais,
+2026-09-01T00:26:00.005430111Z         ee1_0.tecido_leito,
+2026-09-01T00:26:00.005431211Z         ee1_0.temp,
+2026-09-01T00:26:00.005432311Z         ee1_0.tipo_ferida,
+2026-09-01T00:26:00.005433511Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:26:00.005434711Z         ee1_0.tunelizacao 
+2026-09-01T00:26:00.005435911Z     from
+2026-09-01T00:26:00.005437011Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:26:00.005438211Z     where
+2026-09-01T00:26:00.005441112Z         ee1_0.agendamento_id=?
+2026-09-01T00:26:00.005444212Z 2026-09-01T00:26:00.005Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:26:00.006999334Z 2026-09-01T00:26:00.006Z  INFO 195 --- [prontudigital] [   scheduling-1] .p.b.n.a.AgendamentoNotificacaoScheduler : [WHATSAPP][SCHEDULER CONFIRMACAO] 3 agendamento(s) criado(s) há 1 min ou mais para confirmação
+2026-09-01T00:26:00.007464871Z 2026-09-01T00:26:00.007Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Iniciando processamento do agendamento 1 (criado em 2026-09-01T00:00:20.594069, inicio em 2026-09-01T12:00)
+2026-09-01T00:26:00.008781774Z 2026-09-01T00:26:00.008Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.008806976Z     select
+2026-09-01T00:26:00.008808976Z         lnw1_0.id 
+2026-09-01T00:26:00.008810176Z     from
+2026-09-01T00:26:00.008811276Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:26:00.008812376Z     where
+2026-09-01T00:26:00.008813876Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:26:00.008814977Z         and lnw1_0.tipo=? 
+2026-09-01T00:26:00.008816077Z     fetch
+2026-09-01T00:26:00.008817177Z         first ? rows only
+2026-09-01T00:26:00.008818177Z Hibernate: 
+2026-09-01T00:26:00.008819177Z     select
+2026-09-01T00:26:00.008820277Z         lnw1_0.id 
+2026-09-01T00:26:00.008821277Z     from
+2026-09-01T00:26:00.008822477Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:26:00.008823577Z     where
+2026-09-01T00:26:00.008824677Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:26:00.008825777Z         and lnw1_0.tipo=? 
+2026-09-01T00:26:00.008826877Z     fetch
+2026-09-01T00:26:00.008827878Z         first ? rows only
+2026-09-01T00:26:00.008839778Z 2026-09-01T00:26:00.008Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [1]
+2026-09-01T00:26:00.008924185Z 2026-09-01T00:26:00.008Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:VARCHAR) <- [CONFIRMACAO_24H]
+2026-09-01T00:26:00.008947687Z 2026-09-01T00:26:00.008Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (3:INTEGER) <- [1]
+2026-09-01T00:26:00.010067775Z 2026-09-01T00:26:00.009Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Agendamento 1 ignorado: solicitacao ja registrada anteriormente
+2026-09-01T00:26:00.010887339Z 2026-09-01T00:26:00.010Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Iniciando processamento do agendamento 2 (criado em 2026-09-01T00:15:27.487427, inicio em 2026-09-04T12:00)
+2026-09-01T00:26:00.012409359Z 2026-09-01T00:26:00.012Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.012432961Z     select
+2026-09-01T00:26:00.012434861Z         lnw1_0.id 
+2026-09-01T00:26:00.012436061Z     from
+2026-09-01T00:26:00.012437161Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:26:00.012438361Z     where
+2026-09-01T00:26:00.012439461Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:26:00.012440661Z         and lnw1_0.tipo=? 
+2026-09-01T00:26:00.012441761Z     fetch
+2026-09-01T00:26:00.012442761Z         first ? rows only
+2026-09-01T00:26:00.012443861Z Hibernate: 
+2026-09-01T00:26:00.012444962Z     select
+2026-09-01T00:26:00.012445962Z         lnw1_0.id 
+2026-09-01T00:26:00.012447062Z     from
+2026-09-01T00:26:00.012448262Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:26:00.012449462Z     where
+2026-09-01T00:26:00.012450462Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:26:00.012451562Z         and lnw1_0.tipo=? 
+2026-09-01T00:26:00.012452662Z     fetch
+2026-09-01T00:26:00.012453762Z         first ? rows only
+2026-09-01T00:26:00.012456162Z 2026-09-01T00:26:00.012Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [2]
+2026-09-01T00:26:00.012590473Z 2026-09-01T00:26:00.012Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:VARCHAR) <- [CONFIRMACAO_24H]
+2026-09-01T00:26:00.012813691Z 2026-09-01T00:26:00.012Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (3:INTEGER) <- [1]
+2026-09-01T00:26:00.013736863Z 2026-09-01T00:26:00.013Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Agendamento 2 ignorado: solicitacao ja registrada anteriormente
+2026-09-01T00:26:00.016111149Z 2026-09-01T00:26:00.015Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Iniciando processamento do agendamento 3 (criado em 2026-09-01T00:25:49.111606, inicio em 2026-09-02T16:00)
+2026-09-01T00:26:00.018659349Z 2026-09-01T00:26:00.018Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.018699253Z     select
+2026-09-01T00:26:00.018704153Z         lnw1_0.id 
+2026-09-01T00:26:00.018705653Z     from
+2026-09-01T00:26:00.018706753Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:26:00.018707953Z     where
+2026-09-01T00:26:00.018708953Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:26:00.018710053Z         and lnw1_0.tipo=? 
+2026-09-01T00:26:00.018711354Z     fetch
+2026-09-01T00:26:00.018724555Z         first ? rows only
+2026-09-01T00:26:00.018725955Z Hibernate: 
+2026-09-01T00:26:00.018727055Z     select
+2026-09-01T00:26:00.018728155Z         lnw1_0.id 
+2026-09-01T00:26:00.018729255Z     from
+2026-09-01T00:26:00.018730255Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:26:00.018731355Z     where
+2026-09-01T00:26:00.018732655Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:26:00.018733755Z         and lnw1_0.tipo=? 
+2026-09-01T00:26:00.018734955Z     fetch
+2026-09-01T00:26:00.018735955Z         first ? rows only
+2026-09-01T00:26:00.018737156Z 2026-09-01T00:26:00.018Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:26:00.018740556Z 2026-09-01T00:26:00.018Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:VARCHAR) <- [CONFIRMACAO_24H]
+2026-09-01T00:26:00.018794360Z 2026-09-01T00:26:00.018Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (3:INTEGER) <- [1]
+2026-09-01T00:26:00.021421166Z 2026-09-01T00:26:00.021Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.021473370Z     select
+2026-09-01T00:26:00.021478371Z         u1_0.id,
+2026-09-01T00:26:00.021479871Z         u1_0.acesso_ativado,
+2026-09-01T00:26:00.021481071Z         u1_0.ativo,
+2026-09-01T00:26:00.021482171Z         u1_0.atualizado_em,
+2026-09-01T00:26:00.021483271Z         u1_0.avatar_chave,
+2026-09-01T00:26:00.021484371Z         u1_0.avatar_tipo_conteudo,
+2026-09-01T00:26:00.021485671Z         u1_0.coren,
+2026-09-01T00:26:00.021486771Z         u1_0.cpf,
+2026-09-01T00:26:00.021487872Z         u1_0.criado_em,
+2026-09-01T00:26:00.021488972Z         u1_0.data_nascimento,
+2026-09-01T00:26:00.021490372Z         u1_0.email,
+2026-09-01T00:26:00.021491472Z         u1_0.bairro,
+2026-09-01T00:26:00.021492572Z         u1_0.cep,
+2026-09-01T00:26:00.021493672Z         u1_0.cidade,
+2026-09-01T00:26:00.021494772Z         u1_0.complemento,
+2026-09-01T00:26:00.021495972Z         u1_0.logradouro,
+2026-09-01T00:26:00.021497072Z         u1_0.numero,
+2026-09-01T00:26:00.021498172Z         u1_0.uf,
+2026-09-01T00:26:00.021499172Z         u1_0.especialidade,
+2026-09-01T00:26:00.021500273Z         u1_0.nome_completo,
+2026-09-01T00:26:00.021501373Z         u1_0.senha_hash,
+2026-09-01T00:26:00.021502373Z         u1_0.telefone,
+2026-09-01T00:26:00.021503573Z         u1_0.username,
+2026-09-01T00:26:00.021515274Z         u1_0.uuid 
+2026-09-01T00:26:00.021516674Z     from
+2026-09-01T00:26:00.021517774Z         usuarios u1_0 
+2026-09-01T00:26:00.021518874Z     where
+2026-09-01T00:26:00.021519974Z         u1_0.uuid=?
+2026-09-01T00:26:00.021521074Z Hibernate: 
+2026-09-01T00:26:00.021522074Z     select
+2026-09-01T00:26:00.021523274Z         u1_0.id,
+2026-09-01T00:26:00.021529275Z         u1_0.acesso_ativado,
+2026-09-01T00:26:00.021530475Z         u1_0.ativo,
+2026-09-01T00:26:00.021531575Z         u1_0.atualizado_em,
+2026-09-01T00:26:00.021532675Z         u1_0.avatar_chave,
+2026-09-01T00:26:00.021533775Z         u1_0.avatar_tipo_conteudo,
+2026-09-01T00:26:00.021534875Z         u1_0.coren,
+2026-09-01T00:26:00.021535975Z         u1_0.cpf,
+2026-09-01T00:26:00.021537175Z         u1_0.criado_em,
+2026-09-01T00:26:00.021538276Z         u1_0.data_nascimento,
+2026-09-01T00:26:00.021539476Z         u1_0.email,
+2026-09-01T00:26:00.021540576Z         u1_0.bairro,
+2026-09-01T00:26:00.021541676Z         u1_0.cep,
+2026-09-01T00:26:00.021542776Z         u1_0.cidade,
+2026-09-01T00:26:00.021543876Z         u1_0.complemento,
+2026-09-01T00:26:00.021544876Z         u1_0.logradouro,
+2026-09-01T00:26:00.021546076Z         u1_0.numero,
+2026-09-01T00:26:00.021547176Z         u1_0.uf,
+2026-09-01T00:26:00.021548276Z         u1_0.especialidade,
+2026-09-01T00:26:00.021549376Z         u1_0.nome_completo,
+2026-09-01T00:26:00.021550476Z         u1_0.senha_hash,
+2026-09-01T00:26:00.021551477Z         u1_0.telefone,
+2026-09-01T00:26:00.021552577Z         u1_0.username,
+2026-09-01T00:26:00.021553677Z         u1_0.uuid 
+2026-09-01T00:26:00.021554777Z     from
+2026-09-01T00:26:00.021555877Z         usuarios u1_0 
+2026-09-01T00:26:00.021556977Z     where
+2026-09-01T00:26:00.021558177Z         u1_0.uuid=?
+2026-09-01T00:26:00.021560777Z 2026-09-01T00:26:00.021Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:UUID) <- [4be53aab-e569-499c-84a9-237c57e12628]
+2026-09-01T00:26:00.023048994Z 2026-09-01T00:26:00.022Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.023085697Z     select
+2026-09-01T00:26:00.023090497Z         up1_0.usuario_id,
+2026-09-01T00:26:00.023092098Z         up1_0.perfil_id,
+2026-09-01T00:26:00.023093198Z         up1_0.atribuido_em 
+2026-09-01T00:26:00.023094398Z     from
+2026-09-01T00:26:00.023109899Z         usuario_perfis up1_0 
+2026-09-01T00:26:00.023111199Z     where
+2026-09-01T00:26:00.023112399Z         up1_0.usuario_id=?
+2026-09-01T00:26:00.023113499Z Hibernate: 
+2026-09-01T00:26:00.023114599Z     select
+2026-09-01T00:26:00.023115599Z         up1_0.usuario_id,
+2026-09-01T00:26:00.023116699Z         up1_0.perfil_id,
+2026-09-01T00:26:00.023117700Z         up1_0.atribuido_em 
+2026-09-01T00:26:00.023118900Z     from
+2026-09-01T00:26:00.023119900Z         usuario_perfis up1_0 
+2026-09-01T00:26:00.023121100Z     where
+2026-09-01T00:26:00.023122200Z         up1_0.usuario_id=?
+2026-09-01T00:26:00.023125300Z 2026-09-01T00:26:00.022Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [4]
+2026-09-01T00:26:00.024413601Z 2026-09-01T00:26:00.024Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.024436103Z     select
+2026-09-01T00:26:00.024438103Z         p1_0.id,
+2026-09-01T00:26:00.024439303Z         p1_0.descricao,
+2026-09-01T00:26:00.024440403Z         p1_0.nome,
+2026-09-01T00:26:00.024441503Z         p1_0.uuid 
+2026-09-01T00:26:00.024442704Z     from
+2026-09-01T00:26:00.024443704Z         perfis p1_0 
+2026-09-01T00:26:00.024444904Z     where
+2026-09-01T00:26:00.024445904Z         p1_0.id=?
+2026-09-01T00:26:00.024446904Z Hibernate: 
+2026-09-01T00:26:00.024448004Z     select
+2026-09-01T00:26:00.024449004Z         p1_0.id,
+2026-09-01T00:26:00.024450204Z         p1_0.descricao,
+2026-09-01T00:26:00.024451304Z         p1_0.nome,
+2026-09-01T00:26:00.024452404Z         p1_0.uuid 
+2026-09-01T00:26:00.024453504Z     from
+2026-09-01T00:26:00.024454504Z         perfis p1_0 
+2026-09-01T00:26:00.024455605Z     where
+2026-09-01T00:26:00.024456605Z         p1_0.id=?
+2026-09-01T00:26:00.024457805Z 2026-09-01T00:26:00.024Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:26:00.026949400Z 2026-09-01T00:26:00.026Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.026965202Z     select
+2026-09-01T00:26:00.026967002Z         u1_0.id,
+2026-09-01T00:26:00.026968202Z         u1_0.acesso_ativado,
+2026-09-01T00:26:00.026969402Z         u1_0.ativo,
+2026-09-01T00:26:00.026970502Z         u1_0.atualizado_em,
+2026-09-01T00:26:00.026971602Z         u1_0.avatar_chave,
+2026-09-01T00:26:00.026983103Z         u1_0.avatar_tipo_conteudo,
+2026-09-01T00:26:00.026984603Z         u1_0.coren,
+2026-09-01T00:26:00.026985803Z         u1_0.cpf,
+2026-09-01T00:26:00.026986903Z         u1_0.criado_em,
+2026-09-01T00:26:00.026988003Z         u1_0.data_nascimento,
+2026-09-01T00:26:00.026989103Z         u1_0.email,
+2026-09-01T00:26:00.026990104Z         u1_0.bairro,
+2026-09-01T00:26:00.026991304Z         u1_0.cep,
+2026-09-01T00:26:00.026992404Z         u1_0.cidade,
+2026-09-01T00:26:00.026993504Z         u1_0.complemento,
+2026-09-01T00:26:00.026994604Z         u1_0.logradouro,
+2026-09-01T00:26:00.026995704Z         u1_0.numero,
+2026-09-01T00:26:00.026996804Z         u1_0.uf,
+2026-09-01T00:26:00.026997804Z         u1_0.especialidade,
+2026-09-01T00:26:00.026998904Z         u1_0.nome_completo,
+2026-09-01T00:26:00.027000104Z         u1_0.senha_hash,
+2026-09-01T00:26:00.027001204Z         u1_0.telefone,
+2026-09-01T00:26:00.027002305Z         u1_0.username,
+2026-09-01T00:26:00.027003405Z         u1_0.uuid 
+2026-09-01T00:26:00.027004505Z     from
+2026-09-01T00:26:00.027005605Z         usuarios u1_0 
+2026-09-01T00:26:00.027006705Z     where
+2026-09-01T00:26:00.027007705Z         u1_0.uuid=?
+2026-09-01T00:26:00.027008905Z Hibernate: 
+2026-09-01T00:26:00.027009905Z     select
+2026-09-01T00:26:00.027011205Z         u1_0.id,
+2026-09-01T00:26:00.027012305Z         u1_0.acesso_ativado,
+2026-09-01T00:26:00.027013405Z         u1_0.ativo,
+2026-09-01T00:26:00.027014405Z         u1_0.atualizado_em,
+2026-09-01T00:26:00.027015506Z         u1_0.avatar_chave,
+2026-09-01T00:26:00.027016606Z         u1_0.avatar_tipo_conteudo,
+2026-09-01T00:26:00.027017806Z         u1_0.coren,
+2026-09-01T00:26:00.027018906Z         u1_0.cpf,
+2026-09-01T00:26:00.027020006Z         u1_0.criado_em,
+2026-09-01T00:26:00.027021106Z         u1_0.data_nascimento,
+2026-09-01T00:26:00.027022206Z         u1_0.email,
+2026-09-01T00:26:00.027023206Z         u1_0.bairro,
+2026-09-01T00:26:00.027024306Z         u1_0.cep,
+2026-09-01T00:26:00.027025306Z         u1_0.cidade,
+2026-09-01T00:26:00.027026506Z         u1_0.complemento,
+2026-09-01T00:26:00.027027607Z         u1_0.logradouro,
+2026-09-01T00:26:00.027033807Z         u1_0.numero,
+2026-09-01T00:26:00.027035007Z         u1_0.uf,
+2026-09-01T00:26:00.027036007Z         u1_0.especialidade,
+2026-09-01T00:26:00.027037107Z         u1_0.nome_completo,
+2026-09-01T00:26:00.027040608Z         u1_0.senha_hash,
+2026-09-01T00:26:00.027041808Z         u1_0.telefone,
+2026-09-01T00:26:00.027043008Z         u1_0.username,
+2026-09-01T00:26:00.027044508Z         u1_0.uuid 
+2026-09-01T00:26:00.027045608Z     from
+2026-09-01T00:26:00.027046708Z         usuarios u1_0 
+2026-09-01T00:26:00.027047808Z     where
+2026-09-01T00:26:00.027048808Z         u1_0.uuid=?
+2026-09-01T00:26:00.027050008Z 2026-09-01T00:26:00.026Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:UUID) <- [8933836b-7006-42ec-b83e-99ed7a01587f]
+2026-09-01T00:26:00.028278105Z 2026-09-01T00:26:00.028Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.028323408Z     select
+2026-09-01T00:26:00.028328409Z         up1_0.usuario_id,
+2026-09-01T00:26:00.028329809Z         up1_0.perfil_id,
+2026-09-01T00:26:00.028331009Z         up1_0.atribuido_em 
+2026-09-01T00:26:00.028332109Z     from
+2026-09-01T00:26:00.028333109Z         usuario_perfis up1_0 
+2026-09-01T00:26:00.028334209Z     where
+2026-09-01T00:26:00.028335409Z         up1_0.usuario_id=?
+2026-09-01T00:26:00.028336509Z Hibernate: 
+2026-09-01T00:26:00.028337609Z     select
+2026-09-01T00:26:00.028338609Z         up1_0.usuario_id,
+2026-09-01T00:26:00.028339710Z         up1_0.perfil_id,
+2026-09-01T00:26:00.028340810Z         up1_0.atribuido_em 
+2026-09-01T00:26:00.028341910Z     from
+2026-09-01T00:26:00.028343010Z         usuario_perfis up1_0 
+2026-09-01T00:26:00.028344210Z     where
+2026-09-01T00:26:00.028345310Z         up1_0.usuario_id=?
+2026-09-01T00:26:00.028685537Z 2026-09-01T00:26:00.028Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:26:00.030482878Z 2026-09-01T00:26:00.030Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.030499679Z     select
+2026-09-01T00:26:00.030501479Z         p1_0.id,
+2026-09-01T00:26:00.030502779Z         p1_0.descricao,
+2026-09-01T00:26:00.030503879Z         p1_0.nome,
+2026-09-01T00:26:00.030505180Z         p1_0.uuid 
+2026-09-01T00:26:00.030506280Z     from
+2026-09-01T00:26:00.030507480Z         perfis p1_0 
+2026-09-01T00:26:00.030508580Z     where
+2026-09-01T00:26:00.030509580Z         p1_0.id=?
+2026-09-01T00:26:00.030510680Z Hibernate: 
+2026-09-01T00:26:00.030511680Z     select
+2026-09-01T00:26:00.030523581Z         p1_0.id,
+2026-09-01T00:26:00.030525081Z         p1_0.descricao,
+2026-09-01T00:26:00.030526181Z         p1_0.nome,
+2026-09-01T00:26:00.030527281Z         p1_0.uuid 
+2026-09-01T00:26:00.030528381Z     from
+2026-09-01T00:26:00.030529481Z         perfis p1_0 
+2026-09-01T00:26:00.030530482Z     where
+2026-09-01T00:26:00.030531582Z         p1_0.id=?
+2026-09-01T00:26:00.030532682Z 2026-09-01T00:26:00.030Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [2]
+2026-09-01T00:26:00.031660570Z 2026-09-01T00:26:00.031Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Agendamento 3: token 32d5393b... gerado, valido ate 2026-09-02T14:00
+2026-09-01T00:26:00.032128407Z 2026-09-01T00:26:00.031Z  INFO 195 --- [prontudigital] [   scheduling-1] c.p.b.c.clientes.WhatsappCloudApiClient  : [WHATSAPP] Enviando mensagem de texto para 55*******5323 (380 caracteres)
+2026-09-01T00:26:00.032192312Z 2026-09-01T00:26:00.031Z DEBUG 195 --- [prontudigital] [   scheduling-1] c.p.b.c.clientes.WhatsappCloudApiClient  : [WHATSAPP] Conteudo da mensagem destinada a 55*******5323: Olá, Carlos Oliveira! Sua consulta com João Santos está marcada para 02/09/2026 às 16:00. Por favor, confirme sua presença:
+2026-09-01T00:26:00.032199313Z ✅ CONFIRMAR: http://localhost:8080/api/confirmacao/32d5393b-ae76-4634-bd5c-dfe9a0474508/confirmar
+2026-09-01T00:26:00.032201113Z ❌ CANCELAR: http://localhost:8080/api/confirmacao/32d5393b-ae76-4634-bd5c-dfe9a0474508/recusar
+2026-09-01T00:26:00.032202513Z Se não responder até 02/09/2026 às 14:00, a vaga será liberada.
+2026-09-01T00:26:00.032761957Z 2026-09-01T00:26:00.032Z DEBUG 195 --- [prontudigital] [   scheduling-1] o.s.web.client.DefaultRestClient         : Writing [{to=5581979125323, messaging_product=whatsapp, text={body=Olá, Carlos Oliveira! Sua consulta com João Santos está marcada para 02/09/2026 às 16:00. Por favor, confirme sua presença:
+2026-09-01T00:26:00.032771658Z ✅ CONFIRMAR: http://localhost:8080/api/confirmacao/32d5393b-ae76-4634-bd5c-dfe9a0474508/confirmar
+2026-09-01T00:26:00.032773258Z ❌ CANCELAR: http://localhost:8080/api/confirmacao/32d5393b-ae76-4634-bd5c-dfe9a0474508/recusar
+2026-09-01T00:26:00.032774558Z Se não responder até 02/09/2026 às 14:00, a vaga será liberada., preview_url=false}, type=text}] as "application/json" with org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+2026-09-01T00:26:00.930507244Z 2026-09-01T00:26:00.930Z DEBUG 195 --- [prontudigital] [   scheduling-1] o.s.web.client.DefaultRestClient         : Reading to [java.lang.String] as "application/json"
+2026-09-01T00:26:00.930594351Z 2026-09-01T00:26:00.930Z  INFO 195 --- [prontudigital] [   scheduling-1] c.p.b.c.clientes.WhatsappCloudApiClient  : [WHATSAPP] Cloud API aceitou a mensagem para 55*******5323: HTTP 200 em 899 ms
+2026-09-01T00:26:00.930602052Z 2026-09-01T00:26:00.930Z DEBUG 195 --- [prontudigital] [   scheduling-1] c.p.b.c.clientes.WhatsappCloudApiClient  : [WHATSAPP] Resposta da Cloud API para 55*******5323: {"messaging_product":"whatsapp","contacts":[{"input":"5581979125323","wa_id":"558179125323"}],"messages":[{"id":"wamid.HBgMNTU4MTc5MTI1MzIzFQIAERgSRUQ3NDNDMkFBMzE2MTZEQzQwAA=="}]}
+2026-09-01T00:26:00.930685458Z 2026-09-01T00:26:00.930Z  INFO 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Solicitacao enviada para o agendamento 3 (paciente 4be53aab-e569-499c-84a9-237c57e12628, telefone 81*****5323, token 32d5393b..., valido ate 2026-09-02T14:00)
+2026-09-01T00:26:00.931279805Z 2026-09-01T00:26:00.931Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:26:00.931309307Z     insert 
+2026-09-01T00:26:00.931314007Z     into
+2026-09-01T00:26:00.931315708Z         log_notificacoes_whatsapp
+2026-09-01T00:26:00.931316908Z         (agendamento_id, criado_em, enviado_em, mensagem, paciente_uuid, respondido_em, status, telefone, tentativas, tipo, token_confirmacao, token_expira_em) 
+2026-09-01T00:26:00.931318208Z     values
+2026-09-01T00:26:00.931319408Z         (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-09-01T00:26:00.931320508Z Hibernate: 
+2026-09-01T00:26:00.931321608Z     insert 
+2026-09-01T00:26:00.931322708Z     into
+2026-09-01T00:26:00.931323808Z         log_notificacoes_whatsapp
+2026-09-01T00:26:00.931325008Z         (agendamento_id, criado_em, enviado_em, mensagem, paciente_uuid, respondido_em, status, telefone, tentativas, tipo, token_confirmacao, token_expira_em) 
+2026-09-01T00:26:00.931326608Z     values
+2026-09-01T00:26:00.931327608Z         (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-09-01T00:26:00.931424016Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:26:00.931431617Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:TIMESTAMP) <- [2026-09-01T00:26:00.930911]
+2026-09-01T00:26:00.931514123Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (3:TIMESTAMP) <- [2026-08-31T21:26:00.031355446]
+2026-09-01T00:26:00.931668835Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (4:VARCHAR) <- [Olá, Carlos Oliveira! Sua consulta com João Santos está marcada para 02/09/2026 às 16:00. Por favor, confirme sua presença:
+2026-09-01T00:26:00.931676836Z ✅ CONFIRMAR: http://localhost:8080/api/confirmacao/32d5393b-ae76-4634-bd5c-dfe9a0474508/confirmar
+2026-09-01T00:26:00.931678736Z ❌ CANCELAR: http://localhost:8080/api/confirmacao/32d5393b-ae76-4634-bd5c-dfe9a0474508/recusar
+2026-09-01T00:26:00.931680036Z Se não responder até 02/09/2026 às 14:00, a vaga será liberada.]
+2026-09-01T00:26:00.931681236Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (5:UUID) <- [4be53aab-e569-499c-84a9-237c57e12628]
+2026-09-01T00:26:00.931744141Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (6:TIMESTAMP) <- [null]
+2026-09-01T00:26:00.931756942Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (7:VARCHAR) <- [ENVIADO]
+2026-09-01T00:26:00.931795945Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (8:VARCHAR) <- [81979125323]
+2026-09-01T00:26:00.931955558Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (9:INTEGER) <- [1]
+2026-09-01T00:26:00.931961858Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (10:VARCHAR) <- [CONFIRMACAO_24H]
+2026-09-01T00:26:00.931963458Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (11:UUID) <- [32d5393b-ae76-4634-bd5c-dfe9a0474508]
+2026-09-01T00:26:00.931964859Z 2026-09-01T00:26:00.931Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (12:TIMESTAMP) <- [2026-09-02T14:00]
+2026-09-01T00:26:00.933351467Z 2026-09-01T00:26:00.933Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Log de notificacao do agendamento 3 salvo com status ENVIADO
+2026-09-01T00:26:00.936909747Z 2026-09-01T00:26:00.936Z  INFO 195 --- [prontudigital] [   scheduling-1] .p.b.n.a.AgendamentoNotificacaoScheduler : [WHATSAPP][SCHEDULER CONFIRMACAO] Execucao concluida: 3 processado(s), 0 com erro
+2026-09-01T00:26:59.997839192Z 2026-09-01T00:26:59.997Z DEBUG 195 --- [prontudigital] [   scheduling-1] .p.b.n.a.AgendamentoNotificacaoScheduler : [WHATSAPP][SCHEDULER CONFIRMACAO] Buscando agendamentos criados entre 2026-08-31T20:25:59.997241454 e 2026-08-31T21:25:59.997241454 (atraso=1 min, janela=60 min)
+2026-09-01T00:26:59.999901426Z 2026-09-01T00:26:59.999Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.000035535Z     select
+2026-09-01T00:27:00.000055836Z         a1_0.id,
+2026-09-01T00:27:00.000063036Z         a1_0.atualizado_em,
+2026-09-01T00:27:00.000068337Z         a1_0.avaliacao_id,
+2026-09-01T00:27:00.000073337Z         a1_0.concluido_em,
+2026-09-01T00:27:00.000078137Z         a1_0.criado_em,
+2026-09-01T00:27:00.000082938Z         a1_0.fim_em,
+2026-09-01T00:27:00.000088138Z         a1_0.inicio_em,
+2026-09-01T00:27:00.000093338Z         a1_0.local_atendimento,
+2026-09-01T00:27:00.000098439Z         a1_0.paciente_acamado,
+2026-09-01T00:27:00.000103539Z         a1_0.paciente_uuid,
+2026-09-01T00:27:00.000108539Z         a1_0.procedimento_id,
+2026-09-01T00:27:00.000113440Z         a1_0.profissional_uuid,
+2026-09-01T00:27:00.000118340Z         a1_0.status,
+2026-09-01T00:27:00.000123140Z         a1_0.tipo,
+2026-09-01T00:27:00.000150442Z         a1_0.tipo_procedimento,
+2026-09-01T00:27:00.000155142Z         a1_0.uuid 
+2026-09-01T00:27:00.000158543Z     from
+2026-09-01T00:27:00.000161943Z         agendamentos a1_0 
+2026-09-01T00:27:00.000165143Z     where
+2026-09-01T00:27:00.000168243Z         a1_0.status in (?, ?)
+2026-09-01T00:27:00.000171443Z Hibernate: 
+2026-09-01T00:27:00.000174644Z     select
+2026-09-01T00:27:00.000178044Z         a1_0.id,
+2026-09-01T00:27:00.000181444Z         a1_0.atualizado_em,
+2026-09-01T00:27:00.000184944Z         a1_0.avaliacao_id,
+2026-09-01T00:27:00.000192145Z         a1_0.concluido_em,
+2026-09-01T00:27:00.000195445Z         a1_0.criado_em,
+2026-09-01T00:27:00.000198645Z         a1_0.fim_em,
+2026-09-01T00:27:00.000201745Z         a1_0.inicio_em,
+2026-09-01T00:27:00.000204846Z         a1_0.local_atendimento,
+2026-09-01T00:27:00.000208846Z         a1_0.paciente_acamado,
+2026-09-01T00:27:00.000212346Z         a1_0.paciente_uuid,
+2026-09-01T00:27:00.000215646Z         a1_0.procedimento_id,
+2026-09-01T00:27:00.000219046Z         a1_0.profissional_uuid,
+2026-09-01T00:27:00.000222347Z         a1_0.status,
+2026-09-01T00:27:00.000225447Z         a1_0.tipo,
+2026-09-01T00:27:00.000228647Z         a1_0.tipo_procedimento,
+2026-09-01T00:27:00.000231747Z         a1_0.uuid 
+2026-09-01T00:27:00.000235248Z     from
+2026-09-01T00:27:00.000238648Z         agendamentos a1_0 
+2026-09-01T00:27:00.000241948Z     where
+2026-09-01T00:27:00.000245348Z         a1_0.status in (?, ?)
+2026-09-01T00:27:00.000857788Z 2026-09-01T00:27:00.000Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:VARCHAR) <- [AGENDADO]
+2026-09-01T00:27:00.000986996Z 2026-09-01T00:27:00.000Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:VARCHAR) <- [REMARCADO]
+2026-09-01T00:27:00.003216440Z 2026-09-01T00:27:00.002Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.003239942Z     select
+2026-09-01T00:27:00.003244942Z         ec1_0.id,
+2026-09-01T00:27:00.003248342Z         ec1_0.agendamento_id,
+2026-09-01T00:27:00.003251643Z         ec1_0.area_aproximada,
+2026-09-01T00:27:00.003255043Z         ec1_0.atualizado_em,
+2026-09-01T00:27:00.003258343Z         ec1_0.bordas,
+2026-09-01T00:27:00.003261643Z         ec1_0.cobertura_primaria,
+2026-09-01T00:27:00.003265144Z         ec1_0.comprimento,
+2026-09-01T00:27:00.003268544Z         ec1_0.criado_em,
+2026-09-01T00:27:00.003290645Z         ec1_0.desbridamento,
+2026-09-01T00:27:00.003294645Z         ec1_0.desbridamento_obs,
+2026-09-01T00:27:00.003297946Z         ec1_0.dor_escala,
+2026-09-01T00:27:00.003301446Z         ec1_0.evolucao,
+2026-09-01T00:27:00.003304746Z         ec1_0.exsudato,
+2026-09-01T00:27:00.003308146Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.003311447Z         ec1_0.largura,
+2026-09-01T00:27:00.003315047Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:27:00.003318347Z         ec1_0.observacoes,
+2026-09-01T00:27:00.003321547Z         ec1_0.odor_presente,
+2026-09-01T00:27:00.003324747Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:27:00.003328348Z         ec1_0.pele_perilesional,
+2026-09-01T00:27:00.003331748Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:27:00.003335248Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:27:00.003338548Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:27:00.003341849Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.003345249Z         ec1_0.profundidade,
+2026-09-01T00:27:00.003348549Z         ec1_0.retorno_previsto,
+2026-09-01T00:27:00.003351849Z         ec1_0.tecido 
+2026-09-01T00:27:00.003355349Z     from
+2026-09-01T00:27:00.003358650Z         evolucoes_curativos ec1_0 
+2026-09-01T00:27:00.003362150Z     where
+2026-09-01T00:27:00.003365550Z         ec1_0.agendamento_id=?
+2026-09-01T00:27:00.003369050Z Hibernate: 
+2026-09-01T00:27:00.003372251Z     select
+2026-09-01T00:27:00.003375451Z         ec1_0.id,
+2026-09-01T00:27:00.003378551Z         ec1_0.agendamento_id,
+2026-09-01T00:27:00.003382151Z         ec1_0.area_aproximada,
+2026-09-01T00:27:00.003385451Z         ec1_0.atualizado_em,
+2026-09-01T00:27:00.003388852Z         ec1_0.bordas,
+2026-09-01T00:27:00.003392152Z         ec1_0.cobertura_primaria,
+2026-09-01T00:27:00.003395852Z         ec1_0.comprimento,
+2026-09-01T00:27:00.003399152Z         ec1_0.criado_em,
+2026-09-01T00:27:00.003402252Z         ec1_0.desbridamento,
+2026-09-01T00:27:00.003405653Z         ec1_0.desbridamento_obs,
+2026-09-01T00:27:00.003409153Z         ec1_0.dor_escala,
+2026-09-01T00:27:00.003412453Z         ec1_0.evolucao,
+2026-09-01T00:27:00.003416153Z         ec1_0.exsudato,
+2026-09-01T00:27:00.003419954Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.003423254Z         ec1_0.largura,
+2026-09-01T00:27:00.003426454Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:27:00.003429754Z         ec1_0.observacoes,
+2026-09-01T00:27:00.003442555Z         ec1_0.odor_presente,
+2026-09-01T00:27:00.003446655Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:27:00.003450056Z         ec1_0.pele_perilesional,
+2026-09-01T00:27:00.003453456Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:27:00.003456856Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:27:00.003460156Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:27:00.003463556Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.003466957Z         ec1_0.profundidade,
+2026-09-01T00:27:00.003470157Z         ec1_0.retorno_previsto,
+2026-09-01T00:27:00.003473657Z         ec1_0.tecido 
+2026-09-01T00:27:00.003476957Z     from
+2026-09-01T00:27:00.003480157Z         evolucoes_curativos ec1_0 
+2026-09-01T00:27:00.003483558Z     where
+2026-09-01T00:27:00.003486758Z         ec1_0.agendamento_id=?
+2026-09-01T00:27:00.003491358Z 2026-09-01T00:27:00.003Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [1]
+2026-09-01T00:27:00.005243372Z 2026-09-01T00:27:00.004Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.005281374Z     select
+2026-09-01T00:27:00.005287574Z         ee1_0.id,
+2026-09-01T00:27:00.005291075Z         ee1_0.agendamento_id,
+2026-09-01T00:27:00.005294275Z         ee1_0.atualizado_em,
+2026-09-01T00:27:00.005297875Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:27:00.005301475Z         ee1_0.bordas,
+2026-09-01T00:27:00.005304776Z         ee1_0.cobertura_primaria,
+2026-09-01T00:27:00.005307976Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:27:00.005311176Z         ee1_0.comorb_diabetes,
+2026-09-01T00:27:00.005314376Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:27:00.005317676Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:27:00.005320877Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:27:00.005324177Z         ee1_0.comorb_outras,
+2026-09-01T00:27:00.005327577Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:27:00.005330877Z         ee1_0.comprimento,
+2026-09-01T00:27:00.005334177Z         ee1_0.criado_em,
+2026-09-01T00:27:00.005337378Z         ee1_0.data_avaliacao,
+2026-09-01T00:27:00.005340678Z         ee1_0.desbridamento,
+2026-09-01T00:27:00.005343978Z         ee1_0.descolamento,
+2026-09-01T00:27:00.005347178Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:27:00.005350479Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:27:00.005353879Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:27:00.005357179Z         ee1_0.diag_outros,
+2026-09-01T00:27:00.005377180Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:27:00.005381381Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:27:00.005384681Z         ee1_0.diagnostico_medico,
+2026-09-01T00:27:00.005387881Z         ee1_0.dimensoes,
+2026-09-01T00:27:00.005391581Z         ee1_0.dor_escala,
+2026-09-01T00:27:00.005394881Z         ee1_0.exsudato,
+2026-09-01T00:27:00.005398282Z         ee1_0.exsudato_tipo,
+2026-09-01T00:27:00.005401682Z         ee1_0.fc,
+2026-09-01T00:27:00.005404882Z         ee1_0.fixacao,
+2026-09-01T00:27:00.005408182Z         ee1_0.fr,
+2026-09-01T00:27:00.005411282Z         ee1_0.hora_avaliacao,
+2026-09-01T00:27:00.005414583Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.005417783Z         ee1_0.largura,
+2026-09-01T00:27:00.005421183Z         ee1_0.limpeza,
+2026-09-01T00:27:00.005424583Z         ee1_0.limpeza_outro,
+2026-09-01T00:27:00.005427984Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:27:00.005431484Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:27:00.005434884Z         ee1_0.observacoes,
+2026-09-01T00:27:00.005438284Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:27:00.005441684Z         ee1_0.pa,
+2026-09-01T00:27:00.005444985Z         ee1_0.pele_perilesional,
+2026-09-01T00:27:00.005448385Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:27:00.005451885Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:27:00.005455085Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:27:00.005458486Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:27:00.005461686Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.005464886Z         ee1_0.profundidade,
+2026-09-01T00:27:00.005468186Z         ee1_0.reducao_area,
+2026-09-01T00:27:00.005471386Z         ee1_0.retorno_dias,
+2026-09-01T00:27:00.005474687Z         ee1_0.sinais_vitais,
+2026-09-01T00:27:00.005478087Z         ee1_0.tecido_leito,
+2026-09-01T00:27:00.005481387Z         ee1_0.temp,
+2026-09-01T00:27:00.005484587Z         ee1_0.tipo_ferida,
+2026-09-01T00:27:00.005488187Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:27:00.005491488Z         ee1_0.tunelizacao 
+2026-09-01T00:27:00.005494688Z     from
+2026-09-01T00:27:00.005498488Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:27:00.005501888Z     where
+2026-09-01T00:27:00.005505289Z         ee1_0.agendamento_id=?
+2026-09-01T00:27:00.005508589Z Hibernate: 
+2026-09-01T00:27:00.005511789Z     select
+2026-09-01T00:27:00.005515089Z         ee1_0.id,
+2026-09-01T00:27:00.005524190Z         ee1_0.agendamento_id,
+2026-09-01T00:27:00.005527790Z         ee1_0.atualizado_em,
+2026-09-01T00:27:00.005532290Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:27:00.005535891Z         ee1_0.bordas,
+2026-09-01T00:27:00.005539291Z         ee1_0.cobertura_primaria,
+2026-09-01T00:27:00.005542591Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:27:00.005545791Z         ee1_0.comorb_diabetes,
+2026-09-01T00:27:00.005549091Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:27:00.005552292Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:27:00.005555592Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:27:00.005558792Z         ee1_0.comorb_outras,
+2026-09-01T00:27:00.005562092Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:27:00.005565492Z         ee1_0.comprimento,
+2026-09-01T00:27:00.005568793Z         ee1_0.criado_em,
+2026-09-01T00:27:00.005571993Z         ee1_0.data_avaliacao,
+2026-09-01T00:27:00.005575293Z         ee1_0.desbridamento,
+2026-09-01T00:27:00.005578493Z         ee1_0.descolamento,
+2026-09-01T00:27:00.005581593Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:27:00.005584994Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:27:00.005588294Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:27:00.005591694Z         ee1_0.diag_outros,
+2026-09-01T00:27:00.005594994Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:27:00.005598395Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:27:00.005601795Z         ee1_0.diagnostico_medico,
+2026-09-01T00:27:00.005604995Z         ee1_0.dimensoes,
+2026-09-01T00:27:00.005608095Z         ee1_0.dor_escala,
+2026-09-01T00:27:00.005611295Z         ee1_0.exsudato,
+2026-09-01T00:27:00.005614596Z         ee1_0.exsudato_tipo,
+2026-09-01T00:27:00.005618096Z         ee1_0.fc,
+2026-09-01T00:27:00.005621296Z         ee1_0.fixacao,
+2026-09-01T00:27:00.005624496Z         ee1_0.fr,
+2026-09-01T00:27:00.005627696Z         ee1_0.hora_avaliacao,
+2026-09-01T00:27:00.005630897Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.005634097Z         ee1_0.largura,
+2026-09-01T00:27:00.005637297Z         ee1_0.limpeza,
+2026-09-01T00:27:00.005640497Z         ee1_0.limpeza_outro,
+2026-09-01T00:27:00.005643898Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:27:00.005647198Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:27:00.005650498Z         ee1_0.observacoes,
+2026-09-01T00:27:00.005653698Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:27:00.005656898Z         ee1_0.pa,
+2026-09-01T00:27:00.005665099Z         ee1_0.pele_perilesional,
+2026-09-01T00:27:00.005668699Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:27:00.005672099Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:27:00.005675500Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:27:00.005678900Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:27:00.005682200Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.005685500Z         ee1_0.profundidade,
+2026-09-01T00:27:00.005688700Z         ee1_0.reducao_area,
+2026-09-01T00:27:00.005691901Z         ee1_0.retorno_dias,
+2026-09-01T00:27:00.005695101Z         ee1_0.sinais_vitais,
+2026-09-01T00:27:00.005698501Z         ee1_0.tecido_leito,
+2026-09-01T00:27:00.005701801Z         ee1_0.temp,
+2026-09-01T00:27:00.005705201Z         ee1_0.tipo_ferida,
+2026-09-01T00:27:00.005708502Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:27:00.005711702Z         ee1_0.tunelizacao 
+2026-09-01T00:27:00.005715002Z     from
+2026-09-01T00:27:00.005718102Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:27:00.005721303Z     where
+2026-09-01T00:27:00.005724403Z         ee1_0.agendamento_id=?
+2026-09-01T00:27:00.005728103Z 2026-09-01T00:27:00.004Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [1]
+2026-09-01T00:27:00.008170261Z 2026-09-01T00:27:00.007Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.008194263Z     select
+2026-09-01T00:27:00.008198963Z         ec1_0.id,
+2026-09-01T00:27:00.008202463Z         ec1_0.agendamento_id,
+2026-09-01T00:27:00.008205763Z         ec1_0.area_aproximada,
+2026-09-01T00:27:00.008209464Z         ec1_0.atualizado_em,
+2026-09-01T00:27:00.008212964Z         ec1_0.bordas,
+2026-09-01T00:27:00.008216364Z         ec1_0.cobertura_primaria,
+2026-09-01T00:27:00.008219864Z         ec1_0.comprimento,
+2026-09-01T00:27:00.008223164Z         ec1_0.criado_em,
+2026-09-01T00:27:00.008226365Z         ec1_0.desbridamento,
+2026-09-01T00:27:00.008229665Z         ec1_0.desbridamento_obs,
+2026-09-01T00:27:00.008233065Z         ec1_0.dor_escala,
+2026-09-01T00:27:00.008236365Z         ec1_0.evolucao,
+2026-09-01T00:27:00.008239766Z         ec1_0.exsudato,
+2026-09-01T00:27:00.008243166Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.008246566Z         ec1_0.largura,
+2026-09-01T00:27:00.008249966Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:27:00.008253266Z         ec1_0.observacoes,
+2026-09-01T00:27:00.008256467Z         ec1_0.odor_presente,
+2026-09-01T00:27:00.008277268Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:27:00.008281668Z         ec1_0.pele_perilesional,
+2026-09-01T00:27:00.008285368Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:27:00.008288869Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:27:00.008292269Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:27:00.008295569Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.008298969Z         ec1_0.profundidade,
+2026-09-01T00:27:00.008302170Z         ec1_0.retorno_previsto,
+2026-09-01T00:27:00.008305570Z         ec1_0.tecido 
+2026-09-01T00:27:00.008308970Z     from
+2026-09-01T00:27:00.008312570Z         evolucoes_curativos ec1_0 
+2026-09-01T00:27:00.008316070Z     where
+2026-09-01T00:27:00.008319371Z         ec1_0.agendamento_id=?
+2026-09-01T00:27:00.008322771Z Hibernate: 
+2026-09-01T00:27:00.008325971Z     select
+2026-09-01T00:27:00.008329071Z         ec1_0.id,
+2026-09-01T00:27:00.008332372Z         ec1_0.agendamento_id,
+2026-09-01T00:27:00.008335672Z         ec1_0.area_aproximada,
+2026-09-01T00:27:00.008339272Z         ec1_0.atualizado_em,
+2026-09-01T00:27:00.008342572Z         ec1_0.bordas,
+2026-09-01T00:27:00.008346072Z         ec1_0.cobertura_primaria,
+2026-09-01T00:27:00.008352573Z         ec1_0.comprimento,
+2026-09-01T00:27:00.008553786Z         ec1_0.criado_em,
+2026-09-01T00:27:00.008708996Z         ec1_0.desbridamento,
+2026-09-01T00:27:00.008768000Z         ec1_0.desbridamento_obs,
+2026-09-01T00:27:00.008800202Z         ec1_0.dor_escala,
+2026-09-01T00:27:00.008879507Z         ec1_0.evolucao,
+2026-09-01T00:27:00.008931910Z         ec1_0.exsudato,
+2026-09-01T00:27:00.008977613Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.009034317Z         ec1_0.largura,
+2026-09-01T00:27:00.009087920Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:27:00.009115722Z         ec1_0.observacoes,
+2026-09-01T00:27:00.009145924Z         ec1_0.odor_presente,
+2026-09-01T00:27:00.009178326Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:27:00.009235230Z         ec1_0.pele_perilesional,
+2026-09-01T00:27:00.009256431Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:27:00.009280433Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:27:00.009316435Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:27:00.009350937Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.009375439Z         ec1_0.profundidade,
+2026-09-01T00:27:00.009386040Z         ec1_0.retorno_previsto,
+2026-09-01T00:27:00.009424642Z         ec1_0.tecido 
+2026-09-01T00:27:00.009454744Z     from
+2026-09-01T00:27:00.009476546Z         evolucoes_curativos ec1_0 
+2026-09-01T00:27:00.009523549Z     where
+2026-09-01T00:27:00.009563251Z         ec1_0.agendamento_id=?
+2026-09-01T00:27:00.009651957Z 2026-09-01T00:27:00.008Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [2]
+2026-09-01T00:27:00.009735562Z 2026-09-01T00:27:00.009Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.009768864Z     select
+2026-09-01T00:27:00.009811567Z         ee1_0.id,
+2026-09-01T00:27:00.009868071Z         ee1_0.agendamento_id,
+2026-09-01T00:27:00.009909474Z         ee1_0.atualizado_em,
+2026-09-01T00:27:00.009939676Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:27:00.010002780Z         ee1_0.bordas,
+2026-09-01T00:27:00.010055283Z         ee1_0.cobertura_primaria,
+2026-09-01T00:27:00.010088785Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:27:00.010117787Z         ee1_0.comorb_diabetes,
+2026-09-01T00:27:00.010151489Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:27:00.010178391Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:27:00.010205193Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:27:00.010235795Z         ee1_0.comorb_outras,
+2026-09-01T00:27:00.010261896Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:27:00.010277897Z         ee1_0.comprimento,
+2026-09-01T00:27:00.010302499Z         ee1_0.criado_em,
+2026-09-01T00:27:00.010324600Z         ee1_0.data_avaliacao,
+2026-09-01T00:27:00.010363903Z         ee1_0.desbridamento,
+2026-09-01T00:27:00.010397605Z         ee1_0.descolamento,
+2026-09-01T00:27:00.010427807Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:27:00.010458509Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:27:00.010494511Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:27:00.010542215Z         ee1_0.diag_outros,
+2026-09-01T00:27:00.010574417Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:27:00.010600918Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:27:00.010620920Z         ee1_0.diagnostico_medico,
+2026-09-01T00:27:00.010646321Z         ee1_0.dimensoes,
+2026-09-01T00:27:00.010665422Z         ee1_0.dor_escala,
+2026-09-01T00:27:00.010682224Z         ee1_0.exsudato,
+2026-09-01T00:27:00.010704725Z         ee1_0.exsudato_tipo,
+2026-09-01T00:27:00.010731327Z         ee1_0.fc,
+2026-09-01T00:27:00.010759429Z         ee1_0.fixacao,
+2026-09-01T00:27:00.010793331Z         ee1_0.fr,
+2026-09-01T00:27:00.010826633Z         ee1_0.hora_avaliacao,
+2026-09-01T00:27:00.010878436Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.010959141Z         ee1_0.largura,
+2026-09-01T00:27:00.010998744Z         ee1_0.limpeza,
+2026-09-01T00:27:00.011015045Z         ee1_0.limpeza_outro,
+2026-09-01T00:27:00.011041147Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:27:00.011054348Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:27:00.011064748Z         ee1_0.observacoes,
+2026-09-01T00:27:00.011086650Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:27:00.011092150Z         ee1_0.pa,
+2026-09-01T00:27:00.011093750Z         ee1_0.pele_perilesional,
+2026-09-01T00:27:00.011094950Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:27:00.011096150Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:27:00.011097350Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:27:00.011098551Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:27:00.011099751Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.011100951Z         ee1_0.profundidade,
+2026-09-01T00:27:00.011102051Z         ee1_0.reducao_area,
+2026-09-01T00:27:00.011103151Z         ee1_0.retorno_dias,
+2026-09-01T00:27:00.011104251Z         ee1_0.sinais_vitais,
+2026-09-01T00:27:00.011105351Z         ee1_0.tecido_leito,
+2026-09-01T00:27:00.011106551Z         ee1_0.temp,
+2026-09-01T00:27:00.011107751Z         ee1_0.tipo_ferida,
+2026-09-01T00:27:00.011108851Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:27:00.011110251Z         ee1_0.tunelizacao 
+2026-09-01T00:27:00.011111351Z     from
+2026-09-01T00:27:00.011112551Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:27:00.011116152Z     where
+2026-09-01T00:27:00.011117552Z         ee1_0.agendamento_id=?
+2026-09-01T00:27:00.011118952Z Hibernate: 
+2026-09-01T00:27:00.011120052Z     select
+2026-09-01T00:27:00.011121152Z         ee1_0.id,
+2026-09-01T00:27:00.011122252Z         ee1_0.agendamento_id,
+2026-09-01T00:27:00.011123352Z         ee1_0.atualizado_em,
+2026-09-01T00:27:00.011124452Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:27:00.011125552Z         ee1_0.bordas,
+2026-09-01T00:27:00.011126752Z         ee1_0.cobertura_primaria,
+2026-09-01T00:27:00.011127952Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:27:00.011129153Z         ee1_0.comorb_diabetes,
+2026-09-01T00:27:00.011130353Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:27:00.011131653Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:27:00.011153654Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:27:00.011157054Z         ee1_0.comorb_outras,
+2026-09-01T00:27:00.011158354Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:27:00.011159654Z         ee1_0.comprimento,
+2026-09-01T00:27:00.011160855Z         ee1_0.criado_em,
+2026-09-01T00:27:00.011162055Z         ee1_0.data_avaliacao,
+2026-09-01T00:27:00.011163055Z         ee1_0.desbridamento,
+2026-09-01T00:27:00.011164455Z         ee1_0.descolamento,
+2026-09-01T00:27:00.011165555Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:27:00.011166755Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:27:00.011167855Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:27:00.011169155Z         ee1_0.diag_outros,
+2026-09-01T00:27:00.011170255Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:27:00.011171455Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:27:00.011172455Z         ee1_0.diagnostico_medico,
+2026-09-01T00:27:00.011173755Z         ee1_0.dimensoes,
+2026-09-01T00:27:00.011174855Z         ee1_0.dor_escala,
+2026-09-01T00:27:00.011176056Z         ee1_0.exsudato,
+2026-09-01T00:27:00.011177156Z         ee1_0.exsudato_tipo,
+2026-09-01T00:27:00.011178356Z         ee1_0.fc,
+2026-09-01T00:27:00.011179456Z         ee1_0.fixacao,
+2026-09-01T00:27:00.011180556Z         ee1_0.fr,
+2026-09-01T00:27:00.011181656Z         ee1_0.hora_avaliacao,
+2026-09-01T00:27:00.011182856Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.011184056Z         ee1_0.largura,
+2026-09-01T00:27:00.011185156Z         ee1_0.limpeza,
+2026-09-01T00:27:00.011186256Z         ee1_0.limpeza_outro,
+2026-09-01T00:27:00.011187456Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:27:00.011188556Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:27:00.011189656Z         ee1_0.observacoes,
+2026-09-01T00:27:00.011190756Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:27:00.011192057Z         ee1_0.pa,
+2026-09-01T00:27:00.011193157Z         ee1_0.pele_perilesional,
+2026-09-01T00:27:00.011194357Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:27:00.011195457Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:27:00.011196557Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:27:00.011197657Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:27:00.011198757Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.011199857Z         ee1_0.profundidade,
+2026-09-01T00:27:00.011201157Z         ee1_0.reducao_area,
+2026-09-01T00:27:00.011202357Z         ee1_0.retorno_dias,
+2026-09-01T00:27:00.011205957Z         ee1_0.sinais_vitais,
+2026-09-01T00:27:00.011207558Z         ee1_0.tecido_leito,
+2026-09-01T00:27:00.011208758Z         ee1_0.temp,
+2026-09-01T00:27:00.011209858Z         ee1_0.tipo_ferida,
+2026-09-01T00:27:00.011210958Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:27:00.011212058Z         ee1_0.tunelizacao 
+2026-09-01T00:27:00.011213258Z     from
+2026-09-01T00:27:00.011214358Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:27:00.011215458Z     where
+2026-09-01T00:27:00.011216558Z         ee1_0.agendamento_id=?
+2026-09-01T00:27:00.011218258Z 2026-09-01T00:27:00.009Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [2]
+2026-09-01T00:27:00.011221558Z 2026-09-01T00:27:00.010Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.011222859Z     select
+2026-09-01T00:27:00.011223959Z         ec1_0.id,
+2026-09-01T00:27:00.011225059Z         ec1_0.agendamento_id,
+2026-09-01T00:27:00.011226159Z         ec1_0.area_aproximada,
+2026-09-01T00:27:00.011227259Z         ec1_0.atualizado_em,
+2026-09-01T00:27:00.011228359Z         ec1_0.bordas,
+2026-09-01T00:27:00.011229659Z         ec1_0.cobertura_primaria,
+2026-09-01T00:27:00.011230759Z         ec1_0.comprimento,
+2026-09-01T00:27:00.011231859Z         ec1_0.criado_em,
+2026-09-01T00:27:00.011232959Z         ec1_0.desbridamento,
+2026-09-01T00:27:00.011234159Z         ec1_0.desbridamento_obs,
+2026-09-01T00:27:00.011235259Z         ec1_0.dor_escala,
+2026-09-01T00:27:00.011236359Z         ec1_0.evolucao,
+2026-09-01T00:27:00.011237460Z         ec1_0.exsudato,
+2026-09-01T00:27:00.011238560Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.011239760Z         ec1_0.largura,
+2026-09-01T00:27:00.011240860Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:27:00.011242060Z         ec1_0.observacoes,
+2026-09-01T00:27:00.011243160Z         ec1_0.odor_presente,
+2026-09-01T00:27:00.011244360Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:27:00.011245460Z         ec1_0.pele_perilesional,
+2026-09-01T00:27:00.011246660Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:27:00.011247760Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:27:00.011248960Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:27:00.011250160Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.011251260Z         ec1_0.profundidade,
+2026-09-01T00:27:00.011252360Z         ec1_0.retorno_previsto,
+2026-09-01T00:27:00.011253661Z         ec1_0.tecido 
+2026-09-01T00:27:00.011256961Z     from
+2026-09-01T00:27:00.011258261Z         evolucoes_curativos ec1_0 
+2026-09-01T00:27:00.011259461Z     where
+2026-09-01T00:27:00.011260561Z         ec1_0.agendamento_id=?
+2026-09-01T00:27:00.011261661Z Hibernate: 
+2026-09-01T00:27:00.011262661Z     select
+2026-09-01T00:27:00.011263861Z         ec1_0.id,
+2026-09-01T00:27:00.011264961Z         ec1_0.agendamento_id,
+2026-09-01T00:27:00.011266061Z         ec1_0.area_aproximada,
+2026-09-01T00:27:00.011267261Z         ec1_0.atualizado_em,
+2026-09-01T00:27:00.011268362Z         ec1_0.bordas,
+2026-09-01T00:27:00.011269462Z         ec1_0.cobertura_primaria,
+2026-09-01T00:27:00.011270462Z         ec1_0.comprimento,
+2026-09-01T00:27:00.011271562Z         ec1_0.criado_em,
+2026-09-01T00:27:00.011272762Z         ec1_0.desbridamento,
+2026-09-01T00:27:00.011273862Z         ec1_0.desbridamento_obs,
+2026-09-01T00:27:00.011274962Z         ec1_0.dor_escala,
+2026-09-01T00:27:00.011276162Z         ec1_0.evolucao,
+2026-09-01T00:27:00.011277362Z         ec1_0.exsudato,
+2026-09-01T00:27:00.011278462Z         ec1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.011279662Z         ec1_0.largura,
+2026-09-01T00:27:00.011280862Z         ec1_0.limpeza_irrigacao,
+2026-09-01T00:27:00.011282062Z         ec1_0.observacoes,
+2026-09-01T00:27:00.011283262Z         ec1_0.odor_presente,
+2026-09-01T00:27:00.011284363Z         ec1_0.orientacoes_paciente,
+2026-09-01T00:27:00.011285463Z         ec1_0.pele_perilesional,
+2026-09-01T00:27:00.011286563Z         ec1_0.plano_alterar_cobertura,
+2026-09-01T00:27:00.011287663Z         ec1_0.plano_encaminhamento,
+2026-09-01T00:27:00.011288763Z         ec1_0.plano_manter_conduta,
+2026-09-01T00:27:00.011289863Z         ec1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.011291163Z         ec1_0.profundidade,
+2026-09-01T00:27:00.011292363Z         ec1_0.retorno_previsto,
+2026-09-01T00:27:00.011293563Z         ec1_0.tecido 
+2026-09-01T00:27:00.011294663Z     from
+2026-09-01T00:27:00.011295863Z         evolucoes_curativos ec1_0 
+2026-09-01T00:27:00.011296863Z     where
+2026-09-01T00:27:00.011297963Z         ec1_0.agendamento_id=?
+2026-09-01T00:27:00.011299063Z 2026-09-01T00:27:00.010Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:27:00.011311664Z 2026-09-01T00:27:00.011Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.011313364Z     select
+2026-09-01T00:27:00.011316965Z         ee1_0.id,
+2026-09-01T00:27:00.011318265Z         ee1_0.agendamento_id,
+2026-09-01T00:27:00.011319365Z         ee1_0.atualizado_em,
+2026-09-01T00:27:00.011320565Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:27:00.011321665Z         ee1_0.bordas,
+2026-09-01T00:27:00.011322665Z         ee1_0.cobertura_primaria,
+2026-09-01T00:27:00.011323765Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:27:00.011324865Z         ee1_0.comorb_diabetes,
+2026-09-01T00:27:00.011325965Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:27:00.011327065Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:27:00.011328165Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:27:00.011329365Z         ee1_0.comorb_outras,
+2026-09-01T00:27:00.011330466Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:27:00.011331766Z         ee1_0.comprimento,
+2026-09-01T00:27:00.011333066Z         ee1_0.criado_em,
+2026-09-01T00:27:00.011334066Z         ee1_0.data_avaliacao,
+2026-09-01T00:27:00.011335166Z         ee1_0.desbridamento,
+2026-09-01T00:27:00.011336266Z         ee1_0.descolamento,
+2026-09-01T00:27:00.011337366Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:27:00.011338566Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:27:00.011339666Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:27:00.011340766Z         ee1_0.diag_outros,
+2026-09-01T00:27:00.011341866Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:27:00.011342966Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:27:00.011344066Z         ee1_0.diagnostico_medico,
+2026-09-01T00:27:00.011345166Z         ee1_0.dimensoes,
+2026-09-01T00:27:00.011346267Z         ee1_0.dor_escala,
+2026-09-01T00:27:00.011347367Z         ee1_0.exsudato,
+2026-09-01T00:27:00.011348567Z         ee1_0.exsudato_tipo,
+2026-09-01T00:27:00.011349667Z         ee1_0.fc,
+2026-09-01T00:27:00.011350767Z         ee1_0.fixacao,
+2026-09-01T00:27:00.011351767Z         ee1_0.fr,
+2026-09-01T00:27:00.011352867Z         ee1_0.hora_avaliacao,
+2026-09-01T00:27:00.011353967Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.011354967Z         ee1_0.largura,
+2026-09-01T00:27:00.011356167Z         ee1_0.limpeza,
+2026-09-01T00:27:00.011357267Z         ee1_0.limpeza_outro,
+2026-09-01T00:27:00.011358667Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:27:00.011359767Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:27:00.011360867Z         ee1_0.observacoes,
+2026-09-01T00:27:00.011361968Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:27:00.011364868Z         ee1_0.pa,
+2026-09-01T00:27:00.011366068Z         ee1_0.pele_perilesional,
+2026-09-01T00:27:00.011367168Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:27:00.011368368Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:27:00.011369468Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:27:00.011370568Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:27:00.011371668Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.011372768Z         ee1_0.profundidade,
+2026-09-01T00:27:00.011373868Z         ee1_0.reducao_area,
+2026-09-01T00:27:00.011374868Z         ee1_0.retorno_dias,
+2026-09-01T00:27:00.011376068Z         ee1_0.sinais_vitais,
+2026-09-01T00:27:00.011377169Z         ee1_0.tecido_leito,
+2026-09-01T00:27:00.011378269Z         ee1_0.temp,
+2026-09-01T00:27:00.011379369Z         ee1_0.tipo_ferida,
+2026-09-01T00:27:00.011380469Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:27:00.011381469Z         ee1_0.tunelizacao 
+2026-09-01T00:27:00.011382669Z     from
+2026-09-01T00:27:00.011383769Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:27:00.011385069Z     where
+2026-09-01T00:27:00.011386069Z         ee1_0.agendamento_id=?
+2026-09-01T00:27:00.011387269Z Hibernate: 
+2026-09-01T00:27:00.011388269Z     select
+2026-09-01T00:27:00.011389369Z         ee1_0.id,
+2026-09-01T00:27:00.011390369Z         ee1_0.agendamento_id,
+2026-09-01T00:27:00.011391469Z         ee1_0.atualizado_em,
+2026-09-01T00:27:00.011392770Z         ee1_0.avaliacao_evolucao,
+2026-09-01T00:27:00.011393970Z         ee1_0.bordas,
+2026-09-01T00:27:00.011395070Z         ee1_0.cobertura_primaria,
+2026-09-01T00:27:00.011396270Z         ee1_0.cobertura_secundaria,
+2026-09-01T00:27:00.011397370Z         ee1_0.comorb_diabetes,
+2026-09-01T00:27:00.011398370Z         ee1_0.comorb_doenca_vascular,
+2026-09-01T00:27:00.011399470Z         ee1_0.comorb_hipertensao,
+2026-09-01T00:27:00.011400670Z         ee1_0.comorb_neuropatia,
+2026-09-01T00:27:00.011401770Z         ee1_0.comorb_outras,
+2026-09-01T00:27:00.011402970Z         ee1_0.comorb_outras_detalhe,
+2026-09-01T00:27:00.011404070Z         ee1_0.comprimento,
+2026-09-01T00:27:00.011405170Z         ee1_0.criado_em,
+2026-09-01T00:27:00.011406270Z         ee1_0.data_avaliacao,
+2026-09-01T00:27:00.011407270Z         ee1_0.desbridamento,
+2026-09-01T00:27:00.011408371Z         ee1_0.descolamento,
+2026-09-01T00:27:00.011409471Z         ee1_0.diag_dor_aguda,
+2026-09-01T00:27:00.011410571Z         ee1_0.diag_integridade_pele,
+2026-09-01T00:27:00.011413671Z         ee1_0.diag_integridade_tissular,
+2026-09-01T00:27:00.011414971Z         ee1_0.diag_outros,
+2026-09-01T00:27:00.011416071Z         ee1_0.diag_perfusao_ineficaz,
+2026-09-01T00:27:00.011417171Z         ee1_0.diag_risco_infeccao,
+2026-09-01T00:27:00.011418271Z         ee1_0.diagnostico_medico,
+2026-09-01T00:27:00.011419371Z         ee1_0.dimensoes,
+2026-09-01T00:27:00.011420471Z         ee1_0.dor_escala,
+2026-09-01T00:27:00.011421571Z         ee1_0.exsudato,
+2026-09-01T00:27:00.011422671Z         ee1_0.exsudato_tipo,
+2026-09-01T00:27:00.011423872Z         ee1_0.fc,
+2026-09-01T00:27:00.011424872Z         ee1_0.fixacao,
+2026-09-01T00:27:00.011426072Z         ee1_0.fr,
+2026-09-01T00:27:00.011427272Z         ee1_0.hora_avaliacao,
+2026-09-01T00:27:00.011428372Z         ee1_0.infeccao_inflamacao,
+2026-09-01T00:27:00.011429472Z         ee1_0.largura,
+2026-09-01T00:27:00.011430572Z         ee1_0.limpeza,
+2026-09-01T00:27:00.011431772Z         ee1_0.limpeza_outro,
+2026-09-01T00:27:00.011432872Z         ee1_0.localizacao_anatomica,
+2026-09-01T00:27:00.011433972Z         ee1_0.medicamentos_relevantes,
+2026-09-01T00:27:00.011435072Z         ee1_0.observacoes,
+2026-09-01T00:27:00.011436172Z         ee1_0.orientacoes_paciente,
+2026-09-01T00:27:00.011437172Z         ee1_0.pa,
+2026-09-01T00:27:00.011438273Z         ee1_0.pele_perilesional,
+2026-09-01T00:27:00.011439373Z         ee1_0.plano_ajustar_cobertura,
+2026-09-01T00:27:00.011440573Z         ee1_0.plano_avaliacao_medica,
+2026-09-01T00:27:00.011441773Z         ee1_0.plano_encaminhamento,
+2026-09-01T00:27:00.011442873Z         ee1_0.plano_manter_conduta,
+2026-09-01T00:27:00.011443973Z         ee1_0.plano_solicitar_exames,
+2026-09-01T00:27:00.011445073Z         ee1_0.profundidade,
+2026-09-01T00:27:00.011446073Z         ee1_0.reducao_area,
+2026-09-01T00:27:00.011447273Z         ee1_0.retorno_dias,
+2026-09-01T00:27:00.011448273Z         ee1_0.sinais_vitais,
+2026-09-01T00:27:00.011449473Z         ee1_0.tecido_leito,
+2026-09-01T00:27:00.011450573Z         ee1_0.temp,
+2026-09-01T00:27:00.011451673Z         ee1_0.tipo_ferida,
+2026-09-01T00:27:00.011452873Z         ee1_0.tipo_ferida_outra,
+2026-09-01T00:27:00.011453974Z         ee1_0.tunelizacao 
+2026-09-01T00:27:00.011455074Z     from
+2026-09-01T00:27:00.011456174Z         evolucoes_enfermagem ee1_0 
+2026-09-01T00:27:00.011457174Z     where
+2026-09-01T00:27:00.011458374Z         ee1_0.agendamento_id=?
+2026-09-01T00:27:00.011461174Z 2026-09-01T00:27:00.011Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:27:00.012342631Z 2026-09-01T00:27:00.012Z  INFO 195 --- [prontudigital] [   scheduling-1] .p.b.n.a.AgendamentoNotificacaoScheduler : [WHATSAPP][SCHEDULER CONFIRMACAO] 3 agendamento(s) criado(s) há 1 min ou mais para confirmação
+2026-09-01T00:27:00.012539644Z 2026-09-01T00:27:00.012Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Iniciando processamento do agendamento 1 (criado em 2026-09-01T00:00:20.594069, inicio em 2026-09-01T12:00)
+2026-09-01T00:27:00.013602813Z 2026-09-01T00:27:00.013Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.013635515Z     select
+2026-09-01T00:27:00.013640215Z         lnw1_0.id 
+2026-09-01T00:27:00.013641715Z     from
+2026-09-01T00:27:00.013642815Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:27:00.013643915Z     where
+2026-09-01T00:27:00.013645015Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:27:00.013646315Z         and lnw1_0.tipo=? 
+2026-09-01T00:27:00.013647415Z     fetch
+2026-09-01T00:27:00.013648516Z         first ? rows only
+2026-09-01T00:27:00.013649616Z Hibernate: 
+2026-09-01T00:27:00.013650616Z     select
+2026-09-01T00:27:00.013651716Z         lnw1_0.id 
+2026-09-01T00:27:00.013652716Z     from
+2026-09-01T00:27:00.013653816Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:27:00.013655016Z     where
+2026-09-01T00:27:00.013656116Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:27:00.013657316Z         and lnw1_0.tipo=? 
+2026-09-01T00:27:00.013658416Z     fetch
+2026-09-01T00:27:00.013659516Z         first ? rows only
+2026-09-01T00:27:00.013671617Z 2026-09-01T00:27:00.013Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [1]
+2026-09-01T00:27:00.013683118Z 2026-09-01T00:27:00.013Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:VARCHAR) <- [CONFIRMACAO_24H]
+2026-09-01T00:27:00.015913662Z 2026-09-01T00:27:00.013Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (3:INTEGER) <- [1]
+2026-09-01T00:27:00.016272885Z 2026-09-01T00:27:00.015Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Agendamento 1 ignorado: solicitacao ja registrada anteriormente
+2026-09-01T00:27:00.018716143Z 2026-09-01T00:27:00.018Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Iniciando processamento do agendamento 2 (criado em 2026-09-01T00:15:27.487427, inicio em 2026-09-04T12:00)
+2026-09-01T00:27:00.020325248Z 2026-09-01T00:27:00.020Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.020372051Z     select
+2026-09-01T00:27:00.020376951Z         lnw1_0.id 
+2026-09-01T00:27:00.020378451Z     from
+2026-09-01T00:27:00.020379551Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:27:00.020380751Z     where
+2026-09-01T00:27:00.020381751Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:27:00.020382851Z         and lnw1_0.tipo=? 
+2026-09-01T00:27:00.020384051Z     fetch
+2026-09-01T00:27:00.020385051Z         first ? rows only
+2026-09-01T00:27:00.020386152Z Hibernate: 
+2026-09-01T00:27:00.020387252Z     select
+2026-09-01T00:27:00.020388252Z         lnw1_0.id 
+2026-09-01T00:27:00.020389352Z     from
+2026-09-01T00:27:00.020390352Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:27:00.020391452Z     where
+2026-09-01T00:27:00.020392652Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:27:00.020393752Z         and lnw1_0.tipo=? 
+2026-09-01T00:27:00.020394852Z     fetch
+2026-09-01T00:27:00.020395952Z         first ? rows only
+2026-09-01T00:27:00.020397052Z 2026-09-01T00:27:00.020Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [2]
+2026-09-01T00:27:00.020398652Z 2026-09-01T00:27:00.020Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:VARCHAR) <- [CONFIRMACAO_24H]
+2026-09-01T00:27:00.020432755Z 2026-09-01T00:27:00.020Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (3:INTEGER) <- [1]
+2026-09-01T00:27:00.021298911Z 2026-09-01T00:27:00.021Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Agendamento 2 ignorado: solicitacao ja registrada anteriormente
+2026-09-01T00:27:00.022057160Z 2026-09-01T00:27:00.021Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Iniciando processamento do agendamento 3 (criado em 2026-09-01T00:25:49.111606, inicio em 2026-09-02T16:00)
+2026-09-01T00:27:00.023261538Z 2026-09-01T00:27:00.023Z DEBUG 195 --- [prontudigital] [   scheduling-1] org.hibernate.SQL                        : 
+2026-09-01T00:27:00.023298040Z     select
+2026-09-01T00:27:00.023303140Z         lnw1_0.id 
+2026-09-01T00:27:00.023304640Z     from
+2026-09-01T00:27:00.023305841Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:27:00.023307241Z     where
+2026-09-01T00:27:00.023308341Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:27:00.023309541Z         and lnw1_0.tipo=? 
+2026-09-01T00:27:00.023310641Z     fetch
+2026-09-01T00:27:00.023311741Z         first ? rows only
+2026-09-01T00:27:00.023323442Z Hibernate: 
+2026-09-01T00:27:00.023324742Z     select
+2026-09-01T00:27:00.023325842Z         lnw1_0.id 
+2026-09-01T00:27:00.023327042Z     from
+2026-09-01T00:27:00.023328142Z         log_notificacoes_whatsapp lnw1_0 
+2026-09-01T00:27:00.023329242Z     where
+2026-09-01T00:27:00.023330442Z         lnw1_0.agendamento_id=? 
+2026-09-01T00:27:00.023331542Z         and lnw1_0.tipo=? 
+2026-09-01T00:27:00.023332642Z     fetch
+2026-09-01T00:27:00.023333742Z         first ? rows only
+2026-09-01T00:27:00.023334842Z 2026-09-01T00:27:00.023Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (1:BIGINT) <- [3]
+2026-09-01T00:27:00.023339343Z 2026-09-01T00:27:00.023Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (2:VARCHAR) <- [CONFIRMACAO_24H]
+2026-09-01T00:27:00.023340843Z 2026-09-01T00:27:00.023Z TRACE 195 --- [prontudigital] [   scheduling-1] org.hibernate.orm.jdbc.bind              : binding parameter (3:INTEGER) <- [1]
+2026-09-01T00:27:00.024222800Z 2026-09-01T00:27:00.024Z DEBUG 195 --- [prontudigital] [   scheduling-1] p.b.n.s.i.NotificacaoWhatsappServiceImpl : [WHATSAPP][CONFIRMACAO] Agendamento 3 ignorado: solicitacao ja registrada anteriormente
+2026-09-01T00:27:00.024755334Z 2026-09-01T00:27:00.024Z  INFO 195 --- [prontudigital] [   scheduling-1] .p.b.n.a.AgendamentoNotificacaoScheduler : [WHATSAPP][SCHEDULER CONFIRMACAO] Execucao concluida: 3 processado(s), 0 com erro

@@ -1,5 +1,6 @@
 package com.prontudigital.backend.compartilhado.clientes;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,14 +18,17 @@ import java.util.Map;
 public class WhatsappCloudApiClient {
 
     private final RestClient restClient;
+    private final ObjectMapper objectMapper;
     private final String phoneNumberId;
     private final boolean configurado;
 
     public WhatsappCloudApiClient(
+            ObjectMapper objectMapper,
             @Value("${app.whatsapp.cloud-api.base-url}") String baseUrl,
             @Value("${app.whatsapp.cloud-api.api-version}") String apiVersion,
             @Value("${app.whatsapp.cloud-api.phone-number-id:}") String phoneNumberId,
             @Value("${app.whatsapp.cloud-api.access-token:}") String accessToken) {
+        this.objectMapper = objectMapper;
         this.phoneNumberId = phoneNumberId;
         this.configurado = !phoneNumberId.isBlank() && !accessToken.isBlank();
         this.restClient = RestClient.builder()
@@ -45,8 +49,15 @@ public class WhatsappCloudApiClient {
      * Envia uma mensagem de texto livre via WhatsApp Cloud API (Meta).
      * Requer que o destinatário esteja dentro da janela de atendimento de 24h
      * ou que a mensagem corresponda a um template aprovado.
+     *
+     * <p>O retorno HTTP 200 significa apenas que a Meta <b>aceitou</b> a mensagem.
+     * A entrega — ou a falha, como o 131047 de janela fechada — chega depois pelo
+     * webhook de status, correlacionada pelo id devolvido aqui.
+     *
+     * @return o {@code wamid} da mensagem aceita, ou {@code null} se a resposta
+     *         vier sem id (não impede o envio, só o rastreio da entrega)
      */
-    public void enviarMensagemTexto(String telefone, String mensagem) {
+    public String enviarMensagemTexto(String telefone, String mensagem) {
         String destino = normalizarTelefone(telefone);
         String destinoLog = mascararTelefone(destino);
 
@@ -73,9 +84,12 @@ public class WhatsappCloudApiClient {
                     .retrieve()
                     .toEntity(String.class);
 
-            log.info("[WHATSAPP] Cloud API aceitou a mensagem para {}: HTTP {} em {} ms",
-                    destinoLog, resposta.getStatusCode().value(), System.currentTimeMillis() - inicio);
+            String mensagemId = extrairMensagemId(resposta.getBody());
+            log.info("[WHATSAPP] Cloud API aceitou a mensagem para {}: HTTP {} em {} ms, wamid={}",
+                    destinoLog, resposta.getStatusCode().value(), System.currentTimeMillis() - inicio,
+                    mensagemId);
             log.debug("[WHATSAPP] Resposta da Cloud API para {}: {}", destinoLog, resposta.getBody());
+            return mensagemId;
         } catch (RestClientResponseException e) {
             log.error("[WHATSAPP] Cloud API recusou a mensagem para {}: HTTP {} em {} ms. Corpo: {}",
                     destinoLog, e.getStatusCode().value(), System.currentTimeMillis() - inicio,
@@ -85,6 +99,25 @@ public class WhatsappCloudApiClient {
             log.error("[WHATSAPP] Falha de comunicacao com a Cloud API ao enviar para {} apos {} ms: {}",
                     destinoLog, System.currentTimeMillis() - inicio, e.getMessage(), e);
             throw e;
+        }
+    }
+
+    /** Extrai {@code messages[0].id} da resposta de envio, sem quebrar se o formato mudar. */
+    private String extrairMensagemId(String corpo) {
+        if (corpo == null || corpo.isBlank()) {
+            return null;
+        }
+        try {
+            String id = objectMapper.readTree(corpo).path("messages").path(0).path("id").asText(null);
+            if (id == null || id.isBlank()) {
+                log.warn("[WHATSAPP] Resposta da Cloud API sem wamid — a entrega desta mensagem "
+                        + "nao podera ser rastreada pelo webhook. Corpo: {}", corpo);
+                return null;
+            }
+            return id;
+        } catch (Exception e) {
+            log.warn("[WHATSAPP] Nao foi possivel ler o wamid da resposta da Cloud API: {}", e.getMessage());
+            return null;
         }
     }
 

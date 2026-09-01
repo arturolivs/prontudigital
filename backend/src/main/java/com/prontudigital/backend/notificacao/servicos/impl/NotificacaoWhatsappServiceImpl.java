@@ -85,13 +85,15 @@ public class NotificacaoWhatsappServiceImpl implements NotificacaoWhatsappServic
                 .build();
 
         try {
-            enviarWhatsApp(paciente.telefone(), mensagem);
+            registro.setMensagemId(enviarWhatsApp(paciente.telefone(), mensagem));
             registro.setStatus(StatusNotificacao.ENVIADO);
             registro.setEnviadoEm(LocalDateTime.now(clock));
             registro.setTentativas(1);
-            log.info("[WHATSAPP][LEMBRETE_48H] Lembrete enviado para o agendamento {} (paciente {}, telefone {})",
+            log.info("[WHATSAPP][LEMBRETE_48H] Lembrete enviado para o agendamento {} "
+                            + "(paciente {}, telefone {}, wamid {})",
                     agendamento.getId(), agendamento.getPacienteUuid(),
-                    WhatsappCloudApiClient.mascararTelefone(paciente.telefone()));
+                    WhatsappCloudApiClient.mascararTelefone(paciente.telefone()),
+                    registro.getMensagemId());
         } catch (Exception e) {
             log.error("[WHATSAPP][LEMBRETE_48H] Falha ao enviar lembrete do agendamento {} (telefone {}): {}",
                     agendamento.getId(), WhatsappCloudApiClient.mascararTelefone(paciente.telefone()),
@@ -169,15 +171,15 @@ public class NotificacaoWhatsappServiceImpl implements NotificacaoWhatsappServic
                 .build();
 
         try {
-            enviarWhatsApp(paciente.telefone(), mensagem);
+            registro.setMensagemId(enviarWhatsApp(paciente.telefone(), mensagem));
             registro.setStatus(StatusNotificacao.ENVIADO);
             registro.setEnviadoEm(agora);
             registro.setTentativas(1);
             log.info("[WHATSAPP][CONFIRMACAO] Solicitacao enviada para o agendamento {} "
-                            + "(paciente {}, telefone {}, token {}, valido ate {})",
+                            + "(paciente {}, telefone {}, token {}, valido ate {}, wamid {})",
                     agendamento.getId(), agendamento.getPacienteUuid(),
                     WhatsappCloudApiClient.mascararTelefone(paciente.telefone()),
-                    resumirToken(token), tokenExpiraEm);
+                    resumirToken(token), tokenExpiraEm, registro.getMensagemId());
         } catch (Exception e) {
             log.error("[WHATSAPP][CONFIRMACAO] Falha ao enviar solicitação de confirmação para agendamento {} (telefone {}): {}",
                     agendamento.getId(), WhatsappCloudApiClient.mascararTelefone(paciente.telefone()),
@@ -349,8 +351,8 @@ public class NotificacaoWhatsappServiceImpl implements NotificacaoWhatsappServic
         }
     }
 
-    private void enviarWhatsApp(String telefone, String mensagem) {
-        whatsappCliente.enviarMensagemTexto(telefone, mensagem);
+    private String enviarWhatsApp(String telefone, String mensagem) {
+        return whatsappCliente.enviarMensagemTexto(telefone, mensagem);
     }
 
     /** Mantem apenas o prefixo do token nos logs, para nao expor o link de confirmacao. */

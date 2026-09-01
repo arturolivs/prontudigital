@@ -58,6 +58,22 @@ public class LogNotificacaoWhatsapp {
     @Column(name = "respondido_em")
     private LocalDateTime respondidoEm;
 
+    /** wamid devolvido pela Cloud API; chave de correlacao do webhook de status. */
+    @Column(name = "mensagem_id")
+    private String mensagemId;
+
+    @Column(name = "entregue_em")
+    private LocalDateTime entregueEm;
+
+    @Column(name = "lido_em")
+    private LocalDateTime lidoEm;
+
+    @Column(name = "erro_codigo")
+    private String erroCodigo;
+
+    @Column(name = "erro_detalhe", columnDefinition = "TEXT")
+    private String erroDetalhe;
+
     @CreationTimestamp
     @Column(name = "criado_em", updatable = false)
     private LocalDateTime criadoEm;
