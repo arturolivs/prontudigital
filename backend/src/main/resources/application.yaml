@@ -36,13 +36,6 @@ app:
   notificacoes:
     habilitadas: true
     url-base-confirmacao: "http://localhost:8080/api/confirmacao"
-    confirmacao:
-      # Minutos de espera, apos a criacao do agendamento, para disparar a
-      # solicitacao de confirmacao no WhatsApp.
-      atraso-minutos: 1
-      # Janela retroativa varrida a cada execucao do scheduler (tolerancia a
-      # indisponibilidade da aplicacao).
-      janela-minutos: 60
   recuperacao-senha:
     expiracao-minutos: 10
   whatsapp:

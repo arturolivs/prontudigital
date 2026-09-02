@@ -151,14 +151,10 @@ e `[WHATSAPP][LEMBRETE_48H] Lembrete enviado para o agendamento …`, e a mensag
 
 ### 4.3 Solicitação de confirmação
 
-Crie um segundo agendamento com qualquer horário **no futuro** e espere ~1 minuto.
+Crie um segundo agendamento com início daqui a **~24h** (a janela varrida é de 22h a 26h).
 
-- Gatilho: **1 minuto após a criação** do agendamento — configurável em
-  `app.notificacoes.confirmacao.atraso-minutos` (`application.yaml`)
-- Frequência: **a cada minuto** (`cron = "0 * * * * *"`)
-- Cada execução varre os agendamentos criados na última hora
-  (`app.notificacoes.confirmacao.janela-minutos`), o que cobre o período em que a
-  aplicação esteve fora do ar
+- Gatilho: **24h antes** do horário da consulta (janela de 22h–26h)
+- Frequência: **a cada 15 minutos** (`cron = "0 */15 * * * *"`)
 - A mensagem traz dois links, montados a partir de `app.notificacoes.url-base-confirmacao`
 - O token expira **2h antes** do horário da consulta; se o agendamento for criado com
   menos de 2h de antecedência, o link vale até o horário da consulta
@@ -166,7 +162,7 @@ Crie um segundo agendamento com qualquer horário **no futuro** e espere ~1 minu
 Acompanhe:
 
 ```bash
-docker logs -f prontudigital-backend-dev | grep -iE "SCHEDULER CONFIRMACAO|\[CONFIRMACAO\]|Cloud API"
+docker logs -f prontudigital-backend-dev | grep -iE "SCHEDULER 24h|\[CONFIRMACAO\]|Cloud API"
 ```
 
 > ⚠️ Em dev os links apontam para `http://localhost:8080/api/confirmacao/...`

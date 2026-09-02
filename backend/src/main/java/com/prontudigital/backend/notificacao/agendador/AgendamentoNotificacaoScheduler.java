@@ -26,18 +26,6 @@ public class AgendamentoNotificacaoScheduler {
     @Value("${app.notificacoes.habilitadas:true}")
     private boolean notificacoesHabilitadas;
 
-    /** Tempo de espera, apos a criacao do agendamento, para disparar a confirmacao. */
-    @Value("${app.notificacoes.confirmacao.atraso-minutos:1}")
-    private long confirmacaoAtrasoMinutos;
-
-    /**
-     * Tamanho da janela retroativa varrida a cada execucao. Mantem o resultado
-     * limitado e garante o reenvio de agendamentos criados enquanto a aplicacao
-     * esteve fora do ar.
-     */
-    @Value("${app.notificacoes.confirmacao.janela-minutos:60}")
-    private long confirmacaoJanelaMinutos;
-
 
     @Scheduled(cron = "0 */15 * * * *")
     public void processarLembretes48h() {
@@ -78,49 +66,44 @@ public class AgendamentoNotificacaoScheduler {
     }
 
     /**
-     * Dispara a solicitação de confirmação logo após a criação do agendamento
-     * (por padrão, 1 minuto depois). O envio duplicado é barrado pelo log de
-     * notificações no serviço.
+     * Solicita a confirmacao de presenca na janela de 24h antes da consulta.
+     * O envio duplicado e barrado pelo log de notificacoes no servico.
      */
-    @Scheduled(cron = "0 * * * * *")
-    public void processarConfirmacoesAgendamento() {
+    @Scheduled(cron = "0 */15 * * * *")
+    public void processarConfirmacoes24h() {
         if (!notificacoesHabilitadas) {
-            log.debug("[WHATSAPP][SCHEDULER CONFIRMACAO] Execucao ignorada: notificacoes desabilitadas "
+            log.debug("[WHATSAPP][SCHEDULER 24h] Execucao ignorada: notificacoes desabilitadas "
                     + "(app.notificacoes.habilitadas=false)");
             return;
         }
 
         LocalDateTime agora = LocalDateTime.now(clock);
-        LocalDateTime criadoAte = agora.minusMinutes(confirmacaoAtrasoMinutos);
-        LocalDateTime criadoDe = criadoAte.minusMinutes(confirmacaoJanelaMinutos);
-        log.debug("[WHATSAPP][SCHEDULER CONFIRMACAO] Buscando agendamentos criados entre {} e {} "
-                        + "(atraso={} min, janela={} min)",
-                criadoDe, criadoAte, confirmacaoAtrasoMinutos, confirmacaoJanelaMinutos);
+        LocalDateTime de = agora.plusHours(22);
+        LocalDateTime ate = agora.plusHours(26);
+        log.debug("[WHATSAPP][SCHEDULER 24h] Buscando agendamentos com inicio entre {} e {}", de, ate);
 
-        List<Agendamento> agendamentos = agendamentoRepository.findPendentesDeConfirmacaoPorCriacao(
+        List<Agendamento> agendamentos = agendamentoRepository.findByStatusInAndInicioEmBetween(
                 List.of(StatusAgendamento.AGENDADO, StatusAgendamento.REMARCADO),
-                criadoDe,
-                criadoAte,
-                agora);
+                de,
+                ate);
 
         if (agendamentos.isEmpty()) {
-            log.debug("[WHATSAPP][SCHEDULER CONFIRMACAO] Nenhum agendamento pendente de confirmacao na janela");
+            log.debug("[WHATSAPP][SCHEDULER 24h] Nenhum agendamento na janela - nada a enviar");
             return;
         }
 
-        log.info("[WHATSAPP][SCHEDULER CONFIRMACAO] {} agendamento(s) criado(s) há {} min ou mais para confirmação",
-                agendamentos.size(), confirmacaoAtrasoMinutos);
+        log.info("[WHATSAPP][SCHEDULER 24h] {} agendamento(s) encontrado(s) para confirmação", agendamentos.size());
         int falhas = 0;
         for (Agendamento a : agendamentos) {
             try {
                 notificacaoService.enviarSolicitacaoConfirmacao24h(a);
             } catch (Exception e) {
                 falhas++;
-                log.error("[WHATSAPP][SCHEDULER CONFIRMACAO] Erro ao enviar confirmação do agendamento {}: {}",
+                log.error("[WHATSAPP][SCHEDULER 24h] Erro ao enviar confirmação do agendamento {}: {}",
                         a.getId(), e.getMessage(), e);
             }
         }
-        log.info("[WHATSAPP][SCHEDULER CONFIRMACAO] Execucao concluida: {} processado(s), {} com erro",
+        log.info("[WHATSAPP][SCHEDULER 24h] Execucao concluida: {} processado(s), {} com erro",
                 agendamentos.size(), falhas);
     }
 

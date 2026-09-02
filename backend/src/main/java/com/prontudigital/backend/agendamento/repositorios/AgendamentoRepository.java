@@ -68,19 +68,6 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
 
-    /**
-     * Agendamentos criados dentro da janela informada e que ainda vao acontecer.
-     * Usado para disparar a solicitacao de confirmacao logo apos a criacao.
-     */
-    @Query("SELECT a FROM Agendamento a WHERE a.status IN :statuses "
-            + "AND a.criadoEm BETWEEN :criadoDe AND :criadoAte "
-            + "AND a.inicioEm > :agora")
-    List<Agendamento> findPendentesDeConfirmacaoPorCriacao(
-            @Param("statuses") List<StatusAgendamento> statuses,
-            @Param("criadoDe") LocalDateTime criadoDe,
-            @Param("criadoAte") LocalDateTime criadoAte,
-            @Param("agora") LocalDateTime agora);
-
     @Query(value = """
             SELECT a.pacienteUuid AS pacienteUuid, MAX(a.inicioEm) AS ultimoAgendamento
             FROM Agendamento a

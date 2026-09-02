@@ -47,9 +47,6 @@ app:
     refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS}
   notificacoes:
     url-base-confirmacao: ${APP_URL_BASE_CONFIRMACAO}
-    confirmacao:
-      atraso-minutos: ${APP_CONFIRMACAO_ATRASO_MINUTOS:1}
-      janela-minutos: ${APP_CONFIRMACAO_JANELA_MINUTOS:60}
   whatsapp:
     cloud-api:
       base-url:        "https://graph.facebook.com"

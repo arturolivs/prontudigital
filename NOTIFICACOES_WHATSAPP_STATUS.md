@@ -21,28 +21,22 @@ Três causas distintas apareceram na investigação, e as três foram tratadas.
 
 ## 2. Feito
 
-### 2.1 Confirmação disparada 1 minuto após a criação
+### 2.1 Confirmação na janela de 24h antes da consulta
 
-Antes a solicitação de confirmação saía numa janela de 22h–26h **antes da
-consulta**. Agora sai logo após a criação do agendamento.
+Durante os testes o disparo chegou a ser feito **1 minuto após a criação** do
+agendamento. Essa mudança foi revertida: vale de novo a regra original — a
+solicitação de confirmação sai numa janela de 22h–26h **antes da consulta**.
 
-- `AgendamentoNotificacaoScheduler:86` — `processarConfirmacoesAgendamento`,
-  `cron = "0 * * * * *"` (roda a cada minuto).
-- Seleciona por `criadoEm`, não por `inicioEm`:
-  `AgendamentoRepository.findPendentesDeConfirmacaoPorCriacao` (`:78`).
-- Dois parâmetros novos em `application.yaml`:
-
-  | Chave | Padrão | Papel |
-  |---|---|---|
-  | `app.notificacoes.confirmacao.atraso-minutos` | `1` | espera após a criação |
-  | `app.notificacoes.confirmacao.janela-minutos` | `60` | janela retroativa varrida a cada execução — cobre o período em que a aplicação esteve fora do ar |
-
-  Em produção: `APP_CONFIRMACAO_ATRASO_MINUTOS` e `APP_CONFIRMACAO_JANELA_MINUTOS`.
-
-- Efeito colateral tratado: com o envio imediato, um agendamento marcado para dali
-  a menos de 2h geraria um link **já expirado**. Nesse caso a validade passa a ser
-  o horário da consulta, e a mensagem informa a data-limite real em vez do texto
-  fixo *"até 2h antes"* (`NotificacaoWhatsappServiceImpl:112`).
+- `AgendamentoNotificacaoScheduler` — `processarConfirmacoes24h`,
+  `cron = "0 */15 * * * *"` (roda a cada 15 minutos).
+- Seleciona por `inicioEm`: `AgendamentoRepository.findByStatusInAndInicioEmBetween`,
+  entre `agora + 22h` e `agora + 26h`.
+- Não há parâmetro de configuração próprio; o único interruptor é
+  `app.notificacoes.habilitadas`.
+- Salvaguarda mantida do período de testes: se o link nasceria já expirado
+  (agendamento com menos de 2h de antecedência), a validade passa a ser o horário
+  da consulta, e a mensagem informa a data-limite real em vez do texto fixo
+  *"até 2h antes"* (`NotificacaoWhatsappServiceImpl`).
 
 ### 2.2 Log em todo o fluxo
 
@@ -255,7 +249,8 @@ código:
    isso abre a janela de 24h.
 2. `DELETE FROM log_notificacoes_whatsapp WHERE agendamento_id = <ID>;` para liberar
    o reenvio.
-3. Em até 1 minuto o scheduler reenvia.
+3. Em até 15 minutos o scheduler reenvia — desde que a consulta esteja na janela
+   de 22h–26h.
 
 O passo 1 deixa de ser necessário quando os templates da pendência 3.1 estiverem no
 lugar.
