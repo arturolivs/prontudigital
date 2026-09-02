@@ -5,6 +5,8 @@ pendências que sobraram. Complementa dois documentos que continuam valendo:
 
 - **`WHATSAPP.md`** — o porquê da integração, contas da Meta, custos, a regra das 24h.
 - **`TESTE_WHATSAPP_DEV.md`** — o passo a passo para testar em desenvolvimento.
+- **`CICLO_VIDA_AGENDAMENTO.md`** — a máquina de estados do agendamento e onde os
+  schedulers do WhatsApp entram nela.
 
 ---
 
