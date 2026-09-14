@@ -19,6 +19,9 @@ public interface LogNotificacaoWhatsappRepository extends JpaRepository<LogNotif
 
     Optional<LogNotificacaoWhatsapp> findByTokenConfirmacao(UUID token);
 
+    /** Correlaciona o callback de status da Meta com a mensagem que originou. */
+    Optional<LogNotificacaoWhatsapp> findByMensagemId(String mensagemId);
+
     Optional<LogNotificacaoWhatsapp> findByAgendamentoIdAndTipoAndStatus(
             Long agendamentoId, TipoNotificacao tipo, StatusNotificacao status);
 }

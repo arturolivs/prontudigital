@@ -18,6 +18,7 @@ import com.prontudigital.backend.autenticacao.servicos.UsuarioService;
 import com.prontudigital.backend.compartilhado.clientes.WhatsappCloudApiClient;
 import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AutenticacaoServiceImpl implements AutenticacaoService {
 
     private static final int MAX_TENTATIVAS_CODIGO = 5;
@@ -146,9 +148,15 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     @Transactional
     public void solicitarRecuperacaoSenha(RecuperarSenhaSolicitarRequestDTO dto) {
         String telefone = dto.telefone().trim();
+        String telefoneLog = WhatsappCloudApiClient.mascararTelefone(telefone);
+        log.info("[WHATSAPP][RECUPERACAO-SENHA] Solicitacao recebida para o telefone {}", telefoneLog);
+
         Usuario usuario = usuarioRepository.findByTelefone(telefone)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException(
-                        "Nenhum usuário encontrado com o telefone: " + telefone));
+                .orElseThrow(() -> {
+                    log.warn("[WHATSAPP][RECUPERACAO-SENHA] Nenhum usuario cadastrado com o telefone {}", telefoneLog);
+                    return new UsuarioNaoEncontradoException(
+                            "Nenhum usuário encontrado com o telefone: " + telefone);
+                });
 
         codigoRecuperacaoSenhaRepository.findByUsuarioIdAndUtilizadoFalse(usuario.getId())
                 .forEach(c -> c.setUtilizado(true));
@@ -160,33 +168,56 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
                 .expiraEm(LocalDateTime.now(clock).plusMinutes(expiracaoCodigoMinutos))
                 .build();
         codigoRecuperacaoSenhaRepository.save(entidade);
+        log.debug("[WHATSAPP][RECUPERACAO-SENHA] Codigo gerado para o usuario {} (expira em {})",
+                usuario.getId(), entidade.getExpiraEm());
 
         String mensagem = String.format(
                 "Seu código de recuperação de senha é: %s%nVálido por %d minutos. Não compartilhe este código com ninguém.",
                 codigo, expiracaoCodigoMinutos);
 
-        whatsappCliente.enviarMensagemTexto(telefone, mensagem);
+        try {
+            whatsappCliente.enviarMensagemTexto(telefone, mensagem);
+            log.info("[WHATSAPP][RECUPERACAO-SENHA] Codigo enviado por WhatsApp para o usuario {} (telefone {})",
+                    usuario.getId(), telefoneLog);
+        } catch (Exception e) {
+            log.error("[WHATSAPP][RECUPERACAO-SENHA] Falha ao enviar o codigo para o usuario {} (telefone {}): {}",
+                    usuario.getId(), telefoneLog, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
     @Transactional
     public void confirmarRecuperacaoSenha(RecuperarSenhaConfirmarRequestDTO dto) {
         String telefone = dto.telefone().trim();
+        String telefoneLog = WhatsappCloudApiClient.mascararTelefone(telefone);
+        log.info("[WHATSAPP][RECUPERACAO-SENHA] Validando codigo informado pelo telefone {}", telefoneLog);
+
         Usuario usuario = usuarioRepository.findByTelefone(telefone)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException(
-                        "Nenhum usuário encontrado com o telefone: " + telefone));
+                .orElseThrow(() -> {
+                    log.warn("[WHATSAPP][RECUPERACAO-SENHA] Nenhum usuario cadastrado com o telefone {}", telefoneLog);
+                    return new UsuarioNaoEncontradoException(
+                            "Nenhum usuário encontrado com o telefone: " + telefone);
+                });
 
         CodigoRecuperacaoSenha entidade = codigoRecuperacaoSenhaRepository
                 .findFirstByUsuarioIdAndUtilizadoFalseOrderByCriadoEmDesc(usuario.getId())
-                .orElseThrow(() -> new CodigoRecuperacaoInvalidoException("Código inválido ou expirado"));
+                .orElseThrow(() -> {
+                    log.warn("[WHATSAPP][RECUPERACAO-SENHA] Usuario {} nao possui codigo pendente", usuario.getId());
+                    return new CodigoRecuperacaoInvalidoException("Código inválido ou expirado");
+                });
 
         if (LocalDateTime.now(clock).isAfter(entidade.getExpiraEm())) {
+            log.warn("[WHATSAPP][RECUPERACAO-SENHA] Codigo do usuario {} expirou em {}",
+                    usuario.getId(), entidade.getExpiraEm());
             entidade.setUtilizado(true);
             codigoRecuperacaoSenhaRepository.save(entidade);
             throw new CodigoRecuperacaoInvalidoException(Mensagens.get("auth.codigo.expirado"));
         }
 
         if (entidade.getTentativas() >= MAX_TENTATIVAS_CODIGO) {
+            log.warn("[WHATSAPP][RECUPERACAO-SENHA] Usuario {} excedeu o limite de {} tentativas",
+                    usuario.getId(), MAX_TENTATIVAS_CODIGO);
             entidade.setUtilizado(true);
             codigoRecuperacaoSenhaRepository.save(entidade);
             throw new CodigoRecuperacaoInvalidoException(Mensagens.get("auth.codigo.tentativas-excedidas"));
@@ -195,6 +226,8 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
         if (!entidade.getCodigo().equals(dto.codigo().trim())) {
             entidade.setTentativas(entidade.getTentativas() + 1);
             codigoRecuperacaoSenhaRepository.save(entidade);
+            log.warn("[WHATSAPP][RECUPERACAO-SENHA] Codigo incorreto para o usuario {} (tentativa {}/{})",
+                    usuario.getId(), entidade.getTentativas(), MAX_TENTATIVAS_CODIGO);
             throw new CodigoRecuperacaoInvalidoException(Mensagens.get("auth.codigo.invalido"));
         }
 
@@ -203,6 +236,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
 
         usuario.setSenhaHash(passwordEncoder.encode(dto.novaSenha()));
         usuarioRepository.save(usuario);
+        log.info("[WHATSAPP][RECUPERACAO-SENHA] Senha do usuario {} redefinida com sucesso", usuario.getId());
     }
 
     private String gerarCodigoRecuperacao() {

@@ -50,14 +50,22 @@ app:
   whatsapp:
     cloud-api:
       base-url:        "https://graph.facebook.com"
-      api-version:     "v21.0"
+      api-version:     "v25.0"
       phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID}
       access-token:    ${WHATSAPP_ACCESS_TOKEN}
+    webhook:
+      # Sem default de propósito: a aplicação não sobe sem eles. O webhook é
+      # público, e sem o app secret qualquer um poderia forjar um callback.
+      verify-token: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN}
+      app-secret:   ${WHATSAPP_APP_SECRET}
 
 logging:
   level:
     root:              WARN
     com.prontudigital: INFO   # logs de negócio mantidos
+    # Fluxo do WhatsApp: suba para DEBUG (LOG_LEVEL_WHATSAPP=DEBUG) para depurar envios
+    com.prontudigital.backend.notificacao:            ${LOG_LEVEL_WHATSAPP:INFO}
+    com.prontudigital.backend.compartilhado.clientes: ${LOG_LEVEL_WHATSAPP:INFO}
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

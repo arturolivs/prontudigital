@@ -38,6 +38,13 @@ public class SecurityConfig {
             "/error"
     };
 
+    /**
+     * Webhook do WhatsApp: quem chama e a Meta, que nao tem JWT. A autenticidade
+     * vem do X-Hub-Signature-256 (HMAC do corpo com o app secret), conferido em
+     * WhatsappWebhookServiceImpl — nao da sessao.
+     */
+    private static final String WEBHOOK_WHATSAPP = "/api/whatsapp/webhook";
+
     private static final String[] AUTH_POST_PUBLICOS = {
             "/api/auth/registrar",
             "/api/auth/login",
@@ -80,6 +87,8 @@ public class SecurityConfig {
                         .requestMatchers(PATHS_PUBLICOS_INFRA).permitAll()
                         .requestMatchers(HttpMethod.POST, AUTH_POST_PUBLICOS).permitAll()
                         .requestMatchers(HttpMethod.GET, GET_PUBLICOS).permitAll()
+                        .requestMatchers(HttpMethod.GET, WEBHOOK_WHATSAPP).permitAll()
+                        .requestMatchers(HttpMethod.POST, WEBHOOK_WHATSAPP).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         .anyRequest().authenticated()
