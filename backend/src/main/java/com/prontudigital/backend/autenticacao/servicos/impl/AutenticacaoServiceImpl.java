@@ -6,6 +6,7 @@ import com.prontudigital.backend.autenticacao.entidades.CodigoRecuperacaoSenha;
 import com.prontudigital.backend.autenticacao.entidades.Usuario;
 import com.prontudigital.backend.autenticacao.excecoes.AcessoNaoAtivadoException;
 import com.prontudigital.backend.autenticacao.excecoes.CodigoRecuperacaoInvalidoException;
+import com.prontudigital.backend.autenticacao.excecoes.RecuperacaoSenhaIndisponivelException;
 import com.prontudigital.backend.autenticacao.excecoes.TokenInvalidoException;
 import com.prontudigital.backend.autenticacao.excecoes.UsuarioNaoEncontradoException;
 import com.prontudigital.backend.autenticacao.repositorios.CodigoRecuperacaoSenhaRepository;
@@ -57,6 +58,14 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
 
     @Value("${app.recuperacao-senha.expiracao-minutos:10}")
     private int expiracaoCodigoMinutos;
+
+    /**
+     * Mesmo interruptor que desliga os lembretes de agendamento. O codigo de
+     * recuperacao so sai por WhatsApp; com o canal desligado nem vale gerar o
+     * codigo — a redefinicao passa a ser feita pelo administrador.
+     */
+    @Value("${app.notificacoes.habilitadas:true}")
+    private boolean notificacoesHabilitadas;
 
     @Override
     public UsuarioDTO registrar(RegistrarRequestDTO request) {
@@ -150,6 +159,13 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
         String telefone = dto.telefone().trim();
         String telefoneLog = WhatsappCloudApiClient.mascararTelefone(telefone);
         log.info("[WHATSAPP][RECUPERACAO-SENHA] Solicitacao recebida para o telefone {}", telefoneLog);
+
+        if (!notificacoesHabilitadas) {
+            log.warn("[WHATSAPP][RECUPERACAO-SENHA] Solicitacao do telefone {} recusada: notificacoes "
+                    + "desabilitadas (app.notificacoes.habilitadas=false)", telefoneLog);
+            throw new RecuperacaoSenhaIndisponivelException(
+                    Mensagens.get("auth.recuperar-senha.canal-indisponivel"));
+        }
 
         Usuario usuario = usuarioRepository.findByTelefone(telefone)
                 .orElseThrow(() -> {

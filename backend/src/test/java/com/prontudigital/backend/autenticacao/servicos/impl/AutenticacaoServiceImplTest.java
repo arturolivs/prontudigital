@@ -68,6 +68,9 @@ class AutenticacaoServiceImplTest {
         Clock clock = Clock.fixed(AGORA.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
         ReflectionTestUtils.setField(service, "clock", clock);
         ReflectionTestUtils.setField(service, "expiracaoCodigoMinutos", 10);
+        // @Value nao e aplicado em teste unitario: sem isto a flag nasce false
+        // e a recuperacao de senha responderia "canal indisponivel".
+        ReflectionTestUtils.setField(service, "notificacoesHabilitadas", true);
     }
 
     private CodigoRecuperacaoSenha codigo(String valor, LocalDateTime expiraEm, int tentativas) {

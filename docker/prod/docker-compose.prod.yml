@@ -55,9 +55,6 @@ services:
     container_name: prontudigital-backend
     restart: always
     environment:
-      # Sem isto a JVM roda em UTC e o @CreationTimestamp grava 3h à frente do
-      # que o Clock da aplicação (America/Sao_Paulo) calcula — as janelas dos
-      # schedulers nunca casam com o criado_em.
       TZ: America/Sao_Paulo
       SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -69,15 +66,15 @@ services:
       APP_JWT_ACCESS_EXPIRATION_MS:  ${JWT_ACCESS_EXPIRATION_MS}
       APP_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS}
       ARMAZENAMENTO_DIR: /dados/anexos
-      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID}
-      WHATSAPP_ACCESS_TOKEN:    ${WHATSAPP_ACCESS_TOKEN}
-      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN}
-      WHATSAPP_APP_SECRET:           ${WHATSAPP_APP_SECRET}
+      APP_NOTIFICACOES_HABILITADAS: ${NOTIFICACOES_HABILITADAS:-false}
+      WHATSAPP_PHONE_NUMBER_ID:      ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN:         ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:-}
+      WHATSAPP_APP_SECRET:           ${WHATSAPP_APP_SECRET:-}
       APP_URL_BASE_CONFIRMACAO: https://${DOMINIO}/api/confirmacao
     expose:
       - "8080"
     volumes:
-      # Anexos do prontuário — SEM isto os arquivos somem a cada redeploy
       - anexos_data:/dados/anexos
     depends_on:
       postgres:
@@ -89,32 +86,24 @@ services:
         limits:
           cpus: "2.0"
           memory: 1G
-    # O projeto não inclui spring-boot-starter-actuator, então não existe
-    # /actuator/health. Verifica se a porta 8080 já aceita conexão.
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080'"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s   # tempo para o Spring Boot subir e rodar o Flyway
+      start_period: 60s
 
-  # ----------------------------------------------------------
-  # Frontend Web (Next.js standalone — servidor Node)
-  # ----------------------------------------------------------
+
   frontend:
     build:
       context: ../../frontend-web
       dockerfile: Dockerfile.prod
       args:
-        # Embutido no bundle em tempo de BUILD. Precisa ser a URL
-        # pública; mudar exige rebuild da imagem, não só restart.
         NEXT_PUBLIC_BASE_URL: https://${DOMINIO}
     image: prontudigital/frontend:latest
     container_name: prontudigital-frontend
     restart: always
     environment:
-      # Lida em RUNTIME pelas Route Handlers de /api/auth/*.
-      # Fala com o backend pela rede interna, sem sair para a internet.
       BACKEND_INTERNAL_URL: http://backend:8080
     expose:
       - "3000"
@@ -129,10 +118,6 @@ services:
           cpus: "0.5"
           memory: 384M
 
-  # ----------------------------------------------------------
-  # Caddy — proxy reverso + TLS automático
-  # Único serviço com portas publicadas no host
-  # ----------------------------------------------------------
   caddy:
     image: caddy:2-alpine
     container_name: prontudigital-caddy
@@ -145,23 +130,20 @@ services:
       - "443:443/udp"   # HTTP/3
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data       # certificados — PERSISTIR (perder = rate limit do Let's Encrypt)
+      - caddy_data:/data
       - caddy_config:/config
       - caddy_logs:/var/log/caddy
     depends_on:
       - frontend
     networks:
-      - interna   # alcança frontend:3000 e backend:8080
-      - externa   # saída para a internet (ACME / Let's Encrypt)
+      - interna
+      - externa
     deploy:
       resources:
         limits:
           cpus: "0.5"
           memory: 128M
 
-# ----------------------------------------------------------
-# Volumes
-# ----------------------------------------------------------
 volumes:
   postgres_data:
     name: prontudigital_postgres_prod
@@ -174,15 +156,6 @@ volumes:
   caddy_logs:
     name: prontudigital_caddy_logs
 
-# ----------------------------------------------------------
-# Redes
-#
-#  interna (internal: true): postgres ↔ backend ↔ frontend ↔ caddy
-#                            sem rota para a internet
-#  externa:                  apenas o Caddy, para emitir certificados
-#
-# O Postgres não é alcançável de fora do host em nenhuma hipótese.
-# ----------------------------------------------------------
 networks:
   interna:
     name: prontudigital_interna
