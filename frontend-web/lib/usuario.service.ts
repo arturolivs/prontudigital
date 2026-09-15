@@ -23,6 +23,13 @@ const api = axios.create({ baseURL: USUARIOS_API_URL })
 
 setupRefreshInterceptor(api)
 
+// Instância separada para /api/auth: base diferente de USUARIOS_API_URL, mas
+// igualmente autenticada. `criarUsuario` fala com /api/auth/registrar, que
+// exige ADMIN — sem o interceptor o Bearer não vai e a resposta é 401.
+const authApi = axios.create({ baseURL: AUTH_API_URL })
+
+setupRefreshInterceptor(authApi)
+
 export const usuariosAPI = {
   buscarUsuarioAtual: async (): Promise<Usuario> => {
     const response = await api.get<Usuario>('/me')
@@ -50,10 +57,7 @@ export const usuariosAPI = {
   },
 
   criarUsuario: async (dados: RegistrarRequisicao): Promise<Usuario> => {
-    const response = await axios.post<Usuario>(
-      `${AUTH_API_URL}/registrar`,
-      dados,
-    )
+    const response = await authApi.post<Usuario>('/registrar', dados)
     return response.data
   },
 
