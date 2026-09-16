@@ -88,7 +88,11 @@ services:
       postgres:
         condition: service_healthy
     networks:
+      # `interna` fala com o postgres; `externa` dá DNS e saída para a
+      # internet (graph.facebook.com, da WhatsApp Cloud API). Sem `ports:`
+      # o backend continua inalcançável de fora.
       - interna
+      - externa
     deploy:
       resources:
         limits:

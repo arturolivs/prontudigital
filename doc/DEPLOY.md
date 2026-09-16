@@ -329,10 +329,29 @@ curl -sSI https://SEU-DOMINIO | head -1
 # 7.5 — API respondendo através do Caddy (não 404 do Next)
 curl -s https://SEU-DOMINIO/api/configuracao | head -c 200
 
-# 7.6 — backend ouvindo (exposto só na rede interna)
+# 7.6 — backend ouvindo (sem porta publicada no host)
 docker compose -f docker-compose.prod.yml exec backend \
   bash -c 'echo > /dev/tcp/127.0.0.1/8080' && echo "backend ouvindo"
+
+# 7.7 — diretório de anexos gravável pelo usuário do backend
+docker compose -f docker-compose.prod.yml exec backend \
+  sh -c 'touch /dados/anexos/.escrita && rm /dados/anexos/.escrita' \
+  && echo "anexos graváveis"
+
+# 7.8 — saída para a internet (o WhatsApp Cloud API depende dela)
+docker compose -f docker-compose.prod.yml exec backend \
+  bash -c 'echo > /dev/tcp/graph.facebook.com/443' && echo "egress ok"
 ```
+
+> **7.7 falhou com `Permission denied`?** O volume `prontudigital_anexos_prod`
+> foi criado antes desta correção, como `root:root`. O Docker só copia dono e
+> permissões da imagem quando cria o volume — reconstruir a imagem não
+> conserta um volume que já existe. Ajuste uma vez:
+>
+> ```bash
+> docker compose -f docker-compose.prod.yml exec -u root backend \
+>   chown -R prontu:prontu /dados
+> ```
 
 Pela interface:
 
