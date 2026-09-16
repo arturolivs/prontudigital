@@ -76,6 +76,11 @@ services:
       # (`dados/anexos`) é relativo ao diretório de trabalho, o que fazia os
       # anexos caírem em lugares diferentes conforme quem estivesse servindo.
       ARMAZENAMENTO_DIR: /dados/anexos
+      # ADMIN inicial do banco de dev. Sem isto o banco recém-criado não tem
+      # nenhum usuário — as migrações não semeiam mais. Os defaults vêm do
+      # application-dev.yaml (admin / admin12345).
+      APP_BOOTSTRAP_ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      APP_BOOTSTRAP_ADMIN_SENHA:    ${ADMIN_SENHA:-admin12345}
       # Credenciais do número de TESTE da Meta (developers.facebook.com →
       # app → WhatsApp → Início rápido). Vazias = cliente desligado: o envio
       # lança IllegalStateException e o log grava FALHA, sem afetar o

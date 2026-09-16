@@ -38,6 +38,14 @@ app:
     secret:                ${APP_JWT_SECRET:dev-secret-key-minimo-32-caracteres-aqui}
     access-expiration-ms:  ${APP_JWT_ACCESS_EXPIRATION_MS:600000000}
     refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS:600000000}
+  # ADMIN de desenvolvimento. As migracoes nao semeiam usuario nenhum, entao
+  # sem isto um banco recem-criado nao teria como receber o primeiro login.
+  # O default vale SO para dev — em producao nao existe (application-prod.yaml).
+  bootstrap-admin:
+    username:      ${APP_BOOTSTRAP_ADMIN_USERNAME:admin}
+    senha:         ${APP_BOOTSTRAP_ADMIN_SENHA:admin12345}
+    nome-completo: ${APP_BOOTSTRAP_ADMIN_NOME:Administrador (dev)}
+    email:         ${APP_BOOTSTRAP_ADMIN_EMAIL:admin@prontudigital.local}
 
 logging:
   level:

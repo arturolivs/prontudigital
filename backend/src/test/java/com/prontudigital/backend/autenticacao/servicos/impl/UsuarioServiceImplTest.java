@@ -967,7 +967,7 @@ class UsuarioServiceImplTest {
 
             UsuarioDTO resultado = service.removerAvatar();
 
-            // As duas colunas andam juntas — o CHECK da V29 recusaria o meio-termo.
+            // As duas colunas andam juntas — o CHECK da V25 recusaria o meio-termo.
             assertNull(usuario.getAvatarChave());
             assertNull(usuario.getAvatarTipoConteudo());
             assertFalse(resultado.temAvatar());

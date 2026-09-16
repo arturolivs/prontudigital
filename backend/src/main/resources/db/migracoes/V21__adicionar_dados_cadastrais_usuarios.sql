@@ -1,5 +1,5 @@
 -- =============================================================
--- V25 - Dados cadastrais complementares de usuarios (RF04 / RF05)
+-- V21 - Dados cadastrais complementares de usuarios (RF04 / RF05)
 --
 -- RF04 (paciente): CPF, data de nascimento e endereco.
 -- RF05 (profissional): registro no COREN e especialidade.

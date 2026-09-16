@@ -1,5 +1,5 @@
 -- =============================================================
--- V27 - Atestados emitidos ao paciente (RF17)
+-- V23 - Atestados emitidos ao paciente (RF17)
 --
 -- O PDF nao e guardado: e regerado a partir destes campos sempre
 -- que solicitado, entao o registro e a fonte da verdade.

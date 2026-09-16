@@ -24,8 +24,9 @@
 ## 1. Bloqueadores levantados nesta análise
 
 Os quatro itens abaixo **não impedem o `docker compose up`** — impedem que o
-sistema receba dado real de paciente com segurança. O 1.1 já foi corrigido no
-código; os outros três se resolvem na execução, nos passos indicados.
+sistema receba dado real de paciente com segurança. O 1.1 e o 1.2 já foram
+corrigidos no código; os outros dois se resolvem na execução, nos passos
+indicados.
 
 ### 1.1 — Registro público com escolha de perfil — ✅ **corrigido em 15/09/2026**
 
@@ -48,31 +49,51 @@ O cadastro público de paciente continua em `/api/auth/cadastrar-paciente`, que
 **não** aceita perfis — o `PACIENTE` é fixado no serviço
 (`UsuarioServiceImpl:270-272`).
 
-**Validação:** `mvnw test` → **366 testes, 0 falhas**; `tsc --noEmit` e
+**Validação:** `mvnw test` → **377 testes, 0 falhas**; `tsc --noEmit` e
 `eslint` limpos no frontend.
 
 > A resposta para quem não é ADMIN é **403**, inclusive sem credencial
 > nenhuma: a configuração não declara `authenticationEntryPoint`, então vale o
 > `Http403ForbiddenEntryPoint` padrão — mesmo comportamento do resto da API.
 
-### 1.2 — A migration `V8` semeia 13 usuários de demonstração em produção
+### 1.2 — Dados de exemplo semeados por migration — ✅ **corrigido em 15/09/2026**
 
-`backend/src/main/resources/db/migracoes/V8__insert_dados_exemplo.sql` roda em
-**todo** ambiente — o Flyway não distingue perfil. Ela cria:
+**O problema:** `V8__insert_dados_exemplo.sql` rodava em **todo** ambiente — o
+Flyway não distingue perfil. Criava `admin` (perfil ADMIN), dois enfermeiros e
+10 pacientes fictícios, todos com o mesmo hash BCrypt, cuja senha em claro é
+`senha123` — valor que circulava no repositório e no histórico do Git. No
+minuto em que o domínio respondesse, existiria um **ADMIN com senha pública**.
 
-- `admin` (perfil ADMIN), `enfermeiro`, `enfermeiro.santos` e 10 pacientes
-  fictícios;
-- todos com o **mesmo hash BCrypt**, cuja senha em claro é `senha123` — valor
-  que circula no repositório e no histórico do Git.
+**O que mudou:** as migrations deixaram de carregar dado de aplicação. Como o
+banco de produção ainda não existe, elas foram **renumeradas de `V1` a `V26`**,
+sem as lacunas que havia em `V14`, `V15` e `V21`.
 
-Ou seja: no minuto em que o domínio responde, existe um **ADMIN com senha
-pública**. Era o mais grave dos dois: diferente do 1.1, não depende de o
-atacante descobrir nada além do nome do produto. Continua aberto — só se fecha
-na operação (§8), porque a migration precisa existir pelos perfis que ela cria.
+| Mudança | Detalhe |
+|---|---|
+| `V8__insert_dados_exemplo.sql` | **apagada** — os 13 usuários e o hash público saíram do repositório |
+| `V2__criacao_tabela_perfis.sql` | recebeu os três `perfis` (ADMIN / PROFISSIONAL / PACIENTE) que estavam na `V8`. São dado de **referência**, não de exemplo: `UsuarioServiceImpl:270` e `:455` os buscam por nome e lançam `PerfilNaoEncontradoException` sem eles |
+| `V10` (era `V11`) | saiu o `UPDATE usuarios SET acesso_ativado = TRUE` — backfill de linhas que não existem mais |
+| `V18` (era `V22`) | saiu o `UPDATE agendamentos SET procedimento_id = …`, idem. O `INSERT` dos dois procedimentos ficou: sem nenhuma linha ali a tela pública de agendamento não oferece nada |
+| `V24` (era `V28`) | inalterada — a linha única de `configuracao_clinica` é exigida pelo `CHECK (id = 1)` e evita tratar "configuração ausente" em todo endpoint |
+| `BootstrapAdminRunner.java` (novo) | cria o **primeiro ADMIN** a partir do ambiente, no primeiro boot em que o banco não tem nenhum |
+| `BootstrapAdminRunnerTest.java` (novo) | 11 testes: cria uma vez, não recria, recusa senha curta, não colide com username/e-mail existente |
 
-A mesma migration cria os três registros de `perfis` (ADMIN / PROFISSIONAL /
-PACIENTE), **que a aplicação precisa** — por isso a saída não é apagar a
-migration, e sim limpar os usuários depois do primeiro boot: **§8**.
+**Por que o runner precisa existir:** com a `V8` fora e a `/api/auth/registrar`
+fechada pela §1.1, não sobrava caminho para o primeiro acesso — o cadastro
+público só produz `PACIENTE`. O runner fecha essa lacuna sem reintroduzir senha
+versionada: o hash é gerado no boot, pelo mesmo `PasswordEncoder` da aplicação,
+a partir de `ADMIN_SENHA` do `.env` (§5).
+
+Ele é deliberadamente conservador — **não faz nada** quando já existe qualquer
+usuário com perfil ADMIN. Ou seja: trocar a senha pela tela não é desfeito no
+próximo `restart`, e o `.env` não é uma porta dos fundos permanente.
+
+**Validação:** as 26 migrations aplicadas em sequência num Postgres 16 limpo,
+sem erro; `usuarios` nasce com **0 linhas**; `mvnw test` → **377 testes, 0
+falhas**.
+
+> Nenhum comando de limpeza pós-boot é mais necessário. O que a §8 pede agora é
+> a troca da senha inicial, não a remoção de usuários de demonstração.
 
 ### 1.3 — Logs do Docker sem rotação
 
@@ -88,8 +109,8 @@ Com `NOTIFICACOES_HABILITADAS=false` (o padrão recomendado para o primeiro
 deploy), `POST /api/auth/recuperar-senha/solicitar` responde **503**: o código
 de recuperação só trafega por WhatsApp, não há fallback por e-mail. Quem
 esquecer a senha depende do ADMIN redefinir em *Dashboard > Usuários*.
-Combine com a §8: o ADMIN real precisa existir e alguém precisa saber a senha
-dele. Detalhes em [`DEPLOY_SEM_WHATSAPP.md`](../DEPLOY_SEM_WHATSAPP.md).
+Combine com a §5: a senha de `ADMIN_SENHA` é a única credencial da instalação
+até que outros usuários sejam criados — guarde-a num gerenciador. Detalhes em [`DEPLOY_SEM_WHATSAPP.md`](../DEPLOY_SEM_WHATSAPP.md).
 
 ---
 
@@ -220,6 +241,7 @@ Gere os segredos **na VPS**, não reaproveite de lugar nenhum:
 ```bash
 openssl rand -base64 24   # POSTGRES_PASSWORD
 openssl rand -base64 64   # JWT_SECRET (HS512 exige chave longa)
+openssl rand -base64 18   # ADMIN_SENHA — a senha do primeiro acesso
 ```
 
 | Variável | Obrigatória | Observação |
@@ -230,6 +252,9 @@ openssl rand -base64 64   # JWT_SECRET (HS512 exige chave longa)
 | `JWT_SECRET` | ✅ | Trocar invalida todos os tokens — todo mundo é deslogado |
 | `JWT_ACCESS_EXPIRATION_MS` | ✅ | `900000` (15 min) |
 | `JWT_REFRESH_EXPIRATION_MS` | ✅ | `604800000` (7 dias) — precisa bater com o `maxAge` do cookie `__pd_rt` |
+| `ADMIN_USERNAME` | ✅ | Login do primeiro ADMIN. Sem ele **ninguém consegue entrar**: o banco nasce sem usuário nenhum (§1.2) |
+| `ADMIN_SENHA` | ✅ | Mínimo 8 caracteres. Gere com `openssl rand -base64 18` e guarde num gerenciador. Apague daqui depois do primeiro acesso (§8.1) |
+| `ADMIN_NOME` / `ADMIN_EMAIL` / `ADMIN_TELEFONE` | ⬜ | Só aparência e contato; o e-mail, se informado, precisa ser único |
 | `NOTIFICACOES_HABILITADAS` | ✅ | **`false` no primeiro deploy.** Ver §1.4 e `DEPLOY_SEM_WHATSAPP.md` |
 | `WHATSAPP_*` (4) | ⬜ | Deixe vazias enquanto a flag acima for `false` |
 | `COMANDO_COPIA_EXTERNA` | ⚠️ | Vazia = backup mora no disco que deveria proteger. Ver §9 |
@@ -258,8 +283,17 @@ O que esperar, em ordem:
 1. **Build (8–20 min na primeira vez)** — Maven baixa dependências e roda
    `package -DskipTests`; o Next.js roda `npm ci` + `next build`.
 2. **`postgres`** sobe e fica `healthy` (~15 s).
-3. **`backend`** inicia, o **Flyway aplica as 27 migrations** (incluindo a `V8`
-   da §1.2) e a JVM sobe. O healthcheck tem `start_period: 60s`.
+3. **`backend`** inicia, o **Flyway aplica as 26 migrations** (`V1` a `V26`) e
+   a JVM sobe. O healthcheck tem `start_period: 60s`. Logo após o boot, procure
+   esta linha — é o ADMIN inicial sendo criado (§1.2):
+
+   ```
+   INFO  c.p.b.a.config.BootstrapAdminRunner : ADMIN inicial 'seu.usuario' criado.
+   ```
+
+   Se aparecer `Nenhum ADMIN no banco e APP_BOOTSTRAP_ADMIN_USERNAME/SENHA nao
+   informados`, o `.env` está sem `ADMIN_USERNAME`/`ADMIN_SENHA`: preencha e
+   `docker compose -f docker-compose.prod.yml restart backend`.
 4. **`frontend`** só inicia depois de o backend estar `healthy` (`depends_on`).
 5. **`caddy`** sobe, pede o certificado ao Let's Encrypt e passa a servir 443.
 
@@ -284,13 +318,18 @@ docker compose -f docker-compose.prod.yml exec postgres \
   psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
   -c 'SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 5;'
 
-# 7.3 — TLS válido e emitido pelo Let's Encrypt
+# 7.3 — o banco tem exatamente UM usuário, o ADMIN inicial, e mais nenhum
+docker compose -f docker-compose.prod.yml exec postgres   psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"   -c 'SELECT u.username, p.nome FROM usuarios u
+        JOIN usuario_perfis up ON up.usuario_id = u.id
+        JOIN perfis p ON p.id = up.perfil_id;'
+
+# 7.4 — TLS válido e emitido pelo Let's Encrypt
 curl -sSI https://SEU-DOMINIO | head -1
 
-# 7.4 — API respondendo através do Caddy (não 404 do Next)
+# 7.5 — API respondendo através do Caddy (não 404 do Next)
 curl -s https://SEU-DOMINIO/api/configuracao | head -c 200
 
-# 7.5 — backend ouvindo (exposto só na rede interna)
+# 7.6 — backend ouvindo (exposto só na rede interna)
 docker compose -f docker-compose.prod.yml exec backend \
   bash -c 'echo > /dev/tcp/127.0.0.1/8080' && echo "backend ouvindo"
 ```
@@ -298,7 +337,7 @@ docker compose -f docker-compose.prod.yml exec backend \
 Pela interface:
 
 - `https://SEU-DOMINIO` carrega a tela de login com o nome da clínica;
-- o agendamento público lista procedimentos (vieram da `V22`: Podiatria e
+- o agendamento público lista procedimentos (vieram da `V18`: Podiatria e
   Tratamento de Feridas);
 - `https://SEU-DOMINIO/swagger-ui.html` **deve dar 404** — o Swagger está
   desabilitado em produção (`application-prod.yaml:81-85`).
@@ -307,53 +346,47 @@ Pela interface:
 
 ## 8. Endurecimento pós-primeiro-boot — **obrigatório, mesmo dia**
 
-Resolve a §1.2. Enquanto não for feito, existe um ADMIN com senha pública.
+Não há mais usuário de demonstração para apagar (§1.2): o banco nasce com três
+`perfis`, dois `procedimentos`, uma linha de `configuracao_clinica` e **nenhum
+usuário** além do ADMIN que o próprio backend criou a partir do `.env`. O que
+falta é tirar a senha inicial de circulação.
 
-**8.1 — Entre como `admin` / `senha123`** e, em *Dashboard > Usuários*, crie o
-ADMIN real da clínica (pessoa de verdade, senha forte, telefone correto) e os
-profissionais. Guarde essa senha num gerenciador: sem WhatsApp não há
-autoatendimento de recuperação (§1.4).
+**8.1 — Entre com `ADMIN_USERNAME` / `ADMIN_SENHA`** e troque a senha em
+*Dashboard > Meu perfil*. Guarde a nova num gerenciador: sem WhatsApp não há
+autoatendimento de recuperação (§1.4), e este é o único ADMIN da instalação.
 
-**8.2 — Saia e entre com o ADMIN real.** Confirme que ele enxerga usuários,
-agenda e relatórios antes de apagar qualquer coisa.
-
-**8.3 — Remova os 13 usuários de demonstração:**
+**8.2 — Apague `ADMIN_SENHA` do `.env`:**
 
 ```bash
 cd /opt/prontudigital/docker/prod
-docker compose -f docker-compose.prod.yml exec postgres \
-  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+sed -i 's/^ADMIN_SENHA=.*/ADMIN_SENHA=/' .env
 ```
 
-```sql
--- Confira ANTES o que vai sair (e que seu admin real NÃO está na lista):
-SELECT id, username, nome_completo FROM usuarios
- WHERE username IN ('admin','enfermeiro','enfermeiro.santos','paciente',
-   'paciente.souza','paciente.rodrigues','paciente.almeida','paciente.ferreira',
-   'paciente.costa','paciente.lima','paciente.martins','paciente.barbosa',
-   'paciente.ribeiro');
+O runner só age quando o banco não tem nenhum ADMIN, então a partir daqui ele
+não faz mais nada em boot algum — apagar a linha não muda comportamento, tira a
+senha do disco. Para tirá-la também do **container em execução** (onde ela
+aparece em `docker inspect` e em `/proc/1/environ`), recrie-o:
 
--- Apaga. usuario_perfis, refresh_tokens e codigos_recuperacao_senha têm
--- ON DELETE CASCADE; agendamentos é RESTRICT — numa base nova não há nenhum,
--- então o DELETE passa. Se falhar, é porque a demo já foi usada: nesse caso
--- desative o usuário pela tela em vez de apagar.
-DELETE FROM usuarios WHERE username IN ('admin','enfermeiro','enfermeiro.santos',
-  'paciente','paciente.souza','paciente.rodrigues','paciente.almeida',
-  'paciente.ferreira','paciente.costa','paciente.lima','paciente.martins',
-  'paciente.barbosa','paciente.ribeiro');
-
--- NÃO apague a tabela `perfis`: ADMIN/PROFISSIONAL/PACIENTE vêm da mesma
--- migration e a aplicação depende deles.
-SELECT id, nome FROM perfis;   -- deve continuar com as 3 linhas
+```bash
+docker compose -f docker-compose.prod.yml up -d backend
 ```
+
+`restart` não basta: ele reaproveita o ambiente do container atual.
+
+**8.3 — Crie os usuários reais** em *Dashboard > Usuários*: o ADMIN da clínica
+(pessoa de verdade, com telefone correto) e os profissionais. Saia, entre com o
+ADMIN real e confirme que ele enxerga usuários, agenda e relatórios.
+
+> Se quiser deixar de usar o usuário criado pelo `.env`, **desative-o** pela
+> tela em vez de apagar — um ADMIN sem nenhum registro associado pode ser
+> removido, mas desativar evita a checagem de `RESTRICT` em `agendamentos`.
 
 **8.4 — Confirme que o registro público está fechado** (§1.1) — a correção já
 está no código, isto aqui é a verificação de que a imagem em produção a tem:
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' -X POST https://SEU-DOMINIO/api/auth/registrar \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"teste_bloqueio","senha":"Teste12345","nomeCompleto":"t","email":"t@t.com","perfis":["ADMIN"]}'
+curl -s -o /dev/null -w '%{http_code}
+' -X POST https://SEU-DOMINIO/api/auth/registrar   -H 'Content-Type: application/json'   -d '{"username":"teste_bloqueio","senha":"Teste12345","nomeCompleto":"t","email":"t@t.com","perfis":["ADMIN"]}'
 ```
 
 Esperado: **403**. Se vier **201**, a imagem em produção é anterior à correção
@@ -363,7 +396,7 @@ o endereço para a clínica.
 **8.5 — Preencha os dados da clínica** em *Dashboard > Configuração*: nome,
 CNPJ, endereço, logo e rodapé. Eles entram no cabeçalho dos PDFs (atestados,
 prescrições) e na tela de login. Sem isso os documentos saem com o nome
-genérico "ProntuDigital" da `V28`.
+genérico "ProntuDigital" da `V24`.
 
 ---
 

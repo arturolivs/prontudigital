@@ -8,3 +8,8 @@ CREATE TABLE perfis (
 );
 
 CREATE INDEX idx_perfis_name ON perfis(nome);
+
+INSERT INTO perfis (nome, descricao) VALUES
+('ADMIN', 'Administrador do sistema com acesso total'),
+('PROFISSIONAL', 'Profissional de enfermagem com acesso a agendamentos e pacientes'),
+('PACIENTE', 'Paciente com acesso ao proprio perfil e agendamentos');

@@ -66,6 +66,14 @@ services:
       APP_JWT_ACCESS_EXPIRATION_MS:  ${JWT_ACCESS_EXPIRATION_MS}
       APP_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS}
       ARMAZENAMENTO_DIR: /dados/anexos
+      # Primeiro ADMIN. Usado só no boot em que o banco ainda não tem nenhum
+      # ADMIN; nos seguintes o runner não faz nada. Depois do primeiro acesso
+      # pode (e deve) sair do .env.
+      APP_BOOTSTRAP_ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+      APP_BOOTSTRAP_ADMIN_SENHA:    ${ADMIN_SENHA:-}
+      APP_BOOTSTRAP_ADMIN_NOME:     ${ADMIN_NOME:-Administrador}
+      APP_BOOTSTRAP_ADMIN_EMAIL:    ${ADMIN_EMAIL:-}
+      APP_BOOTSTRAP_ADMIN_TELEFONE: ${ADMIN_TELEFONE:-}
       APP_NOTIFICACOES_HABILITADAS: ${NOTIFICACOES_HABILITADAS:-false}
       WHATSAPP_PHONE_NUMBER_ID:      ${WHATSAPP_PHONE_NUMBER_ID:-}
       WHATSAPP_ACCESS_TOKEN:         ${WHATSAPP_ACCESS_TOKEN:-}

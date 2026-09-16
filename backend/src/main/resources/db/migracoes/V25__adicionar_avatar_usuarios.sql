@@ -1,11 +1,11 @@
 -- =============================================================
--- V29 - Avatar do usuario
+-- V25 - Avatar do usuario
 --
 -- Guarda apenas a referencia ao arquivo, nunca o binario: a imagem
 -- vai para o ArmazenamentoService (volume em disco hoje, objeto em
 -- nuvem no futuro), sob a chave gravada em avatar_chave. Mesma
--- decisao ja tomada para os anexos do prontuario (V20) e para a
--- logo da clinica (V28) — banco pequeno e dump rapido.
+-- decisao ja tomada para os anexos do prontuario (V17) e para a
+-- logo da clinica (V24) — banco pequeno e dump rapido.
 --
 -- Ambas as colunas sao opcionais e andam juntas: ou o usuario tem
 -- avatar (as duas preenchidas) ou nao tem (as duas nulas). O CHECK

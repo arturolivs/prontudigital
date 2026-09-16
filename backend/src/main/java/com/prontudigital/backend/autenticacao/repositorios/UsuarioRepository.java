@@ -22,6 +22,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     boolean existsByCpfAndIdNot(String cpf, Long id);
     boolean existsByCorenAndIdNot(String coren, Long id);
 
+    // Existe algum usuario com o perfil informado? Usado pelo
+    // BootstrapAdminRunner para decidir se cria o ADMIN inicial.
+    boolean existsByUsuarioPerfis_Perfil_Nome(String nomePerfil);
+
     Optional<Usuario> findByUsername(String username);
     Optional<Usuario> findByUuid(UUID uuid);
     Optional<Usuario> findByTelefone(String telefone);

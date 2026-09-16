@@ -45,6 +45,17 @@ app:
     secret:                ${APP_JWT_SECRET}
     access-expiration-ms:  ${APP_JWT_ACCESS_EXPIRATION_MS}
     refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS}
+  # Primeiro ADMIN da instalacao. Sem default de proposito: uma senha padrao
+  # em producao e o mesmo buraco que a antiga migracao de dados de exemplo
+  # abria. Criado uma unica vez, no primeiro boot em que nao existe ADMIN
+  # nenhum — ver BootstrapAdminRunner.
+  bootstrap-admin:
+    habilitado:    ${APP_BOOTSTRAP_ADMIN_HABILITADO:true}
+    username:      ${APP_BOOTSTRAP_ADMIN_USERNAME:}
+    senha:         ${APP_BOOTSTRAP_ADMIN_SENHA:}
+    nome-completo: ${APP_BOOTSTRAP_ADMIN_NOME:Administrador}
+    email:         ${APP_BOOTSTRAP_ADMIN_EMAIL:}
+    telefone:      ${APP_BOOTSTRAP_ADMIN_TELEFONE:}
   notificacoes:
     habilitadas: ${APP_NOTIFICACOES_HABILITADAS:false}
     url-base-confirmacao: ${APP_URL_BASE_CONFIRMACAO}

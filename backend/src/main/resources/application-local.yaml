@@ -29,6 +29,12 @@ app:
     secret: "dev-secret-hs512-prontudigital-chave-de-desenvolvimento-com-64-bytes-no-minimo"
     access-expiration-ms: 600000000
     refresh-expiration-ms: 600000000
+  # Mesmo ADMIN do profile dev — os dois apontam para o banco local.
+  bootstrap-admin:
+    username: admin
+    senha: admin12345
+    nome-completo: "Administrador (dev)"
+    email: admin@prontudigital.local
   notificacoes:
     habilitadas: true
     url-base-confirmacao: "http://localhost:8080/api/confirmacao"
