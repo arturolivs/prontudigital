@@ -10,6 +10,25 @@
 # O Spring Cloud Gateway foi removido — ver Caddyfile.
 # ============================================================
 
+# ------------------------------------------------------------
+# Validação do .env — não é documentação, é o que faz
+# `docker compose config` e `up` falharem (exit 1) quando falta
+# variável obrigatória. Com `${VAR}` puro o Compose só emite um
+# warning e substitui por string vazia.
+#
+# Fora daqui ficam as opcionais e as que têm padrão (`${VAR:-}`):
+# ADMIN_* saem do .env depois do primeiro acesso (§8.2 do DEPLOY.md),
+# NOTIFICACOES_HABILITADAS assume `false` e WHATSAPP_* ficam vazias.
+# ------------------------------------------------------------
+x-env-obrigatorias:
+  - ${DOMINIO:?defina DOMINIO no .env (dominio do site, sem https:// e sem barra)}
+  - ${POSTGRES_DB:?defina POSTGRES_DB no .env}
+  - ${POSTGRES_USER:?defina POSTGRES_USER no .env}
+  - ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env (openssl rand -base64 24)}
+  - ${JWT_SECRET:?defina JWT_SECRET no .env (openssl rand -base64 64)}
+  - ${JWT_ACCESS_EXPIRATION_MS:?defina JWT_ACCESS_EXPIRATION_MS no .env (ex.: 900000)}
+  - ${JWT_REFRESH_EXPIRATION_MS:?defina JWT_REFRESH_EXPIRATION_MS no .env (ex.: 604800000)}
+
 services:
 
   # ----------------------------------------------------------

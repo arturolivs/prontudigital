@@ -6,9 +6,6 @@
 
 ## 🟠 Problemas
 
-- [ ] **Nenhum `.dockerignore`** — contexto do frontend com 596 MB (500 MB de `node_modules`, 95 MB de `.next`); pior, o `COPY . .` sobrescreve o `node_modules` instalado pelo `npm ci` com o do host. → criar `frontend-web/.dockerignore` (`node_modules`, `.next`, `.env*`).
-- [ ] **A validação do `.env` na §5 do DEPLOY.md não valida nada** — `docker compose config` sai com exit 0 mesmo com variável ausente, só emite warning. → usar `${VAR:?mensagem}` nas obrigatórias.
-- [ ] **`MaxRAMPercentage=75` com `memory: 1G`** — heap de 768 MB + metaspace + pilhas encosta no limite; risco de `OOMKilled` (exit 137). → 60–65%.
 - [ ] **Tokens de confirmação gravados inteiros no `access.log` do Caddy** — o controller já redige nos logs dele, o proxy não. → filtro `replace` no bloco `log`.
 - [ ] **Imagens só com `:latest`** — rollback exige rebuild de 8–20 min com o sistema fora. → taggear com o SHA do commit.
 
@@ -23,7 +20,7 @@
 
 ## 🔵 Menores
 
-- [ ] `-Djava.security.egd=file:/dev/./urandom` obsoleto desde o JDK 9 (`backend/Dockerfile.prod:49`).
+- [ ] `-Djava.security.egd=file:/dev/./urandom` obsoleto desde o JDK 9 (`backend/Dockerfile.prod:53`).
 - [ ] Healthcheck do backend testa só a porta TCP — a imagem tem `curl` e o actuator expõe `/actuator/health`.
 - [ ] `restart: always` reinicia até depois de `docker stop` explícito — `unless-stopped` costuma ser o desejado.
 - [ ] `frontend` sem healthcheck — o `depends_on` do Caddy só espera o container iniciar.
@@ -41,6 +38,10 @@
 
 ## ✅ Corrigidos em 16/09/2026
 
+- [x] **Build do frontend quebrava: `frontend-web/public/` não existia** — `frontend-web/Dockerfile.prod` copia `/app/public` do estágio de build, e o diretório não estava no repositório nem é gerado pelo `next build`; `COPY` com origem inexistente falha o build inteiro. → `frontend-web/public/.gitkeep` versionado, com comentário no Dockerfile avisando para não apagar o diretório. `npm run build` local confirma que os três caminhos copiados passam a existir (`.next/standalone/server.js`, `.next/static`, `public`); o build da imagem em si não foi executado — Docker parado na máquina de desenvolvimento.
+- [x] **`.dockerignore` criado** — `frontend-web/.dockerignore` (tira 595 MB do contexto e impede o `COPY . .` de sobrescrever o `node_modules` do `npm ci`) e `backend/.dockerignore` (`target`, `dados`, `.git`).
+- [x] **Validação do `.env` agora valida** — bloco `x-env-obrigatorias` no `docker-compose.prod.yml` com `${VAR:?mensagem}` nas sete obrigatórias; `config` e `up` saem com 1 e a mensagem da variável. `ADMIN_*` ficaram de fora de propósito: saem do `.env` depois do primeiro acesso (§8.2 do `DEPLOY.md`). A §5 do `DEPLOY.md` ganhou os dois checks que a validação não cobre (placeholder `TROQUE` e `ADMIN_*` no primeiro deploy).
+- [x] **`MaxRAMPercentage` 75 → 65** (`backend/Dockerfile.prod`), com o porquê no comentário e o lembrete de revisar junto se o `memory:` do serviço mudar.
 - [x] **Upload de anexo e avatar falhava** — `/dados/anexos` não existia na imagem, o volume nascia `root:root` e o backend roda como `prontu`. `backend/Dockerfile.prod` agora faz `mkdir -p /dados/anexos && chown -R prontu:prontu /dados` antes do `USER`, e o volume nomeado herda esse dono ao ser criado. Em instalação que já subiu antes desta correção o volume existente continua `root:root` — ver a nota da §7 do `DEPLOY.md`.
 - [x] **Backend sem saída para a internet** — estava só na rede `interna` (`internal: true`), sem DNS nem egress. Agora está em `interna` + `externa` no `docker-compose.prod.yml`; sem `ports:` continua inalcançável de fora, e `graph.facebook.com` passa a ser resolvível para quando o WhatsApp for ligado.
 - [x] `DEPLOY.md` §7 ganhou as verificações 7.7 (escrita em `/dados/anexos`) e 7.8 (egress até `graph.facebook.com:443`).

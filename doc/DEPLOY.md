@@ -260,10 +260,31 @@ openssl rand -base64 18   # ADMIN_SENHA — a senha do primeiro acesso
 | `COMANDO_COPIA_EXTERNA` | ⚠️ | Vazia = backup mora no disco que deveria proteger. Ver §9 |
 | `RETENCAO_DIAS` / `RETENCAO_SEMANAIS` | ⬜ | Padrão 14 / 8 |
 
-Valide a substituição antes de subir — este comando falha se faltar variável:
+Valide antes de subir. As obrigatórias da tabela estão declaradas como
+`${VAR:?mensagem}` no bloco `x-env-obrigatorias` do
+`docker-compose.prod.yml`, então o comando abaixo **sai com erro** se alguma
+faltar ou estiver vazia (com `${VAR}` puro o Compose só emitiria um warning e
+substituiria por string vazia — o `up` seguiria adiante com um `JWT_SECRET` em
+branco):
 
 ```bash
 docker compose -f docker-compose.prod.yml config >/dev/null && echo OK
+
+# Faltando, a saída é esta — e vale igual para o `up`:
+# error while interpolating x-env-obrigatorias.[]: required variable
+#   JWT_SECRET is missing a value: defina JWT_SECRET no .env (openssl rand -base64 64)
+```
+
+Duas coisas que a validação **não** pega, confira à mão:
+
+```bash
+# 1. placeholder do .env.prod.example que ficou para trás
+grep -n TROQUE .env && echo 'AINDA HA PLACEHOLDER'
+
+# 2. ADMIN_USERNAME / ADMIN_SENHA — de propósito fora das obrigatórias, porque
+#    saem do arquivo depois do primeiro acesso (§8.2). No PRIMEIRO deploy as
+#    duas precisam estar preenchidas, senão ninguém entra (§1.2): conta = 2
+grep -cE '^ADMIN_(USERNAME|SENHA)=.+' .env
 ```
 
 > **`DOMINIO` entra no bundle do frontend em tempo de build.** Trocar o domínio

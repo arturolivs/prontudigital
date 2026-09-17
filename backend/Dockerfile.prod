@@ -42,10 +42,14 @@ EXPOSE 8080
 
 # Flags JVM otimizadas para container:
 # -XX:+UseContainerSupport  → respeita limits do cgroup
-# -XX:MaxRAMPercentage=75   → usa até 75% da RAM do container
+# -XX:MaxRAMPercentage=65   → heap até 65% do limite do container. Os outros
+#   35% não sobram: metaspace, code cache, pilhas de thread e buffers diretos
+#   ficam fora do heap e também contam no cgroup. Com `memory: 1G` no Compose,
+#   75% deixava o total encostado no limite — risco de OOMKilled (exit 137).
+#   Se o limite do serviço mudar, revise este número junto.
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
-  "-XX:MaxRAMPercentage=75.0", \
+  "-XX:MaxRAMPercentage=65.0", \
   "-Djava.security.egd=file:/dev/./urandom", \
   "-Dspring.profiles.active=prod", \
   "-jar", "app.jar"]
