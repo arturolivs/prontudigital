@@ -33,6 +33,10 @@ public class SecurityConfig {
             "/swagger-resources/**",
             "/webjars/**",
             "/api-docs/**",
+            // Aberto de proposito e o unico endpoint do actuator que fica:
+            // quem o chama e o healthcheck do container, que nao tem
+            // credencial. Devolve apenas {"status":"UP"} — o detalhe esta
+            // desligado por `show-details: never` no application-prod.yaml.
             "/actuator/health",
             "/favicon.ico",
             "/error"
@@ -99,6 +103,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, WEBHOOK_WHATSAPP).permitAll()
                         .requestMatchers(HttpMethod.POST, WEBHOOK_WHATSAPP).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Metricas, heap, GC e pool do Hikari: dado de
+                        // operacao, nao de paciente, mas descreve a
+                        // superficie da API (nomes de rota, contagens) e
+                        // nao tem por que ser legivel por PROFISSIONAL ou
+                        // PACIENTE. Vem DEPOIS de PATHS_PUBLICOS_INFRA,
+                        // entao /actuator/health continua aberto.
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

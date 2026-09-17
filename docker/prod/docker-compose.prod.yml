@@ -156,7 +156,14 @@ services:
           cpus: "2.0"
           memory: 1G
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080'"]
+      # Antes era so `echo > /dev/tcp/127.0.0.1/8080`: provava que a porta
+      # estava ouvindo, nao que a aplicacao respondia — um backend com o pool
+      # do banco esgotado passava no teste e o Compose o dava por saudavel,
+      # liberando o `depends_on` do frontend. Agora e uma requisicao HTTP de
+      # verdade a /actuator/health; o script vem da imagem (backend/
+      # docker-healthcheck.sh) porque o pedido precisa de CRLF literal, que
+      # nao sobrevive ao escape do YAML.
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -90,18 +90,94 @@ logging:
     com.prontudigital: INFO   # logs de negócio mantidos
     com.prontudigital.backend.notificacao:            ${LOG_LEVEL_WHATSAPP:INFO}
     com.prontudigital.backend.compartilhado.clientes: ${LOG_LEVEL_WHATSAPP:INFO}
+
+    # --------------------------------------------------------
+    # Desligado EXPLICITAMENTE, um por um, porque `root: WARN`
+    # não alcança nenhum deles.
+    #
+    # `application.yaml` (base, sempre carregado) declara estes
+    # quatro loggers em DEBUG/TRACE para o dia a dia de
+    # desenvolvimento. O merge de perfil não substitui o mapa
+    # `logging.level` inteiro: ele une chave a chave, e
+    # `logging.level.root` é uma chave diferente de
+    # `logging.level.org.hibernate.SQL`. Sem as linhas abaixo, o
+    # nível de desenvolvimento continua valendo em produção —
+    # confirmado em 17/09/2026 com a stack no ar.
+    #
+    # O que isso causava:
+    #   - toda query gravada no stdout, em produção. O
+    #     `spring.jpa.show-sql: false` acima NÃO cobre este
+    #     caminho: são dois caminhos distintos até o mesmo log.
+    #   - BasicBinder em TRACE grava os PARÂMETROS de cada query:
+    #     CPF, telefone e dado clínico em texto puro no log do
+    #     container — o oposto do que o RNF01 pede.
+    #   - volume: o teto de 50 MB por container da §3.4 do
+    #     DEPLOY.md seria consumido em horas, não em semanas.
+    #   - sob carga, escrever isso tudo em stdout vira parte do
+    #     custo de cada requisição e contamina a medição.
+    #
+    # Para depurar SQL em produção (e só pelo tempo necessário):
+    # suba LOG_LEVEL_SQL=DEBUG e recrie o container. O
+    # BasicBinder segue fora disso de propósito — é ele que
+    # despeja dado de paciente.
+    # --------------------------------------------------------
+    org.hibernate.SQL:                                ${LOG_LEVEL_SQL:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder:    WARN
+    org.springframework.security:                     WARN
+    org.springdoc:                                    WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
-# Actuator — apenas health exposto (usado pelo healthcheck do Docker)
+# ============================================================
+# Actuator — health, metricas e scrape do Prometheus.
+#
+# Alcance: /actuator NAO e roteado pelo Caddy (o Caddyfile manda /api/* para o
+# backend e todo o resto para o Next), entao nada aqui responde pelo dominio
+# publico. A protecao que vale, porem, e a do SecurityConfig: /actuator/**
+# exige ADMIN. Aberto fica so /actuator/health, chamado pelo healthcheck do
+# container, que nao tem credencial.
+#
+# Para coletar durante um teste de carga, de dentro da VPS:
+#   TOKEN=$(curl -s -X POST http://localhost/api/auth/login ... | jq -r .accessToken)
+#   docker compose exec backend bash -c "..."   # ver testes-carga/README.md
+# ============================================================
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,metrics,prometheus
   endpoint:
     health:
+      # Detalhe do health expoe estado do banco e espaco em disco. O
+      # healthcheck do container so precisa do "UP" agregado.
       show-details: never
+  metrics:
+    tags:
+      application: prontudigital
+    distribution:
+      # Sem isto, http_server_requests traz media, contagem e maximo — e media
+      # esconde exatamente a cauda que o RNF05 cobra. Com isto o p50/p95/p99 sai
+      # por rota do proprio backend, comparavel com o que o k6 mede do lado de
+      # fora: a diferenca entre os dois numeros e o custo de rede + Caddy.
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+      # --------------------------------------------------------
+      # `percentiles-histogram` e `slo` ficam FORA, e nao por
+      # esquecimento: qualquer um dos dois transforma o timer num
+      # histograma do Prometheus, e ai o exportador deixa de
+      # emitir as linhas `quantile=` — um metric family nao pode
+      # ser histogram e summary ao mesmo tempo. Testado nas tres
+      # combinacoes em 17/09/2026 (Boot 3.5.3):
+      #
+      #   percentiles-histogram: true  -> 518 buckets, 0 quantile
+      #   slo apenas                   ->  18 buckets, 0 quantile
+      #   so percentiles               ->   0 buckets, p50/p95/p99
+      #
+      # A terceira e a que serve aqui: nao ha Prometheus no ar
+      # para rodar histogram_quantile(), a leitura e um `curl` +
+      # `grep`, e o numero que se quer comparar com o do k6 e o
+      # percentil pronto.
+      # --------------------------------------------------------
 
 # Swagger desabilitado em produção
 springdoc:

@@ -36,6 +36,14 @@ RUN chown prontu:prontu app.jar
 # porque o processo roda como prontu.
 RUN mkdir -p /dados/anexos && chown -R prontu:prontu /dados
 
+# Healthcheck do Compose. Copiado para dentro da imagem em vez de escrito
+# como uma linha no docker-compose.prod.yml porque o pedido HTTP precisa de
+# CRLF literal entre os cabecalhos, e o YAML do Compose transforma o escape
+# em quebra de linha real. O chmod e explicito: o bit de execucao nao
+# sobrevive a um clone feito no Windows.
+COPY docker-healthcheck.sh /usr/local/bin/healthcheck.sh
+RUN chmod +x /usr/local/bin/healthcheck.sh
+
 USER prontu
 
 EXPOSE 8080

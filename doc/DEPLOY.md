@@ -18,6 +18,7 @@
 | [`CHECKLIST_PRODUCAO.md`](../CHECKLIST_PRODUCAO.md) | *O que faltava* no código e na infra — levantamento de 11/08/2026 |
 | [`DEPLOY_SEM_WHATSAPP.md`](../DEPLOY_SEM_WHATSAPP.md) | O recorte de subir com a mensageria desligada e ligá-la depois |
 | [`docker/prod/scripts/README.md`](../docker/prod/scripts/README.md) | Backup e restauração (RNF02) em detalhe |
+| [`testes-carga/README.md`](../testes-carga/README.md) | *Se aguenta* — teste de carga do RNF05/RNF06 e os critérios de folga |
 
 ---
 
