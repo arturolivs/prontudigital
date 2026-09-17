@@ -23,9 +23,11 @@
 
 > **Estado:** executados contra a stack real em 17/09/2026 (Docker Desktop,
 > backend + Postgres do `docker-compose.prod.yml`, limites de cgroup conferidos
-> e idênticos aos da VPS). O `smoke` sai com **exit 0**. O `nominal`
-> **reprovou**, e por larga margem — o resultado e o diagnóstico estão no §4.1.
-> Antes de qualquer ajuste de infraestrutura, leia o §6.0.
+> e idênticos aos da VPS). O `smoke` sai com **exit 0**.
+>
+> O `nominal` reprovou (§4.1), o diagnóstico apontou um N+1 na agenda (§6.0),
+> a correção foi aplicada e o cenário repetido (§4.2): ganho de 5× a 14× por
+> tag, zero erros — mas **ainda reprova**, agora por relatório e exportação.
 
 ---
 
@@ -284,7 +286,86 @@ passam a fazer diferença mensurável.
 
 ---
 
-## 5. O que o k6 não mede
+## 4.2 Mesmo cenário, depois da correção do §6.0 — ainda reprovado, mas outro sistema
+
+Mesma máquina, mesmos limites, mesma massa, mesmo script. A única diferença é a
+projeção da agenda.
+
+| Tag | Limite | Antes | Depois | |
+|---|---|---|---|---|
+| `login` | < 2 s | 9,86 s | **0,68 s** | ✓ 14× |
+| `escrita` | < 1500 ms | 11,49 s | **1,49 s** | ✓ 7,7× |
+| `leitura` | < 800 ms | 15,81 s | 3,00 s | ✗ 5,3× melhor |
+| `documento` | < 5 s | 17,80 s | 9,16 s | ✗ 1,9× melhor |
+| `relatorio` | < 3 s | 22,64 s | 15,14 s | ✗ 1,5× melhor |
+| `http_req_failed` | < 1% | 0,05% | **0,00%** | ✓ |
+
+E o indicador mais direto, a métrica customizada da própria tela de agenda:
+
+| | Antes | Depois |
+|---|---|---|
+| `tela_agenda_ms` p95 | 17,22 s | **1,34 s** |
+| `tela_agenda_ms` mediana | 5,17 s | **38,6 ms** |
+
+Com o sistema mais rápido, os mesmos 100 VUs completam mais trabalho: **6.157
+iterações contra 3.429**, e **12,32 req/s contra 7,08**. Nenhum check falhou em
+9.429 — contra 3 falhas antes.
+
+### O gargalo mudou de lugar
+
+Não é mais a agenda: é **relatório e exportação**, que nunca foram tocados e
+agora são o caminho pesado que sobra. `/api/relatorios/atendimentos/exportar`
+gera PDF/XLSX com OpenPDF e POI dentro da requisição, e `relatorio` agrega 90
+dias de agendamento.
+
+Ou seja: o §6.0 não era *o* gargalo, era o *primeiro*. Os próximos são esses
+dois — e valem uma investigação do mesmo tipo (`LOG_LEVEL_SQL=DEBUG`, §2.3)
+antes de qualquer conclusão.
+
+> **Cuidado ao ler o `/actuator/prometheus` depois do teste.** Os percentis do
+> Micrometer decaem numa janela de ~2 min, então uma leitura feita ao final
+> reflete a rampa de descida, não o platô. A comparação que vale é k6 antes ×
+> k6 depois, nas mesmas condições — que é a tabela acima.
+
+---
+
+## 4.3 Mistura realista — a rodada que serve para dimensionar hardware
+
+Os §4.1 e §4.2 usam `PESO_RELATORIO=0.10` (5% relatório + 5% exportação). A 12
+req/s isso dá **~900 relatórios em 13 minutos** — nenhuma clínica de quatro
+profissionais gera isso. Essa mistura é boa para estressar o caminho mais caro,
+e péssima para decidir tamanho de servidor.
+
+Com `-e PESO_RELATORIO=0.005` (a fatia excedente volta para leitura), mesmos 100
+VUs, mesma massa, mesmos limites de container:
+
+| Tag | Limite | §4.2 (10% relatório) | §4.3 (0,5%) | |
+|---|---|---|---|---|
+| `login` | < 2 s | 0,68 s | **199 ms** | ✓ |
+| `escrita` | < 1500 ms | 1,49 s | **172 ms** | ✓ |
+| `leitura` | < 800 ms | 3,00 s | **486 ms** | ✓ |
+| `documento` | < 5 s | 9,16 s | **2,59 s** | ✓ |
+| `relatorio` | < 3 s | 15,14 s | 3,47 s | ✗ marginal |
+| `http_req_failed` | < 1% | 0,00% | **0,00%** | ✓ |
+
+10.510 requisições, 13,3 req/s, **mediana global de 18,8 ms**, zero erros. Só
+`relatorio` estoura, e por pouco.
+
+### Consumo de recursos — a base para dimensionar
+
+| | mediana | p95 | máximo |
+|---|---|---|---|
+| CPU backend | 43,4% | 118,9% | 137,2% |
+| CPU Postgres | 34,3% | 101,1% | 112,1% |
+| **soma** | **0,78 vCPU** | **2,20 vCPU** | — |
+
+Memória máxima: backend 53% de 1 GB (~543 MB), Postgres 26,8% de 512 MB
+(~137 MB). Nenhum OOMKilled, nenhum restart.
+
+> **O que esta medida NÃO inclui:** Caddy e frontend não subiram nesta bancada
+> (sem domínio real não há certificado). Na VPS os dois estão no caminho da
+> requisição — TLS na borda e SSR do Next — e consomem CPU que não aparece
+> acima. Some pelo menos os limites declarados (`0.5` + `0.5`) ao planejar.
 
 **O RNF05 é tempo percebido, o k6 mede TTFB.** Ele não executa JavaScript, não
 baixa CSS nem imagens e não renderiza nada. Os 3 segundos do requisito incluem
@@ -306,7 +387,31 @@ apertado da stack (`0.5`, em `docker-compose.prod.yml`).
 
 O §6.0 foi **medido**; os demais continuam sendo hipótese a confirmar.
 
-### 6.0 N+1 na tela de agenda — medido em 17/09/2026 ⚠️
+### 6.0 N+1 na tela de agenda — medido e **corrigido** em 17/09/2026 ✅
+
+> **Correção aplicada.** `AgendamentoRepository.buscarAgendaDoProfissional` é
+> uma projeção JPQL direta para `AgendamentoViewDTO`, com `LEFT JOIN Usuario …
+> ON` para os dois nomes. `visualizarAgenda` passou a usá-la no lugar de
+> `findByProfissionalUuidAndInicioEmBetween` + `convertToViewDTO`.
+>
+> | | Antes | Depois |
+> |---|---|---|
+> | Queries (visão mensal, 198 linhas) | **978** | **1** |
+> | Latência DIA (9 linhas) | 70 ms | 54 ms |
+> | Latência SEMANA (45) | 363 ms | 57 ms |
+> | Latência MES (198) | 1410 ms | **70 ms** |
+>
+> A latência ficou praticamente plana em relação ao número de linhas, que é a
+> assinatura de um N+1 eliminado. Há um teste de guarda
+> (`VisualizarAgenda.naoUsaCaminhoDeEntidade`) que falha se algum dos dois
+> caminhos antigos voltar.
+>
+> O diagnóstico original fica abaixo, porque explica *por que* eram 978 e por
+> que a projeção resolve os dois lados de uma vez.
+
+---
+
+#### O diagnóstico original
 
 Na primeira execução do `smoke`, o p95 de `leitura` estourou e o
 `/actuator/prometheus` apontou a rota: `/api/agendamentos/agenda`, p95 de
@@ -340,9 +445,16 @@ queries por segundo contra um Postgres limitado a `cpus: "1.0"`. Nenhum tamanho
 de pool resolve — a fila só muda de lugar. Subir a VPS de 4 para 8 GB também não:
 o problema é número de round-trips, não memória.
 
-Isto é um achado, não um item já corrigido. O caminho é uma projeção com `JOIN`
-(ou `JOIN FETCH`) em `visualizarAgenda`, devolvendo nome e evolução na mesma
-consulta. Fica fora do escopo destes scripts.
+**Ainda presente em dois lugares**, deliberadamente fora desta correção:
+
+- `obterMeusAgendamentos` — a lista do próprio paciente. Mesmo defeito, mas o
+  volume é a agenda de uma pessoa, não a de uma clínica, e o cenário de carga
+  nem a exercita (os VUs são `PROFISSIONAL`).
+- `getTratamentosPorAvaliacao` — poucos registros por avaliação.
+
+`convertToDetalhadoDTO` **continua** carregando a entidade, e deve: ele mapeia
+as duas evoluções, que ali são o conteúdo da tela. É registro único e mediu
+0,03 s de p95 no cenário nominal.
 
 > A medição acima é de Docker Desktop no Windows, 1 VU, cache frio — **não** é a
 > VPS e não é o veredito do RNF. O que vale aqui é a razão 978:1, que independe

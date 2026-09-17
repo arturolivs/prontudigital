@@ -228,15 +228,31 @@ function garantirSessao(dados) {
 //    5% relatorio
 //    5% documento (PDF/XLSX)
 // -------------------------------------------------------------
+// Fatia de relatorio + exportacao. O padrao 0.10 (5% + 5%) e o que foi usado
+// nas medidas de 17/09/2026 do §4.1 e §4.2 do README — e e PESADO de proposito:
+// a 12 req/s, 10% dao ~900 relatorios em 13 minutos, o que nenhuma clinica de
+// quatro profissionais gera. Serve para estressar o caminho mais caro.
+//
+// Para dimensionar hardware, use um valor realista:
+//   -e PESO_RELATORIO=0.005   ~ algumas dezenas de relatorios por dia
+//
+// A fatia que sai daqui volta para leitura, que e o uso de fato dominante.
+const PESO_RELATORIO = Number(__ENV.PESO_RELATORIO || 0.10);
+
 export function jornadaClinica(dados) {
   garantirSessao(dados);
 
+  const escritaAte    = 0.20;
+  const prontuarioAte = escritaAte + 0.10;
+  const relatorioAte  = prontuarioAte + PESO_RELATORIO / 2;
+  const documentoAte  = prontuarioAte + PESO_RELATORIO;
+
   const sorte = Math.random();
-  if (sorte < 0.60) lerAgenda();
-  else if (sorte < 0.80) escrever(dados);
-  else if (sorte < 0.90) prontuario();
-  else if (sorte < 0.95) relatorio();
-  else documento();
+  if (sorte < escritaAte) escrever(dados);
+  else if (sorte < prontuarioAte) prontuario();
+  else if (sorte < relatorioAte) relatorio();
+  else if (sorte < documentoAte) documento();
+  else lerAgenda();
 
   // Think time. Sem ele, 100 VUs viram ~100 req/s — dez vezes o que 100
   // pessoas de verdade geram — e o teste reprova uma configuracao que
