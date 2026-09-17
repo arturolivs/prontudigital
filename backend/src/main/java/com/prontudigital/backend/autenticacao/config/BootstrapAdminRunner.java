@@ -70,22 +70,24 @@ public class BootstrapAdminRunner implements ApplicationRunner {
         String senha = propriedades.getSenha();
 
         if (username == null || senha == null || senha.isBlank()) {
-            log.warn("Nenhum ADMIN no banco e APP_BOOTSTRAP_ADMIN_USERNAME/SENHA nao"
-                    + " informados: ninguem consegue entrar no sistema. Defina as duas"
-                    + " variaveis e reinicie o backend.");
+            log.warn("Nenhum ADMIN no banco e username/senha do ADMIN inicial nao"
+                    + " informados: ninguem consegue entrar no sistema. Em producao,"
+                    + " preencha ADMIN_USERNAME no .env e secrets/admin.senha, depois"
+                    + " recrie o backend (up -d backend).");
             return;
         }
 
         if (senha.length() < TAMANHO_MINIMO_SENHA) {
-            log.error("APP_BOOTSTRAP_ADMIN_SENHA tem menos de {} caracteres;"
-                    + " ADMIN inicial NAO criado.", TAMANHO_MINIMO_SENHA);
+            log.error("A senha do ADMIN inicial tem menos de {} caracteres;"
+                    + " ADMIN inicial NAO criado. Em producao ela esta em"
+                    + " secrets/admin.senha.", TAMANHO_MINIMO_SENHA);
             return;
         }
 
         if (usuarioRepository.existsByUsername(username)) {
             log.warn("Username '{}' ja existe mas nao e ADMIN; bootstrap ignorado."
-                    + " Escolha outro APP_BOOTSTRAP_ADMIN_USERNAME ou promova o"
-                    + " usuario pelo banco.", username);
+                    + " Escolha outro ADMIN_USERNAME ou promova o usuario pelo"
+                    + " banco.", username);
             return;
         }
 
@@ -115,7 +117,7 @@ public class BootstrapAdminRunner implements ApplicationRunner {
         usuarioRepository.save(admin);
 
         log.info("ADMIN inicial '{}' criado. Troque a senha no primeiro acesso e"
-                + " remova APP_BOOTSTRAP_ADMIN_SENHA do ambiente.", username);
+                + " esvazie secrets/admin.senha (esvazie, nao apague).", username);
     }
 
     private String normalizar(String valor) {

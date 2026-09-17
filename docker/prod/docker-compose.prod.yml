@@ -17,17 +17,21 @@
 # warning e substitui por string vazia.
 #
 # Fora daqui ficam as opcionais e as que têm padrão (`${VAR:-}`):
-# ADMIN_* saem do .env depois do primeiro acesso (§8.2 do DEPLOY.md),
+# ADMIN_USERNAME sai do .env depois do primeiro acesso (§8.2 do DEPLOY.md),
 # NOTIFICACOES_HABILITADAS assume `false` e WHATSAPP_* ficam vazias.
+#
+# Senha do banco, JWT_SECRET e senha do primeiro ADMIN não estão aqui nem em
+# lugar nenhum do .env: são arquivos em ./secrets (ver o bloco `secrets` no
+# fim). Variável de ambiente aparece inteira em `docker inspect` e em
+# /proc/1/environ — arquivo montado em /run/secrets, não.
 # ------------------------------------------------------------
 x-env-obrigatorias:
   - ${DOMINIO:?defina DOMINIO no .env (dominio do site, sem https:// e sem barra)}
   - ${POSTGRES_DB:?defina POSTGRES_DB no .env}
   - ${POSTGRES_USER:?defina POSTGRES_USER no .env}
-  - ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env (openssl rand -base64 24)}
-  - ${JWT_SECRET:?defina JWT_SECRET no .env (openssl rand -base64 64)}
   - ${JWT_ACCESS_EXPIRATION_MS:?defina JWT_ACCESS_EXPIRATION_MS no .env (ex.: 900000)}
   - ${JWT_REFRESH_EXPIRATION_MS:?defina JWT_REFRESH_EXPIRATION_MS no .env (ex.: 604800000)}
+  - ${ACME_EMAIL:?defina ACME_EMAIL no .env (e-mail do Let's Encrypt, para aviso de expiracao de certificado)}
 
 services:
 
@@ -39,9 +43,12 @@ services:
     container_name: prontudigital-db
     restart: always
     environment:
-      POSTGRES_DB:       ${POSTGRES_DB}
-      POSTGRES_USER:     ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB:   ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      # A imagem oficial aceita o sufixo _FILE em qualquer POSTGRES_*: lê o
+      # conteúdo do arquivo e não deixa a senha no ambiente do processo.
+      # Só é usada na criação do volume; depois disso a senha vive no banco.
+      POSTGRES_PASSWORD_FILE: /run/secrets/db.password
       # Mesmo fuso do backend: as colunas são TIMESTAMP (sem fuso) e vários
       # DEFAULT CURRENT_TIMESTAMP gravam pelo relógio do banco.
       TZ:   America/Sao_Paulo
@@ -50,6 +57,8 @@ services:
       - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    secrets:
+      - db.password
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 15s
@@ -57,6 +66,19 @@ services:
       retries: 5
     networks:
       - interna
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # O entrypoint da imagem sobe como root, ajusta dono e permissão do
+      # PGDATA e só então troca para o usuário `postgres` (gosu). Sem estas
+      # cinco capabilities ele aborta antes de o banco existir.
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
     deploy:
       resources:
         limits:
@@ -77,11 +99,14 @@ services:
       TZ: America/Sao_Paulo
       SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_FLYWAY_URL:          jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_FLYWAY_USER:         ${POSTGRES_USER}
-      SPRING_FLYWAY_PASSWORD:     ${POSTGRES_PASSWORD}
-      APP_JWT_SECRET:                ${JWT_SECRET}
+      # Lê /run/secrets como config tree: cada arquivo montado ali vira uma
+      # propriedade com o nome do arquivo. É isto que traz senha do banco,
+      # segredo do JWT e senha do primeiro ADMIN sem passar por variável de
+      # ambiente. Precisa estar aqui e não no application-prod.yaml: import
+      # declarado em arquivo profile-specific não é aplicado.
+      SPRING_CONFIG_IMPORT: optional:configtree:/run/secrets/
       APP_JWT_ACCESS_EXPIRATION_MS:  ${JWT_ACCESS_EXPIRATION_MS}
       APP_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS}
       ARMAZENAMENTO_DIR: /dados/anexos
@@ -89,7 +114,6 @@ services:
       # ADMIN; nos seguintes o runner não faz nada. Depois do primeiro acesso
       # pode (e deve) sair do .env.
       APP_BOOTSTRAP_ADMIN_USERNAME: ${ADMIN_USERNAME:-}
-      APP_BOOTSTRAP_ADMIN_SENHA:    ${ADMIN_SENHA:-}
       APP_BOOTSTRAP_ADMIN_NOME:     ${ADMIN_NOME:-Administrador}
       APP_BOOTSTRAP_ADMIN_EMAIL:    ${ADMIN_EMAIL:-}
       APP_BOOTSTRAP_ADMIN_TELEFONE: ${ADMIN_TELEFONE:-}
@@ -103,6 +127,11 @@ services:
       - "8080"
     volumes:
       - anexos_data:/dados/anexos
+    secrets:
+      - spring.datasource.password
+      - spring.flyway.password
+      - app.jwt.secret
+      - app.bootstrap-admin.senha
     depends_on:
       postgres:
         condition: service_healthy
@@ -112,6 +141,15 @@ services:
       # o backend continua inalcançável de fora.
       - interna
       - externa
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      # A JVM roda como `prontu`, não abre porta < 1024 e não troca de
+      # usuário — nenhuma capability é necessária.
+      - ALL
+    # Sem `read_only: true`: além de /dados/anexos (volume, gravável de
+    # qualquer forma), a JVM escreve em /tmp — hsperfdata e o diretório
+    # temporário do Tomcat para upload de multipart.
     deploy:
       resources:
         limits:
@@ -143,6 +181,16 @@ services:
         condition: service_healthy
     networks:
       - interna
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # O server.js do build standalone não escreve em lugar nenhum do
+    # sistema de arquivos da aplicação — só precisa dos dois temporários.
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /app/.next/cache:size=64m,uid=1001,gid=1001
     deploy:
       resources:
         limits:
@@ -155,6 +203,7 @@ services:
     restart: always
     environment:
       DOMINIO: ${DOMINIO}
+      ACME_EMAIL: ${ACME_EMAIL}
     ports:
       - "80:80"
       - "443:443"
@@ -169,6 +218,16 @@ services:
     networks:
       - interna
       - externa
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # Única capability que sobra: abrir as portas 80 e 443, que são
+      # privilegiadas (< 1024).
+      - NET_BIND_SERVICE
+    # Sem `read_only: true`: o Caddy grava certificados em /data, estado em
+    # /config e access.log em /var/log/caddy — os três são volumes.
     deploy:
       resources:
         limits:
@@ -186,6 +245,35 @@ volumes:
     name: prontudigital_caddy_config
   caddy_logs:
     name: prontudigital_caddy_logs
+
+# ------------------------------------------------------------
+# Segredos em arquivo, não em variável de ambiente.
+#
+# São TRÊS arquivos em ./secrets, criados antes do primeiro `up` (§5.1 do
+# DEPLOY.md); o Compose recusa subir se faltar algum.
+#
+# A chave de cada entrada vira o nome do arquivo montado em /run/secrets.
+# Isso é o que faz o esquema funcionar sem código: o backend importa o
+# diretório como config tree do Spring (`spring.config.import` no
+# application-prod.yaml), e ali **o nome do arquivo é o nome da propriedade**.
+# Daí `spring.datasource.password` e não `db.password` — o Spring não aceita
+# indireção (`${db.password}` dentro do YAML não resolve contra o config tree,
+# ele vai parar no JDBC como literal e o banco recusa a conexão).
+#
+# Por isso o mesmo ./secrets/db.password aparece três vezes, com nomes
+# diferentes: um para o Postgres, um para o Hikari, um para o Flyway.
+# ------------------------------------------------------------
+secrets:
+  db.password:                   # POSTGRES_PASSWORD_FILE
+    file: ./secrets/db.password
+  spring.datasource.password:    # pool do backend
+    file: ./secrets/db.password
+  spring.flyway.password:        # migrations (o Flyway abre conexão própria)
+    file: ./secrets/db.password
+  app.jwt.secret:
+    file: ./secrets/jwt.secret
+  app.bootstrap-admin.senha:
+    file: ./secrets/admin.senha
 
 networks:
   interna:

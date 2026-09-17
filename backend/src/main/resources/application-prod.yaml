@@ -1,8 +1,18 @@
 # ============================================================
 # application-prod.yaml — Backend
 # Ativado com: -Dspring.profiles.active=prod
-# TODAS as variáveis sensíveis devem vir de variáveis de ambiente
-# — nenhum valor hardcoded aqui.
+#
+# Nenhum valor sensível fica aqui. O que não é segredo vem de variável de
+# ambiente; senha do banco, segredo do JWT e senha do primeiro ADMIN vêm de
+# ARQUIVO, montados em /run/secrets pelo `secrets:` do
+# docker-compose.prod.yml e lidos como config tree do Spring — onde o nome do
+# arquivo é o nome da propriedade. Por isso as quatro propriedades abaixo
+# aparecem só como comentário: quem as define é o arquivo montado.
+#
+# O `spring.config.import` que ativa isso está no compose, como
+# SPRING_CONFIG_IMPORT, e NÃO aqui: import declarado em arquivo
+# profile-specific (application-prod.yaml) não é aplicado — testado em
+# 16/09/2026, o boot falha com "password authentication failed".
 # ============================================================
 
 spring:
@@ -12,7 +22,7 @@ spring:
   datasource:
     url:      ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    # password: /run/secrets/spring.datasource.password
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -28,7 +38,7 @@ spring:
   flyway:
     url:      ${SPRING_FLYWAY_URL}
     user:     ${SPRING_FLYWAY_USER}
-    password: ${SPRING_FLYWAY_PASSWORD}
+    # password: /run/secrets/spring.flyway.password
     locations: classpath:db/migracoes
     baseline-on-migrate: false  # false em prod — migrações devem ser explícitas
 
@@ -42,7 +52,9 @@ server:
 
 app:
   jwt:
-    secret:                ${APP_JWT_SECRET}
+    # secret: /run/secrets/app.jwt.secret — sem default de propósito: faltando
+    # o arquivo, o boot falha em JwtTokenProvider com "Could not resolve
+    # placeholder 'app.jwt.secret'" em vez de assinar token com valor vazio.
     access-expiration-ms:  ${APP_JWT_ACCESS_EXPIRATION_MS}
     refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS}
   # Primeiro ADMIN da instalacao. Sem default de proposito: uma senha padrao
@@ -52,7 +64,10 @@ app:
   bootstrap-admin:
     habilitado:    ${APP_BOOTSTRAP_ADMIN_HABILITADO:true}
     username:      ${APP_BOOTSTRAP_ADMIN_USERNAME:}
-    senha:         ${APP_BOOTSTRAP_ADMIN_SENHA:}
+    # Sobrescrita por /run/secrets/app.bootstrap-admin.senha. Vazia depois do
+    # primeiro acesso: o arquivo secrets/admin.senha é esvaziado, não apagado
+    # (§8.2 do DEPLOY.md), e senha vazia significa "não criar ADMIN nenhum".
+    senha:         ""
     nome-completo: ${APP_BOOTSTRAP_ADMIN_NOME:Administrador}
     email:         ${APP_BOOTSTRAP_ADMIN_EMAIL:}
     telefone:      ${APP_BOOTSTRAP_ADMIN_TELEFONE:}

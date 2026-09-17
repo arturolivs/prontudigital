@@ -228,37 +228,65 @@ antes do clone: arquivo editado solto na VPS some no próximo `git pull`.
 
 ---
 
-## 5. Configuração — `docker/prod/.env`
+## 5. Configuração — `.env` e `secrets/`
+
+A configuração de produção está em dois lugares, de propósito:
+
+- **`docker/prod/.env`** — o que não é segredo (domínio, nome do banco,
+  expiração dos tokens, flags). Vira variável de ambiente nos containers.
+- **`docker/prod/secrets/`** — um arquivo por segredo. Variável de ambiente
+  aparece inteira em `docker inspect` e em `/proc/1/environ`, legível por
+  qualquer um do grupo `docker`; arquivo montado em `/run/secrets` não.
+
+### 5.1 Segredos
+
+Gere **na VPS**, não reaproveite de lugar nenhum. O `-n` implícito do
+`printf '%s'` é o que importa: com quebra de linha no fim, a senha vira
+`"senha\n"` e o login falha.
 
 ```bash
 cd /opt/prontudigital/docker/prod
-cp .env.prod.example .env
-chmod 600 .env
+mkdir -p secrets && chmod 700 secrets
+
+printf '%s' "$(openssl rand -base64 24)" > secrets/db.password   # senha do banco
+printf '%s' "$(openssl rand -base64 64)" > secrets/jwt.secret    # HS512 exige chave longa
+printf '%s' "$(openssl rand -base64 18)" > secrets/admin.senha   # 1º acesso
+
+chmod 600 secrets/*
+cat secrets/admin.senha    # anote num gerenciador antes de seguir
 ```
 
-Gere os segredos **na VPS**, não reaproveite de lugar nenhum:
+Detalhes de cada um e o que fazer depois do primeiro acesso:
+`docker/prod/secrets/README.md`. O Compose recusa subir se faltar algum:
+
+```
+error while creating mount source path ... secrets/jwt.secret: no such file or directory
+```
+
+### 5.2 `.env`
 
 ```bash
-openssl rand -base64 24   # POSTGRES_PASSWORD
-openssl rand -base64 64   # JWT_SECRET (HS512 exige chave longa)
-openssl rand -base64 18   # ADMIN_SENHA — a senha do primeiro acesso
+cp .env.prod.example .env
+chmod 600 .env
 ```
 
 | Variável | Obrigatória | Observação |
 |---|---|---|
 | `DOMINIO` | ✅ | Sem `https://` e sem barra. Usado pelo Caddy, pelo build do frontend e no link de confirmação |
+| `ACME_EMAIL` | ✅ | E-mail da conta Let's Encrypt — recebe o aviso de certificado a vencer. **O Caddy não sobe sem ele** |
 | `POSTGRES_DB` / `POSTGRES_USER` | ✅ | Pode manter os valores do exemplo |
-| `POSTGRES_PASSWORD` | ✅ | **Só é lida na criação do volume.** Trocar depois exige `ALTER USER` no banco |
-| `JWT_SECRET` | ✅ | Trocar invalida todos os tokens — todo mundo é deslogado |
 | `JWT_ACCESS_EXPIRATION_MS` | ✅ | `900000` (15 min) |
 | `JWT_REFRESH_EXPIRATION_MS` | ✅ | `604800000` (7 dias) — precisa bater com o `maxAge` do cookie `__pd_rt` |
 | `ADMIN_USERNAME` | ✅ | Login do primeiro ADMIN. Sem ele **ninguém consegue entrar**: o banco nasce sem usuário nenhum (§1.2) |
-| `ADMIN_SENHA` | ✅ | Mínimo 8 caracteres. Gere com `openssl rand -base64 18` e guarde num gerenciador. Apague daqui depois do primeiro acesso (§8.1) |
 | `ADMIN_NOME` / `ADMIN_EMAIL` / `ADMIN_TELEFONE` | ⬜ | Só aparência e contato; o e-mail, se informado, precisa ser único |
 | `NOTIFICACOES_HABILITADAS` | ✅ | **`false` no primeiro deploy.** Ver §1.4 e `DEPLOY_SEM_WHATSAPP.md` |
 | `WHATSAPP_*` (4) | ⬜ | Deixe vazias enquanto a flag acima for `false` |
 | `COMANDO_COPIA_EXTERNA` | ⚠️ | Vazia = backup mora no disco que deveria proteger. Ver §9 |
 | `RETENCAO_DIAS` / `RETENCAO_SEMANAIS` | ⬜ | Padrão 14 / 8 |
+
+A senha do banco, o segredo do JWT e a senha do primeiro ADMIN **não estão
+nesta tabela porque não são variáveis de ambiente** — são os três arquivos da
+§5.1.
 
 Valide antes de subir. As obrigatórias da tabela estão declaradas como
 `${VAR:?mensagem}` no bloco `x-env-obrigatorias` do
@@ -278,13 +306,15 @@ docker compose -f docker-compose.prod.yml config >/dev/null && echo OK
 Duas coisas que a validação **não** pega, confira à mão:
 
 ```bash
-# 1. placeholder do .env.prod.example que ficou para trás
-grep -n TROQUE .env && echo 'AINDA HA PLACEHOLDER'
+# 1. ADMIN_USERNAME fora das obrigatórias de propósito: sai do .env depois do
+#    primeiro acesso (§8.2). No PRIMEIRO deploy ele e a senha precisam estar
+#    preenchidos, senão ninguém entra (§1.2)
+grep -E '^ADMIN_USERNAME=.+' .env && [ -s secrets/admin.senha ] && echo 'ADMIN ok'
 
-# 2. ADMIN_USERNAME / ADMIN_SENHA — de propósito fora das obrigatórias, porque
-#    saem do arquivo depois do primeiro acesso (§8.2). No PRIMEIRO deploy as
-#    duas precisam estar preenchidas, senão ninguém entra (§1.2): conta = 2
-grep -cE '^ADMIN_(USERNAME|SENHA)=.+' .env
+# 2. nenhum segredo terminando em quebra de linha (viraria parte da senha)
+for f in secrets/db.password secrets/jwt.secret secrets/admin.senha; do
+  [ -s "$f" ] && [ -z "$(tail -c1 "$f")" ] && echo "$f termina em \\n — refaça com printf '%s'"
+done
 ```
 
 > **`DOMINIO` entra no bundle do frontend em tempo de build.** Trocar o domínio
@@ -362,6 +392,15 @@ docker compose -f docker-compose.prod.yml exec backend \
 # 7.8 — saída para a internet (o WhatsApp Cloud API depende dela)
 docker compose -f docker-compose.prod.yml exec backend \
   bash -c 'echo > /dev/tcp/graph.facebook.com/443' && echo "egress ok"
+
+# 7.9 — nenhum segredo no ambiente dos containers (devem sair vazios)
+docker inspect prontudigital-backend prontudigital-db \
+  --format '{{range .Config.Env}}{{println .}}{{end}}' \
+  | grep -iE 'password=|secret=|senha=' | grep -v '=$'
+
+# 7.10 — cabeçalhos de segurança chegando ao navegador
+curl -sI https://SEU-DOMINIO/login \
+  | grep -iE 'content-security-policy|permissions-policy|strict-transport'
 ```
 
 > **7.7 falhou com `Permission denied`?** O volume `prontudigital_anexos_prod`
@@ -395,23 +434,19 @@ falta é tirar a senha inicial de circulação.
 *Dashboard > Meu perfil*. Guarde a nova num gerenciador: sem WhatsApp não há
 autoatendimento de recuperação (§1.4), e este é o único ADMIN da instalação.
 
-**8.2 — Apague `ADMIN_SENHA` do `.env`:**
+**8.2 — Esvazie `secrets/admin.senha`** — esvazie, não apague: o Compose exige
+que o arquivo exista.
 
 ```bash
 cd /opt/prontudigital/docker/prod
-sed -i 's/^ADMIN_SENHA=.*/ADMIN_SENHA=/' .env
-```
-
-O runner só age quando o banco não tem nenhum ADMIN, então a partir daqui ele
-não faz mais nada em boot algum — apagar a linha não muda comportamento, tira a
-senha do disco. Para tirá-la também do **container em execução** (onde ela
-aparece em `docker inspect` e em `/proc/1/environ`), recrie-o:
-
-```bash
+: > secrets/admin.senha
 docker compose -f docker-compose.prod.yml up -d backend
 ```
 
-`restart` não basta: ele reaproveita o ambiente do container atual.
+O runner só age quando o banco não tem nenhum ADMIN, então a partir daqui ele
+não faz mais nada em boot algum — esvaziar não muda comportamento, tira a senha
+do disco. O `up -d` recria o container para que ele também deixe de enxergar o
+arquivo com o conteúdo antigo; `restart` reaproveita o container atual.
 
 **8.3 — Crie os usuários reais** em *Dashboard > Usuários*: o ADMIN da clínica
 (pessoa de verdade, com telefone correto) e os profissionais. Saia, entre com o

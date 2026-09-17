@@ -2,6 +2,11 @@
 docker/dev/.env
 docker/prod/.env
 
+# Segredos de producao em arquivo (senha do banco, JWT, senha do ADMIN).
+# O README do diretorio e versionado; o conteudo dos segredos, nunca.
+docker/prod/secrets/*
+!docker/prod/secrets/README.md
+
 # Java / Maven
 backend/target/
 gateway/target/

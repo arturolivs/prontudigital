@@ -14,9 +14,11 @@ import org.springframework.stereotype.Component;
  * cria PACIENTE — sem este atalho nao haveria caminho para o primeiro acesso.
  * Ver {@link BootstrapAdminRunner}.
  *
- * <p>Os valores vem do ambiente ({@code APP_BOOTSTRAP_ADMIN_SENHA} e
- * companhia), nunca do repositorio: uma senha versionada em SQL e publica para
- * sempre — foi exatamente o problema da antiga migracao de dados de exemplo.
+ * <p>Os valores nunca vem do repositorio: uma senha versionada em SQL e
+ * publica para sempre — foi exatamente o problema da antiga migracao de dados
+ * de exemplo. Em producao o username vem do ambiente
+ * ({@code APP_BOOTSTRAP_ADMIN_USERNAME}) e a senha vem de arquivo, montado em
+ * {@code /run/secrets/app.bootstrap-admin.senha} (docker/prod/secrets).
  */
 @Component
 @ConfigurationProperties(prefix = "app.bootstrap-admin")
