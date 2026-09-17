@@ -982,17 +982,15 @@ class AgendamentoServiceImplTest {
             LocalDate data = LocalDate.of(2026, 6, 1);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(agendamentoRepository.findByProfissionalUuidAndInicioEmBetween(
+            when(agendamentoRepository.buscarAgendaDoProfissional(
                     eq(PROFISSIONAL_UUID), any(), any()))
-                    .thenReturn(List.of(agendamentoAgendado()));
-            when(agendamentoUtil.convertToViewDTO(any()))
-                    .thenReturn(mock(AgendamentoViewDTO.class));
+                    .thenReturn(List.of(mock(AgendamentoViewDTO.class)));
 
             List<AgendamentoViewDTO> resultado = service.visualizarAgenda(
                     data, TipoVisualizacaoAgenda.DIA, null);
 
             assertEquals(1, resultado.size());
-            verify(agendamentoRepository).findByProfissionalUuidAndInicioEmBetween(
+            verify(agendamentoRepository).buscarAgendaDoProfissional(
                     eq(PROFISSIONAL_UUID),
                     eq(data.atStartOfDay()),
                     eq(data.atTime(LocalTime.MAX)));
@@ -1025,18 +1023,37 @@ class AgendamentoServiceImplTest {
             LocalDate quarta = LocalDate.of(2026, 6, 3);
 
             when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
-            when(agendamentoRepository.findByProfissionalUuidAndInicioEmBetween(
+            when(agendamentoRepository.buscarAgendaDoProfissional(
                     any(), any(), any())).thenReturn(List.of());
 
             service.visualizarAgenda(quarta, TipoVisualizacaoAgenda.SEMANA, null);
 
             ArgumentCaptor<LocalDateTime> inicioCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
             ArgumentCaptor<LocalDateTime> fimCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
-            verify(agendamentoRepository).findByProfissionalUuidAndInicioEmBetween(
+            verify(agendamentoRepository).buscarAgendaDoProfissional(
                     any(), inicioCaptor.capture(), fimCaptor.capture());
 
             assertEquals(LocalDate.of(2026, 6, 1), inicioCaptor.getValue().toLocalDate());
             assertEquals(LocalDate.of(2026, 6, 7), fimCaptor.getValue().toLocalDate());
+        }
+
+        @Test
+        @DisplayName("nao carrega entidade nem converte linha a linha (guarda do N+1)")
+        void naoUsaCaminhoDeEntidade() {
+            when(usuarioContexto.getUsuarioAtual()).thenReturn(usuarioProfissional());
+            when(agendamentoRepository.buscarAgendaDoProfissional(any(), any(), any()))
+                    .thenReturn(List.of(mock(AgendamentoViewDTO.class)));
+
+            service.visualizarAgenda(
+                    LocalDate.of(2026, 6, 1), TipoVisualizacaoAgenda.MES, null);
+
+            // Os dois caminhos abaixo sao o N+1 medido em 17/09/2026: 978
+            // consultas para 198 linhas. findBy... materializa a entidade, e
+            // com ela as duas @OneToOne nulaveis; convertToViewDTO busca dois
+            // usuarios por linha. Se algum voltar, a agenda regride.
+            verify(agendamentoRepository, never())
+                    .findByProfissionalUuidAndInicioEmBetween(any(), any(), any());
+            verify(agendamentoUtil, never()).convertToViewDTO(any());
         }
     }
 

@@ -471,12 +471,8 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         Periodo periodo = calcularPeriodo(data, tipo);
 
-        return agendamentoRepository
-                .findByProfissionalUuidAndInicioEmBetween(
-                        profissionalUuid, periodo.inicio(), periodo.fim())
-                .stream()
-                .map(agendamentoUtil::convertToViewDTO)
-                .toList();
+        return agendamentoRepository.buscarAgendaDoProfissional(
+                profissionalUuid, periodo.inicio(), periodo.fim());
     }
 
     @Override

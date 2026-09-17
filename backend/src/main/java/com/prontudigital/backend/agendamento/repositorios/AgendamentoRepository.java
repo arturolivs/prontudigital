@@ -1,5 +1,6 @@
 package com.prontudigital.backend.agendamento.repositorios;
 
+import com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO;
 import com.prontudigital.backend.agendamento.entidades.Agendamento;
 import com.prontudigital.backend.agendamento.enums.StatusAgendamento;
 import com.prontudigital.backend.agendamento.enums.TipoAgendamento;
@@ -28,6 +29,28 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     List<Agendamento> findByProfissionalUuidAndInicioEmBetween(
             UUID profissionalUuid, LocalDateTime inicio, LocalDateTime fim);
+
+    @Query("""
+            SELECT new com.prontudigital.backend.agendamento.dto.AgendamentoViewDTO(
+                       a.id, a.inicioEm, a.fimEm, a.profissionalUuid, a.pacienteUuid,
+                       a.tipo, a.tipoProcedimento, proc.id, proc.nome,
+                       a.localAtendimento, a.pacienteAcamado, a.status,
+                       COALESCE(pac.nomeCompleto, 'Paciente nao encontrado'),
+                       COALESCE(prof.nomeCompleto, 'Profissional nao encontrado'),
+                       aval.id)
+              FROM Agendamento a
+              LEFT JOIN a.procedimento proc
+              LEFT JOIN a.avaliacao aval
+              LEFT JOIN Usuario pac  ON pac.uuid  = a.pacienteUuid
+              LEFT JOIN Usuario prof ON prof.uuid = a.profissionalUuid
+             WHERE a.profissionalUuid = :profissionalUuid
+               AND a.inicioEm BETWEEN :inicio AND :fim
+             ORDER BY a.inicioEm
+            """)
+    List<AgendamentoViewDTO> buscarAgendaDoProfissional(
+            @Param("profissionalUuid") UUID profissionalUuid,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Agendamento a WHERE " +
