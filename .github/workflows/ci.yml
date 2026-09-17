@@ -1,0 +1,188 @@
+# ============================================================
+# CI — verificação de código
+#
+# Roda em pull request e em push de qualquer branch que não seja a
+# main. A main é coberta pelo CD, que chama este mesmo arquivo como
+# workflow reutilizável (`workflow_call`) antes de publicar imagem —
+# assim não existe caminho em que algo chegue a produção sem passar
+# por teste, e o conteúdo dos jobs não é duplicado entre dois YAMLs.
+#
+# O gateway (Spring Cloud Gateway) ficou fora de propósito: foi
+# substituído pelo Caddy e não está em nenhum compose desde então
+# (ver docker/prod/Caddyfile). Se voltar a ser implantado, volta aqui.
+# ============================================================
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+  workflow_call:
+
+# Push seguido de push na mesma branch cancela a execução anterior:
+# só interessa o resultado do último commit.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+
+  # ----------------------------------------------------------
+  # Backend — testes de verdade (o Dockerfile.prod compila com
+  # -DskipTests, então este é o único lugar onde eles rodam).
+  # ----------------------------------------------------------
+  backend:
+    name: Backend (testes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'          # casa com <java.version> do pom
+          cache: maven
+
+      # O bit de execução do mvnw não sobrevive a commit feito no
+      # Windows — `git ls-files -s backend/mvnw` mostra 100644.
+      - name: Tornar o mvnw executável
+        run: chmod +x mvnw
+
+      - name: Testes
+        run: ./mvnw -B -ntp verify
+
+      - name: Publicar relatórios do Surefire
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+  # ----------------------------------------------------------
+  # Frontend — lint e tipos. O `next build` não está aqui porque o
+  # job `imagens` já o executa dentro do Dockerfile.prod; repetir
+  # seria pagar duas vezes pela mesma compilação.
+  # ----------------------------------------------------------
+  frontend:
+    name: Frontend (lint + tipos)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'          # mesma major da imagem node:20-alpine
+          cache: npm
+          cache-dependency-path: frontend-web/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Checagem de tipos
+        run: npm run type-check
+
+  # ----------------------------------------------------------
+  # Imagens — build sem push. Só prova que os Dockerfile.prod
+  # continuam construindo; quem publica é o CD.
+  # ----------------------------------------------------------
+  imagens:
+    name: Imagem ${{ matrix.servico }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - servico: backend
+            contexto: backend
+            dockerfile: backend/Dockerfile.prod
+          - servico: frontend
+            contexto: frontend-web
+            dockerfile: frontend-web/Dockerfile.prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Construir (sem publicar)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.contexto }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          # Cache do próprio Actions: sem ele cada PR refaz o download
+          # do Maven e o npm ci do zero. `scope` separado por serviço
+          # para um não invalidar o outro.
+          cache-from: type=gha,scope=${{ matrix.servico }}
+          cache-to: type=gha,scope=${{ matrix.servico }},mode=max
+
+  # ----------------------------------------------------------
+  # Compose de produção — pega erro de YAML, variável obrigatória
+  # removida do .env.prod.example e serviço mal referenciado antes
+  # de a VPS pegar. O .env e os segredos aqui são descartáveis:
+  # servem só para a interpolação resolver.
+  # ----------------------------------------------------------
+  compose:
+    name: Compose de produção (validação)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: docker/prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preencher .env e segredos falsos
+        run: |
+          set -euo pipefail
+          cat > .env <<'ENV'
+          DOMINIO=exemplo.invalid
+          ACME_EMAIL=ci@exemplo.invalid
+          POSTGRES_DB=prontudigital
+          POSTGRES_USER=ci
+          JWT_ACCESS_EXPIRATION_MS=900000
+          JWT_REFRESH_EXPIRATION_MS=604800000
+          IMAGE_TAG=ci
+          ENV
+          mkdir -p secrets
+          for arquivo in db.password jwt.secret admin.senha; do
+            printf '%s' "ci" > "secrets/$arquivo"
+          done
+
+      - name: docker compose config
+        run: docker compose -f docker-compose.prod.yml config >/dev/null
+
+      - name: docker compose config (sobreposição GHCR)
+        run: |
+          docker compose -f docker-compose.prod.yml -f docker-compose.ghcr.yml \
+            config >/dev/null
+
+      # Garante que a sobreposição realmente tirou o `build:` — se ele
+      # voltar, a VPS compila no deploy e cai por falta de memória, que
+      # é exatamente o que este arranjo existe para evitar.
+      - name: Sobreposição não pode manter build local
+        run: |
+          set -euo pipefail
+          if docker compose -f docker-compose.prod.yml -f docker-compose.ghcr.yml \
+               config | grep -qE '^\s+build:'; then
+            echo "::error::docker-compose.ghcr.yml deixou um bloco build: no resultado"
+            exit 1
+          fi

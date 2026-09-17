@@ -539,16 +539,33 @@ Nível do backend em produção: `root=WARN`, `com.prontudigital=INFO`
 
 ### 10.2 Atualizar versão
 
+**Caminho normal: não faça nada.** Push na `main` dispara o workflow de CD, que
+testa, constrói as imagens no GitHub Actions, publica no GHCR e implanta aqui —
+com backup antes e rollback automático se o backend não ficar saudável. Ver
+[`CICD.md`](./CICD.md).
+
+À mão, com uma imagem já publicada (é o mesmo script que o CD executa):
+
 ```bash
 cd /opt/prontudigital
-git pull
-cd docker/prod
+git fetch origin && git checkout --detach <sha-do-commit>
+docker/prod/scripts/deploy.sh sha-<abc1234>
+```
+
+Construir na própria VPS (`up -d --build`) **não** é o caminho recomendado: o
+Maven e o `next build` consomem bem mais memória que o runtime inteiro e
+derrubam uma VPS pequena por OOM ([`ANALISE_DEPLOY.md`](../ANALISE_DEPLOY.md)
+§3). Se precisar mesmo — Actions fora do ar e correção urgente:
+
+```bash
+cd /opt/prontudigital && git pull && cd docker/prod
 docker compose -f docker-compose.prod.yml up -d --build
 docker image prune -f        # libera as imagens antigas
 ```
 
 Migrations novas são aplicadas sozinhas no boot do backend. **Tire um backup
-antes** de subir versão que traga migration: o Flyway não faz rollback.
+antes** de subir versão que traga migration: o Flyway não faz rollback. O
+`deploy.sh` já faz isso sozinho.
 
 ### 10.3 Reiniciar um serviço só
 
@@ -573,8 +590,9 @@ certificado novo sozinho.
 ### 10.5 Voltar atrás
 
 ```bash
-# Código: volte ao commit anterior e reconstrua
-git checkout <commit-anterior> && docker compose -f docker-compose.prod.yml up -d --build
+# Código: Actions > CD > Run workflow, campo `tag` = versão anterior.
+# Na VPS, o equivalente (sem rebuild — a imagem já existe no GHCR):
+docker/prod/scripts/deploy.sh sha-<versao-anterior>
 
 # Dados: restauração destrutiva, exige digitar RESTAURAR
 ./scripts/restore.sh --real /var/backups/prontudigital/diarios/<carimbo>

@@ -1,0 +1,259 @@
+# ============================================================
+# CD — publica imagens no GHCR e implanta na VPS
+#
+# Caminho normal: push na main -> CI -> imagens no GHCR -> deploy.
+# Caminho manual (workflow_dispatch): informando `tag`, pula build e
+# CI e apenas implanta uma imagem que já existe no registro — é assim
+# que se volta atrás em segundos (§10.5 do doc/DEPLOY.md).
+#
+# O build acontece AQUI e não na VPS de propósito: `up --build` compila
+# Maven e roda `next build` na máquina de produção, o que consome muito
+# mais memória que o runtime inteiro e a derruba por OOM
+# (ANALISE_DEPLOY.md §3). A VPS só faz `pull`.
+#
+# Configuração necessária (uma vez só) em doc/CICD.md.
+# ============================================================
+name: CD
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'doc/**'
+      - 'testes-carga/**'
+      - '*.jpg'
+      - '*.png'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag já publicada no GHCR (ex.: sha-3d0989f). Vazio = construir a partir deste commit.'
+        required: false
+        default: ''
+
+# Deploy não se cancela pela metade: um `up -d` interrompido deixa a
+# pilha em estado misto. Fila, não cancelamento.
+concurrency:
+  group: cd-producao
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+
+  # ----------------------------------------------------------
+  # Decide a tag e confere a configuração do repositório antes de
+  # qualquer trabalho caro.
+  # ----------------------------------------------------------
+  preparar:
+    name: Preparar
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.dados.outputs.tag }}
+      registro: ${{ steps.dados.outputs.registro }}
+    steps:
+      - id: dados
+        env:
+          TAG_INFORMADA: ${{ inputs.tag }}
+          DONO: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${TAG_INFORMADA:-}" ]; then
+            tag="$TAG_INFORMADA"
+          else
+            tag="sha-$(printf '%s' "$GITHUB_SHA" | cut -c1-7)"
+          fi
+
+          # O GHCR só aceita caminho em minúsculas; o nome do dono no
+          # GitHub pode ter maiúscula.
+          registro="ghcr.io/$(printf '%s' "$DONO" | tr '[:upper:]' '[:lower:]')"
+
+          echo "tag=$tag"           >> "$GITHUB_OUTPUT"
+          echo "registro=$registro" >> "$GITHUB_OUTPUT"
+          echo "Tag: \`$tag\` — registro: \`$registro\`" >> "$GITHUB_STEP_SUMMARY"
+
+      # NEXT_PUBLIC_* é congelada no bundle em tempo de build: se a
+      # variável DOMINIO faltar, a imagem sai apontando para
+      # http://localhost:9090 e o site só quebra no navegador do
+      # usuário. Melhor falhar aqui.
+      - name: Conferir a variável DOMINIO
+        if: ${{ !inputs.tag }}
+        env:
+          DOMINIO: ${{ vars.DOMINIO }}
+        run: |
+          if [ -z "${DOMINIO:-}" ]; then
+            echo "::error::defina a variable DOMINIO em Settings > Secrets and variables > Actions > Variables"
+            exit 1
+          fi
+
+  # ----------------------------------------------------------
+  # Mesmo conteúdo do CI, chamado como workflow reutilizável: nada
+  # chega a produção sem passar pelos testes.
+  # ----------------------------------------------------------
+  ci:
+    name: CI
+    if: ${{ !inputs.tag }}
+    uses: ./.github/workflows/ci.yml
+
+  # ----------------------------------------------------------
+  # Build e publicação no GHCR.
+  # ----------------------------------------------------------
+  imagens:
+    name: Publicar ${{ matrix.servico }}
+    if: ${{ !inputs.tag }}
+    needs: [preparar, ci]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - servico: backend
+            contexto: backend
+            dockerfile: backend/Dockerfile.prod
+          - servico: frontend
+            contexto: frontend-web
+            dockerfile: frontend-web/Dockerfile.prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # O build-arg só tem efeito no frontend; passá-lo ao backend é
+      # inofensivo (aquele Dockerfile não declara esse ARG).
+      - name: Construir e publicar
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.contexto }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          build-args: |
+            NEXT_PUBLIC_BASE_URL=https://${{ vars.DOMINIO }}
+          tags: |
+            ${{ needs.preparar.outputs.registro }}/prontudigital-${{ matrix.servico }}:${{ needs.preparar.outputs.tag }}
+            ${{ needs.preparar.outputs.registro }}/prontudigital-${{ matrix.servico }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.servico }}
+          cache-to: type=gha,scope=${{ matrix.servico }},mode=max
+
+  # ----------------------------------------------------------
+  # Deploy por SSH. O trabalho pesado está em
+  # docker/prod/scripts/deploy.sh, que vive no repo (e portanto na
+  # VPS) — o workflow só o invoca. Assim o mesmo deploy pode ser
+  # repetido à mão quando o Actions estiver fora do ar.
+  # ----------------------------------------------------------
+  implantar:
+    name: Implantar na VPS
+    needs: [preparar, imagens]
+    # `always()` porque `imagens` é pulado no deploy manual por tag;
+    # sem isso o job pulado arrastaria este junto.
+    if: >-
+      always()
+      && needs.preparar.result == 'success'
+      && (needs.imagens.result == 'success' || needs.imagens.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: producao
+      url: https://${{ vars.DOMINIO }}
+    steps:
+      - name: Preparar chave e host conhecido
+        env:
+          CHAVE: ${{ secrets.VPS_SSH_KEY }}
+          HOSTS_CONHECIDOS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$CHAVE" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Host key fixada em segredo, e não um `ssh-keyscan` na hora:
+          # aceitar a chave que o servidor mandar abre a porta para
+          # man-in-the-middle justo no canal que carrega o token do
+          # registro. Como gerar: doc/CICD.md §2.
+          printf '%s\n' "$HOSTS_CONHECIDOS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Autenticar a VPS no GHCR
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USUARIO: ${{ secrets.VPS_USER }}
+          PORTA: ${{ vars.VPS_PORT || '22' }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ATOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          # O token vai por stdin nas duas pontas: como argumento ele
+          # apareceria no `ps` da VPS. Ele expira quando este job
+          # termina — daí o logout no fim do workflow.
+          printf '%s' "$TOKEN" | ssh -i ~/.ssh/id_deploy -p "$PORTA" \
+            -o BatchMode=yes "$USUARIO@$HOST" \
+            "docker login ghcr.io -u '$ATOR' --password-stdin"
+
+      # A VPS precisa do compose, do Caddyfile e dos scripts na mesma
+      # versão da imagem. Checkout destacado: a cópia da VPS não é
+      # ambiente de trabalho de ninguém.
+      - name: Sincronizar o repositório na VPS
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USUARIO: ${{ secrets.VPS_USER }}
+          PORTA: ${{ vars.VPS_PORT || '22' }}
+          CAMINHO: ${{ vars.VPS_CAMINHO || '/opt/prontudigital' }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy -p "$PORTA" -o BatchMode=yes "$USUARIO@$HOST" \
+            "set -euo pipefail; cd '$CAMINHO'; git fetch --prune origin; git checkout --detach '$COMMIT'; git --no-pager log -1 --oneline"
+
+      - name: Deploy
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USUARIO: ${{ secrets.VPS_USER }}
+          PORTA: ${{ vars.VPS_PORT || '22' }}
+          CAMINHO: ${{ vars.VPS_CAMINHO || '/opt/prontudigital' }}
+          TAG: ${{ needs.preparar.outputs.tag }}
+          REGISTRO: ${{ needs.preparar.outputs.registro }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy -p "$PORTA" -o BatchMode=yes "$USUARIO@$HOST" \
+            "REGISTRO='$REGISTRO' '$CAMINHO/docker/prod/scripts/deploy.sh' '$TAG'"
+
+      - name: Encerrar a sessão da VPS no GHCR
+        if: always()
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USUARIO: ${{ secrets.VPS_USER }}
+          PORTA: ${{ vars.VPS_PORT || '22' }}
+        run: |
+          ssh -i ~/.ssh/id_deploy -p "$PORTA" -o BatchMode=yes "$USUARIO@$HOST" \
+            "docker logout ghcr.io" || true
+
+      - name: Resumo
+        if: always()
+        env:
+          TAG: ${{ needs.preparar.outputs.tag }}
+          DOMINIO: ${{ vars.DOMINIO }}
+          RESULTADO: ${{ job.status }}
+        run: |
+          {
+            echo "### Deploy"
+            echo ""
+            echo "- Tag: \`$TAG\`"
+            echo "- Site: https://$DOMINIO"
+            echo "- Resultado: $RESULTADO"
+            echo ""
+            echo "Voltar atrás: rode este workflow com \`tag\` = versão anterior."
+          } >> "$GITHUB_STEP_SUMMARY"
