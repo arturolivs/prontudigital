@@ -134,7 +134,7 @@ public class ConfiguracaoClinicaServiceImpl implements ConfiguracaoClinicaServic
     @Override
     @Transactional(readOnly = true)
     public ConfiguracaoClinica obterConfiguracao() {
-        // A linha e criada pela migracao V28 e o CHECK impede outras, entao
+        // A linha e criada pela migracao V24 e o CHECK impede outras, entao
         // ausencia aqui significa banco adulterado — falha alto em vez de
         // seguir com um objeto vazio que geraria documentos sem cabecalho.
         return repository.findById(ConfiguracaoClinica.ID_UNICO)

@@ -65,7 +65,7 @@ public class Usuario {
     // ── Avatar ───────────────────────────────────────────────────
     //
     // So a referencia fica aqui; o binario vive no ArmazenamentoService.
-    // As duas colunas andam juntas — ver o CHECK da migracao V29.
+    // As duas colunas andam juntas — ver o CHECK da migracao V25.
 
     /** Chave do arquivo no armazenamento (ex.: {@code avatares/<uuid>.png}). */
     @Column(name = "avatar_chave", length = 255)

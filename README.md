@@ -264,8 +264,8 @@ prontudigital/
 │   │   ├── application-dev.yaml             # Container de desenvolvimento
 │   │   ├── application-prod.yaml
 │   │   ├── messages.properties              # Mensagens centralizadas (i18n)
-│   │   └── db/migracoes/                    # Flyway V1–V28
-│   ├── src/test/java/                       # 16 classes com Mockito + 1 @SpringBootTest
+│   │   └── db/migracoes/                    # Flyway V1–V26
+│   ├── src/test/java/                       # 19 classes com Mockito + 2 @SpringBootTest
 │   ├── Dockerfile.dev  ·  Dockerfile.prod
 │   └── pom.xml
 │
@@ -323,38 +323,53 @@ prontudigital/
 
 ## 🗄 Banco de Dados
 
-O esquema é gerenciado pelo **Flyway**: são **25 migrações**, numeradas de `V1` a `V28`,
-em `backend/src/main/resources/db/migracoes/`. As versões **V14, V15 e V21 não existem** —
-foram descartadas durante o desenvolvimento e as lacunas ficaram, porque renumerar
-migração já aplicada quebraria o checksum do Flyway.
+O esquema é gerenciado pelo **Flyway**: são **26 migrações**, numeradas de `V1` a
+`V26`, sem lacunas, em `backend/src/main/resources/db/migracoes/`.
+
+Elas criam **apenas schema e dado de referência** — os três `perfis`, os dois
+`procedimentos` iniciais e a linha única de `configuracao_clinica`, todos
+exigidos pela aplicação para funcionar. Nenhuma migração cria usuário: senha em
+SQL versionado é senha pública. O primeiro ADMIN vem do ambiente, no primeiro
+boot, via `BootstrapAdminRunner` (`ADMIN_USERNAME` / `ADMIN_SENHA` no `.env`).
 
 | Migration | Tabela / Alteração | Descrição |
 |---|---|---|
 | V1 | `usuarios` | Usuários com UUID, status ativo |
-| V2 | `perfis` | Perfis (ADMIN, PROFISSIONAL, PACIENTE) |
+| V2 | `perfis` | Perfis (ADMIN, PROFISSIONAL, PACIENTE) + as três linhas de referência |
 | V3 | `usuario_perfis` | Relação N:N usuário–perfil |
 | V4 | `refresh_tokens` | Tokens de sessão com controle de revogação |
 | V5 | `agendamentos` | Agendamentos com status e tipo |
 | V6 | `bloqueios_horario` | Bloqueios avulsos de horário |
 | V7 | `fila_espera` | Fila para reagendamento automático |
-| V8 | — | Dados de exemplo |
-| V9 | `historico_agendamentos` | Audit log de mudanças de status |
-| V10 | `log_notificacoes_whatsapp` | Log de notificações enviadas |
-| V11 | `usuarios.acesso_ativado` | Flag de ativação de credenciais de paciente |
-| V12 | `agendamentos.tipo_procedimento` | Tipo do procedimento (depois migrado para tabela) |
-| V13 | `agendamentos.local_atendimento / paciente_acamado` | Local e status de mobilidade |
-| V16 | `bloqueios_recorrentes` | Regras de bloqueio por dia da semana |
-| V17 | `codigos_recuperacao_senha` | Códigos de recuperação de senha |
-| V18 | `anamneses` | Anamnese do paciente (1:1) |
-| V19 | `prescricoes` | Prescrições de medicamentos e cuidados |
-| V20 | `anexos` | Metadados dos anexos (o binário fica em volume) |
-| V22 | `procedimentos` | Procedimentos em tabela, substituindo o enum (RF06) |
-| V23 | `evolucoes_enfermagem` | Ficha de Evolução de Enfermagem (avaliação) |
-| V24 | `evolucoes_curativos` | Ficha de Evolução Diária – Curativos (tratamento) |
-| V25 | `usuarios` (colunas) | CPF, endereço e COREN (RF04) |
-| V26 | `horarios_trabalho` | Expediente semanal do profissional (RF05) |
-| V27 | `atestados` | Atestados emitidos (RF17) |
-| V28 | `configuracao_clinica` | Marca e dados da clínica (white-label) |
+| V8 | `historico_agendamentos` | Audit log de mudanças de status |
+| V9 | `log_notificacoes_whatsapp` | Log de notificações enviadas |
+| V10 | `usuarios.acesso_ativado` | Flag de ativação de credenciais de paciente |
+| V11 | `agendamentos.tipo_procedimento` | Tipo do procedimento (depois migrado para tabela) |
+| V12 | `agendamentos.local_atendimento / paciente_acamado` | Local e status de mobilidade |
+| V13 | `bloqueios_recorrentes` | Regras de bloqueio por dia da semana |
+| V14 | `codigos_recuperacao_senha` | Códigos de recuperação de senha |
+| V15 | `anamneses` | Anamnese do paciente (1:1) |
+| V16 | `prescricoes` | Prescrições de medicamentos e cuidados |
+| V17 | `anexos` | Metadados dos anexos (o binário fica em volume) |
+| V18 | `procedimentos` | Procedimentos em tabela, substituindo o enum (RF06) — inclui o catálogo inicial |
+| V19 | `evolucoes_enfermagem` | Ficha de Evolução de Enfermagem (avaliação) |
+| V20 | `evolucoes_curativos` | Ficha de Evolução Diária – Curativos (tratamento) |
+| V21 | `usuarios` (colunas) | CPF, endereço e COREN (RF04) |
+| V22 | `horarios_trabalho` | Expediente semanal do profissional (RF05) |
+| V23 | `atestados` | Atestados emitidos (RF17) |
+| V24 | `configuracao_clinica` | Marca e dados da clínica (white-label) — inclui a linha `id = 1` |
+| V25 | `usuarios.avatar_*` | Avatar do usuário (referência; o binário fica em volume) |
+| V26 | `log_notificacoes_whatsapp` (colunas) | Rastreio de entrega do WhatsApp |
+
+> **Renumeradas em 15/09/2026.** A numeração antiga ia até `V30` e pulava
+> `V14`, `V15` e `V21`. Como o banco de produção ainda não existia, a sequência
+> foi refeita junto com a remoção dos dados de exemplo — ver §1.2 de
+> [`doc/DEPLOY.md`](doc/DEPLOY.md). Quem tiver um banco de desenvolvimento
+> anterior a essa data precisa recriá-lo (`docker compose down -v`): o
+> `flyway_schema_history` antigo não casa com os novos checksums. Rodando o
+> backend pela IDE, rode também `./mvnw clean` — a `V8` antiga fica em
+> `target/classes/db/migracoes/` e o Flyway aborta com *"Found more than one
+> migration with version 8"*.
 
 ```mermaid
 erDiagram
@@ -831,6 +846,13 @@ cd docker/dev
 docker compose up
 ```
 
+> **Primeiro acesso: `admin` / `admin12345`.** Nenhuma migração cria usuário —
+> quem cria o ADMIN inicial é o `BootstrapAdminRunner`, no primeiro boot em que
+> o banco não tem nenhum, lendo `ADMIN_USERNAME` / `ADMIN_SENHA` (os defaults de
+> dev estão em `application-dev.yaml`). Apagou o volume do Postgres? Ele é
+> recriado sozinho. Em produção **não há default** — ver §5 de
+> [`doc/DEPLOY.md`](doc/DEPLOY.md).
+
 | Entrada | URL | Observação |
 |---|---|---|
 | **App (recomendado)** | http://localhost:9090 | Caddy — same-origin, igual à produção |
@@ -916,9 +938,13 @@ npm run dev
 
 ## 🧪 Testes
 
-**331 testes** no backend, em 19 classes:
+**377 testes** no backend, em 21 classes:
 
 - **16 classes unitárias com Mockito** cobrindo os *service impls*
+- `BootstrapAdminRunnerTest` — criação do primeiro ADMIN: uma vez só, nunca sobre
+  usuário existente
+- `AutenticacaoControllerSegurancaTest` — `@SpringBootTest`, garante que
+  `/api/auth/registrar` exige ADMIN
 - `ExpedienteEfetivoTest` — subtração de janelas entre expediente e bloqueios
 - `MensagensTest` — guarda o encoding do `messages.properties` (ver nota abaixo)
 - `ProntudigitalApplicationTests` — `@SpringBootTest`, valida a subida do contexto

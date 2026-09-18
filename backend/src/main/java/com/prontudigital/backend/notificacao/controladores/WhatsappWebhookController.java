@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,15 @@ public class WhatsappWebhookController {
     private final WhatsappWebhookService webhookService;
 
     /**
+     * Enquanto a integracao com a Meta estiver desligada, o webhook nao deve
+     * existir para o mundo: ele e o unico endpoint publico sem JWT que aceita
+     * POST com corpo arbitrario e, sem app secret configurado, a assinatura
+     * nem chega a ser conferida. Com a flag em false ele responde 404.
+     */
+    @Value("${app.notificacoes.habilitadas:true}")
+    private boolean notificacoesHabilitadas;
+
+    /**
      * Handshake que a Meta faz ao cadastrar a URL no painel: ela devolve o
      * {@code hub.challenge} recebido, em texto puro, se o verify token bater.
      */
@@ -48,6 +58,12 @@ public class WhatsappWebhookController {
             @RequestParam("hub.challenge") String desafio) {
 
         log.info("[WHATSAPP][WEBHOOK] GET de verificacao recebido (modo={})", modo);
+
+        if (!notificacoesHabilitadas) {
+            log.warn("[WHATSAPP][WEBHOOK] GET recusado: notificacoes desabilitadas "
+                    + "(app.notificacoes.habilitadas=false)");
+            return ResponseEntity.notFound().build();
+        }
 
         if (!webhookService.verificacaoValida(modo, token)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -69,6 +85,12 @@ public class WhatsappWebhookController {
             @RequestHeader(value = "X-Hub-Signature-256", required = false) String assinatura) {
 
         log.debug("[WHATSAPP][WEBHOOK] POST recebido ({} bytes)", corpo == null ? 0 : corpo.length());
+
+        if (!notificacoesHabilitadas) {
+            log.warn("[WHATSAPP][WEBHOOK] POST recusado: notificacoes desabilitadas "
+                    + "(app.notificacoes.habilitadas=false)");
+            return ResponseEntity.notFound().build();
+        }
 
         if (!webhookService.assinaturaValida(corpo, assinatura)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

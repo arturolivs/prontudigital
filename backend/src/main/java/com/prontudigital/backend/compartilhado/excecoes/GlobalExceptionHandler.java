@@ -208,6 +208,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.GONE, Mensagens.get("erro.link-invalido.titulo"), ex.getMessage(), request);
     }
 
+    /**
+     * Recuperacao de senha pedida com o canal de envio desligado. Nao e erro do
+     * cliente nem falha inesperada: e uma funcao indisponivel por configuracao.
+     */
+    @ExceptionHandler(
+            com.prontudigital.backend.autenticacao.excecoes.RecuperacaoSenhaIndisponivelException.class)
+    public ResponseEntity<ErroRespostaDTO> handleRecuperacaoSenhaIndisponivel(
+            ExcecaoBase ex, HttpServletRequest request) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, Mensagens.get("erro.operacao-invalida.titulo"),
+                ex.getMessage(), request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroRespostaDTO> handleErroGenerico(
             Exception ex, HttpServletRequest request) {

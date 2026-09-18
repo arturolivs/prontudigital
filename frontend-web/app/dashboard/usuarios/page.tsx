@@ -17,7 +17,8 @@ function gerarPaginas(total: number, atual: number): (number | string)[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
   const paginas: (number | string)[] = [1]
   if (atual > 3) paginas.push('...')
-  for (let i = Math.max(2, atual - 1); i <= Math.min(total - 1, atual + 1); i++) paginas.push(i)
+  for (let i = Math.max(2, atual - 1); i <= Math.min(total - 1, atual + 1); i++)
+    paginas.push(i)
   if (atual < total - 2) paginas.push('...')
   paginas.push(total)
   return paginas
@@ -29,7 +30,10 @@ export default function UsuariosPage() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null)
-  const [confirmacao, setConfirmacao] = useState<{ mensagem: string; acao: () => void } | null>(null)
+  const [confirmacao, setConfirmacao] = useState<{
+    mensagem: string
+    acao: () => void
+  } | null>(null)
   const [paginaAtual, setPaginaAtual] = useState(1)
   const { usuario } = useAuth()
   const { exibirNotificacao } = useNotificacao()
@@ -37,7 +41,10 @@ export default function UsuariosPage() {
   const fetchUsuarios = async (pagina: number) => {
     try {
       setLoading(true)
-      const data = await usuariosAPI.listarUsuarios(pagina - 1, ITENS_POR_PAGINA)
+      const data = await usuariosAPI.listarUsuarios(
+        pagina - 1,
+        ITENS_POR_PAGINA,
+      )
       setUsuarios(data.content)
       setTotalPaginas(Math.max(1, data.totalPages))
     } catch (error) {
@@ -58,7 +65,10 @@ export default function UsuariosPage() {
         setConfirmacao(null)
         try {
           await usuariosAPI.excluirUsuario(id)
-          const novaPagina = usuarios.length === 1 && paginaAtual > 1 ? paginaAtual - 1 : paginaAtual
+          const novaPagina =
+            usuarios.length === 1 && paginaAtual > 1
+              ? paginaAtual - 1
+              : paginaAtual
           if (novaPagina === paginaAtual) {
             fetchUsuarios(paginaAtual)
           } else {
@@ -260,7 +270,9 @@ export default function UsuariosPage() {
           </button>
           {gerarPaginas(totalPaginas, paginaValida).map((p, i) =>
             typeof p === 'string' ? (
-              <span key={`ellipsis-${i}`} className="paginacao-ellipsis">…</span>
+              <span key={`ellipsis-${i}`} className="paginacao-ellipsis">
+                …
+              </span>
             ) : (
               <button
                 key={`page-${p}`}
@@ -269,11 +281,13 @@ export default function UsuariosPage() {
               >
                 {p}
               </button>
-            )
+            ),
           )}
           <button
             className="paginacao-btn"
-            onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+            onClick={() =>
+              setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))
+            }
             disabled={paginaValida === totalPaginas}
           >
             Próximo →

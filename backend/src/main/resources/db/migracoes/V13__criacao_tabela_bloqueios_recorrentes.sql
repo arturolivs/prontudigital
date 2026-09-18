@@ -1,5 +1,5 @@
 -- =============================================================
--- V17 - Tabela de bloqueios recorrentes por dia da semana
+-- V13 - Tabela de bloqueios recorrentes por dia da semana
 -- Registra regras que repetem toda semana num dia/horario fixo.
 -- =============================================================
 

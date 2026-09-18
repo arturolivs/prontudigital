@@ -17,7 +17,11 @@ CREATE TABLE procedimentos (
 
 CREATE UNIQUE INDEX uk_procedimentos_nome ON procedimentos (LOWER(nome));
 
--- Migracao de dados a partir do enum TipoProcedimento
+-- Catalogo inicial. Dado de REFERENCIA, nao de exemplo: sem nenhuma linha
+-- aqui a tela publica de agendamento nao oferece nada e a instalacao nasce
+-- inutilizavel ate o ADMIN cadastrar o primeiro procedimento. O campo codigo
+-- guarda o valor do enum legado TipoProcedimento; procedimentos criados pelo
+-- ADMIN nascem sem codigo.
 INSERT INTO procedimentos (codigo, nome, descricao, duracao_padrao_minutos)
 VALUES
     ('PODIATRIA', 'Podiatria', 'Cuidados podologicos de enfermagem', 60),
@@ -28,11 +32,6 @@ VALUES
 -- durante a transicao.
 ALTER TABLE agendamentos
     ADD COLUMN procedimento_id BIGINT REFERENCES procedimentos(id);
-
-UPDATE agendamentos a
-SET procedimento_id = p.id
-FROM procedimentos p
-WHERE p.codigo = a.tipo_procedimento;
 
 ALTER TABLE agendamentos
     ALTER COLUMN tipo_procedimento DROP NOT NULL;

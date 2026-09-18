@@ -12,6 +12,13 @@ spring:
   flyway:
     enabled: false
 
+app:
+  # O contexto de teste sobe pelo SpringApplication.run, entao o
+  # BootstrapAdminRunner rodaria a cada @SpringBootTest. Desligado aqui: o
+  # banco H2 e efemero e nenhum teste depende do ADMIN inicial.
+  bootstrap-admin:
+    habilitado: false
+
 logging:
   level:
     root: WARN

@@ -1,5 +1,5 @@
 -- =============================================================
--- V26 - Horarios de trabalho do profissional (RF05)
+-- V22 - Horarios de trabalho do profissional (RF05)
 --
 -- Janelas semanais em que o profissional atende. Alimentam a
 -- validacao de disponibilidade da agenda: um agendamento precisa

@@ -66,6 +66,10 @@ RUN addgroup --system --gid 1001 nodejs \
 # O build standalone já traz server.js e as deps mínimas de runtime
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# `public/` está versionado com um .gitkeep de propósito: hoje não há nenhum
+# asset estático, mas COPY com origem inexistente falha o build inteiro
+# (`/app/public: not found`). Não apague o diretório.
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs

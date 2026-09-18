@@ -1,2 +1,9 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+# docker-healthcheck.sh entra na imagem via COPY (Dockerfile.prod) e roda
+# como healthcheck do container. Num clone feito no Windows sem esta
+# regra, o arquivo sai com CRLF e o carriage return passa a fazer parte
+# do shebang: o Linux procura um interpretador de nome "bash<CR>" e
+# responde "bad interpreter". O backend nunca ficaria healthy — e o
+# frontend, que tem depends_on: service_healthy, nunca subiria.
+*.sh text eol=lf

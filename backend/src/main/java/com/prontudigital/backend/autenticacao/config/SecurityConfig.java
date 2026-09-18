@@ -33,6 +33,10 @@ public class SecurityConfig {
             "/swagger-resources/**",
             "/webjars/**",
             "/api-docs/**",
+            // Aberto de proposito e o unico endpoint do actuator que fica:
+            // quem o chama e o healthcheck do container, que nao tem
+            // credencial. Devolve apenas {"status":"UP"} — o detalhe esta
+            // desligado por `show-details: never` no application-prod.yaml.
             "/actuator/health",
             "/favicon.ico",
             "/error"
@@ -45,8 +49,17 @@ public class SecurityConfig {
      */
     private static final String WEBHOOK_WHATSAPP = "/api/whatsapp/webhook";
 
+    /**
+     * POST publicos. {@code /api/auth/registrar} NAO entra aqui de proposito:
+     * ele aceita a lista de perfis vinda do corpo da requisicao, entao,
+     * aberto, qualquer anonimo criaria um ADMIN com acesso a todos os
+     * prontuarios. Passou a exigir ADMIN via @PreAuthorize no controller.
+     *
+     * O cadastro publico de paciente continua sendo
+     * {@code /api/auth/cadastrar-paciente}, que fixa o perfil PACIENTE no
+     * servico e nao aceita perfis do cliente.
+     */
     private static final String[] AUTH_POST_PUBLICOS = {
-            "/api/auth/registrar",
             "/api/auth/login",
             "/api/auth/renovar-token",
             "/api/auth/cadastrar-paciente",
@@ -90,6 +103,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, WEBHOOK_WHATSAPP).permitAll()
                         .requestMatchers(HttpMethod.POST, WEBHOOK_WHATSAPP).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Metricas, heap, GC e pool do Hikari: dado de
+                        // operacao, nao de paciente, mas descreve a
+                        // superficie da API (nomes de rota, contagens) e
+                        // nao tem por que ser legivel por PROFISSIONAL ou
+                        // PACIENTE. Vem DEPOIS de PATHS_PUBLICOS_INFRA,
+                        // entao /actuator/health continua aberto.
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

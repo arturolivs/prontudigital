@@ -9,8 +9,30 @@
 # aparecem e para no primeiro que casar.
 # ============================================================
 
+# ------------------------------------------------------------
+# Opções globais — este bloco precisa ser o PRIMEIRO do arquivo.
+# ------------------------------------------------------------
+{
+	# A API de administração do Caddy escuta em localhost:2019 dentro do
+	# container e reconfigura o servidor sem autenticação nenhuma. Nada aqui
+	# usa `caddy reload`; desligar é de graça.
+	admin off
+
+	# Conta ACME. Sem e-mail, o Let's Encrypt não tem para onde mandar aviso
+	# de certificado prestes a expirar — e a renovação automática pode estar
+	# quebrada sem ninguém saber. Vem do .env via ACME_EMAIL.
+	email {$ACME_EMAIL}
+}
+
 {$DOMINIO} {
 	encode gzip zstd
+
+	# Corpo de requisição maior que isto é recusado aqui, sem atravessar o
+	# proxy. Casa com spring.servlet.multipart.max-request-size (12MB) do
+	# backend — mexeu em um, mexa no outro.
+	request_body {
+		max_size 12MB
+	}
 
 	# --- Logs de acesso ---
 	log {
@@ -27,6 +49,27 @@
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		-Server
+
+		# CSP. Notas de cada diretiva que não é obviamente 'self':
+		#
+		#   script-src 'unsafe-inline' → o Next injeta inline o payload de
+		#     hidratação (self.__next_f.push). Tirar exige nonce por request,
+		#     o que pede um middleware no frontend — não existe hoje.
+		#   style-src 'unsafe-inline'  → Font Awesome injeta <style> em runtime.
+		#   blob: em img/object/frame → avatar, anexo e relatório são baixados
+		#     pela API e abertos com URL.createObjectURL + window.open. Um
+		#     documento blob: herda a CSP de quem o criou, e no Chrome o PDF
+		#     abre por um <embed> interno: com object-src 'none' a aba fica em
+		#     branco (ver lib/atestado.service.ts e PainelAnexos.tsx).
+		#   Não tem 'unsafe-eval': o build de produção do Next não precisa.
+		#     Se algo quebrar no console com 'Refused to evaluate', o problema
+		#     é aqui — troque o cabeçalho por Content-Security-Policy-Report-Only
+		#     para investigar sem derrubar a tela.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'self' blob:; frame-src 'self' blob:; media-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+
+		# Nenhuma tela usa câmera, microfone, localização ou pagamento. O anexo
+		# entra por <input type=file>, que não depende de permissão nenhuma.
+		Permissions-Policy "accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()"
 	}
 
 	# ------------------------------------------------------------

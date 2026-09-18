@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,12 +22,20 @@ public class AutenticacaoController {
 
     private final AutenticacaoService autenticacaoService;
 
-    @Operation(summary = "Registrar novo usuario")
+    @Operation(
+            summary = "Registrar novo usuario (restrito ao ADMIN)",
+            description = """
+                    Cria usuario com os perfis informados no corpo da requisicao.
+                    Por aceitar perfis do cliente, exige ADMIN autenticado: aberto,
+                    permitiria a qualquer anonimo criar um ADMIN.
+                    Paciente que se cadastra sozinho usa /api/auth/cadastrar-paciente.""")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Usuario criado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Sem autenticacao ou sem perfil ADMIN"),
             @ApiResponse(responseCode = "409", description = "Username ou e-mail ja existente"),
             @ApiResponse(responseCode = "422", description = "Dados invalidos")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/registrar")
     public ResponseEntity<UsuarioDTO> registrar(
             @Valid @RequestBody RegistrarRequestDTO request) {

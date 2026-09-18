@@ -11,6 +11,10 @@ WORKDIR /app
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 
+# O bit de execucao do mvnw nao sobrevive a um clone/checkout feito no
+# Windows. Sem isso o RUN abaixo falha com exit 126 (permission denied).
+RUN chmod +x mvnw
+
 # Baixa dependências em camada separada (cache eficiente no CI)
 RUN ./mvnw dependency:go-offline -q
 
@@ -30,16 +34,34 @@ COPY --from=builder /app/target/*.jar app.jar
 
 RUN chown prontu:prontu app.jar
 
+# Diretório de anexos/avatares. Precisa existir na imagem com o dono certo:
+# o volume nomeado do Compose herda dono e permissões deste caminho na
+# primeira criação. Sem isso o volume nasce root:root e o upload quebra,
+# porque o processo roda como prontu.
+RUN mkdir -p /dados/anexos && chown -R prontu:prontu /dados
+
+# Healthcheck do Compose. Copiado para dentro da imagem em vez de escrito
+# como uma linha no docker-compose.prod.yml porque o pedido HTTP precisa de
+# CRLF literal entre os cabecalhos, e o YAML do Compose transforma o escape
+# em quebra de linha real. O chmod e explicito: o bit de execucao nao
+# sobrevive a um clone feito no Windows.
+COPY docker-healthcheck.sh /usr/local/bin/healthcheck.sh
+RUN chmod +x /usr/local/bin/healthcheck.sh
+
 USER prontu
 
 EXPOSE 8080
 
 # Flags JVM otimizadas para container:
 # -XX:+UseContainerSupport  → respeita limits do cgroup
-# -XX:MaxRAMPercentage=75   → usa até 75% da RAM do container
+# -XX:MaxRAMPercentage=65   → heap até 65% do limite do container. Os outros
+#   35% não sobram: metaspace, code cache, pilhas de thread e buffers diretos
+#   ficam fora do heap e também contam no cgroup. Com `memory: 1G` no Compose,
+#   75% deixava o total encostado no limite — risco de OOMKilled (exit 137).
+#   Se o limite do serviço mudar, revise este número junto.
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
-  "-XX:MaxRAMPercentage=75.0", \
+  "-XX:MaxRAMPercentage=65.0", \
   "-Djava.security.egd=file:/dev/./urandom", \
   "-Dspring.profiles.active=prod", \
   "-jar", "app.jar"]

@@ -18,7 +18,10 @@ const DIAS_SEMANA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 const formatarDataISO = (date: Date): string => date.toISOString().split('T')[0]
 
 const formatarHora = (dataString: string): string =>
-  new Date(dataString).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  new Date(dataString).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 
 const diaDaSemanaParaOffset = (dia: number): number => (dia === 0 ? 6 : dia - 1)
 
@@ -81,14 +84,21 @@ const AgendaMensal: React.FC<PropsAgendaMensal> = ({
     <div className="mensal-container">
       <div className="mensal-cabecalho">
         {DIAS_SEMANA.map(d => (
-          <div key={d} className="mensal-cab-dia">{d}</div>
+          <div key={d} className="mensal-cab-dia">
+            {d}
+          </div>
         ))}
       </div>
 
       <div className="mensal-grid">
         {celulas.map((dia, idx) => {
           if (!dia) {
-            return <div key={`vazio-${idx}`} className="mensal-celula mensal-celula-fora" />
+            return (
+              <div
+                key={`vazio-${idx}`}
+                className="mensal-celula mensal-celula-fora"
+              />
+            )
           }
 
           const chave = formatarDataISO(dia)
@@ -118,16 +128,23 @@ const AgendaMensal: React.FC<PropsAgendaMensal> = ({
                       key={a.id}
                       className={`mensal-apto-item ${a.tipo === 'AVALIACAO' ? 'mensal-item-avaliacao' : 'mensal-item-tratamento'}`}
                       title={`${a.nomePaciente} — ${formatarHora(a.inicioEm)}`}
-                      onClick={e => { e.stopPropagation(); onAgendamentoClick?.(a) }}
+                      onClick={e => {
+                        e.stopPropagation()
+                        onAgendamentoClick?.(a)
+                      }}
                     >
-                      <span className="mensal-apto-hora">{formatarHora(a.inicioEm)}</span>
+                      <span className="mensal-apto-hora">
+                        {formatarHora(a.inicioEm)}
+                      </span>
                       <span className="mensal-apto-nome">
                         {(a.nomePaciente ?? '').split(' ')[0]}
                       </span>
                     </div>
                   ))}
                   {aptos.length > 3 && (
-                    <div className="mensal-apto-mais">+{aptos.length - 3} mais</div>
+                    <div className="mensal-apto-mais">
+                      +{aptos.length - 3} mais
+                    </div>
                   )}
                 </div>
               )}

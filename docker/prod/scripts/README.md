@@ -1,11 +1,17 @@
-# Backup e restauração (RNF02)
-
-Dois scripts, um par indivisível:
+# Scripts de produção
 
 | Script | O que faz |
 |---|---|
 | `backup.sh` | Exporta banco + anexos, verifica, aplica retenção, envia cópia externa |
 | `restore.sh` | Valida (`--teste`) ou restaura (`--real`) um backup |
+| `deploy.sh` | Sobe uma versão já publicada no GHCR: backup, `pull`, `up -d`, espera ficar saudável e volta atrás sozinho se não ficar |
+
+`backup.sh` e `restore.sh` são um par indivisível (ver abaixo). O `deploy.sh`
+chama o `backup.sh` antes de mexer em qualquer coisa — é quem o workflow
+`.github/workflows/cd.yml` executa por SSH, e também o que se roda à mão para
+voltar a uma versão anterior. Documentação do fluxo completo: [`doc/CICD.md`](../../../doc/CICD.md).
+
+## Backup e restauração (RNF02)
 
 ## Por que o backup tem duas partes
 

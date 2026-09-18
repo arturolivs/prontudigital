@@ -26,7 +26,10 @@ const obterInicioSemana = (dateStr: string): Date => {
 const formatarDataISO = (date: Date): string => date.toISOString().split('T')[0]
 
 const formatarHora = (dataString: string): string =>
-  new Date(dataString).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  new Date(dataString).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 
 const obterClasseCard = (tipo: string): string => {
   const mapa: Record<string, string> = {
@@ -55,13 +58,18 @@ const AgendaSemanal: React.FC<PropsAgendaSemanal> = ({
 
   const agendamentosPorDia = useMemo(() => {
     const mapa: Record<string, Agendamento[]> = {}
-    diasSemana.forEach(d => { mapa[formatarDataISO(d)] = [] })
+    diasSemana.forEach(d => {
+      mapa[formatarDataISO(d)] = []
+    })
     agendamentos.forEach(a => {
       const chave = new Date(a.inicioEm).toISOString().split('T')[0]
       if (mapa[chave]) mapa[chave].push(a)
     })
     Object.keys(mapa).forEach(chave => {
-      mapa[chave].sort((a, b) => new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime())
+      mapa[chave].sort(
+        (a, b) =>
+          new Date(a.inicioEm).getTime() - new Date(b.inicioEm).getTime(),
+      )
     })
     return mapa
   }, [agendamentos, diasSemana])
@@ -106,8 +114,12 @@ const AgendaSemanal: React.FC<PropsAgendaSemanal> = ({
               aria-label={`Ver dia ${dia.toLocaleDateString('pt-BR')}`}
             >
               <div className="semana-col-header">
-                <span className="semana-dia-nome">{DIAS_SEMANA_CURTO[idx]}</span>
-                <span className={`semana-dia-num${isHoje ? ' semana-dia-num-hoje' : ''}`}>
+                <span className="semana-dia-nome">
+                  {DIAS_SEMANA_CURTO[idx]}
+                </span>
+                <span
+                  className={`semana-dia-num${isHoje ? ' semana-dia-num-hoje' : ''}`}
+                >
                   {dia.getDate()}
                 </span>
                 {aptos.length > 0 && (
@@ -126,11 +138,17 @@ const AgendaSemanal: React.FC<PropsAgendaSemanal> = ({
                       title={`${a.nomePaciente} — ${formatarHora(a.inicioEm)} às ${formatarHora(a.fimEm)}`}
                       onClick={e => {
                         e.stopPropagation()
-                        onAgendamentoClick ? onAgendamentoClick(a) : aoSelecionarDia(chave)
+                        onAgendamentoClick
+                          ? onAgendamentoClick(a)
+                          : aoSelecionarDia(chave)
                       }}
                     >
-                      <span className="semana-card-hora">{formatarHora(a.inicioEm)}</span>
-                      <span className="semana-card-nome">{(a.nomePaciente ?? '').split(' ')[0]}</span>
+                      <span className="semana-card-hora">
+                        {formatarHora(a.inicioEm)}
+                      </span>
+                      <span className="semana-card-nome">
+                        {(a.nomePaciente ?? '').split(' ')[0]}
+                      </span>
                       <span className="semana-card-tipo">
                         {a.tipo === 'AVALIACAO' ? 'Aval.' : 'Trat.'}
                       </span>
