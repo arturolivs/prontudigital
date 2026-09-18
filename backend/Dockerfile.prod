@@ -11,6 +11,10 @@ WORKDIR /app
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 
+# O bit de execucao do mvnw nao sobrevive a um clone/checkout feito no
+# Windows. Sem isso o RUN abaixo falha com exit 126 (permission denied).
+RUN chmod +x mvnw
+
 # Baixa dependências em camada separada (cache eficiente no CI)
 RUN ./mvnw dependency:go-offline -q
 
