@@ -315,7 +315,12 @@ export default function FormularioUsuarioModal({
             <input
               type="tel"
               value={formData.telefone}
-              onChange={e => setFormData(prev => ({ ...prev, telefone: mascaraTelefone(e.target.value) }))}
+              onChange={e =>
+                setFormData(prev => ({
+                  ...prev,
+                  telefone: mascaraTelefone(e.target.value),
+                }))
+              }
               className="uf-input"
               placeholder="(99) 9 9999-9999"
             />

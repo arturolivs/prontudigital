@@ -85,13 +85,20 @@ export default function AgendaPage() {
       tipo: 'TRATAMENTO',
       pacienteUuid: searchParams.get('pacienteUuid') ?? undefined,
       profissionalUuid: searchParams.get('profissionalUuid') ?? undefined,
-      avaliacaoId: searchParams.get('avaliacaoId') ? Number(searchParams.get('avaliacaoId')) : undefined,
-      tipoProcedimento: (searchParams.get('tipoProcedimento') as TipoProcedimento) ?? undefined,
-      procedimentoId: searchParams.get('procedimentoId') ? Number(searchParams.get('procedimentoId')) : undefined,
-      localAtendimento: (searchParams.get('localAtendimento') as LocalAtendimento) ?? undefined,
-      pacienteAcamado: searchParams.get('pacienteAcamado') != null
-        ? searchParams.get('pacienteAcamado') === 'true'
+      avaliacaoId: searchParams.get('avaliacaoId')
+        ? Number(searchParams.get('avaliacaoId'))
         : undefined,
+      tipoProcedimento:
+        (searchParams.get('tipoProcedimento') as TipoProcedimento) ?? undefined,
+      procedimentoId: searchParams.get('procedimentoId')
+        ? Number(searchParams.get('procedimentoId'))
+        : undefined,
+      localAtendimento:
+        (searchParams.get('localAtendimento') as LocalAtendimento) ?? undefined,
+      pacienteAcamado:
+        searchParams.get('pacienteAcamado') != null
+          ? searchParams.get('pacienteAcamado') === 'true'
+          : undefined,
     }
 
     setPrefillModal(prefill)
@@ -174,7 +181,11 @@ export default function AgendaPage() {
               className="agenda-btn-novo"
               title="Novo agendamento"
             >
-              <Plus size={20} strokeWidth={2.5} className="agenda-btn-novo-icon" />
+              <Plus
+                size={20}
+                strokeWidth={2.5}
+                className="agenda-btn-novo-icon"
+              />
               <span className="agenda-btn-novo-label">Novo</span>
             </button>
 
@@ -259,12 +270,14 @@ export default function AgendaPage() {
               onAgendamentoClick={abrirProcedimento}
             />
           )}
-
         </div>
 
         {isModalOpen && (
           <ModalNovoAgendamento
-            onClose={() => { setIsModalOpen(false); setPrefillModal(undefined) }}
+            onClose={() => {
+              setIsModalOpen(false)
+              setPrefillModal(undefined)
+            }}
             onSalvar={handleCriarAgendamento}
             profissionalUuidAtual={usuario?.uuid ?? ''}
             isAdmin={isAdmin}
