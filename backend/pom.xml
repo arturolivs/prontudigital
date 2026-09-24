@@ -49,7 +49,7 @@
 		     disco. Exposicao em application-prod.yaml, protecao em SecurityConfig
 		     (/actuator/** exige ADMIN; so /actuator/health fica aberto, porque
 		     quem o chama e o healthcheck do container, sem credencial). -->
-		<dependen cy>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>

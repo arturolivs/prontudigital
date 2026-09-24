@@ -20,9 +20,7 @@
 |---|---|
 | **este** (`doc/DEPLOY.md`) | *Como* subir, passo a passo, e como operar depois |
 | [`CICD.md`](./CICD.md) | *Como a atualização se automatiza* — os dois workflows, os secrets do repositório, o que o `deploy.sh` faz e como voltar atrás |
-| [`ANALISE_DEPLOY.md`](../ANALISE_DEPLOY.md) | *Onde* hospedar — comparativo de plataformas e a decisão (VPS 4 GB em São Paulo) |
-| [`CHECKLIST_PRODUCAO.md`](../CHECKLIST_PRODUCAO.md) | *O que faltava* no código e na infra — levantamento de 11/08/2026 |
-| [`DEPLOY_SEM_WHATSAPP.md`](../DEPLOY_SEM_WHATSAPP.md) | O recorte de subir com a mensageria desligada e ligá-la depois |
+| [`doc/Requisitos.md`](./Requisitos.md) | Os RNF citados aqui — RNF02 (backup), RNF05/RNF06 (desempenho) |
 | [`docker/prod/secrets/README.md`](../docker/prod/secrets/README.md) | Os três segredos em arquivo — o que cada um faz e como trocar |
 | [`docker/prod/scripts/README.md`](../docker/prod/scripts/README.md) | Backup e restauração (RNF02) em detalhe |
 | [`testes-carga/README.md`](../testes-carga/README.md) | *Se aguenta* — teste de carga do RNF05/RNF06 e os critérios de folga |
@@ -121,7 +119,12 @@ de recuperação só trafega por WhatsApp, não há fallback por e-mail. Quem
 esquecer a senha depende do ADMIN redefinir em *Dashboard > Usuários*.
 Combine com a §5: a senha de `secrets/admin.senha` é a única credencial da
 instalação até que outros usuários sejam criados — guarde-a num gerenciador.
-Detalhes em [`DEPLOY_SEM_WHATSAPP.md`](../DEPLOY_SEM_WHATSAPP.md).
+Além da recuperação de senha, ficam desligados com a flag em `false`: o
+lembrete de 48 h, o pedido de confirmação de 24 h, o cancelamento automático de
+quem não confirma até 2 h antes e o webhook `/api/whatsapp/webhook`, que passa
+a responder 404. Nada disso exige rebuild para voltar: basta trocar a flag,
+preencher as quatro `WHATSAPP_*` e recriar o backend. A lista completa está
+comentada no próprio `docker/prod/.env.prod.example`.
 
 ---
 
@@ -138,7 +141,7 @@ Detalhes em [`DEPLOY_SEM_WHATSAPP.md`](../DEPLOY_SEM_WHATSAPP.md).
 
 **A VPS não compila nada.** `up --build` roda Maven e `next build` na máquina
 de produção, consome bem mais memória que o runtime inteiro e derruba uma VPS
-pequena por OOM ([`ANALISE_DEPLOY.md`](../ANALISE_DEPLOY.md) §3). O build vive
+pequena por OOM — foi essa medição que tirou o build daqui. O build vive
 no GitHub Actions; aqui só há `pull`. O caminho de emergência está na §6.4, com
 as ressalvas.
 
@@ -342,7 +345,7 @@ chmod 600 .env
 | `JWT_REFRESH_EXPIRATION_MS` | ✅ | `604800000` (7 dias) — precisa bater com o `maxAge` do cookie `__pd_rt` |
 | `ADMIN_USERNAME` | ✅ no 1º deploy | Login do primeiro ADMIN. Sem ele **ninguém consegue entrar**: o banco nasce sem usuário nenhum (§1.2). Sai do `.env` depois do primeiro acesso (§8.2) |
 | `ADMIN_NOME` / `ADMIN_EMAIL` / `ADMIN_TELEFONE` | ⬜ | Só aparência e contato; o e-mail, se informado, precisa ser único |
-| `NOTIFICACOES_HABILITADAS` | ✅ | **`false` no primeiro deploy.** Ver §1.4 e `DEPLOY_SEM_WHATSAPP.md` |
+| `NOTIFICACOES_HABILITADAS` | ✅ | **`false` no primeiro deploy.** Ver §1.4 |
 | `WHATSAPP_*` (4) | ⬜ | Deixe vazias enquanto a flag acima for `false` |
 | `COMANDO_COPIA_EXTERNA` | ⚠️ | Vazia = backup mora no disco que deveria proteger. Ver §9 |
 | `RETENCAO_DIAS` / `RETENCAO_SEMANAIS` | ⬜ | Padrão 14 / 8 |
@@ -678,7 +681,7 @@ E agende na sua agenda pessoal, mensalmente:
 ```
 
 > O dump sai **em claro** e contém CPF e dado clínico. Cifrar antes do envio
-> externo é pendência conhecida (`CHECKLIST_PRODUCAO.md` §4) — até lá, o
+> externo é pendência conhecida (§11) — até lá, o
 > destino precisa ser cifrado e de acesso restrito.
 
 ---
@@ -800,7 +803,7 @@ Marque tudo antes de entregar o endereço para a clínica.
 - [ ] Teste de restauração marcado no calendário
 - [ ] Um deploy pelo CD executado de ponta a ponta, e o rollback testado uma vez
 
-**Pendências assumidas, não bloqueantes** (`CHECKLIST_PRODUCAO.md` §4)
+**Pendências assumidas, não bloqueantes**
 - [ ] RNF01 — criptografia em repouso de CPF e dados clínicos
 - [ ] RNF03 — trilha de acesso a prontuário (quem leu o quê, quando)
 - [ ] Backup cifrado antes do envio externo
