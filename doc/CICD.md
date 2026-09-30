@@ -50,7 +50,7 @@ entra na matriz dos dois workflows.
 
 | Nome | Exemplo | Para quê |
 |---|---|---|
-| `DOMINIO` | `prontudigital.com.br` | Vira `NEXT_PUBLIC_BASE_URL` no build do frontend e alvo do teste de fumaça. **Obrigatória** — o workflow falha cedo se faltar |
+| `DOMINIO` | `purpleclin.prontudigital.com.br` | Vira `NEXT_PUBLIC_BASE_URL` no build do frontend e alvo do teste de fumaça. **Obrigatória** — o workflow falha cedo se faltar |
 | `VPS_PORT` | `22` | Porta SSH. Opcional (padrão `22`) |
 | `VPS_CAMINHO` | `/opt/prontudigital` | Onde o repositório está clonado na VPS. Opcional |
 
