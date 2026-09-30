@@ -20,6 +20,7 @@
 |---|---|
 | **este** (`doc/DEPLOY.md`) | *Como* subir, passo a passo, e como operar depois |
 | [`CICD.md`](./CICD.md) | *Como a atualização se automatiza* — os dois workflows, os secrets do repositório, o que o `deploy.sh` faz e como voltar atrás |
+| [`GITHUB_ACTIONS.md`](./GITHUB_ACTIONS.md) | *O que os workflows fazem* — leitura comentada de `ci.yml` e `cd.yml`, comando por comando |
 | [`doc/Requisitos.md`](./Requisitos.md) | Os RNF citados aqui — RNF02 (backup), RNF05/RNF06 (desempenho) |
 | [`docker/prod/secrets/README.md`](../docker/prod/secrets/README.md) | Os três segredos em arquivo — o que cada um faz e como trocar |
 | [`docker/prod/scripts/README.md`](../docker/prod/scripts/README.md) | Backup e restauração (RNF02) em detalhe |

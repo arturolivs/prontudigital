@@ -36,6 +36,10 @@ push na main
                             └─ falhou? volta para a tag anterior
 ```
 
+Esta página cobre a **configuração** e a **operação**. Para a leitura
+comentada dos dois arquivos — o que cada passo faz e por que aquele comando —
+veja [`GITHUB_ACTIONS.md`](./GITHUB_ACTIONS.md).
+
 O **gateway** (Spring Cloud Gateway) ficou de fora de propósito: foi substituído
 pelo Caddy e não está em nenhum compose desde então. Se voltar a ser implantado,
 entra na matriz dos dois workflows.
@@ -50,7 +54,7 @@ entra na matriz dos dois workflows.
 
 | Nome | Exemplo | Para quê |
 |---|---|---|
-| `DOMINIO` | `prontudigital.com.br` | Vira `NEXT_PUBLIC_BASE_URL` no build do frontend e alvo do teste de fumaça. **Obrigatória** — o workflow falha cedo se faltar |
+| `DOMINIO` | `purpleclin.prontudigital.com.br` | Vira `NEXT_PUBLIC_BASE_URL` no build do frontend e alvo do teste de fumaça. **Obrigatória** — o workflow falha cedo se faltar |
 | `VPS_PORT` | `22` | Porta SSH. Opcional (padrão `22`) |
 | `VPS_CAMINHO` | `/opt/prontudigital` | Onde o repositório está clonado na VPS. Opcional |
 

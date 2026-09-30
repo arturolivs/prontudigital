@@ -811,7 +811,7 @@ SPRING_FLYWAY_PASSWORD=senha
 Não tem `.env` próprio. O único parâmetro é o domínio, em produção:
 
 ```env
-DOMINIO=prontudigital.com.br    # sem https:// e sem barra final
+DOMINIO=purpleclin.prontudigital.com.br    # sem https:// e sem barra final
 ```
 
 ### Frontend — `next.config.ts`
