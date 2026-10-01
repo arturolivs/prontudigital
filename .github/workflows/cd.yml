@@ -134,7 +134,7 @@ jobs:
       # O build-arg só tem efeito no frontend; passá-lo ao backend é
       # inofensivo (aquele Dockerfile não declara esse ARG).
       - name: Construir e publicar
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.contexto }}
           file: ${{ matrix.dockerfile }}
