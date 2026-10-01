@@ -16,9 +16,9 @@
     "@fortawesome/react-fontawesome": "^3.1.1",
     "axios": "^1.13.2",
     "lucide-react": "^1.17.0",
-    "next": "16.0.1",
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "next": "16.3.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -28,7 +28,7 @@
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
     "eslint": "^9",
-    "eslint-config-next": "16.0.1",
+    "eslint-config-next": "16.3.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
