@@ -4,7 +4,7 @@
 #
 # Sobe uma versao ja construida no GitHub Actions e publicada no GHCR.
 # Nada e compilado aqui: `up --build` na VPS estoura a memoria da
-# maquina pequena (ANALISE_DEPLOY.md §3).
+# maquina pequena.
 #
 # Uso:
 #   ./deploy.sh <tag>            # ex.: ./deploy.sh sha-3d0989f

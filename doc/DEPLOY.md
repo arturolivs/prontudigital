@@ -11,6 +11,11 @@
 > acontece no GitHub Actions, as imagens vão para o GHCR e aqui só se faz
 > `pull` (`docker/prod/docker-compose.ghcr.yml` + `scripts/deploy.sh`). Todo
 > passo que antes dizia `up -d --build` mudou — inclusive o **primeiro** deploy.
+>
+> **Revisão de 01/10/2026:** ajustado à VPS contratada (§2.1) — SSH em porta
+> não padrão, acesso inicial como `root` com senha e imagem Ubuntu sobre
+> infraestrutura Oracle Cloud. Entrou a §3.0 (usuário de deploy) e a §3.5
+> passou a tratar a porta SSH real e o `iptables` da imagem.
 
 ---
 
@@ -154,9 +159,75 @@ loop de tentativa.
 dig +short SEU-DOMINIO.com.br     # precisa devolver o IP da VPS
 ```
 
+### 2.1 A instalação atual
+
+| Item | Valor |
+|---|---|
+| Domínio | `purpleclin.prontudigital.com.br` — primeira clínica (Purple Clin), num subdomínio; a raiz `prontudigital.com.br` fica livre |
+| DNS | Zona do registro.br, **modo avançado**: um registro `A` de `purpleclin` para o IP da VPS |
+| VPS | "VPS OCI NVMe 4" — 2 vCPU, 4 GB RAM, 100 GB NVMe, São Paulo, **Ubuntu 22.04** |
+| SSH | **Porta `22022`**, usuário inicial `root` com senha (entregue assim pelo provedor) |
+| Repositório | `github.com/arturolivs/prontudigital`, **público** — a VPS clona por HTTPS, sem deploy key |
+
+O IP e os prints do painel ficam fora do repositório (pasta `deploy/`, no
+`.gitignore`).
+
+Três consequências, tratadas nos passos indicados:
+
+- **Porta SSH não é 22.** Toda regra de firewall, todo `ssh`/`ssh-keyscan` e a
+  variable `VPS_PORT` do CD usam a porta real (§3.5, `CICD.md` §2). Liberar só
+  a `22` no `ufw` **tranca você para fora do servidor**.
+- **Não existe usuário de deploy.** O provedor entrega só o `root`; o CD
+  precisa de um usuário comum, com chave (§3.0).
+- **Imagem sobre Oracle Cloud (OCI).** As imagens Ubuntu da Oracle costumam vir
+  com regras de `iptables` que rejeitam tudo exceto SSH — 80 e 443 ficam
+  fechadas mesmo com o `ufw` liberando (§3.5).
+
+> **DNS do registro.br não aceita `@` nem `*` no modo avançado.** Sem curinga,
+> cada subdomínio novo é um registro `A` a mais na zona. Para multi-tenant com
+> subdomínio por clínica e certificado curinga, a zona teria de migrar para um
+> DNS com API (Cloudflare) — não é necessário com uma clínica só.
+
 ---
 
 ## 3. Preparo do servidor
+
+### 3.0 Primeiro acesso e usuário de deploy
+
+O provedor entrega a VPS só com `root` e senha. Este passo é o único feito como
+root; do §3.1 em diante, tudo roda como o usuário `deploy`.
+
+```bash
+# da sua máquina
+ssh -p 22022 root@<IP-DA-VPS>
+```
+
+```bash
+# na VPS, como root
+ss -tlnp | grep sshd      # a porta em que o sshd REALMENTE escuta — anote
+
+apt update && apt upgrade -y
+adduser deploy            # a senha definida aqui é a do sudo
+usermod -aG sudo deploy
+```
+
+Duas chaves, geradas **na sua máquina** — uma para você, outra só para o
+GitHub Actions (a privada dela vira o secret `VPS_SSH_KEY`, `CICD.md` §3.1).
+Em PowerShell:
+
+```powershell
+ssh-keygen -t ed25519 -f $HOME\.ssh\prontu_admin
+ssh-keygen -t ed25519 -C github-actions-prontudigital -f $HOME\.ssh\pd_deploy -N '""'
+
+type $HOME\.ssh\prontu_admin.pub, $HOME\.ssh\pd_deploy.pub |
+  ssh -p 22022 root@<IP-DA-VPS> "mkdir -p /home/deploy/.ssh && cat >> /home/deploy/.ssh/authorized_keys && chown -R deploy:deploy /home/deploy/.ssh && chmod 700 /home/deploy/.ssh && chmod 600 /home/deploy/.ssh/authorized_keys"
+
+# precisa entrar SEM pedir senha
+ssh -p 22022 -i $HOME\.ssh\prontu_admin deploy@<IP-DA-VPS>
+```
+
+Saia do root e continue logado como `deploy`. O root só deixa de aceitar senha
+na §3.6 — **depois** que este login por chave tiver funcionado.
 
 ### 3.1 Docker
 
@@ -217,14 +288,46 @@ igual. Teto: 50 MB por container. Vale para tudo que subir depois — faça
 
 ### 3.5 Firewall
 
+**Primeiro, o `iptables` da imagem.** Em VPS sobre Oracle Cloud (§2.1) a
+imagem Ubuntu costuma trazer regras próprias, persistidas pelo
+`netfilter-persistent`, que rejeitam toda entrada exceto SSH. Confira:
+
+```bash
+sudo iptables -L INPUT -n --line-numbers
+```
+
+Se aparecer `REJECT ... reject-with icmp-host-prohibited`, essas regras vencem
+o `ufw` e o Let's Encrypt nunca alcança a porta 80 — o sintoma é o Caddy em
+loop de tentativa e o teste de fumaça do `deploy.sh` falhando. Remova o pacote
+que as recarrega no boot e reinicie para limpar o que está carregado:
+
+```bash
+sudo apt purge -y netfilter-persistent iptables-persistent
+sudo reboot
+```
+
+Não use `iptables -F`: zera também as cadeias que o Docker cria, e os
+containers perdem a rede até o daemon ser reiniciado.
+
+**Depois, o `ufw`**, com a porta SSH **real** — a que o `ss -tlnp` mostrou na
+§3.0 (`22022` nesta instalação). Se o provedor fizer redirecionamento e o sshd
+escutar na 22, é a 22 que se libera aqui; vale o que o servidor escuta, não o
+que o painel mostra:
+
 ```bash
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
-sudo ufw allow 22/tcp
+sudo ufw allow 22022/tcp      # ⚠️ porta SSH real — errar aqui tranca você para fora
 sudo ufw allow 80,443/tcp
 sudo ufw allow 443/udp        # HTTP/3, publicado pelo Caddy
 sudo ufw enable
+sudo ufw status verbose
 ```
+
+> **Confirme num segundo terminal** que `ssh -p 22022 deploy@<IP>` ainda entra,
+> antes de fechar a sessão em que o `ufw enable` rodou. Se o painel do provedor
+> tiver firewall próprio (às vezes chamado *security list*), 80 e 443 precisam
+> estar abertas lá também.
 
 O Postgres **não** precisa de regra: `docker-compose.prod.yml` usa `expose`
 (não `ports`) e a rede `interna` é `internal: true` — o banco não é alcançável
@@ -245,6 +348,9 @@ sudo apt install -y fail2ban && sudo systemctl enable --now fail2ban
 ```
 
 > Confirme que sua chave funciona **em outra sessão** antes de fechar a atual.
+> A porta não muda neste passo: o `sed` só mexe em autenticação. Com o usuário
+> `deploy` funcionando, `PermitRootLogin no` é ainda melhor que
+> `prohibit-password` — ninguém precisa entrar como root por SSH.
 
 ### 3.7 Diretórios e dono
 
@@ -266,7 +372,7 @@ do root, todo deploy automático para no primeiro passo. Ver §9.
 ## 4. Código no servidor
 
 ```bash
-git clone <URL-DO-REPO> /opt/prontudigital
+git clone https://github.com/arturolivs/prontudigital.git /opt/prontudigital
 cd /opt/prontudigital
 git checkout main          # ou a tag/branch que for ao ar
 ```
@@ -281,9 +387,11 @@ para que compose, `Caddyfile` e scripts fiquem exatamente na versão da imagem
 que subiu. Arquivo editado solto desaparece no próximo deploy — ajuste vai no
 repositório, com merge antes.
 
-> Repositório privado? A VPS precisa conseguir `git fetch` sozinha: cadastre
-> uma **deploy key** de leitura (`CICD.md` §3.2). Sem isso o passo de
-> sincronização do CD falha antes de chegar ao `deploy.sh`.
+> O repositório é **público**, então o clone por HTTPS basta e o `git fetch` do
+> CD funciona sem credencial. Se um dia ele virar privado, a VPS precisa de uma
+> **deploy key** de leitura (`CICD.md` §3.2) e o `origin` passa para a URL SSH
+> (`git remote set-url origin git@github.com:arturolivs/prontudigital.git`) —
+> sem isso o passo de sincronização do CD falha antes de chegar ao `deploy.sh`.
 
 Nada além do `.env` e dos `secrets/` (§5) é criado no servidor — e nenhum dos
 dois é versionado.
@@ -402,8 +510,15 @@ dar `pull`.
 
 Com a §3 a §5 prontas, configure o repositório conforme [`CICD.md`](./CICD.md)
 §2 e §3 (secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`;
-variable `DOMINIO`) e dispare o workflow: um push na `main` ou
-*Actions > CD > Run workflow*.
+variables `DOMINIO` e **`VPS_PORT=22022`**) e dispare o workflow: um push na
+`main` ou *Actions > CD > Run workflow*.
+
+> **A ordem importa no primeiro deploy.** O CD só dispara por push na `main`, e
+> o *Run workflow* só aparece depois que o `cd.yml` existir na branch padrão.
+> Enquanto o trabalho estiver em outra branch (`config-deploy`), o merge na
+> `main` **é** o primeiro deploy — faça-o por último, com VPS, `.env`,
+> `secrets/` e o GitHub já configurados. Antes disso, o push só produz um CD
+> vermelho por falta de secrets.
 
 Ele faz, em uma tacada: CI → build das duas imagens → publicação no GHCR →
 `docker login` na VPS → `git checkout --detach <sha>` → `scripts/deploy.sh
@@ -781,14 +896,18 @@ Marque tudo antes de entregar o endereço para a clínica.
 
 **Antes de expor**
 - [ ] DNS apontando e propagado
+- [ ] Usuário `deploy` entrando por chave, na porta 22022 (§3.0)
 - [ ] `docker compose version` ≥ v2.24 (§3.1)
 - [ ] `daemon.json` com rotação de log (§3.4)
-- [ ] `ufw` ativo, SSH sem senha, `fail2ban` rodando
+- [ ] `iptables` da imagem Oracle sem `REJECT` na cadeia `INPUT` (§3.5)
+- [ ] `ufw` ativo **com a porta SSH real liberada**, SSH sem senha, `fail2ban` rodando
+- [ ] Portas 80 e 443 abertas também no firewall do painel do provedor, se houver
 - [ ] `/opt/prontudigital` e `/var/backups/prontudigital` pertencendo ao usuário de deploy (§3.7)
 - [ ] `.env` com `chmod 600` e os três arquivos em `secrets/`, gerados na VPS
 - [ ] `NOTIFICACOES_HABILITADAS=false` (ou as 4 variáveis do WhatsApp válidas)
-- [ ] Secrets e variables do CD configurados no GitHub (`CICD.md` §2)
-- [ ] Deploy key de leitura cadastrada, se o repositório for privado (`CICD.md` §3.2)
+- [ ] Secrets e variables do CD configurados no GitHub, com `VPS_PORT=22022` (`CICD.md` §2)
+- [ ] Deploy key de leitura cadastrada, se o repositório for privado (`CICD.md` §3.2) — hoje é público
+- [ ] `config-deploy` mergeada na `main` só depois de todos os itens acima (§6.1)
 
 **Depois de subir**
 - [ ] `docker compose ps` com backend e postgres `healthy`

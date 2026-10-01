@@ -4,7 +4,7 @@
 > [`DEPLOY.md`](./DEPLOY.md), que descreve a instalação manual da VPS —
 > aqui está o que automatiza a **atualização** dela.
 >
-> Decisão de fundo ([`ANALISE_DEPLOY.md`](../ANALISE_DEPLOY.md) §3): **nada é
+> Decisão de fundo: **nada é
 > compilado na VPS**. `docker compose up --build` roda Maven e `next build` na
 > máquina de produção, consome muito mais memória que o runtime inteiro e
 > derruba uma VPS pequena por OOM. O build acontece no Actions, as imagens vão
@@ -55,7 +55,7 @@ entra na matriz dos dois workflows.
 | Nome | Exemplo | Para quê |
 |---|---|---|
 | `DOMINIO` | `purpleclin.prontudigital.com.br` | Vira `NEXT_PUBLIC_BASE_URL` no build do frontend e alvo do teste de fumaça. **Obrigatória** — o workflow falha cedo se faltar |
-| `VPS_PORT` | `22` | Porta SSH. Opcional (padrão `22`) |
+| `VPS_PORT` | `22022` | Porta SSH. Opcional (padrão `22`) — **nesta instalação é obrigatória**: o provedor entrega o SSH na `22022` (`DEPLOY.md` §2.1). Sem ela o job tenta a 22 e morre em `Connection timed out` |
 | `VPS_CAMINHO` | `/opt/prontudigital` | Onde o repositório está clonado na VPS. Opcional |
 
 > `DOMINIO` é congelada no bundle do frontend em tempo de build
@@ -66,10 +66,16 @@ entra na matriz dos dois workflows.
 
 | Nome | Como obter |
 |---|---|
-| `VPS_HOST` | IP ou hostname da VPS |
-| `VPS_USER` | Usuário de deploy (não root, membro do grupo `docker`) |
+| `VPS_HOST` | IP da VPS. Use o IP, não o domínio: o `known_hosts` é gravado para o nome usado no `ssh-keyscan`, e os dois precisam bater |
+| `VPS_USER` | `deploy` — usuário criado na `DEPLOY.md` §3.0 (não root, membro do grupo `docker`) |
 | `VPS_SSH_KEY` | Chave **privada** do par criado em §3.1, conteúdo inteiro do arquivo |
-| `VPS_KNOWN_HOSTS` | Saída de `ssh-keyscan -p 22 <ip-da-vps>` (rode de uma máquina em que você confia na rede) |
+| `VPS_KNOWN_HOSTS` | Saída de `ssh-keyscan -p 22022 <ip-da-vps>` — **mesma porta da `VPS_PORT`** (rode de uma máquina em que você confia na rede) |
+
+> Com porta diferente de 22, o `ssh-keyscan` grava a linha como
+> `[<ip-da-vps>]:22022 ssh-ed25519 ...`, com colchetes. É assim mesmo: o
+> `ssh` do job procura exatamente esse formato quando conecta em outra porta.
+> Uma linha sem colchetes, gerada com a porta padrão, dá `Host key
+> verification failed`.
 
 Não existe secret de registro: o job usa o `GITHUB_TOKEN` da própria execução
 para publicar e para autenticar a VPS no GHCR. Ele expira quando o job termina,
@@ -87,18 +93,22 @@ clique — em prontuário eletrônico, geralmente vale.
 
 ## 3. Preparação da VPS (uma vez)
 
-Pressupõe a VPS já instalada conforme `DEPLOY.md` §4–§7: Docker, `.env`
-preenchido, `secrets/` criados e a pilha já tendo subido pelo menos uma vez.
+Pressupõe a VPS preparada conforme `DEPLOY.md` §3–§5: usuário `deploy`,
+Docker, `.env` preenchido e `secrets/` criados. A pilha **não** precisa ter
+subido antes — numa VPS nova, o primeiro deploy já é o do CD (`DEPLOY.md`
+§6.1), e o `deploy.sh` pula o backup sozinho quando não há nada no ar.
 
 ### 3.1 Par de chaves do deploy
 
-Na **sua máquina**:
+Se você seguiu a `DEPLOY.md` §3.0, este par (`pd_deploy`) já existe e a
+pública já está no `authorized_keys` do `deploy` — pule para o último
+parágrafo. Caso contrário, na **sua máquina**:
 
 ```bash
 ssh-keygen -t ed25519 -C 'github-actions-prontudigital' -f ~/.ssh/pd_deploy -N ''
 ```
 
-Na VPS, autorize a pública:
+Na VPS, logado como `deploy`, autorize a pública:
 
 ```bash
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
@@ -112,8 +122,9 @@ e some da sua máquina depois.
 ### 3.2 A VPS precisa conseguir `git fetch`
 
 O deploy faz `git checkout --detach <sha>` na VPS para que compose, `Caddyfile`
-e scripts fiquem na mesma versão da imagem. Se o repositório for privado,
-cadastre uma **deploy key** (`Settings > Deploy keys`, só leitura) com a chave
+e scripts fiquem na mesma versão da imagem. **Hoje o repositório é público**: o
+clone por HTTPS da `DEPLOY.md` §4 já basta e esta seção não se aplica. Se ele
+virar privado, cadastre uma **deploy key** (`Settings > Deploy keys`, só leitura) com a chave
 pública da VPS:
 
 ```bash
@@ -217,12 +228,13 @@ limpeza: cada push na `main` cria uma versão nova, e nenhuma é apagada sozinha
 
 | Sintoma no Actions | Causa provável |
 |---|---|
-| `Host key verification failed` | `VPS_KNOWN_HOSTS` vazio, com host errado ou porta diferente da usada no `ssh-keyscan` |
+| `Connection timed out` / `Connection refused` no primeiro passo SSH | `VPS_PORT` ausente (o job tenta a 22, e o SSH aqui é a `22022`), ou o `ufw` sem a porta SSH liberada |
+| `Host key verification failed` | `VPS_KNOWN_HOSTS` vazio, com host errado ou porta diferente da usada no `ssh-keyscan` (com porta não padrão a linha precisa vir como `[ip]:22022`) |
 | `Permission denied (publickey)` | A pública do par de §3.1 não está no `authorized_keys` do usuário certo |
 | `pull das imagens ... falhou` | Pacote privado e `docker login` não aconteceu, ou a tag não existe (confira o nome em *Packages*) |
 | `backup falhou — deploy abortado` | `/var/backups/prontudigital` sem permissão, ou disco cheio |
 | `backend subiu mas ficou unhealthy` | Quase sempre Flyway ou banco: `docker compose ... logs backend` na VPS. A versão anterior já foi restaurada automaticamente |
-| `https://dominio/ não respondeu 2xx` | Caddy sem certificado (DNS/porta 80) ou frontend em crash-loop |
+| `https://dominio/ não respondeu 2xx` | Caddy sem certificado (DNS/porta 80) ou frontend em crash-loop. Na VPS sobre Oracle Cloud, confira o `iptables` da imagem — `DEPLOY.md` §3.5 |
 | Frontend no ar chamando `localhost:9090` | A variable `DOMINIO` estava errada **no momento do build**. Corrija e rode o CD de novo — mudar o `.env` da VPS não resolve |
 
 ---
@@ -236,7 +248,7 @@ Deliberado, para não inflar o primeiro arranjo. Em ordem de proveito:
 - **Ambiente de homologação**. Hoje `main` vai direto para produção; a rede de
   proteção é o CI mais o rollback automático.
 - **Testes end-to-end** contra a pilha subida (o CI só valida compose e unidades).
-- **Cifrar o backup** antes de mandar para fora da máquina — pendência já
-  registrada em `ANALISE_DEPLOY.md` §5, e o `COMANDO_COPIA_EXTERNA` do `.env`
+- **Cifrar o backup** antes de mandar para fora da máquina — pendência
+  conhecida (`DEPLOY.md` §11), e o `COMANDO_COPIA_EXTERNA` do `.env`
   é o gancho natural.
 - **Notificação de deploy** (WhatsApp/e-mail) no fim do workflow.

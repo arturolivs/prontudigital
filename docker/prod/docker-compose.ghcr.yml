@@ -10,7 +10,7 @@
 #
 # Por que existe: `up --build` compila Maven e roda `next build` na
 # própria VPS. Isso consome muito mais memória que os ~2 GB do runtime
-# e derruba uma máquina pequena por OOM (ANALISE_DEPLOY.md §3). Aqui o
+# e derruba uma máquina pequena por OOM. Aqui o
 # build acontece no GitHub Actions e a VPS só faz `pull`.
 #
 # `build: !reset null` apaga o bloco `build:` herdado do arquivo base
