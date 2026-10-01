@@ -1,5 +1,4 @@
 // Anamnese do paciente (RF13) — preenchida durante o agendamento de AVALIACAO.
-// Modelo: ajustar_campos/modelos/Anamnese.pdf
 // Espelha AnamneseRequestDTO / AnamneseResponseDTO do backend.
 //
 // Os dados de identificação do cabeçalho do modelo (nome, nascimento, sexo,

@@ -82,7 +82,7 @@ O sistema gerencia as operações de uma **clínica de enfermagem especializada 
 - **Frontend:** Next.js (React) + Tailwind CSS.
 - **Banco de Dados:** PostgreSQL (migrations Flyway).
 - **Notificações:** WhatsApp Cloud API (Meta).
-- **Hospedagem:** VPS única em São Paulo, executando `docker/prod/docker-compose.prod.yml` — ver o comparativo de alternativas e o custo estimado em [`ANALISE_DEPLOY.md`](../ANALISE_DEPLOY.md).
+- **Hospedagem:** VPS única em São Paulo, executando `docker/prod/docker-compose.prod.yml` — ver `doc/DEPLOY.md`.
 
 ---
 
@@ -96,8 +96,8 @@ volumes próprios. Não há discriminador de *tenant* — a tabela
 
 A escolha foi deliberada para o estágio atual (poucos clientes, dado de saúde):
 isolamento absoluto entre clínicas, sem risco de vazamento cruzado, ao custo de
-operação linear. O comparativo com schema-por-cliente e *pool* com RLS, e o
-gatilho para migrar, estão em [`ANALISE_DEPLOY.md`](../ANALISE_DEPLOY.md).
+operação linear. Migrar para multi-tenant (schema por cliente, ou tabela compartilhada com RLS)
+só se justifica com volume de clientes; até lá, cliente novo é instalação nova.
 
 ---
 

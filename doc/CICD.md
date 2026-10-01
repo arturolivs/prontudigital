@@ -4,7 +4,7 @@
 > [`DEPLOY.md`](./DEPLOY.md), que descreve a instalação manual da VPS —
 > aqui está o que automatiza a **atualização** dela.
 >
-> Decisão de fundo ([`ANALISE_DEPLOY.md`](../ANALISE_DEPLOY.md) §3): **nada é
+> Decisão de fundo: **nada é
 > compilado na VPS**. `docker compose up --build` roda Maven e `next build` na
 > máquina de produção, consome muito mais memória que o runtime inteiro e
 > derruba uma VPS pequena por OOM. O build acontece no Actions, as imagens vão
@@ -248,7 +248,7 @@ Deliberado, para não inflar o primeiro arranjo. Em ordem de proveito:
 - **Ambiente de homologação**. Hoje `main` vai direto para produção; a rede de
   proteção é o CI mais o rollback automático.
 - **Testes end-to-end** contra a pilha subida (o CI só valida compose e unidades).
-- **Cifrar o backup** antes de mandar para fora da máquina — pendência já
-  registrada em `ANALISE_DEPLOY.md` §5, e o `COMANDO_COPIA_EXTERNA` do `.env`
+- **Cifrar o backup** antes de mandar para fora da máquina — pendência
+  conhecida (`DEPLOY.md` §11), e o `COMANDO_COPIA_EXTERNA` do `.env`
   é o gancho natural.
 - **Notificação de deploy** (WhatsApp/e-mail) no fim do workflow.
