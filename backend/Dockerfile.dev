@@ -2,7 +2,7 @@
 # Backend — Desenvolvimento
 # Hot reload via Spring Boot DevTools + Maven wrapper
 # ============================================================
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:25-jdk
 
 WORKDIR /app
 
