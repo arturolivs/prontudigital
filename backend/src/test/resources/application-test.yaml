@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  flyway:
+    enabled: false
+
+app:
+  # O contexto de teste sobe pelo SpringApplication.run, entao o
+  # BootstrapAdminRunner rodaria a cada @SpringBootTest. Desligado aqui: o
+  # banco H2 e efemero e nenhum teste depende do ADMIN inicial.
+  bootstrap-admin:
+    habilitado: false
+
+logging:
+  level:
+    root: WARN
+    com.prontudigital: INFO

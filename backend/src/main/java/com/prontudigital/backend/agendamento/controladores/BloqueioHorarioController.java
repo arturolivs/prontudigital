@@ -1,0 +1,84 @@
+package com.prontudigital.backend.agendamento.controladores;
+
+import com.prontudigital.backend.agendamento.dto.BloqueioHorarioDTO;
+import com.prontudigital.backend.agendamento.dto.BloqueioRecorrenteDTO;
+import com.prontudigital.backend.agendamento.servicos.BloqueioHorarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/bloqueios-horario")
+@RequiredArgsConstructor
+@Tag(name = "Bloqueios de Horario (RF11)")
+@SecurityRequirement(name = "bearerAuth")
+public class BloqueioHorarioController {
+
+    private final BloqueioHorarioService service;
+
+    @Operation(summary = "Criar bloqueio de horario")
+    @PostMapping
+    public ResponseEntity<BloqueioHorarioDTO> criar(
+            @Valid @RequestBody BloqueioHorarioDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(request));
+    }
+
+    @Operation(summary = "Listar bloqueios de um profissional em um periodo")
+    @GetMapping
+    public ResponseEntity<List<BloqueioHorarioDTO>> listar(
+            @RequestParam UUID profissionalUuid,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+        return ResponseEntity.ok(service.listarPorProfissional(profissionalUuid, inicio, fim));
+    }
+
+    @Operation(summary = "Remover bloqueio")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> remover(@PathVariable Long id) {
+        service.remover(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Listar bloqueios de um profissional (público, sem autenticação)")
+    @SecurityRequirements
+    @GetMapping("/public")
+    public ResponseEntity<List<BloqueioHorarioDTO>> listarPublico(
+            @RequestParam UUID profissionalUuid,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+        return ResponseEntity.ok(service.listarPorProfissional(profissionalUuid, inicio, fim));
+    }
+
+    @Operation(summary = "Criar bloqueio recorrente por dia da semana")
+    @PostMapping("/recorrentes")
+    public ResponseEntity<BloqueioRecorrenteDTO> criarRecorrente(
+            @Valid @RequestBody BloqueioRecorrenteDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.criarRecorrente(request));
+    }
+
+    @Operation(summary = "Listar regras de bloqueio recorrente de um profissional")
+    @GetMapping("/recorrentes")
+    public ResponseEntity<List<BloqueioRecorrenteDTO>> listarRecorrentes(
+            @RequestParam UUID profissionalUuid) {
+        return ResponseEntity.ok(service.listarRecorrentesPorProfissional(profissionalUuid));
+    }
+
+    @Operation(summary = "Remover regra de bloqueio recorrente")
+    @DeleteMapping("/recorrentes/{id}")
+    public ResponseEntity<Void> removerRecorrente(@PathVariable Long id) {
+        service.removerRecorrente(id);
+        return ResponseEntity.noContent().build();
+    }
+}

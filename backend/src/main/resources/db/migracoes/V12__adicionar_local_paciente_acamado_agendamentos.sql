@@ -1,0 +1,3 @@
+ALTER TABLE agendamentos
+    ADD COLUMN local_atendimento VARCHAR(20) NOT NULL DEFAULT 'CLINICA',
+    ADD COLUMN paciente_acamado  BOOLEAN     NOT NULL DEFAULT FALSE;

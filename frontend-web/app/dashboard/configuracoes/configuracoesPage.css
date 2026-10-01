@@ -1,0 +1,217 @@
+/* ===== CONFIGURAÇÕES DA CLÍNICA =====
+   Reaproveita .btn-primario / .btn-secundario de usuariosPage.css.
+*/
+
+.cfg-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cfg-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  margin: 0 0 4px;
+}
+
+.cfg-subtitulo {
+  font-size: 0.88rem;
+  color: var(--color-brand-light);
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* ===== CARDS ===== */
+
+.cfg-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border-brand);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(var(--color-brand-rgb), 0.06);
+}
+
+.cfg-card-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-heading);
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+/* ===== LOGO ===== */
+
+.cfg-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.cfg-logo-preview {
+  width: 160px;
+  height: 90px;
+  border: 1px dashed var(--color-border-brand);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-page);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* `contain` para não distorcer logos de proporções variadas. */
+.cfg-logo-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.cfg-logo-vazia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-neutral-400);
+  font-size: 0.78rem;
+}
+
+.cfg-logo-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cfg-btn-perigo {
+  color: var(--color-error);
+  border-color: var(--color-error-border);
+}
+
+.cfg-btn-perigo:hover:not(:disabled) {
+  background: var(--color-error-bg);
+}
+
+.cfg-hint {
+  font-size: 0.78rem;
+  color: var(--color-neutral-500);
+}
+
+/* ===== FORMULÁRIO ===== */
+
+.cfg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.cfg-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.cfg-campo--largo {
+  grid-column: span 2;
+}
+
+.cfg-campo--curto {
+  max-width: 120px;
+}
+
+.cfg-campo--bloco {
+  grid-column: 1 / -1;
+}
+
+.cfg-campo > span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+}
+
+.cfg-obrigatorio {
+  color: var(--color-error);
+}
+
+.cfg-campo input,
+.cfg-campo textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--color-text-body);
+  background: var(--color-white);
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.cfg-campo input:focus,
+.cfg-campo textarea:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(var(--color-brand-rgb), 0.1);
+}
+
+.cfg-campo textarea {
+  resize: vertical;
+}
+
+.cfg-campo small.cfg-hint {
+  margin-top: 2px;
+}
+
+/* ===== AÇÕES / ESTADOS ===== */
+
+.cfg-acoes {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+}
+
+.cfg-estado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 20px;
+  color: var(--color-neutral-500);
+}
+
+.cfg-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--color-border-brand);
+  border-top-color: var(--color-brand);
+  border-radius: 50%;
+  animation: cfg-spin 0.8s linear infinite;
+}
+
+@keyframes cfg-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .cfg-campo--largo {
+    grid-column: span 1;
+  }
+
+  .cfg-acoes button {
+    width: 100%;
+  }
+}

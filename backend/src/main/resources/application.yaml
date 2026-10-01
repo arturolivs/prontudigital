@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: prontudigital
+
+  messages:
+    basename: messages
+    encoding: UTF-8
+    use-code-as-default-message: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/prontudigital
+    username: user_admin
+    password: secret123
+
+  flyway:
+    url: jdbc:postgresql://localhost:5432/prontudigital
+    user: user_admin
+    password: secret123
+    locations: classpath:db/migracoes
+    baseline-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    # ATENÇÃO: substitua por variável de ambiente em produção (JWT_SECRET)
+    secret: "prontudigital-jwt-secret-key-for-hs512-authentication-2026-change-in-prod"
+    access-expiration-ms: 600000000
+    refresh-expiration-ms: 600000000
+  # Ver BootstrapAdminRunner. Vazio = nenhum ADMIN e criado automaticamente.
+  bootstrap-admin:
+    username: ${APP_BOOTSTRAP_ADMIN_USERNAME:}
+    senha:    ${APP_BOOTSTRAP_ADMIN_SENHA:}
+  notificacoes:
+    habilitadas: true
+    url-base-confirmacao: "http://localhost:8080/api/confirmacao"
+  recuperacao-senha:
+    expiracao-minutos: 10
+  whatsapp:
+    cloud-api:
+      base-url: "https://graph.facebook.com"
+      api-version: "v25.0"
+      phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+      access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    webhook:
+      # Texto livre, escolhido por você; o mesmo valor vai no painel da Meta
+      # (App > WhatsApp > Configuração > Webhook > Verificar token).
+      verify-token: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:}
+      # App secret (Meta > Configurações do app > Básico). Vazio = assinatura
+      # NÃO conferida — aceitável só em dev, atrás de um túnel.
+      app-secret: ${WHATSAPP_APP_SECRET:}
+  armazenamento:
+    diretorio-base: ${ARMAZENAMENTO_DIR:dados/anexos}
+    tamanho-maximo-bytes: 10485760
+    tipos-permitidos:
+      - image/jpeg
+      - image/png
+      - image/webp
+      - application/pdf
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.security: DEBUG
+    org.springdoc: DEBUG
+    # Fluxo de mensagens do WhatsApp (schedulers, envio e respostas dos links)
+    com.prontudigital.backend.notificacao: DEBUG
+    com.prontudigital.backend.compartilhado.clientes: DEBUG
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - name: auth-service
+        url: /v3/api-docs

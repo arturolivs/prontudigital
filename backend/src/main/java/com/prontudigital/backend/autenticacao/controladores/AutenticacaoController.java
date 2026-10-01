@@ -1,0 +1,134 @@
+package com.prontudigital.backend.autenticacao.controladores;
+
+import com.prontudigital.backend.autenticacao.dto.*;
+import com.prontudigital.backend.autenticacao.servicos.AutenticacaoService;
+import com.prontudigital.backend.compartilhado.mensagens.Mensagens;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+@Tag(name = "Autenticacao", description = "Registro, login, refresh e logout de usuarios")
+public class AutenticacaoController {
+
+    private final AutenticacaoService autenticacaoService;
+
+    @Operation(
+            summary = "Registrar novo usuario (restrito ao ADMIN)",
+            description = """
+                    Cria usuario com os perfis informados no corpo da requisicao.
+                    Por aceitar perfis do cliente, exige ADMIN autenticado: aberto,
+                    permitiria a qualquer anonimo criar um ADMIN.
+                    Paciente que se cadastra sozinho usa /api/auth/cadastrar-paciente.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Usuario criado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Sem autenticacao ou sem perfil ADMIN"),
+            @ApiResponse(responseCode = "409", description = "Username ou e-mail ja existente"),
+            @ApiResponse(responseCode = "422", description = "Dados invalidos")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/registrar")
+    public ResponseEntity<UsuarioDTO> registrar(
+            @Valid @RequestBody RegistrarRequestDTO request) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(autenticacaoService.registrar(request));
+    }
+
+    @Operation(summary = "Autenticar usuario e obter tokens JWT")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Autenticado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Credenciais invalidas")
+    })
+    @PostMapping("/login")
+    public ResponseEntity<JwtResponseDTO> autenticar(
+            @Valid @RequestBody LoginRequestDTO request) {
+        return ResponseEntity.ok(autenticacaoService.autenticar(request));
+    }
+
+    @Operation(summary = "Renovar access token usando refresh token")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Token renovado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Refresh token invalido ou expirado")
+    })
+    @PostMapping("/renovar-token")
+    public ResponseEntity<RefreshTokenResponseDTO> renovarToken(
+            @Valid @RequestBody RefreshTokenRequestDTO request) {
+        return ResponseEntity.ok(autenticacaoService.renovarToken(request.refreshToken()));
+    }
+
+    @Operation(summary = "Encerrar sessao e revogar refresh token")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Sessao encerrada"),
+            @ApiResponse(responseCode = "401", description = "Nao autenticado")
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<Void> encerrarSessao(
+            @Valid @RequestBody RefreshTokenRequestDTO request) {
+        autenticacaoService.encerrarSessao(request.refreshToken());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Cadastrar paciente com nome e telefone (sem credenciais de acesso)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Paciente cadastrado e sessão iniciada"),
+            @ApiResponse(responseCode = "409", description = "Telefone já cadastrado"),
+            @ApiResponse(responseCode = "422", description = "Dados inválidos")
+    })
+    @PostMapping("/cadastrar-paciente")
+    public ResponseEntity<JwtResponseDTO> cadastrarPaciente(
+            @Valid @RequestBody CadastrarPacienteDTO request) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(autenticacaoService.cadastrarPaciente(request));
+    }
+
+    @Operation(summary = "Ativar acesso ao sistema para paciente já cadastrado")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Acesso ativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Paciente não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Username ou e-mail já em uso"),
+            @ApiResponse(responseCode = "422", description = "Dados inválidos")
+    })
+    @PostMapping("/ativar-acesso")
+    public ResponseEntity<UsuarioDTO> ativarAcesso(
+            @Valid @RequestBody AtivarAcessoRequestDTO request) {
+        return ResponseEntity.ok(autenticacaoService.ativarAcesso(request));
+    }
+
+    @Operation(summary = "Solicitar código de recuperação de senha via WhatsApp")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Código enviado via WhatsApp"),
+            @ApiResponse(responseCode = "404", description = "Telefone não cadastrado"),
+            @ApiResponse(responseCode = "422", description = "Dados inválidos")
+    })
+    @PostMapping("/recuperar-senha/solicitar")
+    public ResponseEntity<RecuperarSenhaResponseDTO> solicitarRecuperacaoSenha(
+            @Valid @RequestBody RecuperarSenhaSolicitarRequestDTO request) {
+        autenticacaoService.solicitarRecuperacaoSenha(request);
+        return ResponseEntity.ok(new RecuperarSenhaResponseDTO(
+                Mensagens.get("auth.recuperar-senha.solicitado")));
+    }
+
+    @Operation(summary = "Confirmar código de recuperação e definir nova senha")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Senha redefinida com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Telefone não cadastrado"),
+            @ApiResponse(responseCode = "422", description = "Código inválido, expirado ou dados inválidos")
+    })
+    @PostMapping("/recuperar-senha/confirmar")
+    public ResponseEntity<RecuperarSenhaResponseDTO> confirmarRecuperacaoSenha(
+            @Valid @RequestBody RecuperarSenhaConfirmarRequestDTO request) {
+        autenticacaoService.confirmarRecuperacaoSenha(request);
+        return ResponseEntity.ok(new RecuperarSenhaResponseDTO(Mensagens.get("auth.recuperar-senha.redefinida")));
+    }
+}

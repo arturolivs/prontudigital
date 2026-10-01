@@ -1,0 +1,17 @@
+# ============================================================
+# Frontend Web — Desenvolvimento
+# Assume projeto Node/React/Next — ajuste o CMD se necessário
+# ============================================================
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

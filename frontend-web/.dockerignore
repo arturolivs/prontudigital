@@ -1,0 +1,33 @@
+# Fora do contexto de build da imagem (Dockerfile.prod / Dockerfile.dev).
+#
+# O `COPY . .` do estágio de build roda DEPOIS do
+# `COPY --from=deps /app/node_modules ./node_modules` — sem ignorar
+# node_modules aqui, o diretório do host sobrescreve o que o `npm ci`
+# instalou dentro da imagem.
+
+node_modules
+.next
+out
+build
+coverage
+
+# Segredos e configuração local. As NEXT_PUBLIC_* de produção entram por
+# --build-arg (ver Dockerfile.prod), nunca por arquivo.
+.env
+.env.*
+
+.git
+.gitignore
+.vscode
+.idea
+
+Dockerfile*
+.dockerignore
+nginx.conf
+README.md
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+*.pem

@@ -1,0 +1,59 @@
+# ============================================================
+# Docker Compose — override de DEBUG
+#
+# Sobe Postgres, Caddy e frontend em containers e deixa o BACKEND
+# de fora, para ser executado no IntelliJ (Debug, breakpoints e
+# hot swap nativos).
+#
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d
+#   → depois dê Debug no BackendApplication com o profile `local`
+#
+# Entrada continua sendo http://localhost:9090 (Caddy), como antes.
+# Para voltar a rodar tudo em container, basta omitir este arquivo:
+#   docker compose up
+#
+# Se quiser que o modo debug seja o padrão, coloque no .env:
+#   COMPOSE_PATH_SEPARATOR=:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.debug.yml
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # O serviço `backend` não sobe neste modo — quem responde na
+  # 8080 é a JVM do IntelliJ. Ele fica declarado sob um profile
+  # do compose que ninguém ativa, então é ignorado inclusive
+  # pelos `depends_on` dos outros serviços.
+  # ----------------------------------------------------------
+  backend:
+    profiles:
+      - nunca
+
+  caddy:
+    # `depends_on` do base é mesclado, não substituído — então a
+    # dependência do backend não some, só deixa de ser obrigatória.
+    depends_on:
+      backend:
+        required: false
+    # `backend` deixa de ser um nome do DNS interno do Docker e passa
+    # a apontar para a máquina host, onde o Spring está rodando pelo
+    # IntelliJ. Resolve via /etc/hosts, que o Go (runtime do Caddy)
+    # consulta antes do DNS — por isso o Caddyfile não muda em nada.
+    extra_hosts:
+      - "backend:host-gateway"
+
+  frontend:
+    depends_on:
+      backend:
+        required: false
+    environment:
+      # Os Route Handlers do Next (/api/auth/session e /api/auth/refresh)
+      # rodam DENTRO do container, então precisam sair para o host para
+      # alcançar o backend do IntelliJ. Sobrepõe o BACKEND_INTERNAL_URL
+      # do .env, que aponta para o container.
+      BACKEND_INTERNAL_URL: http://host.docker.internal:8080
+    extra_hosts:
+      # Automático no Docker Desktop; explicitado para funcionar
+      # também em Docker nativo no Linux.
+      - "host.docker.internal:host-gateway"

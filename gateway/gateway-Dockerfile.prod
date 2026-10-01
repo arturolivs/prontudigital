@@ -1,0 +1,37 @@
+# ============================================================
+# Gateway — Produção
+# ============================================================
+
+FROM eclipse-temurin:21-jdk AS builder
+
+WORKDIR /app
+
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+
+RUN ./mvnw dependency:go-offline -q
+
+COPY src ./src
+
+RUN ./mvnw package -DskipTests -q
+
+FROM eclipse-temurin:21-jre AS runtime
+
+WORKDIR /app
+
+RUN groupadd --system prontu && useradd --system --gid prontu prontu
+
+COPY --from=builder /app/target/*.jar app.jar
+
+RUN chown prontu:prontu app.jar
+
+USER prontu
+
+EXPOSE 9090
+
+ENTRYPOINT ["java", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=75.0", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-Dspring.profiles.active=prod", \
+  "-jar", "app.jar"]

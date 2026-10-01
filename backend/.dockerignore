@@ -1,0 +1,14 @@
+# Fora do contexto de build da imagem (Dockerfile.prod / Dockerfile.dev).
+# O build é feito dentro da imagem pelo Maven; nada compilado no host entra.
+
+target
+dados
+.git
+.gitattributes
+.gitignore
+.idea
+.vscode
+
+Dockerfile*
+.dockerignore
+HELP.md

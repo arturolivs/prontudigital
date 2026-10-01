@@ -1,0 +1,290 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Plus } from 'lucide-react'
+import { RotaProtegida } from '../../components/RotaProtegida'
+import { useAuth } from '../../contexts/AuthContext'
+import { agendamentoAPI } from '../../lib/agendamento.service'
+import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
+import { Agendamento, AgendamentoRequisicao } from '../../tipos/agendamento'
+import { TipoProcedimento } from '../../tipos/TipoProcedimento'
+import { LocalAtendimento } from '../../tipos/LocalAtendimento'
+import Layout from '@/components/Layout/Layout'
+import './agenda.css'
+import ListaAgendamentos from '@/components/ListaAgendamentos'
+import AgendaSemanal from '@/components/AgendaSemanal'
+import AgendaMensal from '@/components/AgendaMensal'
+import ModalNovoAgendamento from '@/components/ModalNovoAgendamento'
+
+type TipoVisualizacao = 'day' | 'week' | 'month'
+
+const formatarDataISO = (date: Date): string => date.toISOString().split('T')[0]
+
+const obterInicioSemana = (dateStr: string): Date => {
+  const d = new Date(dateStr + 'T00:00:00')
+  const dia = d.getDay()
+  d.setDate(d.getDate() - dia + (dia === 0 ? -6 : 1))
+  return d
+}
+
+const formatarPeriodo = (tipo: TipoVisualizacao, date: Date): string => {
+  if (tipo === 'day') {
+    const hoje = new Date()
+    hoje.setHours(0, 0, 0, 0)
+    const amanha = new Date(hoje)
+    amanha.setDate(amanha.getDate() + 1)
+    if (date.toDateString() === hoje.toDateString()) return 'Hoje'
+    if (date.toDateString() === amanha.toDateString()) return 'Amanhã'
+    return date.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    })
+  }
+  if (tipo === 'week') {
+    const inicio = obterInicioSemana(formatarDataISO(date))
+    const fim = new Date(inicio)
+    fim.setDate(fim.getDate() + 6)
+    if (inicio.getMonth() === fim.getMonth()) {
+      return `${inicio.getDate()} – ${fim.getDate()} de ${fim.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`
+    }
+    return `${inicio.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} – ${fim.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })}`
+  }
+  return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+}
+
+interface PrefillModal {
+  pacienteUuid?: string
+  profissionalUuid?: string
+  avaliacaoId?: number
+  tipo?: 'AVALIACAO' | 'TRATAMENTO'
+  tipoProcedimento?: TipoProcedimento
+  procedimentoId?: number
+  localAtendimento?: LocalAtendimento
+  pacienteAcamado?: boolean
+  data?: string
+}
+
+export default function AgendaPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { usuario, temPerfil } = useAuth()
+  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState(formatarDataISO(new Date()))
+  const [viewType, setViewType] = useState<TipoVisualizacao>('day')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [prefillModal, setPrefillModal] = useState<PrefillModal | undefined>()
+
+  useEffect(() => {
+    if (!searchParams.get('novoTratamento')) return
+
+    const prefill: PrefillModal = {
+      tipo: 'TRATAMENTO',
+      pacienteUuid: searchParams.get('pacienteUuid') ?? undefined,
+      profissionalUuid: searchParams.get('profissionalUuid') ?? undefined,
+      avaliacaoId: searchParams.get('avaliacaoId')
+        ? Number(searchParams.get('avaliacaoId'))
+        : undefined,
+      tipoProcedimento:
+        (searchParams.get('tipoProcedimento') as TipoProcedimento) ?? undefined,
+      procedimentoId: searchParams.get('procedimentoId')
+        ? Number(searchParams.get('procedimentoId'))
+        : undefined,
+      localAtendimento:
+        (searchParams.get('localAtendimento') as LocalAtendimento) ?? undefined,
+      pacienteAcamado:
+        searchParams.get('pacienteAcamado') != null
+          ? searchParams.get('pacienteAcamado') === 'true'
+          : undefined,
+    }
+
+    setPrefillModal(prefill)
+    setIsModalOpen(true)
+    router.replace('/agenda')
+  }, [searchParams, router])
+
+  const abrirProcedimento = (agendamento: Agendamento) =>
+    router.push(`/agenda/procedimento/${agendamento.id}`)
+
+  const isEnfermeiro = temPerfil('ROLE_PROFISSIONAL')
+  const isAdmin = temPerfil('ROLE_ADMIN')
+  const hasRequiredRole = isEnfermeiro || isAdmin
+
+  const fetchAgendamentos = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await agendamentoAPI.getAgendamentos(viewType, selectedDate)
+      setAgendamentos(data)
+    } catch (err: any) {
+      setError(mensagemErro(err, MENSAGENS.erro.carregarAgendamentos))
+      console.error('Erro:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedDate, viewType])
+
+  useEffect(() => {
+    if (usuario && hasRequiredRole) {
+      fetchAgendamentos()
+    }
+  }, [selectedDate, viewType, usuario, hasRequiredRole, fetchAgendamentos])
+
+  const navegar = (direcao: number) => {
+    const date = new Date(selectedDate + 'T00:00:00')
+    if (viewType === 'day') date.setDate(date.getDate() + direcao)
+    else if (viewType === 'week') date.setDate(date.getDate() + direcao * 7)
+    else date.setMonth(date.getMonth() + direcao)
+    setSelectedDate(formatarDataISO(date))
+  }
+
+  const handleDiaSelecionado = (data: string) => {
+    setSelectedDate(data)
+    setViewType('day')
+  }
+
+  const handleCriarAgendamento = async (dados: AgendamentoRequisicao) => {
+    try {
+      await agendamentoAPI.criarAgendamento(dados)
+      setIsModalOpen(false)
+      setPrefillModal(undefined)
+      fetchAgendamentos()
+    } catch (err: any) {
+      setError(mensagemErro(err, MENSAGENS.erro.criarAgendamento))
+      console.error('Erro:', err)
+    }
+  }
+
+  const dataAtual = new Date(selectedDate + 'T00:00:00')
+
+  if (!usuario || !hasRequiredRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  return (
+    <Layout perfil={isAdmin ? 'ROLE_ADMIN' : 'ROLE_PROFISSIONAL'}>
+      <RotaProtegida perfisNecessarios={['ROLE_PROFISSIONAL', 'ROLE_ADMIN']}>
+        <div className="appointments-page">
+          <div className="agenda-toolbar">
+            <button
+              onClick={() => {
+                if (viewType === 'day') setPrefillModal({ data: selectedDate })
+                setIsModalOpen(true)
+              }}
+              className="agenda-btn-novo"
+              title="Novo agendamento"
+            >
+              <Plus
+                size={20}
+                strokeWidth={2.5}
+                className="agenda-btn-novo-icon"
+              />
+              <span className="agenda-btn-novo-label">Novo</span>
+            </button>
+
+            <div className="agenda-view-switcher">
+              {(['day', 'week', 'month'] as TipoVisualizacao[]).map(tipo => (
+                <button
+                  key={tipo}
+                  className={`agenda-view-btn${viewType === tipo ? ' agenda-view-btn-ativo' : ''}`}
+                  onClick={() => setViewType(tipo)}
+                >
+                  {tipo === 'day' ? 'Dia' : tipo === 'week' ? 'Semana' : 'Mês'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="agenda-nav">
+            <button
+              onClick={() => navegar(-1)}
+              className="agenda-nav-arrow"
+              title={
+                viewType === 'day'
+                  ? 'Dia anterior'
+                  : viewType === 'week'
+                    ? 'Semana anterior'
+                    : 'Mês anterior'
+              }
+            >
+              ‹
+            </button>
+            <span className="agenda-nav-label capitalize">
+              {formatarPeriodo(viewType, dataAtual)}
+            </span>
+            <button
+              onClick={() => navegar(1)}
+              className="agenda-nav-arrow"
+              title={
+                viewType === 'day'
+                  ? 'Próximo dia'
+                  : viewType === 'week'
+                    ? 'Próxima semana'
+                    : 'Próximo mês'
+              }
+            >
+              ›
+            </button>
+            <button
+              onClick={() => setSelectedDate(formatarDataISO(new Date()))}
+              className="agenda-nav-hoje"
+            >
+              Hoje
+            </button>
+          </div>
+
+          {viewType === 'day' && (
+            <ListaAgendamentos
+              agendamentos={agendamentos}
+              carregando={loading}
+              erro={error}
+              onAgendamentoClick={abrirProcedimento}
+            />
+          )}
+
+          {viewType === 'week' && (
+            <AgendaSemanal
+              agendamentos={agendamentos}
+              carregando={loading}
+              erro={error}
+              dataSelecionada={selectedDate}
+              aoSelecionarDia={handleDiaSelecionado}
+              onAgendamentoClick={abrirProcedimento}
+            />
+          )}
+
+          {viewType === 'month' && (
+            <AgendaMensal
+              agendamentos={agendamentos}
+              carregando={loading}
+              erro={error}
+              dataSelecionada={selectedDate}
+              aoSelecionarDia={handleDiaSelecionado}
+              onAgendamentoClick={abrirProcedimento}
+            />
+          )}
+        </div>
+
+        {isModalOpen && (
+          <ModalNovoAgendamento
+            onClose={() => {
+              setIsModalOpen(false)
+              setPrefillModal(undefined)
+            }}
+            onSalvar={handleCriarAgendamento}
+            profissionalUuidAtual={usuario?.uuid ?? ''}
+            isAdmin={isAdmin}
+            prefill={prefillModal}
+          />
+        )}
+      </RotaProtegida>
+    </Layout>
+  )
+}

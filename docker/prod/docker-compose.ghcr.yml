@@ -1,0 +1,35 @@
+# ============================================================
+# Sobreposição — imagens prontas do GHCR, sem build na VPS
+#
+# Uso (a partir de docker/prod/, sempre com os DOIS arquivos):
+#   docker compose -f docker-compose.prod.yml -f docker-compose.ghcr.yml pull
+#   docker compose -f docker-compose.prod.yml -f docker-compose.ghcr.yml up -d
+#
+# Normalmente quem executa isso é scripts/deploy.sh, chamado pelo
+# workflow .github/workflows/cd.yml.
+#
+# Por que existe: `up --build` compila Maven e roda `next build` na
+# própria VPS. Isso consome muito mais memória que os ~2 GB do runtime
+# e derruba uma máquina pequena por OOM (ANALISE_DEPLOY.md §3). Aqui o
+# build acontece no GitHub Actions e a VPS só faz `pull`.
+#
+# `build: !reset null` apaga o bloco `build:` herdado do arquivo base
+# em vez de mesclar com ele — sem isso o Compose continuaria vendo um
+# contexto de build e reconstruiria a imagem local quando ela faltasse.
+# Exige Compose v2.24 ou mais novo (`docker compose version`).
+# ============================================================
+
+services:
+
+  backend:
+    build: !reset null
+    image: ${REGISTRO:-ghcr.io/arturolivs}/prontudigital-backend:${IMAGE_TAG:?defina IMAGE_TAG (deploy.sh grava no .env)}
+    # A tag muda a cada deploy, mas `latest` e re-deploys da mesma tag
+    # existem: sem `always` o Compose usaria a cópia local e o deploy
+    # viraria um no-op silencioso.
+    pull_policy: always
+
+  frontend:
+    build: !reset null
+    image: ${REGISTRO:-ghcr.io/arturolivs}/prontudigital-frontend:${IMAGE_TAG:?defina IMAGE_TAG (deploy.sh grava no .env)}
+    pull_policy: always

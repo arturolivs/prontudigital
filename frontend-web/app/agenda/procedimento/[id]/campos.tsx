@@ -1,0 +1,375 @@
+'use client'
+
+import { useId } from 'react'
+
+// Campos reutilizados pelas fichas preenchidas durante a consulta
+// (Anamnese, Evolução de Enfermagem e Evolução Diária – Curativos).
+
+export type MudancaCampo = React.ChangeEvent<
+  HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+>
+
+export function BloqueadoTag() {
+  return (
+    <span className="proc-obs-bloqueado-tag">
+      Bloqueado — clique em Iniciar
+    </span>
+  )
+}
+
+export function Campo({
+  label,
+  children,
+  className = '',
+}: {
+  label: string
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={`proc-campo ${className}`}>
+      <label className="proc-campo-label">{label}</label>
+      {children}
+    </div>
+  )
+}
+
+export function CheckItem({
+  label,
+  checked,
+  onChange,
+  disabled,
+}: {
+  label: string
+  checked: boolean
+  onChange: (valor: boolean) => void
+  disabled?: boolean
+}) {
+  return (
+    <label className="proc-check">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        disabled={disabled}
+      />
+      <span>{label}</span>
+    </label>
+  )
+}
+
+/** Select de escolha única a partir de uma lista de opções da ficha. */
+export function CampoSelect<T extends string>({
+  label,
+  opcoes,
+  valor,
+  onChange,
+  disabled,
+}: {
+  label: string
+  opcoes: { value: T; label: string }[]
+  valor: string
+  onChange: (e: MudancaCampo) => void
+  disabled?: boolean
+}) {
+  return (
+    <Campo label={label}>
+      <select
+        className="proc-campo-select"
+        value={valor}
+        onChange={onChange}
+        disabled={disabled}
+      >
+        <option value="">Não informado</option>
+        {opcoes.map(op => (
+          <option key={op.value} value={op.value}>
+            {op.label}
+          </option>
+        ))}
+      </select>
+    </Campo>
+  )
+}
+
+/**
+ * Campo de texto de uma linha.
+ *
+ * `maxLength` deve espelhar o `@Size` do DTO correspondente: sem ele o
+ * usuário só descobre que passou do limite quando o backend recusa a ficha
+ * inteira com 422, depois de já ter preenchido tudo.
+ */
+export function CampoTexto({
+  label,
+  valor,
+  onChange,
+  disabled,
+  placeholder,
+  tipo = 'text',
+  maxLength,
+  max,
+}: {
+  label: string
+  valor: string
+  onChange: (e: MudancaCampo) => void
+  disabled?: boolean
+  placeholder?: string
+  tipo?: 'text' | 'date' | 'time'
+  maxLength?: number
+  /** Limite superior; em `tipo="date"` use `hojeISO()` para barrar datas futuras. */
+  max?: string
+}) {
+  return (
+    <Campo label={label}>
+      <input
+        className="proc-campo-input"
+        type={tipo}
+        value={valor}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        max={max}
+      />
+    </Campo>
+  )
+}
+
+/**
+ * Data de hoje no formato `yyyy-MM-dd` que `<input type="date">` exige.
+ *
+ * Usa o fuso local em vez de `toISOString()` direto: no Brasil (UTC-3) o UTC
+ * já virou o dia seguinte a partir das 21h, e o campo passaria a aceitar
+ * "amanhã" como se fosse hoje.
+ */
+export function hojeISO(): string {
+  const agora = new Date()
+  const local = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000)
+  return local.toISOString().slice(0, 10)
+}
+
+/**
+ * Escala de 0 a 10 em slider (dor, conforme os modelos das fichas).
+ *
+ * O valor vazio significa "não informado" e é gravado como null — diferente de
+ * zero, que afirma ausência de dor. Como um slider não representa ausência de
+ * valor, o estado vazio mostra o rótulo "Não informado" e a marca fica em 0
+ * até a primeira interação; o botão limpar devolve ao não informado.
+ */
+export function CampoEscala({
+  label,
+  valor,
+  onChange,
+  onLimpar,
+  disabled,
+  min = 0,
+  max = 10,
+}: {
+  label: string
+  valor: string
+  onChange: (e: MudancaCampo) => void
+  onLimpar: () => void
+  disabled?: boolean
+  min?: number
+  max?: number
+}) {
+  const informado = valor.trim() !== ''
+  return (
+    <Campo label={label}>
+      <div className="proc-escala">
+        <input
+          className="proc-escala-slider"
+          type="range"
+          min={min}
+          max={max}
+          step={1}
+          value={informado ? valor : String(min)}
+          onChange={onChange}
+          disabled={disabled}
+          aria-label={label}
+          aria-valuetext={informado ? valor : 'Não informado'}
+        />
+        <span
+          className={`proc-escala-valor${informado ? '' : ' proc-escala-valor--vazio'}`}
+        >
+          {informado ? valor : 'Não informado'}
+        </span>
+        {informado && !disabled && (
+          <button
+            type="button"
+            className="proc-escala-limpar"
+            onClick={onLimpar}
+            aria-label={`Limpar ${label}`}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+    </Campo>
+  )
+}
+
+/** Campo numérico (dimensões, escalas, contagens). */
+export function CampoNumero({
+  label,
+  valor,
+  onChange,
+  disabled,
+  min = '0',
+  max,
+  step = '0.1',
+  placeholder = '0',
+}: {
+  label: string
+  valor: string
+  onChange: (e: MudancaCampo) => void
+  disabled?: boolean
+  min?: string
+  max?: string
+  step?: string
+  placeholder?: string
+}) {
+  return (
+    <Campo label={label}>
+      <input
+        className="proc-campo-input"
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={valor}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder={placeholder}
+      />
+    </Campo>
+  )
+}
+
+/** Campo de texto multilinha. */
+export function CampoTextarea({
+  label,
+  valor,
+  onChange,
+  disabled,
+  placeholder,
+  rows = 3,
+  maxLength,
+}: {
+  label: string
+  valor: string
+  onChange: (e: MudancaCampo) => void
+  disabled?: boolean
+  placeholder?: string
+  rows?: number
+  maxLength?: number
+}) {
+  return (
+    <Campo label={label}>
+      <textarea
+        className="proc-campo-textarea"
+        value={valor}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder={placeholder}
+        rows={rows}
+        maxLength={maxLength}
+      />
+    </Campo>
+  )
+}
+
+/**
+ * Pergunta Sim/Não dos modelos. Quando `onDetalheChange` é informado,
+ * exibe a caixa de texto que o modelo traz logo abaixo da pergunta.
+ * O valor `undefined` representa a pergunta ainda não respondida.
+ */
+export function CampoSimNao({
+  label,
+  valor,
+  onChange,
+  disabled,
+  detalhe,
+  onDetalheChange,
+  detalhePlaceholder = 'Detalhe (opcional)',
+}: {
+  label: string
+  valor?: boolean
+  onChange: (valor: boolean) => void
+  disabled?: boolean
+  detalhe?: string
+  onDetalheChange?: (e: MudancaCampo) => void
+  detalhePlaceholder?: string
+}) {
+  const nome = useId()
+  return (
+    <div className="proc-campo">
+      <label className="proc-campo-label">{label}</label>
+      <div className="proc-radio-grupo">
+        <label className="proc-radio">
+          <input
+            type="radio"
+            name={nome}
+            checked={valor === true}
+            onChange={() => onChange(true)}
+            disabled={disabled}
+          />
+          <span>Sim</span>
+        </label>
+        <label className="proc-radio">
+          <input
+            type="radio"
+            name={nome}
+            checked={valor === false}
+            onChange={() => onChange(false)}
+            disabled={disabled}
+          />
+          <span>Não</span>
+        </label>
+      </div>
+      {onDetalheChange && (
+        <input
+          className="proc-campo-input"
+          value={detalhe ?? ''}
+          onChange={onDetalheChange}
+          disabled={disabled}
+          placeholder={detalhePlaceholder}
+        />
+      )}
+    </div>
+  )
+}
+
+/** Linha da tabela "Intervenção × Observação" / "Ação × Observações" do modelo. */
+export function LinhaObservacao({
+  rotulo,
+  valor,
+  onChange,
+  disabled,
+  placeholder,
+  maxLength,
+}: {
+  rotulo: string
+  valor: string
+  onChange: (e: MudancaCampo) => void
+  disabled?: boolean
+  placeholder?: string
+  maxLength?: number
+}) {
+  return (
+    <Campo label={rotulo}>
+      <input
+        className="proc-campo-input"
+        value={valor}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder={placeholder}
+        maxLength={maxLength}
+      />
+    </Campo>
+  )
+}
+
+/** Subtítulo de bloco dentro de uma seção da ficha. */
+export function SubSecao({ titulo }: { titulo: string }) {
+  return <h3 className="proc-subsecao">{titulo}</h3>
+}

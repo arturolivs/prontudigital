@@ -1,0 +1,51 @@
+# ============================================================
+# Dependabot — abre PR quando sai versão nova de dependência.
+#
+# Mensal, não semanal: o projeto tem um mantenedor e um fluxo de PRs
+# de atualização por semana vira ruído que ninguém lê. Cada PR passa
+# pelo CI normal antes de qualquer merge.
+# ============================================================
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    labels: [dependencias, backend]
+
+  - package-ecosystem: npm
+    directory: /frontend-web
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    labels: [dependencias, frontend]
+    groups:
+      # React, Next e tipos sobem juntos ou não sobem: separados,
+      # cada PR quebra a compilação de tipos do outro.
+      react-next:
+        patterns:
+          - 'next'
+          - 'eslint-config-next'
+          - 'react'
+          - 'react-dom'
+          - '@types/react*'
+
+  # Imagens base (eclipse-temurin, node, postgres, caddy). É por aqui
+  # que chega correção de CVE do sistema operacional das imagens.
+  - package-ecosystem: docker
+    directories:
+      - /backend
+      - /frontend-web
+      - /docker/prod
+      - /docker/dev
+    schedule:
+      interval: monthly
+    labels: [dependencias, docker]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: [dependencias, ci]

@@ -1,0 +1,126 @@
+package com.prontudigital.backend.autenticacao.config;
+
+import com.prontudigital.backend.autenticacao.filtros.JWTFilter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JWTFilter jwtFilter;
+
+    private static final String[] PATHS_PUBLICOS_INFRA = {
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/v3/api-docs.yaml",
+            "/swagger-resources/**",
+            "/webjars/**",
+            "/api-docs/**",
+            // Aberto de proposito e o unico endpoint do actuator que fica:
+            // quem o chama e o healthcheck do container, que nao tem
+            // credencial. Devolve apenas {"status":"UP"} — o detalhe esta
+            // desligado por `show-details: never` no application-prod.yaml.
+            "/actuator/health",
+            "/favicon.ico",
+            "/error"
+    };
+
+    /**
+     * Webhook do WhatsApp: quem chama e a Meta, que nao tem JWT. A autenticidade
+     * vem do X-Hub-Signature-256 (HMAC do corpo com o app secret), conferido em
+     * WhatsappWebhookServiceImpl — nao da sessao.
+     */
+    private static final String WEBHOOK_WHATSAPP = "/api/whatsapp/webhook";
+
+    /**
+     * POST publicos. {@code /api/auth/registrar} NAO entra aqui de proposito:
+     * ele aceita a lista de perfis vinda do corpo da requisicao, entao,
+     * aberto, qualquer anonimo criaria um ADMIN com acesso a todos os
+     * prontuarios. Passou a exigir ADMIN via @PreAuthorize no controller.
+     *
+     * O cadastro publico de paciente continua sendo
+     * {@code /api/auth/cadastrar-paciente}, que fixa o perfil PACIENTE no
+     * servico e nao aceita perfis do cliente.
+     */
+    private static final String[] AUTH_POST_PUBLICOS = {
+            "/api/auth/login",
+            "/api/auth/renovar-token",
+            "/api/auth/cadastrar-paciente",
+            "/api/auth/ativar-acesso",
+            "/api/auth/recuperar-senha/solicitar",
+            "/api/auth/recuperar-senha/confirmar"
+    };
+
+    private static final String[] GET_PUBLICOS = {
+            "/api/bloqueios-horario/public",
+            // RF05: expediente do profissional (a tela publica so oferece horarios validos)
+            "/api/horarios-trabalho/public",
+            "/api/public/**",
+            "/api/confirmacao/**",
+            // RF06: catalogo de procedimentos (necessario no agendamento publico)
+            "/api/procedimentos",
+            "/api/procedimentos/*",
+            // Marca da clinica: nome e logo compoem a tela de login e o
+            // agendamento publico, ambos anteriores a autenticacao. Sao dados
+            // institucionais — os mesmos que a clinica publica no proprio site
+            // — e nao expoem nada de paciente. A ESCRITA continua restrita ao
+            // ADMIN, via @PreAuthorize no controller.
+            "/api/configuracao",
+            "/api/configuracao/logo"
+    };
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PATHS_PUBLICOS_INFRA).permitAll()
+                        .requestMatchers(HttpMethod.POST, AUTH_POST_PUBLICOS).permitAll()
+                        .requestMatchers(HttpMethod.GET, GET_PUBLICOS).permitAll()
+                        .requestMatchers(HttpMethod.GET, WEBHOOK_WHATSAPP).permitAll()
+                        .requestMatchers(HttpMethod.POST, WEBHOOK_WHATSAPP).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Metricas, heap, GC e pool do Hikari: dado de
+                        // operacao, nao de paciente, mas descreve a
+                        // superficie da API (nomes de rota, contagens) e
+                        // nao tem por que ser legivel por PROFISSIONAL ou
+                        // PACIENTE. Vem DEPOIS de PATHS_PUBLICOS_INFRA,
+                        // entao /actuator/health continua aberto.
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
+
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+}

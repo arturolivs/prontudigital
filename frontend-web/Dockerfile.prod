@@ -1,0 +1,81 @@
+# ============================================================
+# Frontend Web — Produção
+# Multi-stage: build Next.js → runtime Node mínimo (standalone)
+#
+# NÃO é servido por Nginx: as Route Handlers em app/api/auth/*
+# (login, logout, refresh) exigem o servidor Node em execução.
+# ============================================================
+
+# --- Estágio 1: dependências ---
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+COPY package*.json ./
+
+# Instala TODAS as deps — typescript e tailwind são devDependencies
+# e são necessárias para o `next build`.
+RUN npm ci
+
+# --- Estágio 2: build ---
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# ------------------------------------------------------------
+# URL pública da API. As variáveis NEXT_PUBLIC_* são embutidas no
+# bundle em tempo de BUILD — definir em runtime não tem efeito.
+# Passe com:  docker build --build-arg NEXT_PUBLIC_BASE_URL=https://seu-dominio
+#
+# Com o Caddy servindo frontend e API no mesmo domínio, o valor é a
+# própria origem do site — as chamadas ficam same-origin (sem CORS).
+# ------------------------------------------------------------
+ARG NEXT_PUBLIC_BASE_URL=http://localhost:9090
+
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_BASE_URL}
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+ENV NEXT_PUBLIC_AGENDAMENTOS_API_URL=${NEXT_PUBLIC_BASE_URL}/api/agendamentos
+ENV NEXT_PUBLIC_USUARIOS_API_URL=${NEXT_PUBLIC_BASE_URL}/api/usuarios
+ENV NEXT_PUBLIC_PRONTUARIO_API_URL=${NEXT_PUBLIC_BASE_URL}/api/prontuario
+ENV NEXT_PUBLIC_BLOQUEIOS_API_URL=${NEXT_PUBLIC_BASE_URL}/api/bloqueios-horario
+ENV NEXT_PUBLIC_PROCEDIMENTOS_API_URL=${NEXT_PUBLIC_BASE_URL}/api/procedimentos
+ENV NEXT_PUBLIC_RELATORIOS_API_URL=${NEXT_PUBLIC_BASE_URL}/api/relatorios
+ENV NEXT_PUBLIC_HORARIOS_TRABALHO_API_URL=${NEXT_PUBLIC_BASE_URL}/api/horarios-trabalho
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN npm run build
+
+# --- Estágio 3: runtime ---
+FROM node:20-alpine AS runtime
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# Usuário não-root
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser  --system --uid 1001 nextjs
+
+# O build standalone já traz server.js e as deps mínimas de runtime
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# `public/` está versionado com um .gitkeep de propósito: hoje não há nenhum
+# asset estático, mas COPY com origem inexistente falha o build inteiro
+# (`/app/public: not found`). Não apague o diretório.
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+USER nextjs
+
+EXPOSE 3000
+
+# BACKEND_INTERNAL_URL é lida aqui em RUNTIME (não tem prefixo
+# NEXT_PUBLIC_), injetada pelo docker-compose.
+CMD ["node", "server.js"]

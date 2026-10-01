@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: prontudigital
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/prontudigital
+    username: user_admin
+    password: secret123
+
+  flyway:
+    url: jdbc:postgresql://localhost:5432/prontudigital
+    user: user_admin
+    password: secret123
+    locations: classpath:db/migracoes
+    baseline-on-migrate: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    # Igual ao JWT_SECRET de docker/dev/.env — de propósito. Com segredos
+    # diferentes, o token emitido pela IDE não é aceito pelo backend em
+    # container (e vice-versa), obrigando a relogar a cada troca entre
+    # `docker compose up` e o modo debug.
+    #
+    # HS512 exige 512 bits (RFC 7518 §3.2) = 64 caracteres no mínimo; abaixo
+    # disso o JwtTokenProvider derruba o boot.
+    secret: "dev-secret-hs512-prontudigital-chave-de-desenvolvimento-com-64-bytes-no-minimo"
+    access-expiration-ms: 600000000
+    refresh-expiration-ms: 600000000
+  # Mesmo ADMIN do profile dev — os dois apontam para o banco local.
+  bootstrap-admin:
+    username: admin
+    senha: admin12345
+    nome-completo: "Administrador (dev)"
+    email: admin@prontudigital.local
+  notificacoes:
+    habilitadas: true
+    url-base-confirmacao: "http://localhost:8080/api/confirmacao"
+  armazenamento:
+    # Declarado explicitamente para deixar claro que, rodando pela IDE, os
+    # anexos ficam no HOST — e não no volume do container. As duas execuções
+    # não compartilham arquivos: um anexo enviado aqui não é encontrado pelo
+    # backend em container, e vice-versa. O caminho é relativo ao diretório de
+    # trabalho da run configuration (a raiz do projeto, por padrão).
+    diretorio-base: ${ARMAZENAMENTO_DIR:dados/anexos}
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.security: DEBUG
+    org.springdoc: DEBUG
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - name: auth-service
+        url: /v3/api-docs
