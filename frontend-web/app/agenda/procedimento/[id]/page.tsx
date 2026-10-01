@@ -89,7 +89,6 @@ import {
 import './procedimento.css'
 
 // ── Ficha de Evolução Diária – Curativos ─────────────────────────
-// Modelo: ajustar_campos/modelos/FICHA DE EVOLUÇÃO DIÁRIA - CURATIVOS.pdf
 // Preenchida apenas em agendamentos do tipo TRATAMENTO.
 
 type EvolucaoForm = {

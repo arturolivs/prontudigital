@@ -201,8 +201,9 @@ stateDiagram-v2
 |---|---|---|
 | Caddy | 2 (alpine) | Proxy reverso, TLS automático, cabeçalhos de segurança |
 
-> O módulo `gateway/` (Spring Cloud Gateway) foi **substituído pelo Caddy** em dev e em
-> produção. Ele fazia apenas roteamento e CORS: o Caddy faz o primeiro e elimina o
+> O antigo módulo `gateway/` (Spring Cloud Gateway) foi **substituído pelo Caddy** em dev e
+> em produção, e removido do repositório (segue no histórico do Git). Ele fazia apenas
+> roteamento e CORS: o Caddy faz o primeiro e elimina o
 > segundo, servindo frontend e API no mesmo domínio. A troca ainda dispensa uma JVM
 > (~300 MB e ~30 s de boot) e trouxe TLS de graça.
 
@@ -226,7 +227,8 @@ stateDiagram-v2
 |---|---|
 | PostgreSQL 15/16 | Banco de dados relacional |
 | Docker + Docker Compose | Containerização e orquestração |
-| Nginx | Servidor estático para build de produção do frontend |
+| Caddy | Proxy reverso e TLS — o frontend roda como servidor Node (Next.js standalone) |
+| GitHub Actions + GHCR | CI, build das imagens e deploy na VPS |
 
 ---
 
@@ -296,8 +298,6 @@ prontudigital/
 │   ├── Dockerfile.dev  ·  Dockerfile.prod
 │   └── package.json
 │
-├── gateway/                                 # LEGADO — substituído pelo Caddy; não sobe
-│
 ├── docker/
 │   ├── dev/
 │   │   ├── docker-compose.yml               # Stack de desenvolvimento com hot reload
@@ -306,16 +306,17 @@ prontudigital/
 │   │   └── .env.dev.example
 │   └── prod/
 │       ├── docker-compose.prod.yml
+│       ├── docker-compose.ghcr.yml          # Override: imagens do GHCR, sem build na VPS
 │       ├── Caddyfile                        # TLS automático
+│       ├── scripts/deploy.sh                # Chamado pelo CD — backup, pull, rollback
 │       ├── scripts/backup.sh                # RNF02 — banco + anexos
 │       ├── scripts/restore.sh
 │       └── .env.prod.example
 │
-├── ajustar_campos/                          # PDFs-modelo das fichas clínicas
+├── .github/workflows/                       # ci.yml e cd.yml — ver doc/CICD.md
+├── doc/                                     # DEPLOY, CICD, GITHUB_ACTIONS, Requisitos…
+├── testes-carga/                            # k6 + seed — RNF05/RNF06
 ├── .editorconfig                            # UTF-8 e indentação — ver nota em Testes
-├── ANALISE_DEPLOY.md                        # Comparativo de plataformas de hospedagem
-├── PLANO_PROXIMOS_PASSOS.md
-├── Requisitos.md                            # RFs e RNFs
 └── README.md
 ```
 
@@ -989,10 +990,7 @@ npx next build      # build de produção (valida também o CSS)
 
 ## 🚢 Implantação
 
-O comparativo de plataformas de hospedagem — silo vs. schema vs. pool, custos,
-latência e implicações de LGPD — está em **[`ANALISE_DEPLOY.md`](ANALISE_DEPLOY.md)**.
-
-**Resumo:** para uma clínica com poucos profissionais, uma **VPS única em São
+Para uma clínica com poucos profissionais, uma **VPS única em São
 Paulo rodando o `docker-compose.prod.yml`** entrega o melhor custo-benefício. A
 conteinerização já resolve rede interna isolada, TLS automático, healthcheck e
 limites de recurso; um PaaS cobraria mais para desmontar esse arranjo.
@@ -1073,7 +1071,7 @@ Uso, cópia ou distribuição requerem autorização expressa dos autores.
 **Fichas clínicas**
 
 Os modelos de Anamnese, Evolução de Enfermagem e Evolução Diária de Curativos
-seguem os PDFs de referência em `ajustar_campos/modelos/`. A avaliação de ferida
+seguem os modelos de ficha em papel usados pela clínica. A avaliação de ferida
 adota a legenda **TIME** (*Tissue, Infection/inflammation, Moisture, Edge*),
 padrão consolidado na literatura de cuidado com feridas.
 
@@ -1081,8 +1079,7 @@ padrão consolidado na literatura de cuidado com feridas.
 
 O sistema trata **dados de saúde**, classificados como sensíveis pelo Art. 11 da
 [LGPD](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm).
-As decisões de arquitetura e hospedagem levam isso em conta — ver
-[`ANALISE_DEPLOY.md`](ANALISE_DEPLOY.md).
+As decisões de arquitetura e hospedagem levam isso em conta.
 
 ---
 

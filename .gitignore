@@ -7,6 +7,19 @@ docker/prod/.env
 docker/prod/secrets/*
 !docker/prod/secrets/README.md
 
+# Prints do painel do provedor e do registro.br usados no deploy (IP, porta SSH)
+deploy/
+
+# Configuracao local do Claude Code (skills e permissoes pessoais)
+.claude/
+
+# Saida de compilacao da IDE (IntelliJ)
+out/
+
+# Resultados de execucao dos testes de carga — gerados pelo coletar-metricas.sh
+# e pelo k6; os scripts e o README ficam versionados
+testes-carga/resultado-*
+
 # Java / Maven
 backend/target/
 gateway/target/

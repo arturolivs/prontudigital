@@ -26,7 +26,6 @@ import {
 } from './campos'
 
 // ── Ficha de Evolução de Enfermagem ──────────────────────────────
-// Modelo: ajustar_campos/modelos/FICHA DE EVOLUÇÃO DE ENFERMAGEM.pdf
 // Preenchida apenas em agendamentos do tipo AVALIACAO.
 
 /** Campos numéricos ficam como texto enquanto o profissional digita. */

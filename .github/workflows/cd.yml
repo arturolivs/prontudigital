@@ -9,7 +9,7 @@
 # O build acontece AQUI e não na VPS de propósito: `up --build` compila
 # Maven e roda `next build` na máquina de produção, o que consome muito
 # mais memória que o runtime inteiro e a derruba por OOM
-# (ANALISE_DEPLOY.md §3). A VPS só faz `pull`.
+# A VPS só faz `pull`.
 #
 # Configuração necessária (uma vez só) em doc/CICD.md.
 # ============================================================

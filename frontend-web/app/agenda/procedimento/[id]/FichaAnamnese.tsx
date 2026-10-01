@@ -14,7 +14,6 @@ import {
 } from './campos'
 
 // ── Anamnese ─────────────────────────────────────────────────────
-// Modelo: ajustar_campos/modelos/Anamnese.pdf
 // Preenchida em agendamentos do tipo AVALIACAO. É 1:1 com o paciente:
 // um histórico que acompanha a pessoa, não a consulta.
 //

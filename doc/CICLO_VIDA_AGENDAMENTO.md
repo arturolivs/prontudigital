@@ -4,10 +4,6 @@
 > `agendamento` e `notificacao`), branch `config-whatsapp`.
 >
 > Última revisão: **01/09/2026**.
->
-> Documentos vizinhos: **`WHATSAPP.md`** (o porquê da integração e as contas da Meta),
-> **`TESTE_WHATSAPP_DEV.md`** (como testar em dev) e
-> **`NOTIFICACOES_WHATSAPP_STATUS.md`** (o que mudou na branch e o que falta).
 
 O enum `StatusAgendamento` tem seis valores, mas só quatro são alcançáveis. Enquanto o
 agendamento está **em aberto** (`AGENDADO` ou `CONFIRMADO`) ele ocupa a vaga do
