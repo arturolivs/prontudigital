@@ -7,6 +7,9 @@ docker/prod/.env
 docker/prod/secrets/*
 !docker/prod/secrets/README.md
 
+# Prints do painel do provedor e do registro.br usados no deploy (IP, porta SSH)
+deploy/
+
 # Java / Maven
 backend/target/
 gateway/target/
