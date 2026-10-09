@@ -325,9 +325,15 @@ sudo ufw default allow outgoing
 sudo ufw allow 22022/tcp      # ⚠️ porta SSH real — errar aqui tranca você para fora
 sudo ufw allow 80,443/tcp
 sudo ufw allow 443/udp        # HTTP/3, publicado pelo Caddy
+sudo systemctl enable ufw    # nesta imagem o serviço vem desabilitado
 sudo ufw enable
 sudo ufw status verbose
 ```
+
+> Nesta VPS o `ufw.service` veio `disabled`: o `ufw enable` ativou o firewall,
+> mas depois do primeiro `reboot` ele voltou `inactive`, com a cadeia `INPUT`
+> vazia e política `ACCEPT`. Confira `systemctl is-enabled ufw` (precisa dizer
+> `enabled`) e, depois de cada reboot, `sudo ufw status`.
 
 > **Confirme num segundo terminal** que `ssh -p 22022 deploy@<IP>` ainda entra,
 > antes de fechar a sessão em que o `ufw enable` rodou. Se o painel do provedor
