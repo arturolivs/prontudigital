@@ -447,9 +447,21 @@ printf '%s' "$(openssl rand -base64 24)" > secrets/db.password   # senha do banc
 printf '%s' "$(openssl rand -base64 64)" > secrets/jwt.secret    # HS512 exige chave longa
 printf '%s' "$(openssl rand -base64 18)" > secrets/admin.senha   # 1º acesso (mínimo 8 caracteres)
 
-chmod 600 secrets/*
+chmod 644 secrets/*        # 644, não 600 — ver abaixo
 cat secrets/admin.senha    # anote num gerenciador antes de seguir
 ```
+
+Rode como o **usuário de deploy** (`su - deploy`, se estiver de root): os
+arquivos precisam ser dele, como o resto de `/opt/prontudigital`.
+
+> **Por que `644` nos arquivos e `700` no diretório.** Fora do Swarm, o
+> Compose monta cada segredo como *bind mount*: dentro do container o arquivo
+> chega com o mesmo dono e modo do host. O backend roda como `prontu`
+> (usuário de sistema da imagem, outro uid), então com `600` ele não lê
+> `/run/secrets/*` e não sobe — o Postgres passaria, porque o entrypoint dele
+> lê como root. A proteção no host fica a cargo do `700` do diretório:
+> nenhum outro usuário da VPS atravessa `secrets/`. Dentro do container,
+> `644` equivale ao `0444` que o Swarm aplica aos secrets dele.
 
 Detalhes de cada um e o que fazer depois do primeiro acesso:
 [`docker/prod/secrets/README.md`](../docker/prod/secrets/README.md). O Compose

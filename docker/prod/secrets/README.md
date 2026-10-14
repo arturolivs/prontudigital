@@ -29,9 +29,18 @@ printf '%s' "$(openssl rand -base64 24)" > secrets/db.password
 printf '%s' "$(openssl rand -base64 64)" > secrets/jwt.secret
 printf '%s' "$(openssl rand -base64 18)" > secrets/admin.senha
 
-chmod 600 secrets/*
+chmod 644 secrets/*       # 644, não 600 — ver abaixo
 cat secrets/admin.senha   # anote num gerenciador: é a senha do primeiro acesso
 ```
+
+Crie como o usuário de deploy (`su - deploy`, se estiver de root), não como
+root.
+
+**Por que `644`.** Fora do Swarm, o Compose monta cada arquivo como *bind
+mount*, com o dono e o modo do host. O backend roda como `prontu`, outro uid:
+com `600` ele não consegue ler `/run/secrets/*` e não sobe. Quem protege o
+segredo no host é o `700` do diretório — nenhum outro usuário da VPS entra em
+`secrets/`. Dentro do container, `644` equivale ao `0444` que o Swarm usa.
 
 ## Depois do primeiro acesso
 
