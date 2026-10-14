@@ -23,7 +23,9 @@
 
 | Documento | Responde |
 |---|---|
+| [`FLUXO_DEPLOY.md`](./FLUXO_DEPLOY.md) | *O caminho*, em diagramas — do commit à produção, CI, CD, `deploy.sh` e rollback |
 | **este** (`doc/DEPLOY.md`) | *Como* subir, passo a passo, e como operar depois |
+| [`ACESSO_SSH.md`](./ACESSO_SSH.md) | Chaves SSH, usuário `deploy` e endurecimento do SSH (§3.0 e §3.6 em detalhe) |
 | [`CICD.md`](./CICD.md) | *Como a atualização se automatiza* — os dois workflows, os secrets do repositório, o que o `deploy.sh` faz e como voltar atrás |
 | [`GITHUB_ACTIONS.md`](./GITHUB_ACTIONS.md) | *O que os workflows fazem* — leitura comentada de `ci.yml` e `cd.yml`, comando por comando |
 | [`doc/Requisitos.md`](./Requisitos.md) | Os RNF citados aqui — RNF02 (backup), RNF05/RNF06 (desempenho) |
@@ -226,6 +228,9 @@ type $HOME\.ssh\prontu_admin.pub, $HOME\.ssh\pd_deploy.pub |
 ssh -p 22022 -i $HOME\.ssh\prontu_admin deploy@<IP-DA-VPS>
 ```
 
+Explicação de cada passo, testes e problemas comuns:
+[`ACESSO_SSH.md`](./ACESSO_SSH.md) §1 a §5.
+
 Saia do root e continue logado como `deploy`. O root só deixa de aceitar senha
 na §3.6 — **depois** que este login por chave tiver funcionado.
 
@@ -320,9 +325,15 @@ sudo ufw default allow outgoing
 sudo ufw allow 22022/tcp      # ⚠️ porta SSH real — errar aqui tranca você para fora
 sudo ufw allow 80,443/tcp
 sudo ufw allow 443/udp        # HTTP/3, publicado pelo Caddy
+sudo systemctl enable ufw    # nesta imagem o serviço vem desabilitado
 sudo ufw enable
 sudo ufw status verbose
 ```
+
+> Nesta VPS o `ufw.service` veio `disabled`: o `ufw enable` ativou o firewall,
+> mas depois do primeiro `reboot` ele voltou `inactive`, com a cadeia `INPUT`
+> vazia e política `ACCEPT`. Confira `systemctl is-enabled ufw` (precisa dizer
+> `enabled`) e, depois de cada reboot, `sudo ufw status`.
 
 > **Confirme num segundo terminal** que `ssh -p 22022 deploy@<IP>` ainda entra,
 > antes de fechar a sessão em que o `ufw enable` rodou. Se o painel do provedor
@@ -340,17 +351,31 @@ de fora do Docker. O backend também fica só em `expose`; ele participa da rede
 
 ### 3.6 SSH
 
+Passo a passo completo, com testes e problemas comuns:
+[`ACESSO_SSH.md`](./ACESSO_SSH.md) §6 e §7. O essencial:
+
 ```bash
-sudo sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-sudo sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
-sudo systemctl restart ssh
-sudo apt install -y fail2ban && sudo systemctl enable --now fail2ban
+# Arquivo próprio, e não `sed` no sshd_config: no Ubuntu 22.04 o
+# sshd_config.d/50-cloud-init.conf é lido antes e, no sshd, vale o
+# primeiro valor encontrado — o `sed` não teria efeito.
+sudo tee /etc/ssh/sshd_config.d/00-prontudigital.conf >/dev/null <<'EOF'
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+PubkeyAuthentication yes
+EOF
+sudo sshd -t && sudo systemctl restart ssh
+sudo sshd -T | grep -Ei '^(port|passwordauthentication|permitrootlogin) '
+
+# fail2ban na porta real — o padrão bane na 22
+sudo apt install -y fail2ban
+printf '[sshd]\nenabled = true\nport = 22022\n' | sudo tee /etc/fail2ban/jail.local
+sudo systemctl enable --now fail2ban && sudo systemctl restart fail2ban
 ```
 
-> Confirme que sua chave funciona **em outra sessão** antes de fechar a atual.
-> A porta não muda neste passo: o `sed` só mexe em autenticação. Com o usuário
-> `deploy` funcionando, `PermitRootLogin no` é ainda melhor que
-> `prohibit-password` — ninguém precisa entrar como root por SSH.
+> Confirme que sua chave funciona **em outra sessão** antes de fechar a atual,
+> e que root e senha são **recusados** (`ACESSO_SSH.md` §6.4). A porta não muda
+> neste passo: o arquivo não declara `Port`.
 
 ### 3.7 Diretórios e dono
 
@@ -422,9 +447,21 @@ printf '%s' "$(openssl rand -base64 24)" > secrets/db.password   # senha do banc
 printf '%s' "$(openssl rand -base64 64)" > secrets/jwt.secret    # HS512 exige chave longa
 printf '%s' "$(openssl rand -base64 18)" > secrets/admin.senha   # 1º acesso (mínimo 8 caracteres)
 
-chmod 600 secrets/*
+chmod 644 secrets/*        # 644, não 600 — ver abaixo
 cat secrets/admin.senha    # anote num gerenciador antes de seguir
 ```
+
+Rode como o **usuário de deploy** (`su - deploy`, se estiver de root): os
+arquivos precisam ser dele, como o resto de `/opt/prontudigital`.
+
+> **Por que `644` nos arquivos e `700` no diretório.** Fora do Swarm, o
+> Compose monta cada segredo como *bind mount*: dentro do container o arquivo
+> chega com o mesmo dono e modo do host. O backend roda como `prontu`
+> (usuário de sistema da imagem, outro uid), então com `600` ele não lê
+> `/run/secrets/*` e não sobe — o Postgres passaria, porque o entrypoint dele
+> lê como root. A proteção no host fica a cargo do `700` do diretório:
+> nenhum outro usuário da VPS atravessa `secrets/`. Dentro do container,
+> `644` equivale ao `0444` que o Swarm aplica aos secrets dele.
 
 Detalhes de cada um e o que fazer depois do primeiro acesso:
 [`docker/prod/secrets/README.md`](../docker/prod/secrets/README.md). O Compose
