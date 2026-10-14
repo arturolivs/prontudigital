@@ -47,3 +47,6 @@ frontend-web/.nuxt/
 # Logs
 *.log
 logs/
+
+
+temp/

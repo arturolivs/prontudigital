@@ -2,7 +2,8 @@
 
 > Integração e entrega contínuas no GitHub Actions. Complementa
 > [`DEPLOY.md`](./DEPLOY.md), que descreve a instalação manual da VPS —
-> aqui está o que automatiza a **atualização** dela.
+> aqui está o que automatiza a **atualização** dela. Para o fluxo inteiro em
+> diagramas, veja [`FLUXO_DEPLOY.md`](./FLUXO_DEPLOY.md).
 >
 > Decisão de fundo: **nada é
 > compilado na VPS**. `docker compose up --build` roda Maven e `next build` na
