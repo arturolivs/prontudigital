@@ -46,7 +46,7 @@
   background: var(--color-white);
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.05);
+  box-shadow: var(--shadow-card);
   transition: box-shadow 0.2s;
 }
 
@@ -337,7 +337,7 @@
   padding: 4rem 2rem;
   background: var(--color-white);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .no-appointments svg {

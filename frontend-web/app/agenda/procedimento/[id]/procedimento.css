@@ -28,7 +28,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.6rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -155,7 +155,7 @@
 .proc-card {
   background: var(--color-white);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.04), 0 1px 2px rgba(var(--color-shadow-rgb), 0.02);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--color-border);
   overflow: hidden;
   height: fit-content;
@@ -553,7 +553,7 @@
 .proc-obs-textarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.75rem;
   font-size: 0.875rem;
   font-family: inherit;
@@ -702,7 +702,7 @@
   padding: 0.6rem 1rem;
   background: transparent;
   color: var(--color-text-secondary);
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.6rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -751,7 +751,7 @@
   border-radius: 8px;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  color: var(--color-neutral-500);
+  color: var(--color-text-secondary);
   font-size: 0.75rem;
   line-height: 1.6;
 }
@@ -778,12 +778,50 @@
   gap: 0.35rem;
 }
 
+/* ── Obrigatoriedade (ver ValidacaoFicha em campos.tsx) ──
+   Mesmo padrão do CampoValidado: mensagem entre rótulo e campo, borda
+   vermelha. O asterisco aparece sempre; o erro, só após tentar finalizar. */
+
+.proc-campo-obrigatorio {
+  color: var(--color-error);
+  font-weight: 700;
+}
+
+.proc-campo-erro {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-error);
+}
+
+/* Só o controle principal: o "Detalhe (opcional)" do Sim/Não não é
+   obrigatório e não deve ficar vermelho. */
+.proc-campo--erro > :is(.proc-campo-input, .proc-campo-select, .proc-campo-textarea):not(.proc-campo-detalhe),
+.proc-campo--erro > .proc-radio-grupo > .proc-radio {
+  border-color: var(--color-error);
+}
+
+.proc-campo--erro > :is(.proc-campo-input, .proc-campo-select, .proc-campo-textarea):not(.proc-campo-detalhe):focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(var(--color-error-rgb), 0.15);
+}
+
+.proc-aviso-obrigatorios {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
 .proc-campo-label {
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .proc-campo-input,
@@ -791,7 +829,7 @@
 .proc-campo-textarea {
   width: 100%;
   padding: 0.6rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.6rem;
   font-size: 0.875rem;
   font-family: inherit;

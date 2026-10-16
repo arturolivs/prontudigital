@@ -203,6 +203,7 @@ export default function FichaEnfermagem({
             <CampoTexto
               label="Data"
               tipo="date"
+              campo="dataAvaliacao"
               valor={t('dataAvaliacao')}
               onChange={texto('dataAvaliacao')}
               disabled={desabilitado}
@@ -210,6 +211,7 @@ export default function FichaEnfermagem({
             <CampoTexto
               label="Hora"
               tipo="time"
+              campo="horaAvaliacao"
               valor={t('horaAvaliacao')}
               onChange={texto('horaAvaliacao')}
               disabled={desabilitado}
@@ -263,6 +265,7 @@ export default function FichaEnfermagem({
           />
           <CampoTextarea
             label="Uso de medicamentos relevantes"
+            campo="medicamentosRelevantes"
             valor={t('medicamentosRelevantes')}
             onChange={texto('medicamentosRelevantes')}
             disabled={desabilitado}
@@ -287,6 +290,7 @@ export default function FichaEnfermagem({
 
           <CampoTexto
             label="Localização anatômica"
+            campo="localizacaoAnatomica"
             valor={t('localizacaoAnatomica')}
             onChange={texto('localizacaoAnatomica')}
             disabled={desabilitado}
@@ -296,12 +300,14 @@ export default function FichaEnfermagem({
             <CampoSelect<TipoFerida>
               label="Tipo de ferida"
               opcoes={OPCOES_TIPO_FERIDA}
+              campo="tipoFerida"
               valor={t('tipoFerida')}
               onChange={texto('tipoFerida')}
               disabled={desabilitado}
             />
             <CampoTexto
               label="Outro tipo — qual?"
+              campo="tipoFeridaOutra"
               valor={t('tipoFeridaOutra')}
               onChange={texto('tipoFeridaOutra')}
               disabled={desabilitado}
@@ -310,6 +316,7 @@ export default function FichaEnfermagem({
 
           <CampoTexto
             label="Dimensões"
+            campo="dimensoes"
             valor={t('dimensoes')}
             onChange={texto('dimensoes')}
             disabled={desabilitado}
@@ -318,6 +325,7 @@ export default function FichaEnfermagem({
           <div className="proc-form-grid-3">
             <CampoNumero
               label="Comprimento (cm)"
+              campo="comprimento"
               valor={t('comprimento')}
               onChange={texto('comprimento')}
               disabled={desabilitado}
@@ -325,6 +333,7 @@ export default function FichaEnfermagem({
             />
             <CampoNumero
               label="Largura (cm)"
+              campo="largura"
               valor={t('largura')}
               onChange={texto('largura')}
               disabled={desabilitado}
@@ -332,6 +341,7 @@ export default function FichaEnfermagem({
             />
             <CampoNumero
               label="Profundidade (cm)"
+              campo="profundidade"
               valor={t('profundidade')}
               onChange={texto('profundidade')}
               disabled={desabilitado}
@@ -342,12 +352,14 @@ export default function FichaEnfermagem({
           <div className="proc-form-grid">
             <CampoSimNao
               label="Tunelização"
+              campo="tunelizacao"
               valor={b('tunelizacao')}
               onChange={bool('tunelizacao')}
               disabled={desabilitado}
             />
             <CampoSimNao
               label="Descolamento"
+              campo="descolamento"
               valor={b('descolamento')}
               onChange={bool('descolamento')}
               disabled={desabilitado}
@@ -358,6 +370,7 @@ export default function FichaEnfermagem({
             <CampoSelect<TecidoLeito>
               label="T — Tecido no leito"
               opcoes={OPCOES_TECIDO}
+              campo="tecidoLeito"
               valor={t('tecidoLeito')}
               onChange={texto('tecidoLeito')}
               disabled={desabilitado}
@@ -365,6 +378,7 @@ export default function FichaEnfermagem({
             <CampoSelect<InfeccaoInflamacao>
               label="I — Infecção/inflamação"
               opcoes={OPCOES_INFECCAO}
+              campo="infeccaoInflamacao"
               valor={t('infeccaoInflamacao')}
               onChange={texto('infeccaoInflamacao')}
               disabled={desabilitado}
@@ -372,12 +386,14 @@ export default function FichaEnfermagem({
             <CampoSelect<ExsudatoTime>
               label="M — Exsudato"
               opcoes={OPCOES_EXSUDATO}
+              campo="exsudato"
               valor={t('exsudato')}
               onChange={texto('exsudato')}
               disabled={desabilitado}
             />
             <CampoTexto
               label="Tipo do exsudato"
+              campo="exsudatoTipo"
               valor={t('exsudatoTipo')}
               onChange={texto('exsudatoTipo')}
               disabled={desabilitado}
@@ -386,12 +402,14 @@ export default function FichaEnfermagem({
             <CampoSelect<BordasFerida>
               label="E — Bordas"
               opcoes={OPCOES_BORDAS}
+              campo="bordas"
               valor={t('bordas')}
               onChange={texto('bordas')}
               disabled={desabilitado}
             />
             <CampoEscala
               label="Dor (escala 0–10)"
+              campo="dorEscala"
               valor={t('dorEscala')}
               onChange={texto('dorEscala')}
               onLimpar={() => aoAlterar({ dorEscala: '' })}
@@ -401,6 +419,7 @@ export default function FichaEnfermagem({
 
           <CampoTexto
             label="Pele perilesional"
+            campo="pelePerilesional"
             valor={t('pelePerilesional')}
             onChange={texto('pelePerilesional')}
             disabled={desabilitado}
@@ -410,6 +429,7 @@ export default function FichaEnfermagem({
           <SubSecao titulo="Sinais vitais" />
           <CampoTexto
             label="Sinais vitais"
+            campo="sinaisVitais"
             valor={t('sinaisVitais')}
             onChange={texto('sinaisVitais')}
             disabled={desabilitado}
@@ -418,6 +438,7 @@ export default function FichaEnfermagem({
           <div className="proc-form-grid">
             <CampoTexto
               label="PA"
+              campo="pa"
               valor={t('pa')}
               onChange={texto('pa')}
               disabled={desabilitado}
@@ -425,6 +446,7 @@ export default function FichaEnfermagem({
             />
             <CampoTexto
               label="FC"
+              campo="fc"
               valor={t('fc')}
               onChange={texto('fc')}
               disabled={desabilitado}
@@ -432,6 +454,7 @@ export default function FichaEnfermagem({
             />
             <CampoTexto
               label="FR"
+              campo="fr"
               valor={t('fr')}
               onChange={texto('fr')}
               disabled={desabilitado}
@@ -439,6 +462,7 @@ export default function FichaEnfermagem({
             />
             <CampoTexto
               label="Temp"
+              campo="temp"
               valor={t('temp')}
               onChange={texto('temp')}
               disabled={desabilitado}
@@ -509,12 +533,14 @@ export default function FichaEnfermagem({
             <CampoSelect<TipoLimpeza>
               label="Limpeza"
               opcoes={OPCOES_LIMPEZA}
+              campo="limpeza"
               valor={t('limpeza')}
               onChange={texto('limpeza')}
               disabled={desabilitado}
             />
             <CampoTexto
               label="Outra solução de limpeza — qual?"
+              campo="limpezaOutro"
               valor={t('limpezaOutro')}
               onChange={texto('limpezaOutro')}
               disabled={desabilitado}
@@ -523,6 +549,7 @@ export default function FichaEnfermagem({
           <CampoSelect<TipoDesbridamento>
             label="Desbridamento"
             opcoes={OPCOES_DESBRIDAMENTO}
+            campo="desbridamento"
             valor={t('desbridamento')}
             onChange={texto('desbridamento')}
             disabled={desabilitado}
@@ -530,12 +557,14 @@ export default function FichaEnfermagem({
           <div className="proc-form-grid">
             <CampoTexto
               label="Cobertura primária"
+              campo="coberturaPrimaria"
               valor={t('coberturaPrimaria')}
               onChange={texto('coberturaPrimaria')}
               disabled={desabilitado}
             />
             <CampoTexto
               label="Cobertura secundária"
+              campo="coberturaSecundaria"
               valor={t('coberturaSecundaria')}
               onChange={texto('coberturaSecundaria')}
               disabled={desabilitado}
@@ -543,12 +572,14 @@ export default function FichaEnfermagem({
           </div>
           <CampoTexto
             label="Fixação"
+            campo="fixacao"
             valor={t('fixacao')}
             onChange={texto('fixacao')}
             disabled={desabilitado}
           />
           <CampoTextarea
             label="Orientações ao paciente"
+            campo="orientacoesPaciente"
             valor={t('orientacoesPaciente')}
             onChange={texto('orientacoesPaciente')}
             disabled={desabilitado}
@@ -568,12 +599,14 @@ export default function FichaEnfermagem({
             <CampoSelect<AvaliacaoEvolucao>
               label="Evolução"
               opcoes={OPCOES_EVOLUCAO}
+              campo="avaliacaoEvolucao"
               valor={t('avaliacaoEvolucao')}
               onChange={texto('avaliacaoEvolucao')}
               disabled={desabilitado}
             />
             <CampoSimNao
               label="Redução da área"
+              campo="reducaoArea"
               valor={b('reducaoArea')}
               onChange={bool('reducaoArea')}
               disabled={desabilitado}
@@ -630,6 +663,7 @@ export default function FichaEnfermagem({
           </div>
           <CampoNumero
             label="Retorno em (dias)"
+            campo="retornoDias"
             valor={t('retornoDias')}
             onChange={texto('retornoDias')}
             disabled={desabilitado}

@@ -102,7 +102,6 @@ export const PERFIS = {
   ADMIN: 'ROLE_ADMIN',
   PROFISSIONAL: 'ROLE_PROFISSIONAL',
   PACIENTE: 'ROLE_PACIENTE',
-  USUARIO: 'USUARIO',
 } as const
 
 export type Perfil = (typeof PERFIS)[keyof typeof PERFIS]

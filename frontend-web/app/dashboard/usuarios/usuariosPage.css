@@ -46,7 +46,7 @@
 .users-table-container {
   background-color: var(--color-white);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(var(--color-shadow-rgb), 0.05);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--color-bg-alt);
   overflow-x: auto;
 }
@@ -102,17 +102,17 @@
   color: var(--color-brand);
 }
 
-.perfil-role_admin {
+.perfil-admin {
   background-color: var(--color-bg-selected);
   color: var(--color-brand-dark);
 }
 
-.perfil-role_profissional {
+.perfil-profissional {
   background-color: var(--color-success-bg-alt);
   color: var(--color-success-text);
 }
 
-.perfil-role_paciente {
+.perfil-paciente {
   background-color: var(--color-error-bg-alt);
   color: var(--color-warning-strong);
 }

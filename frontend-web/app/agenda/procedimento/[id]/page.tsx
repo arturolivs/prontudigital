@@ -61,6 +61,7 @@ import {
   CheckItem,
   LinhaObservacao,
   MudancaCampo,
+  ValidacaoFicha,
 } from './campos'
 import FichaAnamnese, {
   AnamneseForm,
@@ -81,7 +82,11 @@ import CadastroPaciente, {
   cadastroPacienteParaFormulario,
 } from './CadastroPaciente'
 import {
+  estadoValidacao,
   mensagemCamposObrigatorios,
+  regrasAnamnese,
+  regrasCurativo,
+  regrasEnfermagem,
   validarAnamnese,
   validarCurativo,
   validarEnfermagem,
@@ -699,6 +704,19 @@ export default function ProcedimentoPage({
     useState<EnfermagemForm>(ENFERMAGEM_INICIAL)
   const [iniciado, setIniciado] = useState(false)
   const [finalizando, setFinalizando] = useState(false)
+  // Conta as tentativas de finalizar com pendências: a partir da primeira,
+  // os campos faltantes ficam marcados; cada nova tentativa rola até o
+  // primeiro deles de novo.
+  const [tentativasFinalizar, setTentativasFinalizar] = useState(0)
+
+  useEffect(() => {
+    if (tentativasFinalizar === 0) return
+    const primeiro = document.querySelector('.proc-campo--erro')
+    primeiro?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    primeiro
+      ?.querySelector<HTMLElement>('input, select, textarea')
+      ?.focus({ preventScroll: true })
+  }, [tentativasFinalizar])
   const [modalAberto, setModalAberto] = useState(false)
 
   // Cadastro do paciente (RF04). Guarda o id numérico porque o agendamento só
@@ -902,6 +920,7 @@ export default function ProcedimentoPage({
 
     if (pendentes.length > 0) {
       exibirNotificacao(mensagemCamposObrigatorios(pendentes), 'error', 10000)
+      setTentativasFinalizar(n => n + 1)
       return
     }
 
@@ -956,6 +975,23 @@ export default function ProcedimentoPage({
   const jaRealizado = agendamento?.status === 'REALIZADO'
   const ehTratamento = agendamento?.tipo === 'TRATAMENTO'
   const podeEditar = iniciado && !jaRealizado
+
+  // Asterisco nos obrigatórios sempre; pendências só após tentar finalizar.
+  // Recalculado a cada render, então o erro some assim que o campo é
+  // preenchido.
+  const mostrarPendentes = tentativasFinalizar > 0
+  const validacaoCurativo = estadoValidacao(
+    regrasCurativo(evolucao),
+    mostrarPendentes,
+  )
+  const validacaoAnamnese = estadoValidacao(
+    regrasAnamnese(anamnese),
+    mostrarPendentes,
+  )
+  const validacaoEnfermagem = estadoValidacao(
+    regrasEnfermagem(enfermagem),
+    mostrarPendentes,
+  )
 
   // Área aproximada (C×L) — somente leitura, recalculada a cada digitação
   const areaAproximadaTexto = numParaTexto(
@@ -1233,8 +1269,16 @@ export default function ProcedimentoPage({
                   carregando={carregandoCadastro}
                 />
 
+                {!jaRealizado && (
+                  <p className="proc-aviso-obrigatorios proc-full">
+                    Campos marcados com{' '}
+                    <span className="proc-campo-obrigatorio">*</span> são
+                    obrigatórios para finalizar a consulta.
+                  </p>
+                )}
+
                 {ehTratamento ? (
-                  <>
+                  <ValidacaoFicha estado={validacaoCurativo}>
                     {/* 1. Avaliação diária da ferida */}
                     <div className="proc-card proc-full">
                       <div className="proc-card-header">
@@ -1260,7 +1304,7 @@ export default function ProcedimentoPage({
                         </p>
 
                         <div className="proc-form-grid-3">
-                          <Campo label="Comprimento (cm)">
+                          <Campo label="Comprimento (cm)" campo="comprimento">
                             <input
                               className="proc-campo-input"
                               type="number"
@@ -1273,7 +1317,7 @@ export default function ProcedimentoPage({
                               placeholder="0.0"
                             />
                           </Campo>
-                          <Campo label="Largura (cm)">
+                          <Campo label="Largura (cm)" campo="largura">
                             <input
                               className="proc-campo-input"
                               type="number"
@@ -1286,7 +1330,7 @@ export default function ProcedimentoPage({
                               placeholder="0.0"
                             />
                           </Campo>
-                          <Campo label="Profundidade (cm)">
+                          <Campo label="Profundidade (cm)" campo="profundidade">
                             <input
                               className="proc-campo-input"
                               type="number"
@@ -1313,6 +1357,7 @@ export default function ProcedimentoPage({
                           </Campo>
                           <CampoEscala
                             label="Dor (0–10)"
+                            campo="dorEscala"
                             valor={evolucao.dorEscala}
                             onChange={setEv('dorEscala')}
                             onLimpar={() =>
@@ -1326,6 +1371,7 @@ export default function ProcedimentoPage({
                           <CampoSelect<TecidoLeito>
                             label="Tecido (T — TIME)"
                             opcoes={OPCOES_TECIDO}
+                            campo="tecido"
                             valor={evolucao.tecido}
                             onChange={setEv('tecido')}
                             disabled={!podeEditar}
@@ -1333,6 +1379,7 @@ export default function ProcedimentoPage({
                           <CampoSelect<InfeccaoInflamacaoCurativo>
                             label="Infecção/Inflamação (I — TIME)"
                             opcoes={OPCOES_INFECCAO}
+                            campo="infeccaoInflamacao"
                             valor={evolucao.infeccaoInflamacao}
                             onChange={setEv('infeccaoInflamacao')}
                             disabled={!podeEditar}
@@ -1340,6 +1387,7 @@ export default function ProcedimentoPage({
                           <CampoSelect<ExsudatoTime>
                             label="Exsudato (M — TIME)"
                             opcoes={OPCOES_EXSUDATO}
+                            campo="exsudato"
                             valor={evolucao.exsudato}
                             onChange={setEv('exsudato')}
                             disabled={!podeEditar}
@@ -1347,6 +1395,7 @@ export default function ProcedimentoPage({
                           <CampoSelect<BordasFerida>
                             label="Bordas (E — TIME)"
                             opcoes={OPCOES_BORDAS}
+                            campo="bordas"
                             valor={evolucao.bordas}
                             onChange={setEv('bordas')}
                             disabled={!podeEditar}
@@ -1362,7 +1411,10 @@ export default function ProcedimentoPage({
                           />
                         </div>
 
-                        <Campo label="Pele perilesional">
+                        <Campo
+                          label="Pele perilesional"
+                          campo="pelePerilesional"
+                        >
                           <input
                             className="proc-campo-input"
                             value={evolucao.pelePerilesional}
@@ -1385,6 +1437,7 @@ export default function ProcedimentoPage({
                       <div className="proc-form">
                         <LinhaObservacao
                           rotulo="Limpeza/Irrigação"
+                          campo="limpezaIrrigacao"
                           valor={evolucao.limpezaIrrigacao}
                           onChange={setEv('limpezaIrrigacao')}
                           disabled={!podeEditar}
@@ -1395,6 +1448,7 @@ export default function ProcedimentoPage({
                           <CampoSelect<TipoDesbridamento>
                             label="Desbridamento"
                             opcoes={OPCOES_DESBRIDAMENTO}
+                            campo="desbridamento"
                             valor={evolucao.desbridamento}
                             onChange={setEv('desbridamento')}
                             disabled={!podeEditar}
@@ -1410,6 +1464,7 @@ export default function ProcedimentoPage({
                         </div>
                         <LinhaObservacao
                           rotulo="Cobertura primária"
+                          campo="coberturaPrimaria"
                           valor={evolucao.coberturaPrimaria}
                           onChange={setEv('coberturaPrimaria')}
                           disabled={!podeEditar}
@@ -1418,6 +1473,7 @@ export default function ProcedimentoPage({
                         />
                         <LinhaObservacao
                           rotulo="Orientações ao paciente"
+                          campo="orientacoesPaciente"
                           valor={evolucao.orientacoesPaciente}
                           onChange={setEv('orientacoesPaciente')}
                           disabled={!podeEditar}
@@ -1438,6 +1494,7 @@ export default function ProcedimentoPage({
                         <CampoSelect<AvaliacaoEvolucao>
                           label="Evolução"
                           opcoes={OPCOES_EVOLUCAO}
+                          campo="evolucao"
                           valor={evolucao.evolucao}
                           onChange={setEv('evolucao')}
                           disabled={!podeEditar}
@@ -1505,22 +1562,26 @@ export default function ProcedimentoPage({
                         />
                       </div>
                     </div>
-                  </>
+                  </ValidacaoFicha>
                 ) : (
                   /* Avaliação: Anamnese + Ficha de Evolução de Enfermagem */
                   <>
-                    <FichaAnamnese
-                      valor={anamnese}
-                      aoAlterar={alterarAnamnese}
-                      desabilitado={!podeEditar}
-                      mostrarBloqueio={!podeEditar && !jaRealizado}
-                    />
-                    <FichaEnfermagem
-                      valor={enfermagem}
-                      aoAlterar={alterarEnfermagem}
-                      desabilitado={!podeEditar}
-                      mostrarBloqueio={!podeEditar && !jaRealizado}
-                    />
+                    <ValidacaoFicha estado={validacaoAnamnese}>
+                      <FichaAnamnese
+                        valor={anamnese}
+                        aoAlterar={alterarAnamnese}
+                        desabilitado={!podeEditar}
+                        mostrarBloqueio={!podeEditar && !jaRealizado}
+                      />
+                    </ValidacaoFicha>
+                    <ValidacaoFicha estado={validacaoEnfermagem}>
+                      <FichaEnfermagem
+                        valor={enfermagem}
+                        aoAlterar={alterarEnfermagem}
+                        desabilitado={!podeEditar}
+                        mostrarBloqueio={!podeEditar && !jaRealizado}
+                      />
+                    </ValidacaoFicha>
                   </>
                 )}
 

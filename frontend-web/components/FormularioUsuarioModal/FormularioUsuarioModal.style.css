@@ -70,7 +70,7 @@
 .uf-input,
 .uf-select {
   padding: 0.6rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   color: var(--color-text-heading);
@@ -105,7 +105,7 @@
 .uf-combobox-trigger {
   width: 100%;
   padding: 0.6rem 2.25rem 0.6rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   color: var(--color-text-heading);
@@ -147,7 +147,7 @@
   left: 0;
   right: 0;
   background: var(--color-white);
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   box-shadow: 0 8px 24px rgba(var(--color-shadow-rgb), 0.12);
   z-index: 10;
@@ -211,7 +211,7 @@
 
 .uf-btn-cancelar {
   padding: 0.6rem 1.25rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   font-weight: 500;

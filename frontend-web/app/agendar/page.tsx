@@ -22,6 +22,7 @@ import {
 import { mascaraTelefone } from '../../lib/mascaras'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
 import { useNotificacao } from '@/contexts/ToastContext'
+import CampoValidado from '@/components/CampoValidado'
 import './agendar.css'
 
 /* ── helpers ── */
@@ -725,31 +726,38 @@ export default function AgendarPage() {
                 <form id="form-auth" onSubmit={handleLogin}>
                   <div className="campo">
                     <label>Usuário</label>
-                    <input
-                      type="text"
-                      className="campo-input"
-                      placeholder="seu.usuario"
-                      value={loginForm.username}
-                      required
-                      autoComplete="username"
-                      onChange={e =>
-                        setLoginForm(f => ({ ...f, username: e.target.value }))
-                      }
-                    />
+                    <CampoValidado>
+                      <input
+                        type="text"
+                        className="campo-input"
+                        placeholder="seu.usuario"
+                        value={loginForm.username}
+                        required
+                        autoComplete="username"
+                        onChange={e =>
+                          setLoginForm(f => ({
+                            ...f,
+                            username: e.target.value,
+                          }))
+                        }
+                      />
+                    </CampoValidado>
                   </div>
                   <div className="campo">
                     <label>Senha</label>
-                    <input
-                      type="password"
-                      className="campo-input"
-                      placeholder="••••••••"
-                      value={loginForm.senha}
-                      required
-                      autoComplete="current-password"
-                      onChange={e =>
-                        setLoginForm(f => ({ ...f, senha: e.target.value }))
-                      }
-                    />
+                    <CampoValidado>
+                      <input
+                        type="password"
+                        className="campo-input"
+                        placeholder="••••••••"
+                        value={loginForm.senha}
+                        required
+                        autoComplete="current-password"
+                        onChange={e =>
+                          setLoginForm(f => ({ ...f, senha: e.target.value }))
+                        }
+                      />
+                    </CampoValidado>
                   </div>
                 </form>
               )}
@@ -759,36 +767,40 @@ export default function AgendarPage() {
                 <form id="form-auth" onSubmit={handleCadastro}>
                   <div className="campo">
                     <label>Nome completo</label>
-                    <input
-                      type="text"
-                      className="campo-input"
-                      placeholder="Maria da Silva"
-                      value={cadastroForm.nomeCompleto}
-                      required
-                      onChange={e =>
-                        setCadastroForm(f => ({
-                          ...f,
-                          nomeCompleto: e.target.value,
-                        }))
-                      }
-                    />
+                    <CampoValidado>
+                      <input
+                        type="text"
+                        className="campo-input"
+                        placeholder="Maria da Silva"
+                        value={cadastroForm.nomeCompleto}
+                        required
+                        onChange={e =>
+                          setCadastroForm(f => ({
+                            ...f,
+                            nomeCompleto: e.target.value,
+                          }))
+                        }
+                      />
+                    </CampoValidado>
                   </div>
                   <div className="campo">
                     <label>Telefone</label>
-                    <input
-                      type="tel"
-                      className="campo-input"
-                      placeholder="(99) 9 9999-9999"
-                      value={cadastroForm.telefone}
-                      required
-                      autoComplete="tel"
-                      onChange={e =>
-                        setCadastroForm(f => ({
-                          ...f,
-                          telefone: mascaraTelefone(e.target.value),
-                        }))
-                      }
-                    />
+                    <CampoValidado>
+                      <input
+                        type="tel"
+                        className="campo-input"
+                        placeholder="(99) 9 9999-9999"
+                        value={cadastroForm.telefone}
+                        required
+                        autoComplete="tel"
+                        onChange={e =>
+                          setCadastroForm(f => ({
+                            ...f,
+                            telefone: mascaraTelefone(e.target.value),
+                          }))
+                        }
+                      />
+                    </CampoValidado>
                   </div>
                   <p className="auth-separador">
                     Apenas nome e telefone são necessários para agendar. Para

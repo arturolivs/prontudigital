@@ -104,6 +104,13 @@ export const MENSAGENS = {
     procedimentoExcluido: 'Procedimento excluído com sucesso!',
   },
   validacao: {
+    // Mensagens genéricas do CampoValidado (validação nativa: required,
+    // type, minLength, min/max…). Substituem os balões do navegador.
+    campoObrigatorio: 'Campo obrigatório',
+    emailFormato: 'Informe um email válido, ex.: nome@exemplo.com',
+    formatoInvalido: 'Valor em formato inválido',
+    valorMinimo: 'Valor abaixo do mínimo permitido',
+    valorMaximo: 'Valor acima do máximo permitido',
     nomeObrigatorio: 'Nome é obrigatório',
     descricaoPrescricaoObrigatoria:
       'Informe o medicamento ou cuidado prescrito',

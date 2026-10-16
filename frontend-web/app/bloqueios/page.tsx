@@ -34,6 +34,7 @@ import {
 import './bloqueios.css'
 import Modal from '@/components/Modal'
 import ModalConfirmacao from '@/components/ModalConfirmacao'
+import CampoValidado from '@/components/CampoValidado'
 
 /* ── helpers de data ── */
 
@@ -729,28 +730,37 @@ export default function BloqueiosPage() {
                   <div className="campo-linha">
                     <div className="campo">
                       <label>Início</label>
-                      <input
-                        type="datetime-local"
-                        className="campo-input"
-                        value={form.inicioEm}
-                        onChange={e =>
-                          setForm(f => ({ ...f, inicioEm: e.target.value }))
-                        }
-                        required
-                      />
+                      <CampoValidado>
+                        <input
+                          type="datetime-local"
+                          className="campo-input"
+                          value={form.inicioEm}
+                          onChange={e =>
+                            setForm(f => ({ ...f, inicioEm: e.target.value }))
+                          }
+                          required
+                        />
+                      </CampoValidado>
                     </div>
                     <div className="campo">
                       <label>Término</label>
-                      <input
-                        type="datetime-local"
-                        className="campo-input"
-                        value={form.fimEm}
-                        min={form.inicioEm}
-                        onChange={e =>
-                          setForm(f => ({ ...f, fimEm: e.target.value }))
-                        }
-                        required
-                      />
+                      <CampoValidado
+                        mensagens={{
+                          rangeUnderflow:
+                            MENSAGENS.validacao.horarioTerminoInvalido,
+                        }}
+                      >
+                        <input
+                          type="datetime-local"
+                          className="campo-input"
+                          value={form.fimEm}
+                          min={form.inicioEm}
+                          onChange={e =>
+                            setForm(f => ({ ...f, fimEm: e.target.value }))
+                          }
+                          required
+                        />
+                      </CampoValidado>
                     </div>
                   </div>
 
@@ -844,34 +854,43 @@ export default function BloqueiosPage() {
                   <div className="campo-linha">
                     <div className="campo">
                       <label>Horário início</label>
-                      <input
-                        type="time"
-                        className="campo-input"
-                        value={formRecorrente.horaInicio}
-                        onChange={e =>
-                          setFormRecorrente(f => ({
-                            ...f,
-                            horaInicio: e.target.value,
-                          }))
-                        }
-                        required
-                      />
+                      <CampoValidado>
+                        <input
+                          type="time"
+                          className="campo-input"
+                          value={formRecorrente.horaInicio}
+                          onChange={e =>
+                            setFormRecorrente(f => ({
+                              ...f,
+                              horaInicio: e.target.value,
+                            }))
+                          }
+                          required
+                        />
+                      </CampoValidado>
                     </div>
                     <div className="campo">
                       <label>Horário fim</label>
-                      <input
-                        type="time"
-                        className="campo-input"
-                        value={formRecorrente.horaFim}
-                        min={formRecorrente.horaInicio}
-                        onChange={e =>
-                          setFormRecorrente(f => ({
-                            ...f,
-                            horaFim: e.target.value,
-                          }))
-                        }
-                        required
-                      />
+                      <CampoValidado
+                        mensagens={{
+                          rangeUnderflow:
+                            MENSAGENS.validacao.horarioTerminoInvalido,
+                        }}
+                      >
+                        <input
+                          type="time"
+                          className="campo-input"
+                          value={formRecorrente.horaFim}
+                          min={formRecorrente.horaInicio}
+                          onChange={e =>
+                            setFormRecorrente(f => ({
+                              ...f,
+                              horaFim: e.target.value,
+                            }))
+                          }
+                          required
+                        />
+                      </CampoValidado>
                     </div>
                   </div>
 

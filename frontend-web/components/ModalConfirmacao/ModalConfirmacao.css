@@ -7,7 +7,7 @@
 
 .confirmacao-btn-cancelar {
   padding: 0.6rem 1.25rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   background: var(--color-white);
   color: var(--color-text-muted);
