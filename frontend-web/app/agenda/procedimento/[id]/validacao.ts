@@ -27,144 +27,339 @@ const preenchido = (valor?: string | null): boolean =>
 const respondido = (valor?: boolean | null): boolean =>
   valor === true || valor === false
 
-type Regra = { ok: boolean; rotulo: string }
+/**
+ * `campo` é a chave do formulário: liga a regra ao campo na tela, que
+ * mostra o asterisco de obrigatório e, depois de uma tentativa de
+ * finalizar, o erro de pendência.
+ */
+export type Regra = {
+  campo: string
+  ok: boolean
+  rotulo: string
+  /** `false` quando a obrigatoriedade depende de outra resposta ainda não dada. */
+  exigido?: boolean
+}
 
 const faltantes = (regras: Regra[]): string[] =>
   regras.filter(r => !r.ok).map(r => r.rotulo)
 
+/** Estado que cada ficha entrega aos seus campos (ver ValidacaoFicha). */
+export type EstadoValidacao = {
+  obrigatorios: ReadonlySet<string>
+  pendentes: ReadonlySet<string>
+}
+
+/**
+ * Obrigatórios saem de todas as regras. Pendentes só aparecem depois da
+ * primeira tentativa de finalizar, para não pintar de vermelho uma ficha
+ * que o profissional ainda nem começou a preencher.
+ */
+export function estadoValidacao(
+  regras: Regra[],
+  mostrarPendentes: boolean,
+): EstadoValidacao {
+  return {
+    obrigatorios: new Set(
+      regras.filter(r => r.exigido !== false).map(r => r.campo),
+    ),
+    pendentes: new Set(
+      mostrarPendentes ? regras.filter(r => !r.ok).map(r => r.campo) : [],
+    ),
+  }
+}
+
 // ── Anamnese (agendamentos do tipo AVALIACAO) ────────────────────
 
-export function validarAnamnese(f: AnamneseForm): string[] {
-  return faltantes([
+export function regrasAnamnese(f: AnamneseForm): Regra[] {
+  return [
     // Identificação complementar. `responsavelCuidador` está fora: o rótulo
     // na ficha é "Responsável / cuidador (se houver)".
-    { ok: preenchido(f.profissao), rotulo: 'Profissão' },
+    { campo: 'profissao', ok: preenchido(f.profissao), rotulo: 'Profissão' },
 
     // História da ferida
-    { ok: preenchido(f.motivoConsulta), rotulo: 'Motivo da consulta' },
     {
+      campo: 'motivoConsulta',
+      ok: preenchido(f.motivoConsulta),
+      rotulo: 'Motivo da consulta',
+    },
+    {
+      campo: 'tempoExistenciaFerida',
       ok: preenchido(f.tempoExistenciaFerida),
       rotulo: 'Tempo de existência da ferida',
     },
     {
+      campo: 'dataInicioAproximada',
       ok: preenchido(f.dataInicioAproximada),
       rotulo: 'Data aproximada de início',
     },
-    { ok: preenchido(f.comoFeridaSurgiu), rotulo: 'Como a ferida surgiu' },
     {
+      campo: 'comoFeridaSurgiu',
+      ok: preenchido(f.comoFeridaSurgiu),
+      rotulo: 'Como a ferida surgiu',
+    },
+    {
+      campo: 'tratamentosAnteriores',
       ok: preenchido(f.tratamentosAnteriores),
       rotulo: 'Tratamentos anteriores realizados',
     },
-    { ok: preenchido(f.curativosPrevios), rotulo: 'Uso de curativos prévios' },
+    {
+      campo: 'curativosPrevios',
+      ok: preenchido(f.curativosPrevios),
+      rotulo: 'Uso de curativos prévios',
+    },
 
     // Histórico de saúde (Sim/Não)
-    { ok: respondido(f.diabetesMellitus), rotulo: 'Diabetes mellitus' },
-    { ok: respondido(f.hipertensaoArterial), rotulo: 'Hipertensão arterial' },
-    { ok: respondido(f.doencaVenosaCronica), rotulo: 'Doença venosa crônica' },
     {
+      campo: 'diabetesMellitus',
+      ok: respondido(f.diabetesMellitus),
+      rotulo: 'Diabetes mellitus',
+    },
+    {
+      campo: 'hipertensaoArterial',
+      ok: respondido(f.hipertensaoArterial),
+      rotulo: 'Hipertensão arterial',
+    },
+    {
+      campo: 'doencaVenosaCronica',
+      ok: respondido(f.doencaVenosaCronica),
+      rotulo: 'Doença venosa crônica',
+    },
+    {
+      campo: 'doencaArterialPeriferica',
       ok: respondido(f.doencaArterialPeriferica),
       rotulo: 'Doença arterial periférica',
     },
-    { ok: respondido(f.insuficienciaRenal), rotulo: 'Insuficiência renal' },
-    { ok: respondido(f.cancer), rotulo: 'Câncer' },
     {
+      campo: 'insuficienciaRenal',
+      ok: respondido(f.insuficienciaRenal),
+      rotulo: 'Insuficiência renal',
+    },
+    { campo: 'cancer', ok: respondido(f.cancer), rotulo: 'Câncer' },
+    {
+      campo: 'problemasNeurologicos',
       ok: respondido(f.problemasNeurologicos),
       rotulo: 'Problemas neurológicos',
     },
-    { ok: respondido(f.historicoCirurgias), rotulo: 'Histórico de cirurgias' },
+    {
+      campo: 'historicoCirurgias',
+      ok: respondido(f.historicoCirurgias),
+      rotulo: 'Histórico de cirurgias',
+    },
 
     // Hábitos de vida
-    { ok: respondido(f.tabagismo), rotulo: 'Tabagismo' },
-    { ok: respondido(f.consumoAlcool), rotulo: 'Consumo de álcool' },
+    { campo: 'tabagismo', ok: respondido(f.tabagismo), rotulo: 'Tabagismo' },
     {
+      campo: 'consumoAlcool',
+      ok: respondido(f.consumoAlcool),
+      rotulo: 'Consumo de álcool',
+    },
+    {
+      campo: 'alimentacaoEstadoNutricional',
       ok: preenchido(f.alimentacaoEstadoNutricional),
       rotulo: 'Alimentação / estado nutricional',
     },
-    { ok: respondido(f.ingestaoHidrica), rotulo: 'Ingestão hídrica' },
+    {
+      campo: 'ingestaoHidrica',
+      ok: respondido(f.ingestaoHidrica),
+      rotulo: 'Ingestão hídrica',
+    },
 
     // Mobilidade e funcionalidade
-    { ok: respondido(f.deambulaSozinho), rotulo: 'Deambula sozinho?' },
-    { ok: respondido(f.acamadoOuCadeirante), rotulo: 'Acamado ou cadeirante' },
-    { ok: respondido(f.usoDispositivos), rotulo: 'Uso de dispositivos' },
     {
+      campo: 'deambulaSozinho',
+      ok: respondido(f.deambulaSozinho),
+      rotulo: 'Deambula sozinho?',
+    },
+    {
+      campo: 'acamadoOuCadeirante',
+      ok: respondido(f.acamadoOuCadeirante),
+      rotulo: 'Acamado ou cadeirante',
+    },
+    {
+      campo: 'usoDispositivos',
+      ok: respondido(f.usoDispositivos),
+      rotulo: 'Uso de dispositivos',
+    },
+    {
+      campo: 'mudancaPosicaoLeito',
       ok: respondido(f.mudancaPosicaoLeito),
       rotulo: 'Mudança de posição no leito',
     },
 
     // Outros
-    { ok: respondido(f.examesRecentes), rotulo: 'Exames recentes' },
-    { ok: preenchido(f.redeApoio), rotulo: 'Rede de apoio' },
     {
+      campo: 'examesRecentes',
+      ok: respondido(f.examesRecentes),
+      rotulo: 'Exames recentes',
+    },
+    {
+      campo: 'redeApoio',
+      ok: preenchido(f.redeApoio),
+      rotulo: 'Rede de apoio',
+    },
+    {
+      campo: 'acompanhamentoMedico',
       ok: respondido(f.acompanhamentoMedico),
       rotulo: 'Faz algum acompanhamento médico?',
     },
-  ])
+  ]
+}
+
+export function validarAnamnese(f: AnamneseForm): string[] {
+  return faltantes(regrasAnamnese(f))
 }
 
 // ── Evolução de Enfermagem (AVALIACAO) ───────────────────────────
 
-export function validarEnfermagem(f: EnfermagemForm): string[] {
-  return faltantes([
+export function regrasEnfermagem(f: EnfermagemForm): Regra[] {
+  return [
     // 1. Dados da avaliação. `diagnosticoMedico` fora: rótulo "(se houver)".
-    { ok: preenchido(f.dataAvaliacao), rotulo: 'Data da avaliação' },
-    { ok: preenchido(f.horaAvaliacao), rotulo: 'Hora da avaliação' },
     {
+      campo: 'dataAvaliacao',
+      ok: preenchido(f.dataAvaliacao),
+      rotulo: 'Data da avaliação',
+    },
+    {
+      campo: 'horaAvaliacao',
+      ok: preenchido(f.horaAvaliacao),
+      rotulo: 'Hora da avaliação',
+    },
+    {
+      campo: 'medicamentosRelevantes',
       ok: preenchido(f.medicamentosRelevantes),
       rotulo: 'Uso de medicamentos relevantes',
     },
 
     // 2. Avaliação da ferida (TIME)
-    { ok: preenchido(f.localizacaoAnatomica), rotulo: 'Localização anatômica' },
-    { ok: preenchido(f.tipoFerida), rotulo: 'Tipo de ferida' },
+    {
+      campo: 'localizacaoAnatomica',
+      ok: preenchido(f.localizacaoAnatomica),
+      rotulo: 'Localização anatômica',
+    },
+    {
+      campo: 'tipoFerida',
+      ok: preenchido(f.tipoFerida),
+      rotulo: 'Tipo de ferida',
+    },
     // Só exigido quando o tipo escolhido foi "Outra".
     {
+      campo: 'tipoFeridaOutra',
+      exigido: f.tipoFerida === 'OUTRA',
       ok: f.tipoFerida !== 'OUTRA' || preenchido(f.tipoFeridaOutra),
       rotulo: 'Outro tipo de ferida — qual?',
     },
-    { ok: preenchido(f.dimensoes), rotulo: 'Dimensões' },
-    { ok: preenchido(f.comprimento), rotulo: 'Comprimento (cm)' },
-    { ok: preenchido(f.largura), rotulo: 'Largura (cm)' },
-    { ok: preenchido(f.profundidade), rotulo: 'Profundidade (cm)' },
-    { ok: respondido(f.tunelizacao), rotulo: 'Tunelização' },
-    { ok: respondido(f.descolamento), rotulo: 'Descolamento' },
-    { ok: preenchido(f.tecidoLeito), rotulo: 'T — Tecido no leito' },
+    { campo: 'dimensoes', ok: preenchido(f.dimensoes), rotulo: 'Dimensões' },
     {
+      campo: 'comprimento',
+      ok: preenchido(f.comprimento),
+      rotulo: 'Comprimento (cm)',
+    },
+    { campo: 'largura', ok: preenchido(f.largura), rotulo: 'Largura (cm)' },
+    {
+      campo: 'profundidade',
+      ok: preenchido(f.profundidade),
+      rotulo: 'Profundidade (cm)',
+    },
+    {
+      campo: 'tunelizacao',
+      ok: respondido(f.tunelizacao),
+      rotulo: 'Tunelização',
+    },
+    {
+      campo: 'descolamento',
+      ok: respondido(f.descolamento),
+      rotulo: 'Descolamento',
+    },
+    {
+      campo: 'tecidoLeito',
+      ok: preenchido(f.tecidoLeito),
+      rotulo: 'T — Tecido no leito',
+    },
+    {
+      campo: 'infeccaoInflamacao',
       ok: preenchido(f.infeccaoInflamacao),
       rotulo: 'I — Infecção/inflamação',
     },
-    { ok: preenchido(f.exsudato), rotulo: 'M — Exsudato' },
-    { ok: preenchido(f.exsudatoTipo), rotulo: 'Tipo do exsudato' },
-    { ok: preenchido(f.bordas), rotulo: 'E — Bordas' },
-    { ok: preenchido(f.dorEscala), rotulo: 'Dor (escala 0–10)' },
-    { ok: preenchido(f.pelePerilesional), rotulo: 'Pele perilesional' },
-    { ok: preenchido(f.sinaisVitais), rotulo: 'Sinais vitais' },
-    { ok: preenchido(f.pa), rotulo: 'PA' },
-    { ok: preenchido(f.fc), rotulo: 'FC' },
-    { ok: preenchido(f.fr), rotulo: 'FR' },
-    { ok: preenchido(f.temp), rotulo: 'Temp' },
+    { campo: 'exsudato', ok: preenchido(f.exsudato), rotulo: 'M — Exsudato' },
+    {
+      campo: 'exsudatoTipo',
+      ok: preenchido(f.exsudatoTipo),
+      rotulo: 'Tipo do exsudato',
+    },
+    { campo: 'bordas', ok: preenchido(f.bordas), rotulo: 'E — Bordas' },
+    {
+      campo: 'dorEscala',
+      ok: preenchido(f.dorEscala),
+      rotulo: 'Dor (escala 0–10)',
+    },
+    {
+      campo: 'pelePerilesional',
+      ok: preenchido(f.pelePerilesional),
+      rotulo: 'Pele perilesional',
+    },
+    {
+      campo: 'sinaisVitais',
+      ok: preenchido(f.sinaisVitais),
+      rotulo: 'Sinais vitais',
+    },
+    { campo: 'pa', ok: preenchido(f.pa), rotulo: 'PA' },
+    { campo: 'fc', ok: preenchido(f.fc), rotulo: 'FC' },
+    { campo: 'fr', ok: preenchido(f.fr), rotulo: 'FR' },
+    { campo: 'temp', ok: preenchido(f.temp), rotulo: 'Temp' },
 
     // 4. Conduta realizada
-    { ok: preenchido(f.limpeza), rotulo: 'Limpeza' },
+    { campo: 'limpeza', ok: preenchido(f.limpeza), rotulo: 'Limpeza' },
     {
+      campo: 'limpezaOutro',
+      exigido: f.limpeza === 'OUTRO',
       ok: f.limpeza !== 'OUTRO' || preenchido(f.limpezaOutro),
       rotulo: 'Outra solução de limpeza — qual?',
     },
-    { ok: preenchido(f.desbridamento), rotulo: 'Desbridamento' },
-    { ok: preenchido(f.coberturaPrimaria), rotulo: 'Cobertura primária' },
-    { ok: preenchido(f.coberturaSecundaria), rotulo: 'Cobertura secundária' },
-    { ok: preenchido(f.fixacao), rotulo: 'Fixação' },
     {
+      campo: 'desbridamento',
+      ok: preenchido(f.desbridamento),
+      rotulo: 'Desbridamento',
+    },
+    {
+      campo: 'coberturaPrimaria',
+      ok: preenchido(f.coberturaPrimaria),
+      rotulo: 'Cobertura primária',
+    },
+    {
+      campo: 'coberturaSecundaria',
+      ok: preenchido(f.coberturaSecundaria),
+      rotulo: 'Cobertura secundária',
+    },
+    { campo: 'fixacao', ok: preenchido(f.fixacao), rotulo: 'Fixação' },
+    {
+      campo: 'orientacoesPaciente',
       ok: preenchido(f.orientacoesPaciente),
       rotulo: 'Orientações ao paciente',
     },
 
     // 5. Avaliação da evolução
-    { ok: preenchido(f.avaliacaoEvolucao), rotulo: 'Evolução' },
-    { ok: respondido(f.reducaoArea), rotulo: 'Redução da área' },
+    {
+      campo: 'avaliacaoEvolucao',
+      ok: preenchido(f.avaliacaoEvolucao),
+      rotulo: 'Evolução',
+    },
+    {
+      campo: 'reducaoArea',
+      ok: respondido(f.reducaoArea),
+      rotulo: 'Redução da área',
+    },
 
     // 6. Plano — os checkboxes são isentos; o retorno é dado de agenda.
-    { ok: preenchido(f.retornoDias), rotulo: 'Retorno em (dias)' },
-  ])
+    {
+      campo: 'retornoDias',
+      ok: preenchido(f.retornoDias),
+      rotulo: 'Retorno em (dias)',
+    },
+  ]
+}
+
+export function validarEnfermagem(f: EnfermagemForm): string[] {
+  return faltantes(regrasEnfermagem(f))
 }
 
 // ── Evolução Diária de Curativos (TRATAMENTO) ────────────────────
@@ -188,33 +383,66 @@ type CurativoCampos = {
   evolucao: string
 }
 
-export function validarCurativo(f: CurativoCampos): string[] {
-  return faltantes([
+export function regrasCurativo(f: CurativoCampos): Regra[] {
+  return [
     // 1. Avaliação diária. `odorPresente` é checkbox: isento.
-    { ok: preenchido(f.comprimento), rotulo: 'Comprimento (cm)' },
-    { ok: preenchido(f.largura), rotulo: 'Largura (cm)' },
-    { ok: preenchido(f.profundidade), rotulo: 'Profundidade (cm)' },
-    { ok: preenchido(f.tecido), rotulo: 'Tecido (T — TIME)' },
-    { ok: preenchido(f.infeccaoInflamacao), rotulo: 'Infecção/inflamação (I)' },
-    { ok: preenchido(f.exsudato), rotulo: 'Exsudato (M)' },
-    { ok: preenchido(f.bordas), rotulo: 'Bordas (E)' },
-    { ok: preenchido(f.dorEscala), rotulo: 'Dor (0–10)' },
-    { ok: preenchido(f.pelePerilesional), rotulo: 'Pele perilesional' },
+    {
+      campo: 'comprimento',
+      ok: preenchido(f.comprimento),
+      rotulo: 'Comprimento (cm)',
+    },
+    { campo: 'largura', ok: preenchido(f.largura), rotulo: 'Largura (cm)' },
+    {
+      campo: 'profundidade',
+      ok: preenchido(f.profundidade),
+      rotulo: 'Profundidade (cm)',
+    },
+    { campo: 'tecido', ok: preenchido(f.tecido), rotulo: 'Tecido (T — TIME)' },
+    {
+      campo: 'infeccaoInflamacao',
+      ok: preenchido(f.infeccaoInflamacao),
+      rotulo: 'Infecção/inflamação (I)',
+    },
+    { campo: 'exsudato', ok: preenchido(f.exsudato), rotulo: 'Exsudato (M)' },
+    { campo: 'bordas', ok: preenchido(f.bordas), rotulo: 'Bordas (E)' },
+    { campo: 'dorEscala', ok: preenchido(f.dorEscala), rotulo: 'Dor (0–10)' },
+    {
+      campo: 'pelePerilesional',
+      ok: preenchido(f.pelePerilesional),
+      rotulo: 'Pele perilesional',
+    },
 
     // 2. Intervenções. `desbridamentoObs` é observação: isenta.
-    { ok: preenchido(f.limpezaIrrigacao), rotulo: 'Limpeza/Irrigação' },
-    { ok: preenchido(f.desbridamento), rotulo: 'Desbridamento' },
-    { ok: preenchido(f.coberturaPrimaria), rotulo: 'Cobertura primária' },
     {
+      campo: 'limpezaIrrigacao',
+      ok: preenchido(f.limpezaIrrigacao),
+      rotulo: 'Limpeza/Irrigação',
+    },
+    {
+      campo: 'desbridamento',
+      ok: preenchido(f.desbridamento),
+      rotulo: 'Desbridamento',
+    },
+    {
+      campo: 'coberturaPrimaria',
+      ok: preenchido(f.coberturaPrimaria),
+      rotulo: 'Cobertura primária',
+    },
+    {
+      campo: 'orientacoesPaciente',
       ok: preenchido(f.orientacoesPaciente),
       rotulo: 'Orientações ao paciente',
     },
 
     // 3. Avaliação da evolução. `observacoes` é observação: isenta.
-    { ok: preenchido(f.evolucao), rotulo: 'Evolução' },
+    { campo: 'evolucao', ok: preenchido(f.evolucao), rotulo: 'Evolução' },
 
     // 4. Plano / ações futuras — seção inteira isenta.
-  ])
+  ]
+}
+
+export function validarCurativo(f: CurativoCampos): string[] {
+  return faltantes(regrasCurativo(f))
 }
 
 /** Quantos rótulos entram na mensagem antes de virar "e mais N". */

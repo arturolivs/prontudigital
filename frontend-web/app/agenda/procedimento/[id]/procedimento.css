@@ -778,6 +778,44 @@
   gap: 0.35rem;
 }
 
+/* ── Obrigatoriedade (ver ValidacaoFicha em campos.tsx) ──
+   Mesmo padrão do CampoValidado: mensagem entre rótulo e campo, borda
+   vermelha. O asterisco aparece sempre; o erro, só após tentar finalizar. */
+
+.proc-campo-obrigatorio {
+  color: var(--color-error);
+  font-weight: 700;
+}
+
+.proc-campo-erro {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-error);
+}
+
+/* Só o controle principal: o "Detalhe (opcional)" do Sim/Não não é
+   obrigatório e não deve ficar vermelho. */
+.proc-campo--erro > :is(.proc-campo-input, .proc-campo-select, .proc-campo-textarea):not(.proc-campo-detalhe),
+.proc-campo--erro > .proc-radio-grupo > .proc-radio {
+  border-color: var(--color-error);
+}
+
+.proc-campo--erro > :is(.proc-campo-input, .proc-campo-select, .proc-campo-textarea):not(.proc-campo-detalhe):focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(var(--color-error-rgb), 0.15);
+}
+
+.proc-aviso-obrigatorios {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
 .proc-campo-label {
   font-size: 0.7rem;
   font-weight: 600;

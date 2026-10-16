@@ -102,6 +102,7 @@ export default function FichaAnamnese({
         <div className="proc-form-grid">
           <CampoTexto
             label="Profissão"
+            campo="profissao"
             valor={t('profissao')}
             onChange={texto('profissao')}
             disabled={desabilitado}
@@ -117,6 +118,7 @@ export default function FichaAnamnese({
         <SubSecao titulo="Queixa principal e história da ferida" />
         <CampoTextarea
           label="Motivo da consulta"
+          campo="motivoConsulta"
           valor={t('motivoConsulta')}
           onChange={texto('motivoConsulta')}
           disabled={desabilitado}
@@ -125,6 +127,7 @@ export default function FichaAnamnese({
         <div className="proc-form-grid">
           <CampoTexto
             label="Tempo de existência da ferida"
+            campo="tempoExistenciaFerida"
             valor={t('tempoExistenciaFerida')}
             onChange={texto('tempoExistenciaFerida')}
             disabled={desabilitado}
@@ -133,6 +136,7 @@ export default function FichaAnamnese({
           <CampoTexto
             label="Data aproximada de início"
             tipo="date"
+            campo="dataInicioAproximada"
             valor={t('dataInicioAproximada')}
             onChange={texto('dataInicioAproximada')}
             disabled={desabilitado}
@@ -144,18 +148,21 @@ export default function FichaAnamnese({
         </div>
         <CampoTextarea
           label="Como a ferida surgiu (trauma, cirurgia, espontânea, pressão etc.)"
+          campo="comoFeridaSurgiu"
           valor={t('comoFeridaSurgiu')}
           onChange={texto('comoFeridaSurgiu')}
           disabled={desabilitado}
         />
         <CampoTextarea
           label="Tratamentos anteriores realizados"
+          campo="tratamentosAnteriores"
           valor={t('tratamentosAnteriores')}
           onChange={texto('tratamentosAnteriores')}
           disabled={desabilitado}
         />
         <CampoTextarea
           label="Uso de curativos prévios (quais?)"
+          campo="curativosPrevios"
           valor={t('curativosPrevios')}
           onChange={texto('curativosPrevios')}
           disabled={desabilitado}
@@ -165,6 +172,7 @@ export default function FichaAnamnese({
         <div className="proc-form-grid">
           <CampoSimNao
             label="Diabetes mellitus"
+            campo="diabetesMellitus"
             valor={b('diabetesMellitus')}
             onChange={bool('diabetesMellitus')}
             disabled={desabilitado}
@@ -173,6 +181,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Hipertensão arterial"
+            campo="hipertensaoArterial"
             valor={b('hipertensaoArterial')}
             onChange={bool('hipertensaoArterial')}
             disabled={desabilitado}
@@ -181,6 +190,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Doença venosa crônica"
+            campo="doencaVenosaCronica"
             valor={b('doencaVenosaCronica')}
             onChange={bool('doencaVenosaCronica')}
             disabled={desabilitado}
@@ -189,6 +199,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Doença arterial periférica"
+            campo="doencaArterialPeriferica"
             valor={b('doencaArterialPeriferica')}
             onChange={bool('doencaArterialPeriferica')}
             disabled={desabilitado}
@@ -197,6 +208,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Insuficiência renal"
+            campo="insuficienciaRenal"
             valor={b('insuficienciaRenal')}
             onChange={bool('insuficienciaRenal')}
             disabled={desabilitado}
@@ -205,6 +217,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Câncer"
+            campo="cancer"
             valor={b('cancer')}
             onChange={bool('cancer')}
             disabled={desabilitado}
@@ -213,6 +226,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Problemas neurológicos"
+            campo="problemasNeurologicos"
             valor={b('problemasNeurologicos')}
             onChange={bool('problemasNeurologicos')}
             disabled={desabilitado}
@@ -221,6 +235,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Histórico de cirurgias"
+            campo="historicoCirurgias"
             valor={b('historicoCirurgias')}
             onChange={bool('historicoCirurgias')}
             disabled={desabilitado}
@@ -289,12 +304,14 @@ export default function FichaAnamnese({
         <div className="proc-form-grid">
           <CampoSimNao
             label="Tabagismo"
+            campo="tabagismo"
             valor={b('tabagismo')}
             onChange={bool('tabagismo')}
             disabled={desabilitado}
           />
           <CampoSimNao
             label="Consumo de álcool"
+            campo="consumoAlcool"
             valor={b('consumoAlcool')}
             onChange={bool('consumoAlcool')}
             disabled={desabilitado}
@@ -302,12 +319,14 @@ export default function FichaAnamnese({
         </div>
         <CampoTextarea
           label="Alimentação / estado nutricional"
+          campo="alimentacaoEstadoNutricional"
           valor={t('alimentacaoEstadoNutricional')}
           onChange={texto('alimentacaoEstadoNutricional')}
           disabled={desabilitado}
         />
         <CampoSimNao
           label="Ingestão hídrica"
+          campo="ingestaoHidrica"
           valor={b('ingestaoHidrica')}
           onChange={bool('ingestaoHidrica')}
           disabled={desabilitado}
@@ -320,6 +339,7 @@ export default function FichaAnamnese({
         <div className="proc-form-grid">
           <CampoSimNao
             label="Deambula sozinho?"
+            campo="deambulaSozinho"
             valor={b('deambulaSozinho')}
             onChange={bool('deambulaSozinho')}
             disabled={desabilitado}
@@ -328,6 +348,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Acamado ou cadeirante"
+            campo="acamadoOuCadeirante"
             valor={b('acamadoOuCadeirante')}
             onChange={bool('acamadoOuCadeirante')}
             disabled={desabilitado}
@@ -336,6 +357,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Uso de dispositivos (bengala, andador, cadeira de rodas)"
+            campo="usoDispositivos"
             valor={b('usoDispositivos')}
             onChange={bool('usoDispositivos')}
             disabled={desabilitado}
@@ -345,6 +367,7 @@ export default function FichaAnamnese({
           />
           <CampoSimNao
             label="Mudança de posição no leito"
+            campo="mudancaPosicaoLeito"
             valor={b('mudancaPosicaoLeito')}
             onChange={bool('mudancaPosicaoLeito')}
             disabled={desabilitado}
@@ -357,6 +380,7 @@ export default function FichaAnamnese({
         <div className="proc-form-grid">
           <CampoSimNao
             label="Exames recentes"
+            campo="examesRecentes"
             valor={b('examesRecentes')}
             onChange={bool('examesRecentes')}
             disabled={desabilitado}
@@ -364,6 +388,7 @@ export default function FichaAnamnese({
           <CampoSelect<RedeApoio>
             label="Rede de apoio"
             opcoes={OPCOES_REDE_APOIO}
+            campo="redeApoio"
             valor={t('redeApoio')}
             onChange={texto('redeApoio')}
             disabled={desabilitado}
@@ -371,6 +396,7 @@ export default function FichaAnamnese({
         </div>
         <CampoSimNao
           label="Faz algum acompanhamento médico?"
+          campo="acompanhamentoMedico"
           valor={b('acompanhamentoMedico')}
           onChange={bool('acompanhamentoMedico')}
           disabled={desabilitado}
