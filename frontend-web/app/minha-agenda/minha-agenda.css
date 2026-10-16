@@ -168,7 +168,7 @@
 
 .ma-abas {
   display: flex;
-  border-bottom: 2px solid var(--color-border-brand);
+  border-bottom: 1px solid var(--color-border-light);
   gap: 0;
 }
 
@@ -178,12 +178,12 @@
   gap: 7px;
   padding: 10px 20px;
   font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--color-brand-light);
+  font-weight: 600;
+  color: var(--color-text-secondary);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  margin-bottom: -1px;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
 }
@@ -208,8 +208,8 @@
 }
 
 .ma-aba:not(.ma-aba-ativa) .ma-aba-badge {
-  background: var(--color-border-brand);
-  color: var(--color-brand-light);
+  background: var(--color-neutral-200);
+  color: var(--color-text-secondary);
 }
 
 /* ===== LISTA DE AGENDAMENTOS ===== */

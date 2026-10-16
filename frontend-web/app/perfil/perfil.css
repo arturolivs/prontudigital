@@ -232,7 +232,7 @@
 
 .campo-input {
   padding: 0.65rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   color: var(--color-text-heading);
@@ -339,7 +339,7 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.65rem 1.25rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   font-weight: 500;

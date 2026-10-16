@@ -18,7 +18,7 @@ export const RotaProtegida = ({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-sm text-gray-600">Verificando acesso...</p>
+          <p className="mt-2 text-sm text-slate-600">Verificando acesso...</p>
         </div>
       </div>
     )
@@ -37,16 +37,16 @@ export const RotaProtegida = ({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">🚫</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl font-bold text-slate-900 mb-2">
             Acesso Negado
           </h2>
-          <p className="text-gray-600">
+          <p className="text-slate-600">
             Você não tem permissão para acessar esta página.
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-slate-500 mt-2">
             Perfis necessários: {perfisNecessarios.join(', ')}
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             Seus perfis: {usuario.perfis.join(', ')}
           </p>
         </div>

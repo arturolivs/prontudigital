@@ -7,7 +7,7 @@ export default function AcessoNegado() {
   const { usuario, logout } = useAuth()
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-slate-100 flex flex-col">
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -16,7 +16,7 @@ export default function AcessoNegado() {
             </div>
             {usuario && (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">{usuario.username}</span>
+                <span className="text-slate-700">{usuario.username}</span>
                 <button
                   onClick={logout}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
@@ -33,10 +33,10 @@ export default function AcessoNegado() {
         <div className="text-center">
           <div className="bg-white p-8 rounded-lg shadow-md max-w-md">
             <div className="text-6xl mb-4">🚫</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">
               Acesso Negado
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-slate-600 mb-6">
               Você não tem permissão para acessar esta página com seu nível de
               acesso atual.
             </p>
@@ -49,7 +49,7 @@ export default function AcessoNegado() {
               </Link>
               <Link
                 href="/dashboard"
-                className="block w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition"
+                className="block w-full bg-slate-600 text-white py-2 px-4 rounded-md hover:bg-slate-700 transition"
               >
                 Tentar Dashboard
               </Link>

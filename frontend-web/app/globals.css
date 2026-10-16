@@ -10,35 +10,38 @@
   --color-brand-hover:   #245d9e;   /* hover mais escuro */
   --color-brand-dark:    #1f4e7a;   /* estado ativo / dark */
   --color-brand-medium:  #3a7bc8;   /* par de gradiente */
-  --color-brand-light:   #7991bc;   /* azul claro */
-  --color-brand-muted:   #6480aa;   /* variante esmaecida */
-  --color-brand-subtle:  #4a6fa5;   /* sutil (calendário) */
+  --color-brand-light:   #5b8fd6;   /* azul claro (foco, gradiente) */
+  --color-brand-muted:   #4a7bbf;   /* variante esmaecida */
 
-  /* ── Fundos de Página / Superfície ──────────────────────────────── */
-  --color-bg-page:     #f4f9ff;   /* fundo padrão de páginas */
-  --color-bg-alt:      #e6f4f1;   /* fundo secundário / item ativo */
+  /* ── Fundos de Página / Superfície ──────────────────────────────────
+     Hierarquia: página (bg-page) < card (white) < campo (white com borda).
+     O fundo da página precisa ser visivelmente mais escuro que o card,
+     senão formulários e abas "flutuam" sem contorno.                  */
+  --color-bg-page:     #eef2f7;   /* fundo padrão de páginas */
+  --color-bg-alt:      #e3ecf8;   /* fundo secundário / item ativo */
   --color-bg-surface:  #f8fafc;   /* inputs e superfícies de card */
   --color-bg-hover:    #f0f5ff;   /* hover genérico */
   --color-bg-tint:     #eff6ff;   /* tint azul-info */
   --color-bg-soft:     #e6f0fa;   /* acento brand suave */
   --color-bg-today:    #f0f7ff;   /* destaque de "hoje" */
   --color-bg-selected: #e8f2ff;   /* célula selecionada */
-  --color-bg-subtle:   #fafcff;   /* tint quase-branco */
+  --color-bg-subtle:   #f6f9fc;   /* cabeçalho de card */
 
-  /* ── Texto ───────────────────────────────────────────────────────── */
+  /* ── Texto (escala Slate — mesma família dos neutros e bordas) ──── */
   --color-text-heading:   #1e293b;
-  --color-text-body:      #374151;
+  --color-text-body:      #334155;
   --color-text-secondary: #64748b;
-  --color-text-muted:     #94a3b8;
-  --color-text-dark:      #111827;
-  --color-text-navy:      #2c3e50;
+  --color-text-muted:     #7d8ba1;   /* placeholder / apoio */
+  --color-text-dark:      #0f172a;
+  --color-text-navy:      #1e293b;
   --color-text-slate:     #334155;
-  --color-text-mid:       #5a6e82;
+  --color-text-mid:       #475569;
 
   /* ── Bordas ──────────────────────────────────────────────────────── */
-  --color-border:        #e2e8f0;
+  --color-border:        #dbe2ea;
   --color-border-brand:  #e2edf7;
-  --color-border-light:  #d1dde8;
+  --color-border-light:  #cbd5e1;
+  --color-border-control: #c5cfdb;  /* campos e botões secundários */
 
   /* ── Status: Sucesso / Verde ─────────────────────────────────────── */
   --color-success:             #10b981;
@@ -133,30 +136,34 @@
   /* ── Superfície branca ───────────────────────────────────────────── */
   --color-white: #ffffff;
 
+  /* ── Sombras ─────────────────────────────────────────────────────── */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-raised: 0 4px 16px rgba(15, 23, 42, 0.08);
+
   /* ── Componentes RGB, para cor com transparência ─────────────────
      `rgba()` não aceita um hex de variável, então sombras e overlays
      tingidos de marca precisam dos componentes soltos. Mantenha em
      sincronia com --color-brand / --color-brand-light acima.
      Uso: rgba(var(--color-brand-rgb), 0.3)                             */
   --color-brand-rgb:       43, 108, 176;   /* #2b6cb0 */
-  --color-brand-light-rgb: 121, 145, 188;  /* #7991bc */
-  --color-shadow-rgb:      0, 0, 0;        /* sombra neutra */
+  --color-brand-light-rgb: 91, 143, 214;   /* #5b8fd6 */
+  --color-shadow-rgb:      15, 23, 42;     /* sombra neutra (slate-900) */
   --color-white-rgb:       255, 255, 255;  /* véu sobre fundo escuro */
   --color-success-rgb:     16, 185, 129;   /* #10b981 */
   --color-warning-strong-rgb: 180, 83, 9;  /* #b45309 */
   --color-error-rgb:       220, 38, 38;    /* #dc2626 */
   --color-info-rgb:        59, 130, 246;   /* #3b82f6 */
 
-  /* ── Neutros ─────────────────────────────────────────────────────── */
-  --color-neutral-50:  #f9fafb;
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-200: #e5e7eb;
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #4b5563;
-  --color-neutral-700: #374151;
-  --color-neutral-900: #111827;
+  /* ── Neutros (escala Slate) ──────────────────────────────────────── */
+  --color-neutral-50:  #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-900: #0f172a;
 }
 
 /* ── Tokens Tailwind v4 (fontes + background/foreground do Next.js) ── */

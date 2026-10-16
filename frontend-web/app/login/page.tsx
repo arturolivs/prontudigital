@@ -157,7 +157,7 @@ export default function Login() {
               <h2 className="text-3xl font-bold text-[var(--color-brand)]">
                 Bem-vindo(a)
               </h2>
-              <p className="text-gray-500 mt-2">
+              <p className="text-slate-500 mt-2">
                 Acesse sua conta para continuar
               </p>
             </div>
@@ -166,7 +166,7 @@ export default function Login() {
               <div>
                 <label
                   htmlFor="username"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-slate-700 mb-1"
                 >
                   Usuário
                 </label>
@@ -175,7 +175,7 @@ export default function Login() {
                     id="username"
                     type="text"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
+                    className="w-full px-4 py-3 border border-[var(--color-border-control)] rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
                     placeholder="Digite seu usuário"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
@@ -187,7 +187,7 @@ export default function Login() {
               <div>
                 <label
                   htmlFor="senha"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-slate-700 mb-1"
                 >
                   Senha
                 </label>
@@ -196,7 +196,7 @@ export default function Login() {
                     id="senha"
                     type={mostrarSenha ? 'text' : 'password'}
                     required
-                    className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
+                    className="w-full pl-4 pr-12 py-3 border border-[var(--color-border-control)] rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
                     placeholder="Digite sua senha"
                     value={senha}
                     onChange={e => setSenha(e.target.value)}
@@ -212,7 +212,7 @@ export default function Login() {
                       mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'
                     }
                     aria-pressed={mostrarSenha}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-[var(--color-brand)] transition-colors"
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-[var(--color-brand)] transition-colors"
                   >
                     {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -254,8 +254,8 @@ export default function Login() {
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-              <p className="text-xs text-gray-400">
+            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+              <p className="text-xs text-slate-400">
                 Sistema de agendamento de tratamentos de enfermagem • Segurança
                 e confiabilidade
               </p>
