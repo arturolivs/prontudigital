@@ -253,16 +253,6 @@
   background: var(--color-white);
 }
 
-.campo-input--erro {
-  border-color: var(--color-error);
-  background: var(--color-error-bg);
-}
-
-.campo-input--erro:focus {
-  border-color: var(--color-error);
-  box-shadow: 0 0 0 3px rgba(var(--color-error-rgb), 0.12);
-}
-
 .campo-input--readonly {
   background: var(--color-bg-surface);
   color: var(--color-text-muted);
@@ -327,14 +317,6 @@
 .senha-forca-barra.fraca  + .senha-forca-rotulo { color: var(--color-error); }
 .senha-forca-barra.media  + .senha-forca-rotulo { color: var(--color-warning-dark); }
 .senha-forca-barra.forte  + .senha-forca-rotulo { color: var(--color-success-dark); }
-
-.campo-erro {
-  font-size: 0.75rem;
-  color: var(--color-error);
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
 
 .campo-hint {
   font-size: 0.75rem;

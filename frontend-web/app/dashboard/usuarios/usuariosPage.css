@@ -102,17 +102,17 @@
   color: var(--color-brand);
 }
 
-.perfil-role_admin {
+.perfil-admin {
   background-color: var(--color-bg-selected);
   color: var(--color-brand-dark);
 }
 
-.perfil-role_profissional {
+.perfil-profissional {
   background-color: var(--color-success-bg-alt);
   color: var(--color-success-text);
 }
 
-.perfil-role_paciente {
+.perfil-paciente {
   background-color: var(--color-error-bg-alt);
   color: var(--color-warning-strong);
 }

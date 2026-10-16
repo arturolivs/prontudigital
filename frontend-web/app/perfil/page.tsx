@@ -14,6 +14,7 @@ import {
   Camera,
 } from 'lucide-react'
 import Layout from '@/components/Layout/Layout'
+import CampoValidado from '@/components/CampoValidado'
 import { RotaProtegida } from '@/components/RotaProtegida'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotificacao } from '@/contexts/ToastContext'
@@ -30,10 +31,9 @@ import { Usuario } from '@/tipos/autenticacao'
 import './perfil.css'
 
 const PERFIS_ROTULO: Record<string, string> = {
-  ROLE_ADMIN: 'Administrador',
-  ROLE_PROFISSIONAL: 'Profissional',
-  ROLE_PACIENTE: 'Paciente',
-  USUARIO: 'Usuário',
+  ADMIN: 'Administrador',
+  PROFISSIONAL: 'Profissional',
+  PACIENTE: 'Paciente',
 }
 
 // Espelham TIPOS_AVATAR e TAMANHO_MAXIMO_AVATAR do UsuarioServiceImpl. A
@@ -448,44 +448,42 @@ export default function PerfilPage() {
                   <label htmlFor="nomeCompleto">
                     Nome Completo <span className="campo-obrigatorio">*</span>
                   </label>
-                  <div className="campo-icone-wrapper">
-                    <User size={16} className="campo-icone" />
-                    <input
-                      id="nomeCompleto"
-                      type="text"
-                      className={`campo-input com-icone${erros.nomeCompleto ? ' campo-input--erro' : ''}`}
-                      value={nomeCompleto}
-                      onChange={e => {
-                        setNomeCompleto(e.target.value)
-                        setErros(prev => ({ ...prev, nomeCompleto: '' }))
-                      }}
-                      placeholder="Seu nome completo"
-                    />
-                  </div>
-                  {erros.nomeCompleto && (
-                    <span className="campo-erro">{erros.nomeCompleto}</span>
-                  )}
+                  <CampoValidado erro={erros.nomeCompleto}>
+                    <div className="campo-icone-wrapper">
+                      <User size={16} className="campo-icone" />
+                      <input
+                        id="nomeCompleto"
+                        type="text"
+                        className="campo-input com-icone"
+                        value={nomeCompleto}
+                        onChange={e => {
+                          setNomeCompleto(e.target.value)
+                          setErros(prev => ({ ...prev, nomeCompleto: '' }))
+                        }}
+                        placeholder="Seu nome completo"
+                      />
+                    </div>
+                  </CampoValidado>
                 </div>
 
                 <div className="campo">
                   <label htmlFor="email">Email</label>
-                  <div className="campo-icone-wrapper">
-                    <Mail size={16} className="campo-icone" />
-                    <input
-                      id="email"
-                      type="email"
-                      className={`campo-input com-icone${erros.email ? ' campo-input--erro' : ''}`}
-                      value={email}
-                      onChange={e => {
-                        setEmail(e.target.value)
-                        setErros(prev => ({ ...prev, email: '' }))
-                      }}
-                      placeholder="seu@email.com"
-                    />
-                  </div>
-                  {erros.email && (
-                    <span className="campo-erro">{erros.email}</span>
-                  )}
+                  <CampoValidado erro={erros.email}>
+                    <div className="campo-icone-wrapper">
+                      <Mail size={16} className="campo-icone" />
+                      <input
+                        id="email"
+                        type="email"
+                        className="campo-input com-icone"
+                        value={email}
+                        onChange={e => {
+                          setEmail(e.target.value)
+                          setErros(prev => ({ ...prev, email: '' }))
+                        }}
+                        placeholder="seu@email.com"
+                      />
+                    </div>
+                  </CampoValidado>
                 </div>
 
                 <div className="campo">
@@ -638,7 +636,7 @@ export default function PerfilPage() {
                           .slice(0, 2),
                       }))
                     }
-                    placeholder="SP"
+                    placeholder="PE"
                     maxLength={2}
                   />
                 </div>
@@ -713,70 +711,68 @@ export default function PerfilPage() {
               <div className="perfil-campos">
                 <div className="campo">
                   <label htmlFor="senhaAtual">Senha atual</label>
-                  <div className="campo-icone-wrapper">
-                    <Lock size={16} className="campo-icone" />
-                    <input
-                      id="senhaAtual"
-                      type={mostrarSenhas.atual ? 'text' : 'password'}
-                      className={`campo-input com-icone com-toggle${errosSenha.senhaAtual ? ' campo-input--erro' : ''}`}
-                      value={senhaAtual}
-                      onChange={e => {
-                        setSenhaAtual(e.target.value)
-                        setErrosSenha(prev => ({ ...prev, senhaAtual: '' }))
-                      }}
-                      placeholder="Digite sua senha atual"
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      className="campo-toggle-visibilidade"
-                      onClick={() => toggleVisibilidade('atual')}
-                      tabIndex={-1}
-                    >
-                      {mostrarSenhas.atual ? (
-                        <EyeOff size={16} />
-                      ) : (
-                        <Eye size={16} />
-                      )}
-                    </button>
-                  </div>
-                  {errosSenha.senhaAtual && (
-                    <span className="campo-erro">{errosSenha.senhaAtual}</span>
-                  )}
+                  <CampoValidado erro={errosSenha.senhaAtual} acaoDireita>
+                    <div className="campo-icone-wrapper">
+                      <Lock size={16} className="campo-icone" />
+                      <input
+                        id="senhaAtual"
+                        type={mostrarSenhas.atual ? 'text' : 'password'}
+                        className="campo-input com-icone com-toggle"
+                        value={senhaAtual}
+                        onChange={e => {
+                          setSenhaAtual(e.target.value)
+                          setErrosSenha(prev => ({ ...prev, senhaAtual: '' }))
+                        }}
+                        placeholder="Digite sua senha atual"
+                        autoComplete="current-password"
+                      />
+                      <button
+                        type="button"
+                        className="campo-toggle-visibilidade"
+                        onClick={() => toggleVisibilidade('atual')}
+                        tabIndex={-1}
+                      >
+                        {mostrarSenhas.atual ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </button>
+                    </div>
+                  </CampoValidado>
                 </div>
 
                 <div className="campo">
                   <label htmlFor="novaSenha">Nova senha</label>
-                  <div className="campo-icone-wrapper">
-                    <Lock size={16} className="campo-icone" />
-                    <input
-                      id="novaSenha"
-                      type={mostrarSenhas.nova ? 'text' : 'password'}
-                      className={`campo-input com-icone com-toggle${errosSenha.novaSenha ? ' campo-input--erro' : ''}`}
-                      value={novaSenha}
-                      onChange={e => {
-                        setNovaSenha(e.target.value)
-                        setErrosSenha(prev => ({ ...prev, novaSenha: '' }))
-                      }}
-                      placeholder="Mínimo de 6 caracteres"
-                      autoComplete="new-password"
-                    />
-                    <button
-                      type="button"
-                      className="campo-toggle-visibilidade"
-                      onClick={() => toggleVisibilidade('nova')}
-                      tabIndex={-1}
-                    >
-                      {mostrarSenhas.nova ? (
-                        <EyeOff size={16} />
-                      ) : (
-                        <Eye size={16} />
-                      )}
-                    </button>
-                  </div>
-                  {errosSenha.novaSenha && (
-                    <span className="campo-erro">{errosSenha.novaSenha}</span>
-                  )}
+                  <CampoValidado erro={errosSenha.novaSenha} acaoDireita>
+                    <div className="campo-icone-wrapper">
+                      <Lock size={16} className="campo-icone" />
+                      <input
+                        id="novaSenha"
+                        type={mostrarSenhas.nova ? 'text' : 'password'}
+                        className="campo-input com-icone com-toggle"
+                        value={novaSenha}
+                        onChange={e => {
+                          setNovaSenha(e.target.value)
+                          setErrosSenha(prev => ({ ...prev, novaSenha: '' }))
+                        }}
+                        placeholder="Mínimo de 6 caracteres"
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        className="campo-toggle-visibilidade"
+                        onClick={() => toggleVisibilidade('nova')}
+                        tabIndex={-1}
+                      >
+                        {mostrarSenhas.nova ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </button>
+                    </div>
+                  </CampoValidado>
                   {novaSenha && !errosSenha.novaSenha && (
                     <div className="senha-forca">
                       <div
@@ -795,38 +791,38 @@ export default function PerfilPage() {
 
                 <div className="campo">
                   <label htmlFor="confirmarSenha">Confirmar nova senha</label>
-                  <div className="campo-icone-wrapper">
-                    <Lock size={16} className="campo-icone" />
-                    <input
-                      id="confirmarSenha"
-                      type={mostrarSenhas.confirmar ? 'text' : 'password'}
-                      className={`campo-input com-icone com-toggle${errosSenha.confirmarSenha ? ' campo-input--erro' : ''}`}
-                      value={confirmarSenha}
-                      onChange={e => {
-                        setConfirmarSenha(e.target.value)
-                        setErrosSenha(prev => ({ ...prev, confirmarSenha: '' }))
-                      }}
-                      placeholder="Repita a nova senha"
-                      autoComplete="new-password"
-                    />
-                    <button
-                      type="button"
-                      className="campo-toggle-visibilidade"
-                      onClick={() => toggleVisibilidade('confirmar')}
-                      tabIndex={-1}
-                    >
-                      {mostrarSenhas.confirmar ? (
-                        <EyeOff size={16} />
-                      ) : (
-                        <Eye size={16} />
-                      )}
-                    </button>
-                  </div>
-                  {errosSenha.confirmarSenha && (
-                    <span className="campo-erro">
-                      {errosSenha.confirmarSenha}
-                    </span>
-                  )}
+                  <CampoValidado erro={errosSenha.confirmarSenha} acaoDireita>
+                    <div className="campo-icone-wrapper">
+                      <Lock size={16} className="campo-icone" />
+                      <input
+                        id="confirmarSenha"
+                        type={mostrarSenhas.confirmar ? 'text' : 'password'}
+                        className="campo-input com-icone com-toggle"
+                        value={confirmarSenha}
+                        onChange={e => {
+                          setConfirmarSenha(e.target.value)
+                          setErrosSenha(prev => ({
+                            ...prev,
+                            confirmarSenha: '',
+                          }))
+                        }}
+                        placeholder="Repita a nova senha"
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        className="campo-toggle-visibilidade"
+                        onClick={() => toggleVisibilidade('confirmar')}
+                        tabIndex={-1}
+                      >
+                        {mostrarSenhas.confirmar ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </button>
+                    </div>
+                  </CampoValidado>
                 </div>
               </div>
 

@@ -131,7 +131,6 @@ const AuthProviderContent = ({ children }: AuthProviderProps) => {
         [PERFIS.ADMIN]: '/dashboard',
         [PERFIS.PROFISSIONAL]: '/agenda',
         [PERFIS.PACIENTE]: '/minha-agenda',
-        [PERFIS.USUARIO]: '/agenda',
       }
 
       router.push(mapaRedirecionamento[perfilPrincipal] || '/agenda')

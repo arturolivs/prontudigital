@@ -3,6 +3,7 @@
 
 import { useState, FormEvent } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import CampoValidado from '@/components/CampoValidado'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNotificacao } from '../../contexts/ToastContext'
 import { MENSAGENS, mensagemErro } from '@/lib/mensagens'
@@ -169,16 +170,18 @@ export default function Login() {
                 >
                   Usuário
                 </label>
-                <input
-                  id="username"
-                  type="text"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
-                  placeholder="Digite seu usuário"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  autoComplete="username"
-                />
+                <CampoValidado>
+                  <input
+                    id="username"
+                    type="text"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-light)] focus:border-[var(--color-brand-light)] transition-all outline-none"
+                    placeholder="Digite seu usuário"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    autoComplete="username"
+                  />
+                </CampoValidado>
               </div>
 
               <div>
@@ -188,7 +191,7 @@ export default function Login() {
                 >
                   Senha
                 </label>
-                <div className="relative">
+                <CampoValidado acaoDireita>
                   <input
                     id="senha"
                     type={mostrarSenha ? 'text' : 'password'}
@@ -209,11 +212,11 @@ export default function Login() {
                       mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'
                     }
                     aria-pressed={mostrarSenha}
-                    className="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 hover:text-[var(--color-brand)] transition-colors"
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-[var(--color-brand)] transition-colors"
                   >
                     {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
-                </div>
+                </CampoValidado>
               </div>
 
               <button

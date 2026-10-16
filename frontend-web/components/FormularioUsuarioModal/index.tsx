@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Usuario } from '@/tipos/autenticacao'
 import Modal from '@/components/Modal'
+import CampoValidado from '@/components/CampoValidado'
 import {
   mascaraCEP,
   mascaraCPF,
@@ -12,10 +13,9 @@ import {
 import './FormularioUsuarioModal.style.css'
 
 const OPCOES_PERFIL = [
-  { label: 'Administrador', value: 'ROLE_ADMIN' },
-  { label: 'Enfermeiro', value: 'ROLE_PROFISSIONAL' },
-  { label: 'Usuário', value: 'USUARIO' },
-  { label: 'Paciente', value: 'ROLE_PACIENTE' },
+  { label: 'Administrador', value: 'ADMIN' },
+  { label: 'Enfermeiro', value: 'PROFISSIONAL' },
+  { label: 'Paciente', value: 'PACIENTE' },
 ]
 
 // ── Combobox multi-seleção de perfis ─────────────────────────────────────────
@@ -152,7 +152,7 @@ export default function FormularioUsuarioModal({
     telefone: mascaraTelefone(user?.telefone ?? ''),
     senha: '',
     ativo: user?.ativo !== undefined ? user.ativo : true,
-    perfis: user?.perfis ?? ['USUARIO'],
+    perfis: user?.perfis ?? ['PACIENTE'],
     // RF04 — dados do paciente
     cpf: mascaraCPF(user?.cpf ?? ''),
     dataNascimento: user?.dataNascimento ?? '',
@@ -249,29 +249,33 @@ export default function FormularioUsuarioModal({
       <form id="uf-form" onSubmit={handleSubmit} className="uf-form">
         <div className="uf-grupo">
           <label className="uf-label">Nome Completo</label>
-          <input
-            type="text"
-            value={formData.nomeCompleto}
-            onChange={set('nomeCompleto')}
-            className="uf-input"
-            placeholder="Nome completo do usuário"
-            required
-            autoFocus
-          />
+          <CampoValidado>
+            <input
+              type="text"
+              value={formData.nomeCompleto}
+              onChange={set('nomeCompleto')}
+              className="uf-input"
+              placeholder="Nome completo do usuário"
+              required
+              autoFocus
+            />
+          </CampoValidado>
         </div>
 
         <div className="uf-linha-dupla">
           <div className="uf-grupo">
             <label className="uf-label">Username</label>
-            <input
-              type="text"
-              value={formData.username}
-              onChange={set('username')}
-              className="uf-input"
-              placeholder="nome.usuario"
-              required
-              autoComplete="off"
-            />
+            <CampoValidado>
+              <input
+                type="text"
+                value={formData.username}
+                onChange={set('username')}
+                className="uf-input"
+                placeholder="nome.usuario"
+                required
+                autoComplete="off"
+              />
+            </CampoValidado>
           </div>
           <div className="uf-grupo">
             <label className="uf-label">
@@ -280,31 +284,37 @@ export default function FormularioUsuarioModal({
                 <span className="uf-label-opcional">(opcional)</span>
               )}
             </label>
-            <input
-              type="password"
-              value={formData.senha}
-              onChange={set('senha')}
-              className="uf-input"
-              placeholder={
-                editando ? 'Deixe em branco para manter' : 'Mínimo 8 caracteres'
-              }
-              required={!editando}
-              minLength={!editando ? 8 : undefined}
-              autoComplete="new-password"
-            />
+            <CampoValidado>
+              <input
+                type="password"
+                value={formData.senha}
+                onChange={set('senha')}
+                className="uf-input"
+                placeholder={
+                  editando
+                    ? 'Deixe em branco para manter'
+                    : 'Mínimo 8 caracteres'
+                }
+                required={!editando}
+                minLength={!editando ? 8 : undefined}
+                autoComplete="new-password"
+              />
+            </CampoValidado>
           </div>
         </div>
 
         <div className="uf-grupo">
           <label className="uf-label">Email</label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={set('email')}
-            className="uf-input"
-            placeholder="usuario@exemplo.com"
-            required
-          />
+          <CampoValidado>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={set('email')}
+              className="uf-input"
+              placeholder="usuario@exemplo.com"
+              required
+            />
+          </CampoValidado>
         </div>
 
         <div className="uf-linha-dupla">
