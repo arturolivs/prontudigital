@@ -224,11 +224,11 @@ export default function UsuariosPage() {
                         key={perfil}
                         className={`perfil-badge perfil-${perfil.toLowerCase()}`}
                       >
-                        {perfil === 'ROLE_ADMIN'
+                        {perfil === 'ADMIN'
                           ? 'Admin'
-                          : perfil === 'ROLE_PROFISSIONAL'
+                          : perfil === 'PROFISSIONAL'
                             ? 'Profissional'
-                            : perfil === 'ROLE_PACIENTE'
+                            : perfil === 'PACIENTE'
                               ? 'Paciente'
                               : perfil}
                       </span>

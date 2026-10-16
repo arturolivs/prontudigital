@@ -29,7 +29,7 @@
 .mna-textarea {
   width: 100%;
   padding: 0.55rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   font-family: inherit;
@@ -76,7 +76,7 @@
 .mna-opcao-btn {
   flex: 1;
   padding: 0.55rem 0.75rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -106,7 +106,7 @@
   padding: 0.6rem 1.1rem;
   background: var(--color-white);
   color: var(--color-text-secondary);
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.6rem;
   font-size: 0.875rem;
   font-weight: 500;

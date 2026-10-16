@@ -14,7 +14,7 @@
 .sac-input {
   width: 100%;
   padding: 0.55rem 2.25rem 0.55rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   font-family: inherit;
@@ -60,7 +60,7 @@
 
 .sac-lista {
   background: var(--color-white);
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   box-shadow: 0 8px 24px rgba(var(--color-shadow-rgb), 0.12);
   max-height: 220px;

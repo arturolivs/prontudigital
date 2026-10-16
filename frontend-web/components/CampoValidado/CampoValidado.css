@@ -1,0 +1,61 @@
+/* ===== CAMPO VALIDADO =====
+   Erro de campo no padrão do sistema: mensagem entre label e campo,
+   borda vermelha e ícone de alerta à direita, dentro do campo.
+
+   Os seletores de erro usam duas classes + elemento (0,2,1) para vencer
+   os estilos de foco das páginas (.uf-input:focus, .campo-input:focus —
+   0,2,0) sem !important. Utilitários do Tailwind ficam em @layer e já
+   perdem para CSS fora de camada. */
+
+.campo-validado {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.campo-validado-mensagem {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-error);
+}
+
+.campo-validado-controle {
+  position: relative;
+}
+
+.campo-validado-icone {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  color: var(--color-error);
+  pointer-events: none;
+}
+
+/* Botão à direita (mostrar senha): o ícone fica à esquerda dele. */
+.campo-validado--com-acao .campo-validado-icone {
+  right: 2.75rem;
+}
+
+/* Select já tem a seta à direita. */
+.campo-validado-controle:has(select) .campo-validado-icone {
+  right: 2.25rem;
+}
+
+.campo-validado.campo-validado--erro :is(input, select, textarea) {
+  border-color: var(--color-error);
+  padding-right: 2.25rem;
+}
+
+.campo-validado--erro.campo-validado--com-acao :is(input, select, textarea) {
+  padding-right: 4.5rem;
+}
+
+.campo-validado.campo-validado--erro :is(input, select, textarea):focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(var(--color-error-rgb), 0.15);
+  outline: none;
+}

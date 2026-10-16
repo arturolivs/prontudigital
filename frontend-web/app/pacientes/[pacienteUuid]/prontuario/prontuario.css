@@ -58,7 +58,7 @@
 .pront-tab {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;

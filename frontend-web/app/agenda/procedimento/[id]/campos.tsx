@@ -1,6 +1,9 @@
 'use client'
 
-import { useId } from 'react'
+import { createContext, useContext, useId } from 'react'
+import { AlertCircle } from 'lucide-react'
+import { MENSAGENS } from '@/lib/mensagens'
+import { EstadoValidacao } from './validacao'
 
 // Campos reutilizados pelas fichas preenchidas durante a consulta
 // (Anamnese, Evolução de Enfermagem e Evolução Diária – Curativos).
@@ -17,18 +20,70 @@ export function BloqueadoTag() {
   )
 }
 
+// ── Obrigatoriedade ──────────────────────────────────────────────
+//
+// Cada ficha envolve seus campos em <ValidacaoFicha> com o estado
+// calculado a partir das regras de validacao.ts. O campo se identifica
+// pela prop `campo` (a chave do formulário) e, a partir dela, mostra o
+// asterisco de obrigatório e o erro de pendência — sem que cada ficha
+// precise repassar `obrigatorio`/`erro` campo a campo.
+
+const SEM_VALIDACAO: EstadoValidacao = {
+  obrigatorios: new Set(),
+  pendentes: new Set(),
+}
+
+const ContextoValidacao = createContext<EstadoValidacao>(SEM_VALIDACAO)
+
+export function ValidacaoFicha({
+  estado,
+  children,
+}: {
+  estado: EstadoValidacao
+  children: React.ReactNode
+}) {
+  return (
+    <ContextoValidacao.Provider value={estado}>
+      {children}
+    </ContextoValidacao.Provider>
+  )
+}
+
 export function Campo({
   label,
   children,
   className = '',
+  campo,
 }: {
   label: string
   children: React.ReactNode
   className?: string
+  /** Chave do formulário; liga o campo às regras de obrigatoriedade. */
+  campo?: string
 }) {
+  const { obrigatorios, pendentes } = useContext(ContextoValidacao)
+  const obrigatorio = campo !== undefined && obrigatorios.has(campo)
+  const pendente = campo !== undefined && pendentes.has(campo)
+
   return (
-    <div className={`proc-campo ${className}`}>
-      <label className="proc-campo-label">{label}</label>
+    <div
+      className={`proc-campo${pendente ? ' proc-campo--erro' : ''} ${className}`}
+    >
+      <label className="proc-campo-label">
+        {label}
+        {obrigatorio && (
+          <span className="proc-campo-obrigatorio" title="Obrigatório">
+            {' '}
+            *<span className="sr-only">(obrigatório)</span>
+          </span>
+        )}
+      </label>
+      {pendente && (
+        <p className="proc-campo-erro">
+          <AlertCircle size={13} aria-hidden="true" />
+          {MENSAGENS.validacao.campoObrigatorio}
+        </p>
+      )}
       {children}
     </div>
   )
@@ -65,15 +120,17 @@ export function CampoSelect<T extends string>({
   valor,
   onChange,
   disabled,
+  campo,
 }: {
   label: string
   opcoes: { value: T; label: string }[]
   valor: string
   onChange: (e: MudancaCampo) => void
   disabled?: boolean
+  campo?: string
 }) {
   return (
-    <Campo label={label}>
+    <Campo label={label} campo={campo}>
       <select
         className="proc-campo-select"
         value={valor}
@@ -107,6 +164,7 @@ export function CampoTexto({
   tipo = 'text',
   maxLength,
   max,
+  campo,
 }: {
   label: string
   valor: string
@@ -117,9 +175,10 @@ export function CampoTexto({
   maxLength?: number
   /** Limite superior; em `tipo="date"` use `hojeISO()` para barrar datas futuras. */
   max?: string
+  campo?: string
 }) {
   return (
-    <Campo label={label}>
+    <Campo label={label} campo={campo}>
       <input
         className="proc-campo-input"
         type={tipo}
@@ -163,6 +222,7 @@ export function CampoEscala({
   disabled,
   min = 0,
   max = 10,
+  campo,
 }: {
   label: string
   valor: string
@@ -171,10 +231,11 @@ export function CampoEscala({
   disabled?: boolean
   min?: number
   max?: number
+  campo?: string
 }) {
   const informado = valor.trim() !== ''
   return (
-    <Campo label={label}>
+    <Campo label={label} campo={campo}>
       <div className="proc-escala">
         <input
           className="proc-escala-slider"
@@ -218,6 +279,7 @@ export function CampoNumero({
   max,
   step = '0.1',
   placeholder = '0',
+  campo,
 }: {
   label: string
   valor: string
@@ -227,9 +289,10 @@ export function CampoNumero({
   max?: string
   step?: string
   placeholder?: string
+  campo?: string
 }) {
   return (
-    <Campo label={label}>
+    <Campo label={label} campo={campo}>
       <input
         className="proc-campo-input"
         type="number"
@@ -254,6 +317,7 @@ export function CampoTextarea({
   placeholder,
   rows = 3,
   maxLength,
+  campo,
 }: {
   label: string
   valor: string
@@ -262,9 +326,10 @@ export function CampoTextarea({
   placeholder?: string
   rows?: number
   maxLength?: number
+  campo?: string
 }) {
   return (
-    <Campo label={label}>
+    <Campo label={label} campo={campo}>
       <textarea
         className="proc-campo-textarea"
         value={valor}
@@ -291,6 +356,7 @@ export function CampoSimNao({
   detalhe,
   onDetalheChange,
   detalhePlaceholder = 'Detalhe (opcional)',
+  campo,
 }: {
   label: string
   valor?: boolean
@@ -299,11 +365,11 @@ export function CampoSimNao({
   detalhe?: string
   onDetalheChange?: (e: MudancaCampo) => void
   detalhePlaceholder?: string
+  campo?: string
 }) {
   const nome = useId()
   return (
-    <div className="proc-campo">
-      <label className="proc-campo-label">{label}</label>
+    <Campo label={label} campo={campo}>
       <div className="proc-radio-grupo">
         <label className="proc-radio">
           <input
@@ -328,14 +394,14 @@ export function CampoSimNao({
       </div>
       {onDetalheChange && (
         <input
-          className="proc-campo-input"
+          className="proc-campo-input proc-campo-detalhe"
           value={detalhe ?? ''}
           onChange={onDetalheChange}
           disabled={disabled}
           placeholder={detalhePlaceholder}
         />
       )}
-    </div>
+    </Campo>
   )
 }
 
@@ -347,6 +413,7 @@ export function LinhaObservacao({
   disabled,
   placeholder,
   maxLength,
+  campo,
 }: {
   rotulo: string
   valor: string
@@ -354,9 +421,10 @@ export function LinhaObservacao({
   disabled?: boolean
   placeholder?: string
   maxLength?: number
+  campo?: string
 }) {
   return (
-    <Campo label={rotulo}>
+    <Campo label={rotulo} campo={campo}>
       <input
         className="proc-campo-input"
         value={valor}

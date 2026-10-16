@@ -64,7 +64,7 @@ public record UsuarioDTO(
         @Schema(description = "Indica se o usuário possui acesso ao sistema configurado")
         Boolean acessoAtivado,
 
-        @Schema(description = "Perfis atribuídos ao usuário", example = "[\"USUARIO\"]")
+        @Schema(description = "Perfis atribuídos ao usuário", example = "[\"PACIENTE\"]")
         Set<String> perfis,
 
         @Schema(description = "Data de criação do registro")

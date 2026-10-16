@@ -489,11 +489,11 @@ class UsuarioServiceImplTest {
             Usuario existente = usuarioComPerfil();
             EnderecoDTO endereco = EnderecoDTO.builder()
                     .cep("01310-100")
-                    .logradouro("  Avenida Paulista  ")
+                    .logradouro("  Av. Recife  ")
                     .numero("1578")
                     .bairro("Bela Vista")
                     .cidade("Sao Paulo")
-                    .uf("sp")
+                    .uf("pe")
                     .build();
             AtualizarPerfilRequestDTO dto = new AtualizarPerfilRequestDTO(
                     NOME, EMAIL, "11988887777",
@@ -507,8 +507,8 @@ class UsuarioServiceImplTest {
             assertEquals("52998224725", existente.getCpf());
             assertEquals(LocalDate.of(1985, 3, 27), existente.getDataNascimento());
             assertEquals("01310100", existente.getEndereco().getCep());
-            assertEquals("Avenida Paulista", existente.getEndereco().getLogradouro());
-            assertEquals("SP", existente.getEndereco().getUf());
+            assertEquals("Av. Recife", existente.getEndereco().getLogradouro());
+            assertEquals("PE", existente.getEndereco().getUf());
             assertEquals("52998224725", resultado.cpf());
         }
 

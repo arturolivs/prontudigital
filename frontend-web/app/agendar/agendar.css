@@ -176,7 +176,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.6rem 1.1rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.6rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -238,7 +238,7 @@
 
 .campo-input, .campo-select {
   padding: 0.65rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.9rem;
   color: var(--color-text-heading);
@@ -273,7 +273,7 @@
   align-items: center;
   gap: 0.875rem;
   padding: 0.875rem 1rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -361,7 +361,7 @@
 
 .slots-data-input {
   padding: 0.55rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   background: var(--color-bg-surface);
@@ -406,7 +406,7 @@
 
 .slot-btn {
   padding: 0.7rem 0.5rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.6rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -470,7 +470,7 @@
 
 .tipo-procedimento-btn {
   padding: 0.875rem 0.75rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.65rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -497,7 +497,8 @@
 /* ── Etapa 3: Identificação ── */
 .auth-tabs {
   display: flex;
-  background: var(--color-bg-surface);
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-border);
   border-radius: 0.65rem;
   padding: 0.25rem;
   margin-bottom: 1.5rem;
@@ -605,7 +606,7 @@
 .campo-obs textarea {
   width: 100%;
   padding: 0.65rem 0.875rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-border-control);
   border-radius: 0.55rem;
   font-size: 0.875rem;
   font-family: inherit;
