@@ -106,11 +106,20 @@ fi
 # Um dump que nao pode ser lido nao e backup. pg_restore --list nao
 # restaura nada: apenas le o indice, o que ja detecta truncamento e
 # corrupcao — as duas falhas mais comuns.
+#
+# O dump entra pelo stdin SEM nome de arquivo. Com `/dev/stdin` como
+# argumento, o pg_restore le o cabecalho para detectar o formato e
+# depois reabre o "arquivo" — num pipe, esses bytes ja foram consumidos
+# e ele acusa "did not find magic string in file header" em um dump
+# integro. Sem argumento, ele trata a entrada como stream e guarda o
+# cabecalho lido.
 log "Verificando integridade..."
 
-docker compose -f "$COMPOSE_FILE" exec -T postgres \
-    pg_restore --list /dev/stdin < "$ARQ_BANCO" > /dev/null 2>&1 \
-    || falhar "dump do banco esta corrompido ou truncado"
+if ! docker compose -f "$COMPOSE_FILE" exec -T postgres \
+        pg_restore --list < "$ARQ_BANCO" > /dev/null 2>/tmp/pg_restore_erro.log; then
+    erro "$(cat /tmp/pg_restore_erro.log)"
+    falhar "dump do banco esta corrompido ou truncado"
+fi
 
 tar tzf "$ARQ_ANEXOS" > /dev/null 2>&1 \
     || falhar "arquivo de anexos esta corrompido"

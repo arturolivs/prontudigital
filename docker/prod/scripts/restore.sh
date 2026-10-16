@@ -76,7 +76,7 @@ if [[ "$MODO" == "--teste" ]]; then
     psql_ -d postgres -c "CREATE DATABASE $BANCO_TESTE;" >/dev/null
 
     docker compose -f "$COMPOSE_FILE" exec -T postgres \
-        pg_restore -U "$POSTGRES_USER" -d "$BANCO_TESTE" --no-owner /dev/stdin \
+        pg_restore -U "$POSTGRES_USER" -d "$BANCO_TESTE" --no-owner \
         < "$ARQ_BANCO" >/dev/null 2>&1 \
         || fim "pg_restore falhou — o dump nao presta"
 
@@ -156,7 +156,7 @@ psql_ -d postgres -c "CREATE DATABASE $POSTGRES_DB OWNER $POSTGRES_USER;" >/dev/
 
 log "Restaurando dados..."
 docker compose -f "$COMPOSE_FILE" exec -T postgres \
-    pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner /dev/stdin \
+    pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner \
     < "$ARQ_BANCO" \
     || fim "pg_restore falhou — aplicacao segue PARADA; estado anterior em $SEGURANCA"
 
